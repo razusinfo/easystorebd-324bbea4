@@ -84,7 +84,7 @@ const dict = {
   name: { bn: "নাম", en: "Name" },
   phone: { bn: "ফোন", en: "Phone" },
   category: { bn: "ক্যাটাগরি", en: "Category" },
-  brand: { bn: "ব্র্যান্ড", en: "Brand" },
+  brandLabel: { bn: "ব্র্যান্ড", en: "Brand" },
   stock: { bn: "স্টক", en: "Stock" },
   sku: { bn: "এসকেইউ", en: "SKU" },
   warehouse: { bn: "ওয়্যারহাউস", en: "Warehouse" },
