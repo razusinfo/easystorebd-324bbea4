@@ -75,7 +75,7 @@ const dict = {
   checkout: { bn: "চেকআউট", en: "Checkout" },
   cart: { bn: "কার্ট", en: "Cart" },
   emptyCart: { bn: "কার্ট খালি — পণ্য যোগ করুন", en: "Cart is empty — add products" },
-  customer: { bn: "গ্রাহক", en: "Customer" },
+  customerLabel: { bn: "গ্রাহক", en: "Customer" },
   walkIn: { bn: "ওয়াক-ইন গ্রাহক", en: "Walk-in customer" },
   invoice: { bn: "ইনভয়েস", en: "Invoice" },
   print: { bn: "প্রিন্ট", en: "Print" },
