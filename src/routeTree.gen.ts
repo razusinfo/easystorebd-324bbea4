@@ -11,14 +11,21 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppWarrantyRouteImport } from './routes/_app.warranty'
 import { Route as AppSuppliersRouteImport } from './routes/_app.suppliers'
+import { Route as AppSuperAdminRouteImport } from './routes/_app.super-admin'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppSalesRouteImport } from './routes/_app.sales'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppPurchasesRouteImport } from './routes/_app.purchases'
 import { Route as AppPosRouteImport } from './routes/_app.pos'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
+import { Route as AppInstallmentsRouteImport } from './routes/_app.installments'
+import { Route as AppImeiRouteImport } from './routes/_app.imei'
+import { Route as AppEmployeesRouteImport } from './routes/_app.employees'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppCustomersRouteImport } from './routes/_app.customers'
+import { Route as AppAccountingRouteImport } from './routes/_app.accounting'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -29,9 +36,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppWarrantyRoute = AppWarrantyRouteImport.update({
+  id: '/warranty',
+  path: '/warranty',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSuppliersRoute = AppSuppliersRouteImport.update({
   id: '/suppliers',
   path: '/suppliers',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSuperAdminRoute = AppSuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSalesRoute = AppSalesRouteImport.update({
@@ -59,6 +81,21 @@ const AppInventoryRoute = AppInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInstallmentsRoute = AppInstallmentsRouteImport.update({
+  id: '/installments',
+  path: '/installments',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImeiRoute = AppImeiRouteImport.update({
+  id: '/imei',
+  path: '/imei',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEmployeesRoute = AppEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -69,77 +106,124 @@ const AppCustomersRoute = AppCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAccountingRoute = AppAccountingRouteImport.update({
+  id: '/accounting',
+  path: '/accounting',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accounting': typeof AppAccountingRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/employees': typeof AppEmployeesRoute
+  '/imei': typeof AppImeiRoute
+  '/installments': typeof AppInstallmentsRoute
   '/inventory': typeof AppInventoryRoute
   '/pos': typeof AppPosRoute
   '/purchases': typeof AppPurchasesRoute
   '/reports': typeof AppReportsRoute
   '/sales': typeof AppSalesRoute
+  '/settings': typeof AppSettingsRoute
+  '/super-admin': typeof AppSuperAdminRoute
   '/suppliers': typeof AppSuppliersRoute
+  '/warranty': typeof AppWarrantyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accounting': typeof AppAccountingRoute
   '/customers': typeof AppCustomersRoute
   '/dashboard': typeof AppDashboardRoute
+  '/employees': typeof AppEmployeesRoute
+  '/imei': typeof AppImeiRoute
+  '/installments': typeof AppInstallmentsRoute
   '/inventory': typeof AppInventoryRoute
   '/pos': typeof AppPosRoute
   '/purchases': typeof AppPurchasesRoute
   '/reports': typeof AppReportsRoute
   '/sales': typeof AppSalesRoute
+  '/settings': typeof AppSettingsRoute
+  '/super-admin': typeof AppSuperAdminRoute
   '/suppliers': typeof AppSuppliersRoute
+  '/warranty': typeof AppWarrantyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/_app/accounting': typeof AppAccountingRoute
   '/_app/customers': typeof AppCustomersRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/employees': typeof AppEmployeesRoute
+  '/_app/imei': typeof AppImeiRoute
+  '/_app/installments': typeof AppInstallmentsRoute
   '/_app/inventory': typeof AppInventoryRoute
   '/_app/pos': typeof AppPosRoute
   '/_app/purchases': typeof AppPurchasesRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/sales': typeof AppSalesRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/super-admin': typeof AppSuperAdminRoute
   '/_app/suppliers': typeof AppSuppliersRoute
+  '/_app/warranty': typeof AppWarrantyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accounting'
     | '/customers'
     | '/dashboard'
+    | '/employees'
+    | '/imei'
+    | '/installments'
     | '/inventory'
     | '/pos'
     | '/purchases'
     | '/reports'
     | '/sales'
+    | '/settings'
+    | '/super-admin'
     | '/suppliers'
+    | '/warranty'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/accounting'
     | '/customers'
     | '/dashboard'
+    | '/employees'
+    | '/imei'
+    | '/installments'
     | '/inventory'
     | '/pos'
     | '/purchases'
     | '/reports'
     | '/sales'
+    | '/settings'
+    | '/super-admin'
     | '/suppliers'
+    | '/warranty'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/_app/accounting'
     | '/_app/customers'
     | '/_app/dashboard'
+    | '/_app/employees'
+    | '/_app/imei'
+    | '/_app/installments'
     | '/_app/inventory'
     | '/_app/pos'
     | '/_app/purchases'
     | '/_app/reports'
     | '/_app/sales'
+    | '/_app/settings'
+    | '/_app/super-admin'
     | '/_app/suppliers'
+    | '/_app/warranty'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -163,11 +247,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/warranty': {
+      id: '/_app/warranty'
+      path: '/warranty'
+      fullPath: '/warranty'
+      preLoaderRoute: typeof AppWarrantyRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/suppliers': {
       id: '/_app/suppliers'
       path: '/suppliers'
       fullPath: '/suppliers'
       preLoaderRoute: typeof AppSuppliersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/super-admin': {
+      id: '/_app/super-admin'
+      path: '/super-admin'
+      fullPath: '/super-admin'
+      preLoaderRoute: typeof AppSuperAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/sales': {
@@ -205,6 +310,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/installments': {
+      id: '/_app/installments'
+      path: '/installments'
+      fullPath: '/installments'
+      preLoaderRoute: typeof AppInstallmentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/imei': {
+      id: '/_app/imei'
+      path: '/imei'
+      fullPath: '/imei'
+      preLoaderRoute: typeof AppImeiRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/employees': {
+      id: '/_app/employees'
+      path: '/employees'
+      fullPath: '/employees'
+      preLoaderRoute: typeof AppEmployeesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -219,29 +345,50 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/accounting': {
+      id: '/_app/accounting'
+      path: '/accounting'
+      fullPath: '/accounting'
+      preLoaderRoute: typeof AppAccountingRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAccountingRoute: typeof AppAccountingRoute
   AppCustomersRoute: typeof AppCustomersRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppEmployeesRoute: typeof AppEmployeesRoute
+  AppImeiRoute: typeof AppImeiRoute
+  AppInstallmentsRoute: typeof AppInstallmentsRoute
   AppInventoryRoute: typeof AppInventoryRoute
   AppPosRoute: typeof AppPosRoute
   AppPurchasesRoute: typeof AppPurchasesRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSalesRoute: typeof AppSalesRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppSuperAdminRoute: typeof AppSuperAdminRoute
   AppSuppliersRoute: typeof AppSuppliersRoute
+  AppWarrantyRoute: typeof AppWarrantyRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAccountingRoute: AppAccountingRoute,
   AppCustomersRoute: AppCustomersRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppEmployeesRoute: AppEmployeesRoute,
+  AppImeiRoute: AppImeiRoute,
+  AppInstallmentsRoute: AppInstallmentsRoute,
   AppInventoryRoute: AppInventoryRoute,
   AppPosRoute: AppPosRoute,
   AppPurchasesRoute: AppPurchasesRoute,
   AppReportsRoute: AppReportsRoute,
   AppSalesRoute: AppSalesRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppSuperAdminRoute: AppSuperAdminRoute,
   AppSuppliersRoute: AppSuppliersRoute,
+  AppWarrantyRoute: AppWarrantyRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
