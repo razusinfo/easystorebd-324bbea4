@@ -10,25 +10,12 @@ export function Footer() {
           <Heart className="h-4 w-4 text-accent fill-accent" />
           <span>
             {t("madeBy")}{" "}
-            <a
-              href="https://www.softwarepointbd.com/"
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold text-foreground hover:text-primary transition"
-            >
-              Software Point
-            </a>
+            <span className="font-semibold text-foreground">
+              {t("makerName")}
+            </span>
           </span>
-          <span className="hidden sm:inline text-muted-foreground/50">•</span>
-          <a
-            href="https://www.softwarepointbd.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden sm:inline text-muted-foreground hover:text-primary transition"
-          >
-            softwarepointbd.com
-          </a>
         </div>
+
         <a
           href="tel:01724561670"
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm shadow-md hover:shadow-glow transition"
