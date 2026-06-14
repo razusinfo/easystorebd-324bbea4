@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Lock, ArrowRight, Sparkles, Phone, ShieldCheck, Zap } from "lucide-react";
+import { Mail, Lock, ArrowRight, Sparkles, Phone, ShieldCheck, Zap, User } from "lucide-react";
+import { z } from "zod";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
-import { defaultSession, setSession, getSession } from "@/lib/session";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,21 +16,74 @@ export const Route = createFileRoute("/")({
   component: LoginPage,
 });
 
+const signInSchema = z.object({
+  email: z.string().trim().email("Invalid email").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters").max(128),
+});
+
+const signUpSchema = signInSchema.extend({
+  name: z.string().trim().min(1, "Name required").max(80),
+});
+
 function LoginPage() {
   const { t, lang, setLang } = useI18n();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("demo@bongoinventory.bd");
-  const [password, setPassword] = useState("••••••••");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (getSession()) navigate({ to: "/dashboard" });
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && data.session) navigate({ to: "/dashboard" });
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (s) navigate({ to: "/dashboard" });
+    });
+    return () => { cancelled = true; sub.subscription.unsubscribe(); };
   }, [navigate]);
 
-  const handleLogin = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    setSession({ ...defaultSession, email });
-    navigate({ to: "/dashboard" });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const schema = mode === "signup" ? signUpSchema : signInSchema;
+    const parsed = schema.safeParse({ email, password, name });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const redirectTo = `${window.location.origin}/dashboard`;
+        const { error: err } = await supabase.auth.signUp({
+          email: parsed.data.email,
+          password: parsed.data.password,
+          options: {
+            emailRedirectTo: redirectTo,
+            data: { name: (parsed.data as unknown as { name: string }).name },
+          },
+        });
+        if (err) throw err;
+      } else {
+        const { error: err } = await supabase.auth.signInWithPassword({
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
+        if (err) throw err;
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Authentication failed";
+      setError(msg);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -50,7 +104,7 @@ function LoginPage() {
             </div>
             <div>
               <div className="font-display text-xl font-black">Bongo Inventory</div>
-              <div className="text-xs text-white/70">by Software Point</div>
+              <div className="text-xs text-white/70">by Nusrat Telecom</div>
             </div>
           </div>
         </div>
@@ -71,11 +125,11 @@ function LoginPage() {
 
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: Zap, label: "Lightning POS", bn: "দ্রুত POS" },
-              { icon: ShieldCheck, label: "Secure Cloud", bn: "নিরাপদ ক্লাউড" },
-              { icon: Sparkles, label: "AI Insights", bn: "এআই ইনসাইট" },
-            ].map((f) => (
-              <div key={f.label} className="rounded-xl bg-white/10 border border-white/15 backdrop-blur p-3">
+              { icon: Zap, bn: "দ্রুত POS" },
+              { icon: ShieldCheck, bn: "নিরাপদ ক্লাউড" },
+              { icon: Sparkles, bn: "এআই ইনসাইট" },
+            ].map((f, i) => (
+              <div key={i} className="rounded-xl bg-white/10 border border-white/15 backdrop-blur p-3">
                 <f.icon className="h-5 w-5 mb-2" />
                 <div className="text-xs font-semibold">{f.bn}</div>
               </div>
@@ -85,9 +139,9 @@ function LoginPage() {
 
         <div className="relative text-xs text-white/60 flex items-center gap-2">
           <Phone className="h-3.5 w-3.5" />
-          <a href="https://www.softwarepointbd.com/" target="_blank" rel="noreferrer" className="hover:text-white">softwarepointbd.com</a>
+          <span>Nusrat Telecom</span>
           <span>•</span>
-          <a href="tel:01724561670" className="hover:text-white">Hotline 01724-561670</a>
+          <a href="tel:01719220690" className="hover:text-white">Hotline 01719-220690</a>
         </div>
       </div>
 
@@ -117,16 +171,37 @@ function LoginPage() {
             </div>
             <div>
               <div className="font-display text-xl font-black">Bongo Inventory</div>
-              <div className="text-xs text-muted-foreground">by Software Point</div>
+              <div className="text-xs text-muted-foreground">by Nusrat Telecom</div>
             </div>
           </div>
 
           <div>
-            <h2 className="font-display text-3xl font-black">{t("welcomeBack")}</h2>
+            <h2 className="font-display text-3xl font-black">
+              {mode === "signup" ? (lang === "bn" ? "অ্যাকাউন্ট তৈরি করুন" : "Create account") : t("welcomeBack")}
+            </h2>
             <p className="text-sm text-muted-foreground mt-1">{t("signInToContinue")}</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "signup" && (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {lang === "bn" ? "নাম" : "Name"}
+                </label>
+                <div className="relative mt-1.5">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    maxLength={80}
+                    autoComplete="name"
+                    className="w-full h-12 pl-10 pr-3 rounded-xl bg-muted/40 border border-border focus:border-ring focus:bg-card outline-none transition"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("email")}</label>
               <div className="relative mt-1.5">
@@ -135,6 +210,9 @@ function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  maxLength={255}
+                  autoComplete="email"
+                  required
                   className="w-full h-12 pl-10 pr-3 rounded-xl bg-muted/40 border border-border focus:border-ring focus:bg-card outline-none transition"
                 />
               </div>
@@ -148,34 +226,48 @@ function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  minLength={6}
+                  maxLength={128}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  required
                   className="w-full h-12 pl-10 pr-3 rounded-xl bg-muted/40 border border-border focus:border-ring focus:bg-card outline-none transition"
                 />
               </div>
             </div>
 
+            {error && (
+              <div className="text-sm rounded-lg bg-destructive/10 text-destructive px-3 py-2 border border-destructive/20">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-bold shadow-md hover:shadow-glow transition flex items-center justify-center gap-2"
+              disabled={busy}
+              className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-bold shadow-md hover:shadow-glow transition flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {t("signIn")}
+              {busy
+                ? (lang === "bn" ? "অপেক্ষা করুন..." : "Please wait...")
+                : mode === "signup" ? (lang === "bn" ? "সাইন আপ করুন" : "Sign Up") : t("signIn")}
               <ArrowRight className="h-4 w-4" />
             </button>
 
             <button
               type="button"
-              onClick={() => handleLogin()}
+              onClick={() => { setError(null); setMode(mode === "signup" ? "signin" : "signup"); }}
               className="w-full h-11 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 text-sm font-semibold transition flex items-center justify-center gap-2"
             >
-              <Sparkles className="h-4 w-4" />
-              {t("demoLogin")}
+              {mode === "signup"
+                ? (lang === "bn" ? "আগে থেকেই অ্যাকাউন্ট আছে? সাইন ইন করুন" : "Already have an account? Sign In")
+                : (lang === "bn" ? "নতুন অ্যাকাউন্ট তৈরি করুন" : "Create a new account")}
             </button>
           </form>
 
           <p className="text-center text-xs text-muted-foreground">
             {t("madeBy")}{" "}
-            <Link to="/" className="font-semibold text-foreground hover:text-primary">Software Point</Link>
+            <Link to="/" className="font-semibold text-foreground hover:text-primary">Nusrat Telecom</Link>
             {" "}•{" "}
-            <a href="tel:01724561670" className="hover:text-primary">01724-561670</a>
+            <a href="tel:01719220690" className="hover:text-primary">01719-220690</a>
           </p>
         </div>
       </div>

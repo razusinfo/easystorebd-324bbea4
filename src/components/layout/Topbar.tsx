@@ -2,7 +2,7 @@ import { Bell, Moon, Sun, Search, LogOut, Globe } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
-import { useSession, setSession } from "@/lib/session";
+import { useSession, signOut } from "@/lib/session";
 import { roleLabels } from "@/lib/mock-data";
 import { MobileMenuButton } from "./Sidebar";
 
@@ -12,8 +12,8 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const session = useSession();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    setSession(null);
+  const handleLogout = async () => {
+    await signOut();
     navigate({ to: "/" });
   };
 
