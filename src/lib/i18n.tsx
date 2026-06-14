@@ -95,7 +95,8 @@ const dict = {
     bn: "এই মডিউলটি পরবর্তী আপডেটে যুক্ত হবে।",
     en: "This module will be available in the next update.",
   },
-  madeBy: { bn: "তৈরি করেছেন", en: "Made by" },
+  madeBy: { bn: "এই সফটওয়্যার প্রস্তুতকারক:", en: "Software developed by:" },
+  makerName: { bn: "নুসরাত টেলিকম", en: "Nusrat Telecom" },
   hotline: { bn: "হটলাইন", en: "Hotline" },
 };
 
