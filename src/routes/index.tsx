@@ -67,7 +67,7 @@ function LoginPage() {
           password: parsed.data.password,
           options: {
             emailRedirectTo: redirectTo,
-            data: { name: (parsed.data as { name: string }).name },
+            data: { name: (parsed.data as unknown as { name: string }).name },
           },
         });
         if (err) throw err;
