@@ -17,12 +17,13 @@ export function Footer() {
         </div>
 
         <a
-          href="tel:01724561670"
+          href="tel:01719220690"
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg gradient-primary text-primary-foreground font-semibold text-sm shadow-md hover:shadow-glow transition"
         >
           <Phone className="h-4 w-4" />
-          <span>{t("hotline")}: {lang === "bn" ? "০১৭২৪-৫৬১৬৭০" : "01724-561670"}</span>
+          <span>{t("hotline")}: {lang === "bn" ? "০১৭১৯-২২০৬৯০" : "01719-220690"}</span>
         </a>
+
       </div>
     </footer>
   );
