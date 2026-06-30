@@ -66,7 +66,7 @@ export function useMyStore(opts?: Partial<UseQueryOptions<StoreRow | null>>) {
     queryFn: async (): Promise<StoreRow | null> => {
       const { data, error } = await supabase
         .from("stores")
-        .select("id, owner_user_id, name, category, template, created_at")
+        .select("*")
         .maybeSingle();
       if (error) throw error;
       return (data as StoreRow | null) ?? null;
@@ -115,7 +115,7 @@ export function useAdminStores() {
     queryFn: async (): Promise<StoreRow[]> => {
       const { data, error } = await supabase
         .from("stores")
-        .select("id, owner_user_id, name, category, template, created_at")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as StoreRow[];
