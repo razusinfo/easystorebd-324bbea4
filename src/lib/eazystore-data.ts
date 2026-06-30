@@ -14,6 +14,30 @@ export type StoreRow = {
   category: Category;
   template: TemplateId;
   created_at: string;
+  logo_url: string | null;
+  tagline: string | null;
+  address: string | null;
+  phone: string | null;
+  contact_email: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  whatsapp_number: string | null;
+  website_url: string | null;
+};
+
+export type StoreSettings = {
+  name: string;
+  category: Category;
+  template: TemplateId;
+  logo_url?: string | null;
+  tagline?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  contact_email?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  whatsapp_number?: string | null;
+  website_url?: string | null;
 };
 
 export type ProductRow = {
@@ -42,7 +66,7 @@ export function useMyStore(opts?: Partial<UseQueryOptions<StoreRow | null>>) {
     queryFn: async (): Promise<StoreRow | null> => {
       const { data, error } = await supabase
         .from("stores")
-        .select("id, owner_user_id, name, category, template, created_at")
+        .select("*")
         .maybeSingle();
       if (error) throw error;
       return (data as StoreRow | null) ?? null;
@@ -91,7 +115,7 @@ export function useAdminStores() {
     queryFn: async (): Promise<StoreRow[]> => {
       const { data, error } = await supabase
         .from("stores")
-        .select("id, owner_user_id, name, category, template, created_at")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as StoreRow[];
@@ -141,11 +165,12 @@ export function useCreateStore() {
 export function useUpdateStore() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id: string; name: string; category: Category; template: TemplateId }) => {
+    mutationFn: async (input: { id: string } & Partial<StoreSettings>) => {
+      const { id, ...patch } = input;
       const { data, error } = await supabase
         .from("stores")
-        .update({ name: input.name, category: input.category, template: input.template })
-        .eq("id", input.id)
+        .update(patch)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
@@ -153,6 +178,40 @@ export function useUpdateStore() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
   });
+}
+
+// Resolve a logo storage path (e.g. "<uid>/logo.png") to a signed URL.
+export function useLogoSignedUrl(path: string | null | undefined) {
+  return useQuery({
+    queryKey: ["logo-signed-url", path],
+    enabled: !!path,
+    staleTime: 1000 * 60 * 30,
+    queryFn: async (): Promise<string | null> => {
+      if (!path) return null;
+      const { data, error } = await supabase.storage
+        .from("store-logos")
+        .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
+      if (error) throw error;
+      return data?.signedUrl ?? null;
+    },
+  });
+}
+
+export async function uploadStoreLogo(file: File): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  const path = `${user.id}/logo-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("store-logos")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return path;
+}
+
+export async function deleteStoreLogo(path: string): Promise<void> {
+  if (!path) return;
+  await supabase.storage.from("store-logos").remove([path]);
 }
 
 export function useUpsertProduct(storeId: string | undefined) {
