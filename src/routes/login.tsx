@@ -365,6 +365,11 @@ function LoginPage() {
                 <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
               )}
 
+              <p className="rounded-xl bg-purple-50/70 px-3 py-2 text-xs leading-relaxed text-slate-600">
+                Signed up with Google? You can keep using <span className="font-semibold">Continue with Google</span>, or tap{" "}
+                <span className="font-semibold">Forgot password?</span> to set a password and then sign in with email + password.
+              </p>
+
               <button
                 type="submit"
                 disabled={busy || oauthBusy}
