@@ -17,7 +17,7 @@ function Landing() {
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Top hero band with soft blue gradient */}
-      <div className="relative overflow-hidden bg-[linear-gradient(180deg,#eef2ff_0%,#dbe6ff_55%,#eaf0ff_100%)]">
+      <div className="relative overflow-hidden bg-[linear-gradient(180deg,#f5eefe_0%,#e4d6fb_55%,#f1e8fe_100%)]">
         <div className="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.6),transparent_60%)]" />
 
         {/* Nav */}
