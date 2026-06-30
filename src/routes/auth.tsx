@@ -197,6 +197,9 @@ function AuthPage() {
   const isSignup = mode === "signup";
 
 
+  const sendOtpFn = useServerFn(sendPhoneOtp);
+  const verifyOtpFn = useServerFn(verifyPhoneOtp);
+
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -212,16 +215,12 @@ function AuthPage() {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: parsed.data,
-        options: {
-          shouldCreateUser: isSignup,
-          data: isSignup ? { full_name: fullName, name: fullName } : undefined,
-        },
+      await sendOtpFn({
+        data: { phone: parsed.data, fullName: isSignup ? fullName.trim() : undefined, isSignup },
       });
-      if (error) throw error;
       setPhone(parsed.data);
       setOtpSent(true);
+      setOtp("");
       setInfo(`We sent a verification code to ${parsed.data}.`);
     } catch (err) {
       setError(friendlyPhoneError(err instanceof Error ? err.message : "Could not send code"));
@@ -241,12 +240,19 @@ function AuthPage() {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone,
-        token: parsed.data,
-        type: "sms",
+      const result = await verifyOtpFn({
+        data: {
+          phone,
+          code: parsed.data,
+          fullName: isSignup ? fullName.trim() : undefined,
+          isSignup,
+        },
       });
-      if (error) throw error;
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        phone: result.phone,
+        password: result.password,
+      });
+      if (signInErr) throw signInErr;
       await routeAfterAuth();
     } catch (err) {
       setError(friendlyPhoneError(err instanceof Error ? err.message : "Could not verify code"));
@@ -257,12 +263,16 @@ function AuthPage() {
 
   function friendlyPhoneError(msg: string): string {
     const m = msg.toLowerCase();
-    if (m.includes("sms") && (m.includes("provider") || m.includes("not enabled") || m.includes("disabled")))
-      return "Phone sign-in is not enabled yet. Please ask the admin to configure an SMS provider, or use Email / Google for now.";
-    if (m.includes("invalid") && m.includes("token")) return "Wrong or expired code. Please request a new one.";
-    if (m.includes("rate")) return "Too many attempts. Please wait a minute and try again.";
+    if (m.includes("sms provider is not configured"))
+      return "Phone sign-in is not fully set up yet. Please use Email or Google for now.";
+    if (m.includes("already registered")) return "This phone number is already registered. Try signing in instead.";
+    if (m.includes("no account found")) return "No account found for this number. Switch to Sign Up to create one.";
+    if (m.includes("incorrect code")) return "Wrong code. Please check and try again.";
+    if (m.includes("expired")) return "This code has expired. Please request a new one.";
+    if (m.includes("too many")) return msg;
     return friendlyError(msg);
   }
+
 
 
 
