@@ -32,6 +32,7 @@ function ManageShop() {
   const myStore = useMyStore();
   const update = useUpdateStore();
   const publish = usePublishStore();
+  const changeSlug = useChangeSlug();
 
   const [name, setName] = useState("");
   const [tagline, setTagline] = useState("");
