@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe, Store as StoreIcon } from "lucide-react";
 import { TEMPLATES, usePublicStoreBySlug } from "@/lib/eazystore-data";
 
