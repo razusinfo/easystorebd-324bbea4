@@ -179,19 +179,38 @@ function ManageShop() {
 
   async function copyUrl() {
     if (!storeUrl) return;
-    try { await navigator.clipboard.writeText(`https://${storeUrl}`); } catch {}
+    try { await navigator.clipboard.writeText(storeUrl); } catch {}
   }
 
   async function onPublishAndView() {
     setError(null);
     setPublishing(true);
     try {
-      if (dirty && myStore.data && trimmed.length >= 2) {
-        await onSave();
+      if (!myStore.data) return;
+      if (trimmed.length < 2) {
+        setError("Store name must be at least 2 characters.");
+        return;
       }
-      setShowStorefront(true);
+      if (dirty) await onSave();
+      const published = await publish.mutateAsync({
+        id: myStore.data.id,
+        name: trimmed,
+        desiredSlug: myStore.data.slug || slugify(trimmed),
+      });
+      const url = buildStorefrontUrl(published.slug!);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e: any) {
+      setError(e?.message ?? "Could not publish. Please try again.");
     } finally {
       setPublishing(false);
+    }
+  }
+
+  function onVisit() {
+    if (isPublished && myStore.data?.slug) {
+      window.open(buildStorefrontUrl(myStore.data.slug), "_blank", "noopener,noreferrer");
+    } else {
+      setShowStorefront(true);
     }
   }
 
