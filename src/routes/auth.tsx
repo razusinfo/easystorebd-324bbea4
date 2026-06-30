@@ -637,13 +637,19 @@ function AuthPage() {
 
           <p className="mt-5 text-center text-sm text-slate-600">
             {isSignup ? "Already have an account? " : "New here? "}
-            <button
-              type="button"
-              onClick={() => { setMode(isSignup ? "signin" : "signup"); setError(null); setInfo(null); }}
-              className="font-semibold text-purple-700 hover:underline"
-            >
-              {isSignup ? "Login" : "Create an account"}
-            </button>
+            {isSignup ? (
+              <Link to="/login" className="font-semibold text-purple-700 hover:underline">
+                Login
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => { setMode("signup"); setError(null); setInfo(null); }}
+                className="font-semibold text-purple-700 hover:underline"
+              >
+                Create an account
+              </button>
+            )}
           </p>
 
           <p className="mt-4 text-center text-xs leading-relaxed text-slate-500">
