@@ -252,14 +252,14 @@ function ManageShop() {
             <button onClick={copyUrl} className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10" aria-label="Copy URL">
               <Copy className="h-4 w-4" />
             </button>
-            <a
-              href={storeUrl ? `https://${storeUrl}` : "#"}
-              target="_blank" rel="noopener noreferrer"
-              className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
-              aria-label="Open store"
+            <button
+              type="button"
+              onClick={() => setShowStorefront(true)}
+              className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
+              aria-label="Visit storefront"
             >
-              <ExternalLink className="h-4 w-4" />
-            </a>
+              <ExternalLink className="h-3.5 w-3.5" /> Visit
+            </button>
           </div>
 
           {/* Logo */}
