@@ -30,7 +30,11 @@ export const Route = createFileRoute("/login")({
     meta: [
       { title: "Welcome Back — Sign in to EazyStore" },
       { name: "description", content: "Sign in to your EazyStore account to manage your store." },
+      { property: "og:title", content: "Welcome Back — Sign in to EazyStore" },
+      { property: "og:description", content: "Sign in to your EazyStore account to manage your store." },
+      { property: "og:url", content: "https://eazystorebd.lovable.app/login" },
     ],
+    links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/login" }],
   }),
   component: LoginPage,
 });
@@ -460,9 +464,9 @@ function LoginPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="mb-1.5 block text-sm font-bold text-slate-900">{label}</label>
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-bold text-slate-900">{label}</span>
       {children}
-    </div>
+    </label>
   );
 }

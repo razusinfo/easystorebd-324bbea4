@@ -42,7 +42,11 @@ export const Route = createFileRoute("/auth")({
     meta: [
       { title: "Create Your Account — EazyStore" },
       { name: "description", content: "Start selling for free — no credit card required. Create your EazyStore account." },
+      { property: "og:title", content: "Create Your Account — EazyStore" },
+      { property: "og:description", content: "Start selling for free — no credit card required. Create your EazyStore account." },
+      { property: "og:url", content: "https://eazystorebd.lovable.app/auth" },
     ],
+    links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/auth" }],
   }),
   component: AuthPage,
 });
@@ -680,9 +684,9 @@ function AuthPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="mb-1.5 block text-sm font-bold text-slate-900">{label}</label>
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-bold text-slate-900">{label}</span>
       {children}
-    </div>
+    </label>
   );
 }

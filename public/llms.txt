@@ -1,0 +1,9 @@
+# EazyStore
+
+> Mobile-first SaaS to launch and manage your online store — 4-step onboarding, product listings, and admin moderation in one sleek platform.
+
+## Pages
+
+- [Home](/): Landing page introducing EazyStore for Store Owners and Super Admins.
+- [Create Your Account](/auth): Sign up with email, phone, or Google to start a new store.
+- [Sign In](/login): Existing-user login via email, phone OTP, or Google.
