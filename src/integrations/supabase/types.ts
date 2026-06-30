@@ -152,6 +152,9 @@ export type Database = {
           name: string
           owner_user_id: string
           phone: string | null
+          published: boolean
+          published_at: string | null
+          slug: string | null
           tagline: string | null
           template: Database["public"]["Enums"]["store_template"]
           updated_at: string
@@ -170,6 +173,9 @@ export type Database = {
           name: string
           owner_user_id: string
           phone?: string | null
+          published?: boolean
+          published_at?: string | null
+          slug?: string | null
           tagline?: string | null
           template: Database["public"]["Enums"]["store_template"]
           updated_at?: string
@@ -188,6 +194,9 @@ export type Database = {
           name?: string
           owner_user_id?: string
           phone?: string | null
+          published?: boolean
+          published_at?: string | null
+          slug?: string | null
           tagline?: string | null
           template?: Database["public"]["Enums"]["store_template"]
           updated_at?: string
