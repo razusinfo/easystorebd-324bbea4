@@ -319,6 +319,39 @@ export function usePublishStore() {
   });
 }
 
+// Change/claim a custom slug. Validates format, ensures uniqueness, updates store.
+export function useChangeSlug() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; slug: string }) => {
+      const cleaned = slugifyStoreName(input.slug);
+      if (cleaned.length < 3) throw new Error("URL must be at least 3 characters (letters and numbers only).");
+      if (cleaned.length > 32) throw new Error("URL must be 32 characters or fewer.");
+
+      // Uniqueness check — allow keeping the same slug on this store.
+      const { data: existing, error: checkErr } = await supabase
+        .from("stores")
+        .select("id")
+        .eq("slug", cleaned)
+        .maybeSingle();
+      if (checkErr) throw checkErr;
+      if (existing && existing.id !== input.id) {
+        throw new Error("This URL is already taken. Please try another.");
+      }
+
+      const { data, error } = await supabase
+        .from("stores")
+        .update({ slug: cleaned })
+        .eq("id", input.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as StoreRow;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
+  });
+}
+
 // Public fetch by slug — relies on RLS allowing anon read of published stores.
 export function usePublicStoreBySlug(slug: string | undefined) {
   return useQuery({

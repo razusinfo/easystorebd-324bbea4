@@ -4,11 +4,11 @@ import {
   Store as StoreIcon, Save, Check, Loader2, Copy, ExternalLink, Globe,
   ArrowLeft, Shirt, Cpu, Trophy, Palette, AlertCircle, Upload, Trash2,
   MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Eye, Smartphone, Monitor,
-  Rocket, X,
+  Rocket, X, Link2, Pencil,
 } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useUpdateStore, useLogoSignedUrl,
-  uploadStoreLogo, deleteStoreLogo, usePublishStore,
+  uploadStoreLogo, deleteStoreLogo, usePublishStore, useChangeSlug,
   slugifyStoreName, buildStorefrontUrl,
   type Category, type TemplateId,
 } from "@/lib/eazystore-data";
@@ -32,6 +32,7 @@ function ManageShop() {
   const myStore = useMyStore();
   const update = useUpdateStore();
   const publish = usePublishStore();
+  const changeSlug = useChangeSlug();
 
   const [name, setName] = useState("");
   const [tagline, setTagline] = useState("");
@@ -55,6 +56,11 @@ function ManageShop() {
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("mobile");
   const [showStorefront, setShowStorefront] = useState(false);
   const [publishing, setPublishing] = useState(false);
+
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [slugInput, setSlugInput] = useState("");
+  const [slugError, setSlugError] = useState<string | null>(null);
+  const [slugSavedAt, setSlugSavedAt] = useState<number | null>(null);
 
   const signedLogo = useLogoSignedUrl(logoPath);
 
@@ -267,27 +273,105 @@ function ManageShop() {
         {/* LEFT: editor */}
         <div className="space-y-4">
           {/* URL */}
-          <div className="flex items-center gap-2 rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
-            <Globe className="h-4 w-4 shrink-0 text-primary" />
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
-              {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
-              {!isPublished && (
-                <span className="ml-2 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
-                  Not published
-                </span>
-              )}
-            </span>
-            <button onClick={copyUrl} className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10" aria-label="Copy URL">
-              <Copy className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={onVisit}
-              className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
-              aria-label="Visit storefront"
-            >
-              <ExternalLink className="h-3.5 w-3.5" /> Visit
-            </button>
+          <div className="rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 shrink-0 text-primary" />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
+                {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
+                {!isPublished && (
+                  <span className="ml-2 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                    Not published
+                  </span>
+                )}
+                {slugSavedAt && (
+                  <span className="ml-2 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                    URL updated
+                  </span>
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSlugError(null);
+                  setSlugInput(myStore.data?.slug || slugify(name));
+                  setEditingSlug((v) => !v);
+                }}
+                className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
+                aria-label="Edit URL"
+                title="Edit URL"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button onClick={copyUrl} className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10" aria-label="Copy URL">
+                <Copy className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onVisit}
+                className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
+                aria-label="Visit storefront"
+              >
+                <ExternalLink className="h-3.5 w-3.5" /> Visit
+              </button>
+            </div>
+
+            {editingSlug && (
+              <div className="mt-3 border-t border-foreground/10 pt-3">
+                <label htmlFor="slug-input" className="block text-xs font-bold text-foreground/80">
+                  Customize your store URL
+                </label>
+                <p className="mt-0.5 text-[11px] text-foreground/60">
+                  Only lowercase letters and numbers. 3–32 characters.
+                </p>
+                <div className="mt-2 flex flex-wrap items-stretch gap-2">
+                  <div className="flex min-w-0 flex-1 items-center rounded-xl border border-input bg-background px-3 py-2 text-sm">
+                    <Link2 className="mr-2 h-4 w-4 shrink-0 text-foreground/40" />
+                    <input
+                      id="slug-input"
+                      value={slugInput}
+                      onChange={(e) => { setSlugInput(e.target.value); setSlugError(null); }}
+                      placeholder="mystore"
+                      maxLength={32}
+                      className="min-w-0 flex-1 bg-transparent outline-none"
+                      autoFocus
+                    />
+                    <span className="ml-2 shrink-0 text-xs text-foreground/50">/s/{slugifyStoreName(slugInput) || "…"}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setSlugError(null);
+                      if (!myStore.data) return;
+                      try {
+                        await changeSlug.mutateAsync({ id: myStore.data.id, slug: slugInput });
+                        setSlugSavedAt(Date.now());
+                        setEditingSlug(false);
+                        setTimeout(() => setSlugSavedAt(null), 2500);
+                      } catch (e: any) {
+                        setSlugError(e?.message ?? "Could not update URL.");
+                      }
+                    }}
+                    disabled={changeSlug.isPending}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                  >
+                    {changeSlug.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    Save URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEditingSlug(false); setSlugError(null); }}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold text-foreground/70 hover:bg-foreground/5"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {slugError && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-red-600">
+                    <AlertCircle className="h-3.5 w-3.5" /> {slugError}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Logo */}
