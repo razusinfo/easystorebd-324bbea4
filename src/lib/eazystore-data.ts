@@ -165,11 +165,12 @@ export function useCreateStore() {
 export function useUpdateStore() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id: string; name: string; category: Category; template: TemplateId }) => {
+    mutationFn: async (input: { id: string } & Partial<StoreSettings>) => {
+      const { id, ...patch } = input;
       const { data, error } = await supabase
         .from("stores")
-        .update({ name: input.name, category: input.category, template: input.template })
-        .eq("id", input.id)
+        .update(patch)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
@@ -177,6 +178,40 @@ export function useUpdateStore() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
   });
+}
+
+// Resolve a logo storage path (e.g. "<uid>/logo.png") to a signed URL.
+export function useLogoSignedUrl(path: string | null | undefined) {
+  return useQuery({
+    queryKey: ["logo-signed-url", path],
+    enabled: !!path,
+    staleTime: 1000 * 60 * 30,
+    queryFn: async (): Promise<string | null> => {
+      if (!path) return null;
+      const { data, error } = await supabase.storage
+        .from("store-logos")
+        .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
+      if (error) throw error;
+      return data?.signedUrl ?? null;
+    },
+  });
+}
+
+export async function uploadStoreLogo(file: File): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  const path = `${user.id}/logo-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("store-logos")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return path;
+}
+
+export async function deleteStoreLogo(path: string): Promise<void> {
+  if (!path) return;
+  await supabase.storage.from("store-logos").remove([path]);
 }
 
 export function useUpsertProduct(storeId: string | undefined) {
