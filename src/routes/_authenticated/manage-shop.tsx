@@ -178,6 +178,19 @@ function ManageShop() {
     try { await navigator.clipboard.writeText(`https://${storeUrl}`); } catch {}
   }
 
+  async function onPublishAndView() {
+    setError(null);
+    setPublishing(true);
+    try {
+      if (dirty && myStore.data && trimmed.length >= 2) {
+        await onSave();
+      }
+      setShowStorefront(true);
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   if (myStore.isLoading) {
     return (
       <main className="grid min-h-[60vh] place-items-center">
