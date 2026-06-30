@@ -34,7 +34,7 @@ const phoneSchema = z
     const digits = v.replace(/[\s-]/g, "");
     return digits.startsWith("+") ? digits : `+${digits.replace(/^0+/, "")}`;
   });
-const otpSchema = z.string().trim().regex(/^[0-9]{4,8}$/, "Enter the 6-digit code we sent");
+const otpSchema = z.string().trim().regex(/^[0-9]{6}$/, "Enter the 6-digit code we sent");
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
