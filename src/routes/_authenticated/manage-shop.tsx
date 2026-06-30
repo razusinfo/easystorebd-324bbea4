@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useUpdateStore, useLogoSignedUrl,
-  uploadStoreLogo, deleteStoreLogo,
+  uploadStoreLogo, deleteStoreLogo, usePublishStore,
+  slugifyStoreName, buildStorefrontUrl,
   type Category, type TemplateId,
 } from "@/lib/eazystore-data";
 
