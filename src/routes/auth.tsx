@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
