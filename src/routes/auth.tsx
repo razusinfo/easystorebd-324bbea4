@@ -191,7 +191,74 @@ function AuthPage() {
     }
   }
 
-  const isSignup = mode === "signup";
+  async function handleSendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    const parsed = phoneSchema.safeParse(phone);
+    if (!parsed.success) {
+      setError(parsed.error.errors[0]?.message ?? "Invalid phone number");
+      return;
+    }
+    if (isSignup && fullName.trim().length < 2) {
+      setError("Please enter your full name.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: parsed.data,
+        options: {
+          shouldCreateUser: isSignup,
+          data: isSignup ? { full_name: fullName, name: fullName } : undefined,
+        },
+      });
+      if (error) throw error;
+      setPhone(parsed.data);
+      setOtpSent(true);
+      setInfo(`We sent a verification code to ${parsed.data}.`);
+    } catch (err) {
+      setError(friendlyPhoneError(err instanceof Error ? err.message : "Could not send code"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    const parsed = otpSchema.safeParse(otp);
+    if (!parsed.success) {
+      setError(parsed.error.errors[0]?.message ?? "Invalid code");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        phone,
+        token: parsed.data,
+        type: "sms",
+      });
+      if (error) throw error;
+      await routeAfterAuth();
+    } catch (err) {
+      setError(friendlyPhoneError(err instanceof Error ? err.message : "Could not verify code"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function friendlyPhoneError(msg: string): string {
+    const m = msg.toLowerCase();
+    if (m.includes("sms") && (m.includes("provider") || m.includes("not enabled") || m.includes("disabled")))
+      return "Phone sign-in is not enabled yet. Please ask the admin to configure an SMS provider, or use Email / Google for now.";
+    if (m.includes("invalid") && m.includes("token")) return "Wrong or expired code. Please request a new one.";
+    if (m.includes("rate")) return "Too many attempts. Please wait a minute and try again.";
+    return friendlyError(msg);
+  }
+
+
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f5eefe_0%,#e4d6fb_55%,#f1e8fe_100%)] px-4 py-8 text-slate-900">
