@@ -132,7 +132,7 @@ function Dashboard() {
           <a
             href={`https://${storeUrl}`}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
           >
             <ExternalLink className="h-4 w-4" />
