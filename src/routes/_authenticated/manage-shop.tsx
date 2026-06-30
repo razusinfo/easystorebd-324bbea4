@@ -4,11 +4,11 @@ import {
   Store as StoreIcon, Save, Check, Loader2, Copy, ExternalLink, Globe,
   ArrowLeft, Shirt, Cpu, Trophy, Palette, AlertCircle, Upload, Trash2,
   MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Eye, Smartphone, Monitor,
-  Rocket, X,
+  Rocket, X, Link2, Pencil,
 } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useUpdateStore, useLogoSignedUrl,
-  uploadStoreLogo, deleteStoreLogo, usePublishStore,
+  uploadStoreLogo, deleteStoreLogo, usePublishStore, useChangeSlug,
   slugifyStoreName, buildStorefrontUrl,
   type Category, type TemplateId,
 } from "@/lib/eazystore-data";
