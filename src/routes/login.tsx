@@ -464,9 +464,9 @@ function LoginPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="mb-1.5 block text-sm font-bold text-slate-900">{label}</label>
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-bold text-slate-900">{label}</span>
       {children}
-    </div>
+    </label>
   );
 }
