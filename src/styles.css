@@ -107,6 +107,25 @@
   --gradient-info: linear-gradient(135deg, oklch(0.65 0.18 250) 0%, oklch(0.6 0.22 280) 100%);
   --gradient-hero: linear-gradient(135deg, oklch(0.22 0.06 275) 0%, oklch(0.35 0.18 290) 50%, oklch(0.55 0.22 320) 100%);
 
+  /* ---- Landing page palette (easy to customize) ---- */
+  /* Soft top-band gradient behind the hero */
+  --landing-bg-from: #f5eefe;
+  --landing-bg-mid:  #e4d6fb;
+  --landing-bg-to:   #f1e8fe;
+  --gradient-landing: linear-gradient(180deg, var(--landing-bg-from) 0%, var(--landing-bg-mid) 55%, var(--landing-bg-to) 100%);
+
+  /* Brand mark gradient (logo tile) */
+  --landing-brand-from: #7c3aed;  /* purple-600 */
+  --landing-brand-to:   #6d28d9;  /* violet-700 */
+  --gradient-landing-brand: linear-gradient(135deg, var(--landing-brand-from) 0%, var(--landing-brand-to) 100%);
+
+  /* Primary CTA / accent on the landing page */
+  --landing-accent:        #6d28d9;  /* purple-700 */
+  --landing-accent-hover:  #5b21b6;  /* purple-800 */
+  --landing-accent-soft:   #ede9fe;  /* purple-100 */
+  --landing-accent-ring:   rgba(109, 40, 217, 0.30);
+
+
   --shadow-sm: 0 1px 2px 0 oklch(0.2 0.05 280 / 0.06);
   --shadow-md: 0 4px 14px -2px oklch(0.2 0.05 280 / 0.1);
   --shadow-lg: 0 14px 40px -10px oklch(0.3 0.15 280 / 0.18);
