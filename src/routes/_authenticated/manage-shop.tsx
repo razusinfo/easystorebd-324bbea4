@@ -4,6 +4,7 @@ import {
   Store as StoreIcon, Save, Check, Loader2, Copy, ExternalLink, Globe,
   ArrowLeft, Shirt, Cpu, Trophy, Palette, AlertCircle, Upload, Trash2,
   MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Eye, Smartphone, Monitor,
+  Rocket, X,
 } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useUpdateStore, useLogoSignedUrl,
@@ -50,6 +51,8 @@ function ManageShop() {
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("mobile");
+  const [showStorefront, setShowStorefront] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const signedLogo = useLogoSignedUrl(logoPath);
 
@@ -175,6 +178,19 @@ function ManageShop() {
     try { await navigator.clipboard.writeText(`https://${storeUrl}`); } catch {}
   }
 
+  async function onPublishAndView() {
+    setError(null);
+    setPublishing(true);
+    try {
+      if (dirty && myStore.data && trimmed.length >= 2) {
+        await onSave();
+      }
+      setShowStorefront(true);
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   if (myStore.isLoading) {
     return (
       <main className="grid min-h-[60vh] place-items-center">
@@ -236,14 +252,14 @@ function ManageShop() {
             <button onClick={copyUrl} className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10" aria-label="Copy URL">
               <Copy className="h-4 w-4" />
             </button>
-            <a
-              href={storeUrl ? `https://${storeUrl}` : "#"}
-              target="_blank" rel="noopener noreferrer"
-              className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
-              aria-label="Open store"
+            <button
+              type="button"
+              onClick={() => setShowStorefront(true)}
+              className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
+              aria-label="Visit storefront"
             >
-              <ExternalLink className="h-4 w-4" />
-            </a>
+              <ExternalLink className="h-3.5 w-3.5" /> Visit
+            </button>
           </div>
 
           {/* Logo */}
@@ -467,15 +483,87 @@ function ManageShop() {
               <span className="text-foreground/50">All changes saved</span>
             )}
           </div>
-          <button
-            onClick={onSave}
-            disabled={!canSave}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl gradient-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
-          >
-            {update.isPending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : (<><Save className="h-4 w-4" /> Save changes</>)}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onSave}
+              disabled={!canSave}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-white px-4 py-2.5 text-sm font-bold text-primary shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
+            >
+              {update.isPending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : (<><Save className="h-4 w-4" /> Save</>)}
+            </button>
+            <button
+              onClick={onPublishAndView}
+              disabled={publishing || update.isPending || trimmed.length < 2}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl gradient-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {publishing ? (<><Loader2 className="h-4 w-4 animate-spin" /> Publishing…</>) : (<><Rocket className="h-4 w-4" /> Publish & View</>)}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Storefront modal */}
+      {showStorefront && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowStorefront(false)}
+        >
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white">
+            <div className="flex min-w-0 items-center gap-2">
+              <Globe className="h-4 w-4 shrink-0 text-primary-foreground/90" />
+              <span className="truncate text-sm font-semibold">
+                {storeUrl || "your-store.eazystore.app"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex rounded-lg border border-white/20 bg-white/10 p-0.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setPreviewMode("mobile"); }}
+                  className={`grid h-7 w-7 place-items-center rounded-md ${previewMode === "mobile" ? "bg-white text-primary" : "text-white/70"}`}
+                  aria-label="Mobile"
+                >
+                  <Smartphone className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setPreviewMode("desktop"); }}
+                  className={`grid h-7 w-7 place-items-center rounded-md ${previewMode === "desktop" ? "bg-white text-primary" : "text-white/70"}`}
+                  aria-label="Desktop"
+                >
+                  <Monitor className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <button
+                onClick={() => setShowStorefront(false)}
+                className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white hover:bg-white/20"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div
+            className="flex flex-1 items-start justify-center overflow-auto p-4 sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={previewMode === "desktop" ? "w-full max-w-4xl" : ""}>
+              <StorefrontPreview
+                mode={previewMode}
+                template={template}
+                name={trimmed || "Your store"}
+                tagline={tagline}
+                category={category}
+                logo={logoDisplay}
+                phone={phone}
+                address={address}
+                facebook={facebook}
+                instagram={instagram}
+                whatsapp={whatsapp}
+                website={website}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
