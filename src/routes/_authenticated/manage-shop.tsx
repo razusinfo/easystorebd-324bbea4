@@ -4,6 +4,7 @@ import {
   Store as StoreIcon, Save, Check, Loader2, Copy, ExternalLink, Globe,
   ArrowLeft, Shirt, Cpu, Trophy, Palette, AlertCircle, Upload, Trash2,
   MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Eye, Smartphone, Monitor,
+  Rocket, X,
 } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useUpdateStore, useLogoSignedUrl,
