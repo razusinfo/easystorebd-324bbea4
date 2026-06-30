@@ -87,9 +87,9 @@ function Landing() {
           </span>
 
           <h1 className="mt-7 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:text-6xl">
-            One Platform
+            EazyStore — Launch and manage
             <br />
-            Thousands of Success Stories
+            your mobile-first online store
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-base text-slate-700 sm:text-lg">
