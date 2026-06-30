@@ -191,6 +191,9 @@ function AuthPage() {
     }
   }
 
+  const isSignup = mode === "signup";
+
+
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
