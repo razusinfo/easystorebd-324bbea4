@@ -227,6 +227,30 @@
 @utility gradient-hero {
   background-image: var(--gradient-hero);
 }
+@utility gradient-landing {
+  background-image: var(--gradient-landing);
+}
+@utility gradient-landing-brand {
+  background-image: var(--gradient-landing-brand);
+}
+@utility bg-landing-accent {
+  background-color: var(--landing-accent);
+}
+@utility bg-landing-accent-hover {
+  background-color: var(--landing-accent-hover);
+}
+@utility bg-landing-accent-soft {
+  background-color: var(--landing-accent-soft);
+}
+@utility text-landing-accent {
+  color: var(--landing-accent);
+}
+@utility border-landing-accent {
+  border-color: var(--landing-accent);
+}
+@utility shadow-landing-accent {
+  box-shadow: 0 10px 25px -5px var(--landing-accent-ring);
+}
 
 @utility shadow-glow {
   box-shadow: var(--shadow-glow);
