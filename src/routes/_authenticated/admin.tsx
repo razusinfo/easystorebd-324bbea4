@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -81,12 +81,20 @@ function Admin() {
             <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-medium text-white/70 hover:text-white">
               <ArrowLeft className="h-3.5 w-3.5" /> Home
             </Link>
-            <button
-              onClick={signOut}
-              className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/20"
-            >
-              <LogOut className="h-3 w-3" /> Sign out
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/sms-settings"
+                className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/20"
+              >
+                <MessageSquare className="h-3 w-3" /> SMS template
+              </Link>
+              <button
+                onClick={signOut}
+                className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/20"
+              >
+                <LogOut className="h-3 w-3" /> Sign out
+              </button>
+            </div>
           </div>
           <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/10 backdrop-blur">

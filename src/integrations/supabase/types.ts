@@ -109,6 +109,36 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_settings: {
+        Row: {
+          app_name: string
+          created_at: string
+          id: boolean
+          otp_template: string
+          signature: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          app_name?: string
+          created_at?: string
+          id?: boolean
+          otp_template?: string
+          signature?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          app_name?: string
+          created_at?: string
+          id?: boolean
+          otp_template?: string
+          signature?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       stores: {
         Row: {
           category: Database["public"]["Enums"]["store_category"]

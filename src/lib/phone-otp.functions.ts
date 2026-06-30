@@ -101,7 +101,25 @@ export const sendPhoneOtp = createServerFn({ method: "POST" })
     });
     if (insertErr) throw new Error(insertErr.message);
 
-    const message = `Your EazyStore verification code is ${code}. It expires in 5 minutes. Do not share this code.`;
+    // Load admin-configurable SMS template (falls back to default)
+    const { data: settings } = await supabaseAdmin
+      .from("sms_settings")
+      .select("otp_template, signature, app_name")
+      .eq("id", true)
+      .maybeSingle();
+
+    const template =
+      settings?.otp_template ??
+      "Your {app} verification code is {code}. It expires in {minutes} minutes. Do not share this code.{signature}";
+    const appName = settings?.app_name ?? "EazyStore";
+    const signature = settings?.signature ?? "";
+    const signatureBlock = signature ? `\n${signature}` : "";
+    const message = template
+      .replaceAll("{code}", code)
+      .replaceAll("{minutes}", "5")
+      .replaceAll("{app}", appName)
+      .replaceAll("{signature}", signatureBlock);
+
     await sendBulkSmsBd(data.phone, message);
 
     return { ok: true as const };
