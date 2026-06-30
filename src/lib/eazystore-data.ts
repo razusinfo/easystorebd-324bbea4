@@ -138,6 +138,23 @@ export function useCreateStore() {
   });
 }
 
+export function useUpdateStore() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; name: string; category: Category; template: TemplateId }) => {
+      const { data, error } = await supabase
+        .from("stores")
+        .update({ name: input.name, category: input.category, template: input.template })
+        .eq("id", input.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as StoreRow;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
+  });
+}
+
 export function useUpsertProduct(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
