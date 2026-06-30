@@ -1,53 +1,93 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Mail, Phone,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban,
 } from "lucide-react";
-import { db, useStoreData } from "@/lib/eazystore-store";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct,
+} from "@/lib/eazystore-data";
 
-export const Route = createFileRoute("/admin")({
-  head: () => ({
-    meta: [
-      { title: "Super Admin — EazyStore" },
-      { name: "description", content: "Review stores and moderate pending product listings." },
-    ],
-  }),
+export const Route = createFileRoute("/_authenticated/admin")({
+  head: () => ({ meta: [{ title: "Super Admin — EazyStore" }] }),
   component: Admin,
 });
 
 function Admin() {
   const navigate = useNavigate();
-  const { stores, products } = useStoreData();
+  const isAdmin = useIsSuperAdmin();
+  const stores = useAdminStores();
+  const products = useAdminProducts();
+  const moderate = useModerateProduct();
   const [tab, setTab] = useState<"pending" | "users">("pending");
   const [q, setQ] = useState("");
 
   const pending = useMemo(
-    () => products.filter((p) => p.status === "pending"),
-    [products],
+    () => (products.data ?? []).filter((p) => p.status === "pending"),
+    [products.data],
   );
 
   const filteredStores = useMemo(() => {
+    const list = stores.data ?? [];
     const t = q.trim().toLowerCase();
-    if (!t) return stores;
-    return stores.filter(
-      (s) =>
-        s.name.toLowerCase().includes(t) ||
-        s.ownerName.toLowerCase().includes(t) ||
-        s.ownerContact.toLowerCase().includes(t),
+    if (!t) return list;
+    return list.filter((s) => s.name.toLowerCase().includes(t) || s.category.toLowerCase().includes(t));
+  }, [stores.data, q]);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  }
+
+  if (isAdmin.isLoading) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </main>
     );
-  }, [stores, q]);
+  }
+
+  if (!isAdmin.data) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-background px-5 text-center">
+        <div className="max-w-sm space-y-4">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-destructive/10 text-destructive">
+            <Ban className="h-7 w-7" />
+          </div>
+          <h1 className="font-display text-2xl font-bold">Admin access only</h1>
+          <p className="text-sm text-muted-foreground">
+            Your account doesn't have the <code className="rounded bg-muted px-1.5 py-0.5 text-xs">super_admin</code> role.
+            An existing admin must grant it before you can moderate.
+          </p>
+          <div className="flex justify-center gap-2">
+            <Link to="/dashboard" className="rounded-2xl border border-border bg-background px-4 py-2 text-sm font-semibold">
+              My dashboard
+            </Link>
+            <button onClick={signOut} className="rounded-2xl gradient-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+              Sign out
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background pb-16 text-foreground">
       <div className="relative overflow-hidden bg-slate-950 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.35),transparent_60%)]" />
         <div className="mx-auto max-w-5xl px-5 pb-8 pt-6">
-          <button
-            onClick={() => navigate({ to: "/" })}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-white/70 hover:text-white"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> Home
-          </button>
+          <div className="flex items-center justify-between">
+            <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-medium text-white/70 hover:text-white">
+              <ArrowLeft className="h-3.5 w-3.5" /> Home
+            </Link>
+            <button
+              onClick={signOut}
+              className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/20"
+            >
+              <LogOut className="h-3 w-3" /> Sign out
+            </button>
+          </div>
           <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/10 backdrop-blur">
               <ShieldCheck className="h-5 w-5" />
@@ -60,12 +100,11 @@ function Admin() {
 
           <div className="mt-5 grid grid-cols-2 gap-3">
             <AdminStat label="Pending listings" value={pending.length} />
-            <AdminStat label="Registered stores" value={stores.length} />
+            <AdminStat label="Registered stores" value={(stores.data ?? []).length} />
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-5xl gap-1 px-5">
           <TabBtn active={tab === "pending"} onClick={() => setTab("pending")}>
@@ -77,9 +116,9 @@ function Admin() {
           </TabBtn>
           <TabBtn active={tab === "users"} onClick={() => setTab("users")}>
             <Users className="h-4 w-4" />
-            Users
+            Stores
             <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
-              {stores.length}
+              {(stores.data ?? []).length}
             </span>
           </TabBtn>
         </div>
@@ -88,19 +127,15 @@ function Admin() {
       <section className="mx-auto max-w-5xl px-5 py-5">
         {tab === "pending" ? (
           <div className="space-y-3">
-            {pending.length === 0 ? (
-              <Empty
-                title="All clear"
-                desc="No pending listings right now. New submissions appear here."
-              />
+            {products.isLoading ? (
+              <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
+            ) : pending.length === 0 ? (
+              <Empty title="All clear" desc="No pending listings right now." />
             ) : (
               pending.map((p) => {
-                const s = stores.find((x) => x.id === p.storeId);
+                const s = (stores.data ?? []).find((x) => x.id === p.store_id);
                 return (
-                  <div
-                    key={p.id}
-                    className="rounded-2xl border border-border bg-card p-4 shadow-sm"
-                  >
+                  <div key={p.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
                       <div className="min-w-0">
                         <div className="truncate font-semibold">{p.name}</div>
@@ -111,7 +146,7 @@ function Admin() {
                         </div>
                         <div className="mt-2 flex items-center gap-3 text-xs">
                           <span className="rounded-md bg-muted px-2 py-0.5 font-semibold tabular-nums">
-                            ৳{p.price.toLocaleString()}
+                            ৳{Number(p.price).toLocaleString()}
                           </span>
                           <span className="text-muted-foreground">{p.stock} in stock</span>
                         </div>
@@ -123,14 +158,16 @@ function Admin() {
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => db.updateProduct(p.id, { status: "rejected" })}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/5"
+                        disabled={moderate.isPending}
+                        onClick={() => moderate.mutate({ id: p.id, status: "rejected" })}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/5 disabled:opacity-50"
                       >
                         <X className="h-4 w-4" /> Reject
                       </button>
                       <button
-                        onClick={() => db.updateProduct(p.id, { status: "approved" })}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl gradient-success px-3 py-2.5 text-sm font-bold text-success-foreground shadow-sm"
+                        disabled={moderate.isPending}
+                        onClick={() => moderate.mutate({ id: p.id, status: "approved" })}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl gradient-success px-3 py-2.5 text-sm font-bold text-success-foreground shadow-sm disabled:opacity-50"
                       >
                         <Check className="h-4 w-4" /> Approve
                       </button>
@@ -147,18 +184,19 @@ function Admin() {
                 <Search className="h-4 w-4" />
               </span>
               <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search by store, owner, or contact"
+                value={q} onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by store or category"
                 className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
               />
             </div>
 
-            {filteredStores.length === 0 ? (
-              <Empty title="No users" desc="Try a different search term." />
+            {stores.isLoading ? (
+              <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
+            ) : filteredStores.length === 0 ? (
+              <Empty title="No stores" desc="Try a different search term." />
             ) : (
               filteredStores.map((s) => {
-                const count = products.filter((p) => p.storeId === s.id).length;
+                const count = (products.data ?? []).filter((p) => p.store_id === s.id).length;
                 return (
                   <div
                     key={s.id}
@@ -169,19 +207,12 @@ function Admin() {
                     </div>
                     <div className="min-w-0">
                       <div className="truncate font-semibold">{s.name}</div>
-                      <div className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                        {s.loginMethod === "google" ? (
-                          <Mail className="h-3 w-3 shrink-0" />
-                        ) : (
-                          <Phone className="h-3 w-3 shrink-0" />
-                        )}
-                        <span className="truncate">{s.ownerContact}</span>
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        Joined {new Date(s.created_at).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-semibold">
-                        {s.category}
-                      </span>
+                      <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-semibold">{s.category}</span>
                       <div className="mt-1 text-[11px] text-muted-foreground">{count} products</div>
                     </div>
                   </div>
@@ -211,9 +242,7 @@ function TabBtn({
     <button
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 border-b-2 px-4 py-3 text-sm font-semibold transition ${
-        active
-          ? "border-primary text-foreground"
-          : "border-transparent text-muted-foreground hover:text-foreground"
+        active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
       }`}
     >
       {children}
@@ -231,4 +260,8 @@ function Empty({ title, desc }: { title: string; desc: string }) {
       <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
     </div>
   );
+}
+
+function Center({ children }: { children: React.ReactNode }) {
+  return <div className="grid place-items-center py-10">{children}</div>;
 }
