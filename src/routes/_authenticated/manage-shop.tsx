@@ -51,6 +51,8 @@ function ManageShop() {
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("mobile");
+  const [showStorefront, setShowStorefront] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const signedLogo = useLogoSignedUrl(logoPath);
 
