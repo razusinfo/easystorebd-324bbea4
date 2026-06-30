@@ -42,7 +42,11 @@ export const Route = createFileRoute("/auth")({
     meta: [
       { title: "Create Your Account — EazyStore" },
       { name: "description", content: "Start selling for free — no credit card required. Create your EazyStore account." },
+      { property: "og:title", content: "Create Your Account — EazyStore" },
+      { property: "og:description", content: "Start selling for free — no credit card required. Create your EazyStore account." },
+      { property: "og:url", content: "https://eazystorebd.lovable.app/auth" },
     ],
+    links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/auth" }],
   }),
   component: AuthPage,
 });
