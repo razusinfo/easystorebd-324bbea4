@@ -141,31 +141,58 @@ export type Database = {
       }
       stores: {
         Row: {
+          address: string | null
           category: Database["public"]["Enums"]["store_category"]
+          contact_email: string | null
           created_at: string
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
+          logo_url: string | null
           name: string
           owner_user_id: string
+          phone: string | null
+          tagline: string | null
           template: Database["public"]["Enums"]["store_template"]
           updated_at: string
+          website_url: string | null
+          whatsapp_number: string | null
         }
         Insert: {
+          address?: string | null
           category: Database["public"]["Enums"]["store_category"]
+          contact_email?: string | null
           created_at?: string
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
+          logo_url?: string | null
           name: string
           owner_user_id: string
+          phone?: string | null
+          tagline?: string | null
           template: Database["public"]["Enums"]["store_template"]
           updated_at?: string
+          website_url?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
+          address?: string | null
           category?: Database["public"]["Enums"]["store_category"]
+          contact_email?: string | null
           created_at?: string
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
+          logo_url?: string | null
           name?: string
           owner_user_id?: string
+          phone?: string | null
+          tagline?: string | null
           template?: Database["public"]["Enums"]["store_template"]
           updated_at?: string
+          website_url?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
