@@ -4,8 +4,33 @@ import { Store, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "EazyStore — Launch your store in minutes" },
+      { title: "EazyStore — Launch and manage your mobile-first online store" },
       { name: "description", content: "EazyStore is a mobile-first SaaS to launch and manage your online store. Store Owner and Super Admin in one sleek platform." },
+      { property: "og:title", content: "EazyStore — Launch and manage your mobile-first online store" },
+      { property: "og:description", content: "Mobile-first SaaS to launch and manage your online store. Store Owner and Super Admin in one sleek platform." },
+      { property: "og:url", content: "https://eazystorebd.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "EazyStore",
+              url: "https://eazystorebd.lovable.app/",
+            },
+            {
+              "@type": "WebSite",
+              name: "EazyStore",
+              url: "https://eazystorebd.lovable.app/",
+              description: "Mobile-first SaaS to launch and manage your online store.",
+            },
+          ],
+        }),
+      },
     ],
   }),
   component: Landing,
