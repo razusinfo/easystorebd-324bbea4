@@ -269,3 +269,89 @@ export function useModerateProduct() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "products"] }),
   });
 }
+
+// ---------- Public storefront ----------
+
+export function slugifyStoreName(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 32);
+}
+
+export function buildStorefrontUrl(slug: string): string {
+  const base = typeof window !== "undefined" ? window.location.origin : "https://eazystorebd.lovable.app";
+  return `${base}/s/${slug}`;
+}
+
+// Generate a unique slug — appends -2, -3... on conflict. Run before publish.
+async function ensureUniqueSlug(base: string, ownerStoreId: string): Promise<string> {
+  let candidate = base || "store";
+  let n = 1;
+  // Safety cap
+  while (n < 50) {
+    const { data, error } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("slug", candidate)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data || data.id === ownerStoreId) return candidate;
+    n += 1;
+    candidate = `${base}${n}`;
+  }
+  throw new Error("Could not generate a unique storefront address.");
+}
+
+export function usePublishStore() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; name: string; desiredSlug?: string }) => {
+      const base = slugifyStoreName(input.desiredSlug || input.name) || "store";
+      const slug = await ensureUniqueSlug(base, input.id);
+      const { data, error } = await supabase
+        .from("stores")
+        .update({ slug, published: true, published_at: new Date().toISOString() })
+        .eq("id", input.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as StoreRow;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
+  });
+}
+
+// Public fetch by slug — relies on RLS allowing anon read of published stores.
+export function usePublicStoreBySlug(slug: string | undefined) {
+  return useQuery({
+    queryKey: ["public-store", slug],
+    enabled: !!slug,
+    queryFn: async (): Promise<{ store: StoreRow; products: ProductRow[]; logoUrl: string | null } | null> => {
+      const { data: store, error } = await supabase
+        .from("stores")
+        .select("*")
+        .eq("slug", slug!)
+        .eq("published", true)
+        .maybeSingle();
+      if (error) throw error;
+      if (!store) return null;
+
+      const { data: products, error: pErr } = await supabase
+        .from("products")
+        .select("id, store_id, name, price, stock, status, created_at")
+        .eq("store_id", store.id)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false });
+      if (pErr) throw pErr;
+
+      let logoUrl: string | null = null;
+      if (store.logo_url) {
+        const { data: signed } = await supabase.storage
+          .from("store-logos")
+          .createSignedUrl(store.logo_url, 60 * 60 * 24 * 7);
+        logoUrl = signed?.signedUrl ?? null;
+      }
+
+      return { store: store as StoreRow, products: (products ?? []) as ProductRow[], logoUrl };
+    },
+  });
+}
+
