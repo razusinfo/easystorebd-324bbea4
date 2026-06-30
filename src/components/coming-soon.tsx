@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Construction } from "lucide-react";
 
 export function ComingSoon({ title, description }: { title: string; description?: string }) {
@@ -15,11 +14,4 @@ export function ComingSoon({ title, description }: { title: string; description?
       </div>
     </main>
   );
-}
-
-export function makeStub(path: string, title: string) {
-  return createFileRoute(path as any)({
-    head: () => ({ meta: [{ title: `${title} — EazyStore` }] }),
-    component: () => <ComingSoon title={title} />,
-  });
 }

@@ -14,9 +14,22 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
+import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
+import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
 import { Route as AuthenticatedSmsSettingsRouteImport } from './routes/_authenticated/sms-settings'
+import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authenticated/promo-codes'
+import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
+import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedMobileAppRouteImport } from './routes/_authenticated/mobile-app'
+import { Route as AuthenticatedManageShopRouteImport } from './routes/_authenticated/manage-shop'
+import { Route as AuthenticatedLandingPagesRouteImport } from './routes/_authenticated/landing-pages'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
+import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticated/courier'
+import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -43,20 +56,87 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedThemesRoute = AuthenticatedThemesRouteImport.update({
+  id: '/themes',
+  path: '/themes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedThemeBuilderRoute =
+  AuthenticatedThemeBuilderRouteImport.update({
+    id: '/theme-builder',
+    path: '/theme-builder',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSpotlightsRoute = AuthenticatedSpotlightsRouteImport.update({
+  id: '/spotlights',
+  path: '/spotlights',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSmsSettingsRoute =
   AuthenticatedSmsSettingsRouteImport.update({
     id: '/sms-settings',
     path: '/sms-settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPromoCodesRoute = AuthenticatedPromoCodesRouteImport.update({
+  id: '/promo-codes',
+  path: '/promo-codes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMobileAppRoute = AuthenticatedMobileAppRouteImport.update({
+  id: '/mobile-app',
+  path: '/mobile-app',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedManageShopRoute = AuthenticatedManageShopRouteImport.update({
+  id: '/manage-shop',
+  path: '/manage-shop',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLandingPagesRoute =
+  AuthenticatedLandingPagesRouteImport.update({
+    id: '/landing-pages',
+    path: '/landing-pages',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCourierRoute = AuthenticatedCourierRouteImport.update({
+  id: '/courier',
+  path: '/courier',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCategoriesRoute = AuthenticatedCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -71,9 +151,22 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/categories': typeof AuthenticatedCategoriesRoute
+  '/courier': typeof AuthenticatedCourierRoute
+  '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/landing-pages': typeof AuthenticatedLandingPagesRoute
+  '/manage-shop': typeof AuthenticatedManageShopRoute
+  '/mobile-app': typeof AuthenticatedMobileAppRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/orders': typeof AuthenticatedOrdersRoute
+  '/products': typeof AuthenticatedProductsRoute
+  '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
+  '/spotlights': typeof AuthenticatedSpotlightsRoute
+  '/theme-builder': typeof AuthenticatedThemeBuilderRoute
+  '/themes': typeof AuthenticatedThemesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -81,9 +174,22 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/categories': typeof AuthenticatedCategoriesRoute
+  '/courier': typeof AuthenticatedCourierRoute
+  '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/landing-pages': typeof AuthenticatedLandingPagesRoute
+  '/manage-shop': typeof AuthenticatedManageShopRoute
+  '/mobile-app': typeof AuthenticatedMobileAppRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/orders': typeof AuthenticatedOrdersRoute
+  '/products': typeof AuthenticatedProductsRoute
+  '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
+  '/spotlights': typeof AuthenticatedSpotlightsRoute
+  '/theme-builder': typeof AuthenticatedThemeBuilderRoute
+  '/themes': typeof AuthenticatedThemesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -93,9 +199,22 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
+  '/_authenticated/courier': typeof AuthenticatedCourierRoute
+  '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/landing-pages': typeof AuthenticatedLandingPagesRoute
+  '/_authenticated/manage-shop': typeof AuthenticatedManageShopRoute
+  '/_authenticated/mobile-app': typeof AuthenticatedMobileAppRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/orders': typeof AuthenticatedOrdersRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRoute
+  '/_authenticated/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/_authenticated/sms-settings': typeof AuthenticatedSmsSettingsRoute
+  '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
+  '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
+  '/_authenticated/themes': typeof AuthenticatedThemesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,9 +224,22 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/admin'
+    | '/analytics'
+    | '/categories'
+    | '/courier'
+    | '/customers'
     | '/dashboard'
+    | '/landing-pages'
+    | '/manage-shop'
+    | '/mobile-app'
     | '/onboarding'
+    | '/orders'
+    | '/products'
+    | '/promo-codes'
     | '/sms-settings'
+    | '/spotlights'
+    | '/theme-builder'
+    | '/themes'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -115,9 +247,22 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/admin'
+    | '/analytics'
+    | '/categories'
+    | '/courier'
+    | '/customers'
     | '/dashboard'
+    | '/landing-pages'
+    | '/manage-shop'
+    | '/mobile-app'
     | '/onboarding'
+    | '/orders'
+    | '/products'
+    | '/promo-codes'
     | '/sms-settings'
+    | '/spotlights'
+    | '/theme-builder'
+    | '/themes'
   id:
     | '__root__'
     | '/'
@@ -126,9 +271,22 @@ export interface FileRouteTypes {
     | '/login'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/analytics'
+    | '/_authenticated/categories'
+    | '/_authenticated/courier'
+    | '/_authenticated/customers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/landing-pages'
+    | '/_authenticated/manage-shop'
+    | '/_authenticated/mobile-app'
     | '/_authenticated/onboarding'
+    | '/_authenticated/orders'
+    | '/_authenticated/products'
+    | '/_authenticated/promo-codes'
     | '/_authenticated/sms-settings'
+    | '/_authenticated/spotlights'
+    | '/_authenticated/theme-builder'
+    | '/_authenticated/themes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -176,11 +334,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/themes': {
+      id: '/_authenticated/themes'
+      path: '/themes'
+      fullPath: '/themes'
+      preLoaderRoute: typeof AuthenticatedThemesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/theme-builder': {
+      id: '/_authenticated/theme-builder'
+      path: '/theme-builder'
+      fullPath: '/theme-builder'
+      preLoaderRoute: typeof AuthenticatedThemeBuilderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/spotlights': {
+      id: '/_authenticated/spotlights'
+      path: '/spotlights'
+      fullPath: '/spotlights'
+      preLoaderRoute: typeof AuthenticatedSpotlightsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sms-settings': {
       id: '/_authenticated/sms-settings'
       path: '/sms-settings'
       fullPath: '/sms-settings'
       preLoaderRoute: typeof AuthenticatedSmsSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/promo-codes': {
+      id: '/_authenticated/promo-codes'
+      path: '/promo-codes'
+      fullPath: '/promo-codes'
+      preLoaderRoute: typeof AuthenticatedPromoCodesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/products': {
+      id: '/_authenticated/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthenticatedProductsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orders': {
+      id: '/_authenticated/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
@@ -190,11 +390,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mobile-app': {
+      id: '/_authenticated/mobile-app'
+      path: '/mobile-app'
+      fullPath: '/mobile-app'
+      preLoaderRoute: typeof AuthenticatedMobileAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/manage-shop': {
+      id: '/_authenticated/manage-shop'
+      path: '/manage-shop'
+      fullPath: '/manage-shop'
+      preLoaderRoute: typeof AuthenticatedManageShopRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/landing-pages': {
+      id: '/_authenticated/landing-pages'
+      path: '/landing-pages'
+      fullPath: '/landing-pages'
+      preLoaderRoute: typeof AuthenticatedLandingPagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/customers': {
+      id: '/_authenticated/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthenticatedCustomersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/courier': {
+      id: '/_authenticated/courier'
+      path: '/courier'
+      fullPath: '/courier'
+      preLoaderRoute: typeof AuthenticatedCourierRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/categories': {
+      id: '/_authenticated/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof AuthenticatedCategoriesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
@@ -209,16 +458,42 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
+  AuthenticatedCourierRoute: typeof AuthenticatedCourierRoute
+  AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedLandingPagesRoute: typeof AuthenticatedLandingPagesRoute
+  AuthenticatedManageShopRoute: typeof AuthenticatedManageShopRoute
+  AuthenticatedMobileAppRoute: typeof AuthenticatedMobileAppRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
+  AuthenticatedPromoCodesRoute: typeof AuthenticatedPromoCodesRoute
   AuthenticatedSmsSettingsRoute: typeof AuthenticatedSmsSettingsRoute
+  AuthenticatedSpotlightsRoute: typeof AuthenticatedSpotlightsRoute
+  AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
+  AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
+  AuthenticatedCourierRoute: AuthenticatedCourierRoute,
+  AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedLandingPagesRoute: AuthenticatedLandingPagesRoute,
+  AuthenticatedManageShopRoute: AuthenticatedManageShopRoute,
+  AuthenticatedMobileAppRoute: AuthenticatedMobileAppRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
+  AuthenticatedProductsRoute: AuthenticatedProductsRoute,
+  AuthenticatedPromoCodesRoute: AuthenticatedPromoCodesRoute,
   AuthenticatedSmsSettingsRoute: AuthenticatedSmsSettingsRoute,
+  AuthenticatedSpotlightsRoute: AuthenticatedSpotlightsRoute,
+  AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
+  AuthenticatedThemesRoute: AuthenticatedThemesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
