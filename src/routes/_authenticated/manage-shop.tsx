@@ -25,7 +25,7 @@ const CATEGORIES: { id: Category; icon: any; sub: string }[] = [
 ];
 
 function slugify(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 24) || "mystore";
+  return slugifyStoreName(s) || "mystore";
 }
 
 function ManageShop() {
