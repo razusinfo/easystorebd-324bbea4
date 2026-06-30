@@ -328,10 +328,10 @@ function AuthPage() {
             </button>
             <button
               type="button"
-              onClick={() => setInfo("Phone sign-in is coming soon — please use Email or Google for now.")}
+              onClick={() => { setMethod("phone"); setError(null); setInfo(null); }}
               className={`rounded-full px-4 py-3 text-sm font-semibold transition ${
                 method === "phone"
-                  ? "bg-purple-700 text-white shadow-md"
+                  ? "bg-purple-700 text-white shadow-md ring-2 ring-purple-300"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
@@ -339,80 +339,161 @@ function AuthPage() {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-            {isSignup && (
-              <Field label="Full Name">
+          {method === "email" ? (
+            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+              {isSignup && (
+                <Field label="Full Name">
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  />
+                </Field>
+              )}
+
+              <Field label="Email Address">
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                   className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                 />
               </Field>
-            )}
 
-            <Field label="Email Address">
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-              />
-            </Field>
+              <Field label="Password">
+                <div className="relative">
+                  <input
+                    type={showPwd ? "text" : "password"}
+                    required
+                    minLength={isSignup ? 8 : 1}
+                    autoComplete={isSignup ? "new-password" : "current-password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={isSignup ? "At least 8 characters, with a number" : "Your password"}
+                    className="w-full rounded-xl border border-slate-200 bg-purple-50/60 px-4 py-3 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    aria-label={showPwd ? "Hide password" : "Show password"}
+                  >
+                    {showPwd ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                  </button>
+                </div>
+                {!isSignup && (
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="mt-2 text-xs font-semibold text-purple-700 hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </Field>
 
-            <Field label="Password">
-              <div className="relative">
-                <input
-                  type={showPwd ? "text" : "password"}
-                  required
-                  minLength={isSignup ? 8 : 1}
-                  autoComplete={isSignup ? "new-password" : "current-password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={isSignup ? "At least 8 characters, with a number" : "Your password"}
-                  className="w-full rounded-xl border border-slate-200 bg-purple-50/60 px-4 py-3 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPwd((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
-                  aria-label={showPwd ? "Hide password" : "Show password"}
-                >
-                  {showPwd ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                </button>
-              </div>
-              {!isSignup && (
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="mt-2 text-xs font-semibold text-purple-700 hover:underline"
-                >
-                  Forgot password?
-                </button>
+              {error && (
+                <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
               )}
-            </Field>
+              {info && (
+                <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
+              )}
 
-            {error && (
-              <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
-            )}
-            {info && (
-              <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
-            )}
+              <button
+                type="submit"
+                disabled={busy || oauthBusy}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
+              >
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isSignup ? "Get Started" : "Sign In"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="mt-6 space-y-5">
+              {isSignup && !otpSent && (
+                <Field label="Full Name">
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  />
+                </Field>
+              )}
 
-            <button
-              type="submit"
-              disabled={busy || oauthBusy}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
-            >
-              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isSignup ? "Get Started" : "Sign In"}
-            </button>
-          </form>
+              <Field label="Phone Number">
+                <input
+                  type="tel"
+                  required
+                  autoComplete="tel"
+                  inputMode="tel"
+                  value={phone}
+                  disabled={otpSent}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+8801XXXXXXXXX"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200 disabled:bg-slate-100 disabled:text-slate-500"
+                />
+                <p className="mt-1.5 text-xs text-slate-500">Include country code, e.g. +880 for Bangladesh.</p>
+              </Field>
+
+              {otpSent && (
+                <Field label="Verification Code">
+                  <input
+                    type="text"
+                    required
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
+                    maxLength={8}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
+                    placeholder="6-digit code"
+                    className="w-full rounded-xl border border-slate-200 bg-purple-50/60 px-4 py-3 text-center text-lg font-semibold tracking-[0.4em] text-slate-900 placeholder:text-slate-400 placeholder:tracking-normal placeholder:text-sm placeholder:font-normal outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  />
+                  <div className="mt-2 flex items-center justify-between text-xs">
+                    <button
+                      type="button"
+                      onClick={() => { setOtpSent(false); setOtp(""); setError(null); setInfo(null); }}
+                      className="font-semibold text-slate-600 hover:underline"
+                    >
+                      Change number
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => { setOtp(""); handleSendOtp(new Event("submit") as unknown as React.FormEvent); }}
+                      className="font-semibold text-purple-700 hover:underline disabled:opacity-50"
+                    >
+                      Resend code
+                    </button>
+                  </div>
+                </Field>
+              )}
+
+              {error && (
+                <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
+              )}
+              {info && (
+                <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={busy || oauthBusy}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
+              >
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                {otpSent ? "Verify & Continue" : isSignup ? "Send Verification Code" : "Send Login Code"}
+              </button>
+            </form>
+          )}
 
           <p className="mt-5 text-center text-sm text-slate-600">
             {isSignup ? "Already have an account? " : "New here? "}
