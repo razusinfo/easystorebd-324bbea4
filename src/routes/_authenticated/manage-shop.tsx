@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useUpdateStore, useLogoSignedUrl,
-  uploadStoreLogo, deleteStoreLogo,
+  uploadStoreLogo, deleteStoreLogo, usePublishStore,
+  slugifyStoreName, buildStorefrontUrl,
   type Category, type TemplateId,
 } from "@/lib/eazystore-data";
 
@@ -24,12 +25,13 @@ const CATEGORIES: { id: Category; icon: any; sub: string }[] = [
 ];
 
 function slugify(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 24) || "mystore";
+  return slugifyStoreName(s) || "mystore";
 }
 
 function ManageShop() {
   const myStore = useMyStore();
   const update = useUpdateStore();
+  const publish = usePublishStore();
 
   const [name, setName] = useState("");
   const [tagline, setTagline] = useState("");
@@ -80,10 +82,12 @@ function ManageShop() {
 
   const logoDisplay = localLogoUrl || signedLogo.data || null;
 
+  const effectiveSlug = myStore.data?.slug || slugify(name);
   const storeUrl = useMemo(
-    () => (name ? `www.${slugify(name)}.eazystore.app` : ""),
-    [name],
+    () => (effectiveSlug ? buildStorefrontUrl(effectiveSlug) : ""),
+    [effectiveSlug],
   );
+  const isPublished = !!myStore.data?.published && !!myStore.data?.slug;
 
   const dirty = useMemo(() => {
     const s = myStore.data;
@@ -175,19 +179,38 @@ function ManageShop() {
 
   async function copyUrl() {
     if (!storeUrl) return;
-    try { await navigator.clipboard.writeText(`https://${storeUrl}`); } catch {}
+    try { await navigator.clipboard.writeText(storeUrl); } catch {}
   }
 
   async function onPublishAndView() {
     setError(null);
     setPublishing(true);
     try {
-      if (dirty && myStore.data && trimmed.length >= 2) {
-        await onSave();
+      if (!myStore.data) return;
+      if (trimmed.length < 2) {
+        setError("Store name must be at least 2 characters.");
+        return;
       }
-      setShowStorefront(true);
+      if (dirty) await onSave();
+      const published = await publish.mutateAsync({
+        id: myStore.data.id,
+        name: trimmed,
+        desiredSlug: myStore.data.slug || slugify(trimmed),
+      });
+      const url = buildStorefrontUrl(published.slug!);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e: any) {
+      setError(e?.message ?? "Could not publish. Please try again.");
     } finally {
       setPublishing(false);
+    }
+  }
+
+  function onVisit() {
+    if (isPublished && myStore.data?.slug) {
+      window.open(buildStorefrontUrl(myStore.data.slug), "_blank", "noopener,noreferrer");
+    } else {
+      setShowStorefront(true);
     }
   }
 
@@ -247,14 +270,19 @@ function ManageShop() {
           <div className="flex items-center gap-2 rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
             <Globe className="h-4 w-4 shrink-0 text-primary" />
             <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
-              {storeUrl || "your-store.eazystore.app"}
+              {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
+              {!isPublished && (
+                <span className="ml-2 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                  Not published
+                </span>
+              )}
             </span>
             <button onClick={copyUrl} className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10" aria-label="Copy URL">
               <Copy className="h-4 w-4" />
             </button>
             <button
               type="button"
-              onClick={() => setShowStorefront(true)}
+              onClick={onVisit}
               className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
               aria-label="Visit storefront"
             >
@@ -512,7 +540,7 @@ function ManageShop() {
             <div className="flex min-w-0 items-center gap-2">
               <Globe className="h-4 w-4 shrink-0 text-primary-foreground/90" />
               <span className="truncate text-sm font-semibold">
-                {storeUrl || "your-store.eazystore.app"}
+                {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
               </span>
             </div>
             <div className="flex items-center gap-2">

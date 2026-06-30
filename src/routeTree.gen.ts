@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
 import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
@@ -60,6 +61,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SSlugRoute = SSlugRouteImport.update({
+  id: '/s/$slug',
+  path: '/s/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedThemesRoute = AuthenticatedThemesRouteImport.update({
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
+  '/s/$slug': typeof SSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
+  '/s/$slug': typeof SSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
+  '/s/$slug': typeof SSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -250,6 +259,7 @@ export interface FileRouteTypes {
     | '/spotlights'
     | '/theme-builder'
     | '/themes'
+    | '/s/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/spotlights'
     | '/theme-builder'
     | '/themes'
+    | '/s/$slug'
   id:
     | '__root__'
     | '/'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/_authenticated/spotlights'
     | '/_authenticated/theme-builder'
     | '/_authenticated/themes'
+    | '/s/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -308,6 +320,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SSlugRoute: typeof SSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$slug': {
+      id: '/s/$slug'
+      path: '/s/$slug'
+      fullPath: '/s/$slug'
+      preLoaderRoute: typeof SSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/themes': {
@@ -526,6 +546,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SSlugRoute: SSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
