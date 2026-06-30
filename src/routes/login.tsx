@@ -136,7 +136,18 @@ function LoginPage() {
         return;
       }
       if (result.redirected) return;
-      await routeAfterAuth();
+      // Resolve destination then hard-redirect so the new session is picked up everywhere.
+      const { data: userData } = await supabase.auth.getUser();
+      let dest = safeRedirect ?? "/";
+      if (!safeRedirect && userData.user) {
+        const { data: store } = await supabase
+          .from("stores")
+          .select("id")
+          .eq("owner_user_id", userData.user.id)
+          .maybeSingle();
+        dest = store ? "/dashboard" : "/onboarding";
+      }
+      window.location.assign(dest);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed");
     } finally {
