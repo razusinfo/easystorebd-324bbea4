@@ -82,10 +82,12 @@ function ManageShop() {
 
   const logoDisplay = localLogoUrl || signedLogo.data || null;
 
+  const effectiveSlug = myStore.data?.slug || slugify(name);
   const storeUrl = useMemo(
-    () => (name ? `www.${slugify(name)}.eazystore.app` : ""),
-    [name],
+    () => (effectiveSlug ? buildStorefrontUrl(effectiveSlug) : ""),
+    [effectiveSlug],
   );
+  const isPublished = !!myStore.data?.published && !!myStore.data?.slug;
 
   const dirty = useMemo(() => {
     const s = myStore.data;
