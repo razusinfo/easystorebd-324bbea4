@@ -138,12 +138,14 @@ function AuthPage() {
         });
         if (error) throw error;
         if (!data.session) {
-          setInfo("Account created! Please check your email to confirm your address, then sign in.");
-          setMode("signin");
+          setPendingEmail(parsed.data.email);
+          setResendCooldown(60);
+          setInfo(null);
           setPassword("");
           return;
         }
         await routeAfterAuth();
+
       } else {
         const parsed = signinSchema.safeParse({ email, password });
         if (!parsed.success) {
