@@ -270,14 +270,19 @@ function ManageShop() {
           <div className="flex items-center gap-2 rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
             <Globe className="h-4 w-4 shrink-0 text-primary" />
             <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
-              {storeUrl || "your-store.eazystore.app"}
+              {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
+              {!isPublished && (
+                <span className="ml-2 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                  Not published
+                </span>
+              )}
             </span>
             <button onClick={copyUrl} className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10" aria-label="Copy URL">
               <Copy className="h-4 w-4" />
             </button>
             <button
               type="button"
-              onClick={() => setShowStorefront(true)}
+              onClick={onVisit}
               className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
               aria-label="Visit storefront"
             >
