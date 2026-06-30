@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      products: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          price: number
+          status: Database["public"]["Enums"]["product_status"]
+          stock: number
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          price: number
+          status?: Database["public"]["Enums"]["product_status"]
+          stock?: number
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          stock?: number
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -34,6 +75,36 @@ export type Database = {
           id?: string
           name?: string
           store?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stores: {
+        Row: {
+          category: Database["public"]["Enums"]["store_category"]
+          created_at: string
+          id: string
+          name: string
+          owner_user_id: string
+          template: Database["public"]["Enums"]["store_template"]
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["store_category"]
+          created_at?: string
+          id?: string
+          name: string
+          owner_user_id: string
+          template: Database["public"]["Enums"]["store_template"]
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["store_category"]
+          created_at?: string
+          id?: string
+          name?: string
+          owner_user_id?: string
+          template?: Database["public"]["Enums"]["store_template"]
           updated_at?: string
         }
         Relationships: []
@@ -71,6 +142,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      owns_store: { Args: { _store_id: string }; Returns: boolean }
     }
     Enums: {
       app_role:
@@ -82,6 +154,9 @@ export type Database = {
         | "accountant"
         | "technician"
         | "warehouse_manager"
+      product_status: "pending" | "approved" | "rejected"
+      store_category: "Clothes" | "Electronics" | "Sports"
+      store_template: "minimal" | "boutique" | "techgrid" | "sporty" | "luxe"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -219,6 +294,9 @@ export const Constants = {
         "technician",
         "warehouse_manager",
       ],
+      product_status: ["pending", "approved", "rejected"],
+      store_category: ["Clothes", "Electronics", "Sports"],
+      store_template: ["minimal", "boutique", "techgrid", "sporty", "luxe"],
     },
   },
 } as const
