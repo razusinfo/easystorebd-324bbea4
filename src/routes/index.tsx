@@ -46,7 +46,7 @@ function Landing() {
 
       <section className="mx-auto -mt-10 grid max-w-6xl gap-4 px-5 pb-16 sm:grid-cols-2 sm:gap-6">
         <RoleCard
-          to="/onboarding"
+          to="/auth"
           icon={<Store className="h-6 w-6" />}
           tag="For founders"
           title="I'm a Store Owner"
