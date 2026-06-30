@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
@@ -63,6 +63,16 @@ function AuthPage() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendBusy, setResendBusy] = useState(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
 
   const safeRedirect = redirect && redirect.startsWith("/") ? redirect : null;
 
@@ -128,12 +138,14 @@ function AuthPage() {
         });
         if (error) throw error;
         if (!data.session) {
-          setInfo("Account created! Please check your email to confirm your address, then sign in.");
-          setMode("signin");
+          setPendingEmail(parsed.data.email);
+          setResendCooldown(60);
+          setInfo(null);
           setPassword("");
           return;
         }
         await routeAfterAuth();
+
       } else {
         const parsed = signinSchema.safeParse({ email, password });
         if (!parsed.success) {
@@ -194,7 +206,57 @@ function AuthPage() {
     }
   }
 
+  async function handleResendVerification() {
+    if (!pendingEmail || resendCooldown > 0 || resendBusy) return;
+    setError(null);
+    setInfo(null);
+    setResendBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: pendingEmail,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+      setInfo(`Verification email resent to ${pendingEmail}.`);
+      setResendCooldown(60);
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "Could not resend email"));
+    } finally {
+      setResendBusy(false);
+    }
+  }
+
+  async function handleCheckVerified() {
+    if (!pendingEmail) return;
+    setError(null);
+    setInfo(null);
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (data.user?.email_confirmed_at) {
+        await routeAfterAuth();
+      } else {
+        setInfo("Not verified yet. Please click the link in your email, then try again.");
+      }
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "Could not check status"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleUsedDifferentEmail() {
+    setPendingEmail(null);
+    setMode("signin");
+    setInfo(null);
+    setError(null);
+  }
+
   const isSignup = mode === "signup";
+
+
 
 
   const sendOtpFn = useServerFn(sendPhoneOtp);
@@ -289,6 +351,70 @@ function AuthPage() {
         </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
+          {pendingEmail ? (
+            <div className="space-y-5">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-purple-100 text-purple-700">
+                <Mail className="h-7 w-7" />
+              </div>
+              <div className="text-center">
+                <h1 className="font-display text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+                  Verify your email
+                </h1>
+                <p className="mt-2 text-sm text-slate-600">
+                  We sent a confirmation link to{" "}
+                  <span className="font-semibold text-slate-900">{pendingEmail}</span>. Open it on this device to finish
+                  creating your account.
+                </p>
+              </div>
+
+              {error && (
+                <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
+              )}
+              {info && (
+                <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleCheckVerified}
+                disabled={busy}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
+              >
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                I've verified — continue
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendBusy || resendCooldown > 0}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                {resendBusy && <Loader2 className="h-4 w-4 animate-spin" />}
+                {resendCooldown > 0
+                  ? `Resend in ${resendCooldown}s`
+                  : "Resend verification email"}
+              </button>
+
+              <div className="space-y-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
+                <p className="font-semibold text-slate-700">Didn't get it?</p>
+                <ul className="list-disc space-y-1 pl-4">
+                  <li>Check your spam or promotions folder.</li>
+                  <li>Make sure the address above is spelled correctly.</li>
+                  <li>Some providers can take 1–2 minutes to deliver.</li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleUsedDifferentEmail}
+                className="block w-full text-center text-xs font-semibold text-purple-700 hover:underline"
+              >
+                Use a different email
+              </button>
+            </div>
+          ) : (
+          <>
           <h1 className="font-display text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
             {isSignup ? "Create Your Account" : "Welcome Back"}
           </h1>
@@ -299,6 +425,7 @@ function AuthPage() {
               <>Sign in to manage your store</>
             )}
           </p>
+
 
           {/* Google OAuth */}
           <button
@@ -526,7 +653,10 @@ function AuthPage() {
             <a href="#" className="font-semibold text-purple-700 hover:underline">Privacy Policy</a>
             {" "}of EazyStore.
           </p>
+          </>
+          )}
         </div>
+
       </div>
     </main>
   );
