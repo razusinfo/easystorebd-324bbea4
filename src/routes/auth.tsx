@@ -23,6 +23,16 @@ const signinSchema = z.object({
   password: z.string().min(1, "Password is required").max(72),
 });
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^\+?[0-9\s-]{8,20}$/, "Enter a valid phone number in international format (e.g. +8801XXXXXXXXX)")
+  .transform((v) => {
+    const digits = v.replace(/[\s-]/g, "");
+    return digits.startsWith("+") ? digits : `+${digits.replace(/^0+/, "")}`;
+  });
+const otpSchema = z.string().trim().regex(/^[0-9]{4,8}$/, "Enter the 6-digit code we sent");
+
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
