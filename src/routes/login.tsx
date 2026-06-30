@@ -2,24 +2,12 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Eye, EyeOff, Loader2, Mail, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
 
-
 const searchSchema = z.object({ redirect: z.string().optional() });
-
-const signupSchema = z.object({
-  fullName: z.string().trim().min(2, "Full name must be at least 2 characters").max(80, "Full name is too long"),
-  email: z.string().trim().email("Please enter a valid email").max(255),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(72, "Password is too long")
-    .regex(/[A-Za-z]/, "Password must include a letter")
-    .regex(/[0-9]/, "Password must include a number"),
-});
 
 const signinSchema = z.object({
   email: z.string().trim().email("Please enter a valid email").max(255),
@@ -36,43 +24,35 @@ const phoneSchema = z
   });
 const otpSchema = z.string().trim().regex(/^[0-9]{6}$/, "Enter the 6-digit code we sent");
 
-export const Route = createFileRoute("/auth")({
+export const Route = createFileRoute("/login")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Create Your Account — EazyStore" },
-      { name: "description", content: "Start selling for free — no credit card required. Create your EazyStore account." },
+      { title: "Welcome Back — Sign in to EazyStore" },
+      { name: "description", content: "Sign in to your EazyStore account to manage your store." },
     ],
   }),
-  component: AuthPage,
+  component: LoginPage,
 });
 
-function AuthPage() {
+function LoginPage() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
-  const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [method, setMethod] = useState<"email" | "phone">("email");
-  const [fullName, setFullName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
+  const [remember, setRemember] = useState(true);
+
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [oauthBusy, setOauthBusy] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const [resendBusy, setResendBusy] = useState(false);
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const t = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resendCooldown]);
-
 
   const safeRedirect = redirect && redirect.startsWith("/") ? redirect : null;
 
@@ -109,58 +89,35 @@ function AuthPage() {
   function friendlyError(msg: string): string {
     const m = msg.toLowerCase();
     if (m.includes("invalid login")) return "Wrong email or password.";
-    if (m.includes("already registered") || m.includes("already been registered") || m.includes("user already"))
-      return "This email is already registered. Try logging in instead.";
     if (m.includes("email not confirmed")) return "Please confirm your email from the link we sent before signing in.";
     if (m.includes("rate limit")) return "Too many attempts. Please wait a moment and try again.";
+    if (m.includes("sms provider is not configured"))
+      return "Phone sign-in is not fully set up yet. Please use Email or Google for now.";
+    if (m.includes("no account found")) return "No account found for this number. Create an account first.";
+    if (m.includes("incorrect code")) return "Wrong code. Please check and try again.";
+    if (m.includes("expired")) return "This code has expired. Please request a new one.";
     return msg;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setInfo(null);
+    const parsed = signinSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setError(parsed.error.errors[0]?.message ?? "Invalid input");
+      return;
+    }
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const parsed = signupSchema.safeParse({ fullName, email, password });
-        if (!parsed.success) {
-          setError(parsed.error.errors[0]?.message ?? "Invalid input");
-          return;
-        }
-        const { data, error } = await supabase.auth.signUp({
-          email: parsed.data.email,
-          password: parsed.data.password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { full_name: parsed.data.fullName, name: parsed.data.fullName },
-          },
-        });
-        if (error) throw error;
-        if (!data.session) {
-          setPendingEmail(parsed.data.email);
-          setResendCooldown(60);
-          setInfo(null);
-          setPassword("");
-          return;
-        }
-        await routeAfterAuth();
-
-      } else {
-        const parsed = signinSchema.safeParse({ email, password });
-        if (!parsed.success) {
-          setError(parsed.error.errors[0]?.message ?? "Invalid input");
-          return;
-        }
-        const { error } = await supabase.auth.signInWithPassword({
-          email: parsed.data.email,
-          password: parsed.data.password,
-        });
-        if (error) throw error;
-        await routeAfterAuth();
-      }
+      const { error: signErr } = await supabase.auth.signInWithPassword({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+      if (signErr) throw signErr;
+      await routeAfterAuth();
     } catch (err) {
-      setError(friendlyError(err instanceof Error ? err.message : "Something went wrong"));
+      setError(friendlyError(err instanceof Error ? err.message : "Could not sign in"));
     } finally {
       setBusy(false);
     }
@@ -178,7 +135,7 @@ function AuthPage() {
         setError(friendlyError(result.error.message ?? "Google sign-in failed"));
         return;
       }
-      if (result.redirected) return; // browser navigating away
+      if (result.redirected) return;
       await routeAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed");
@@ -196,68 +153,15 @@ function AuthPage() {
       return;
     }
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(parsed.data, {
         redirectTo: `${window.location.origin}/auth`,
       });
-      if (error) throw error;
+      if (resetErr) throw resetErr;
       setInfo("Password reset link sent. Check your email.");
     } catch (err) {
       setError(friendlyError(err instanceof Error ? err.message : "Could not send reset email"));
     }
   }
-
-  async function handleResendVerification() {
-    if (!pendingEmail || resendCooldown > 0 || resendBusy) return;
-    setError(null);
-    setInfo(null);
-    setResendBusy(true);
-    try {
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: pendingEmail,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) throw error;
-      setInfo(`Verification email resent to ${pendingEmail}.`);
-      setResendCooldown(60);
-    } catch (err) {
-      setError(friendlyError(err instanceof Error ? err.message : "Could not resend email"));
-    } finally {
-      setResendBusy(false);
-    }
-  }
-
-  async function handleCheckVerified() {
-    if (!pendingEmail) return;
-    setError(null);
-    setInfo(null);
-    setBusy(true);
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      if (data.user?.email_confirmed_at) {
-        await routeAfterAuth();
-      } else {
-        setInfo("Not verified yet. Please click the link in your email, then try again.");
-      }
-    } catch (err) {
-      setError(friendlyError(err instanceof Error ? err.message : "Could not check status"));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function handleUsedDifferentEmail() {
-    setPendingEmail(null);
-    setMode("signin");
-    setInfo(null);
-    setError(null);
-  }
-
-  const isSignup = mode === "signup";
-
-
-
 
   const sendOtpFn = useServerFn(sendPhoneOtp);
   const verifyOtpFn = useServerFn(verifyPhoneOtp);
@@ -271,21 +175,15 @@ function AuthPage() {
       setError(parsed.error.errors[0]?.message ?? "Invalid phone number");
       return;
     }
-    if (isSignup && fullName.trim().length < 2) {
-      setError("Please enter your full name.");
-      return;
-    }
     setBusy(true);
     try {
-      await sendOtpFn({
-        data: { phone: parsed.data, fullName: isSignup ? fullName.trim() : undefined, isSignup },
-      });
+      await sendOtpFn({ data: { phone: parsed.data, isSignup: false } });
       setPhone(parsed.data);
       setOtpSent(true);
       setOtp("");
-      setInfo(`We sent a verification code to ${parsed.data}.`);
+      setInfo(`We sent a login code to ${parsed.data}.`);
     } catch (err) {
-      setError(friendlyPhoneError(err instanceof Error ? err.message : "Could not send code"));
+      setError(friendlyError(err instanceof Error ? err.message : "Could not send code"));
     } finally {
       setBusy(false);
     }
@@ -303,40 +201,20 @@ function AuthPage() {
     setBusy(true);
     try {
       const result = await verifyOtpFn({
-        data: {
-          phone,
-          code: parsed.data,
-          fullName: isSignup ? fullName.trim() : undefined,
-          isSignup,
-        },
+        data: { phone, code: parsed.data, isSignup: false },
       });
-      const { error: signInErr } = await supabase.auth.signInWithPassword({
+      const { error: signErr } = await supabase.auth.signInWithPassword({
         phone: result.phone,
         password: result.password,
       });
-      if (signInErr) throw signInErr;
+      if (signErr) throw signErr;
       await routeAfterAuth();
     } catch (err) {
-      setError(friendlyPhoneError(err instanceof Error ? err.message : "Could not verify code"));
+      setError(friendlyError(err instanceof Error ? err.message : "Could not verify code"));
     } finally {
       setBusy(false);
     }
   }
-
-  function friendlyPhoneError(msg: string): string {
-    const m = msg.toLowerCase();
-    if (m.includes("sms provider is not configured"))
-      return "Phone sign-in is not fully set up yet. Please use Email or Google for now.";
-    if (m.includes("already registered")) return "This phone number is already registered. Try signing in instead.";
-    if (m.includes("no account found")) return "No account found for this number. Switch to Sign Up to create one.";
-    if (m.includes("incorrect code")) return "Wrong code. Please check and try again.";
-    if (m.includes("expired")) return "This code has expired. Please request a new one.";
-    if (m.includes("too many")) return msg;
-    return friendlyError(msg);
-  }
-
-
-
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f5eefe_0%,#e4d6fb_55%,#f1e8fe_100%)] px-4 py-8 text-slate-900">
@@ -351,83 +229,14 @@ function AuthPage() {
         </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
-          {pendingEmail ? (
-            <div className="space-y-5">
-              <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-purple-100 text-purple-700">
-                <Mail className="h-7 w-7" />
-              </div>
-              <div className="text-center">
-                <h1 className="font-display text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
-                  Verify your email
-                </h1>
-                <p className="mt-2 text-sm text-slate-600">
-                  We sent a confirmation link to{" "}
-                  <span className="font-semibold text-slate-900">{pendingEmail}</span>. Open it on this device to finish
-                  creating your account.
-                </p>
-              </div>
-
-              {error && (
-                <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
-              )}
-              {info && (
-                <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
-              )}
-
-              <button
-                type="button"
-                onClick={handleCheckVerified}
-                disabled={busy}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
-              >
-                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                I've verified — continue
-              </button>
-
-              <button
-                type="button"
-                onClick={handleResendVerification}
-                disabled={resendBusy || resendCooldown > 0}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
-              >
-                {resendBusy && <Loader2 className="h-4 w-4 animate-spin" />}
-                {resendCooldown > 0
-                  ? `Resend in ${resendCooldown}s`
-                  : "Resend verification email"}
-              </button>
-
-              <div className="space-y-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
-                <p className="font-semibold text-slate-700">Didn't get it?</p>
-                <ul className="list-disc space-y-1 pl-4">
-                  <li>Check your spam or promotions folder.</li>
-                  <li>Make sure the address above is spelled correctly.</li>
-                  <li>Some providers can take 1–2 minutes to deliver.</li>
-                </ul>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleUsedDifferentEmail}
-                className="block w-full text-center text-xs font-semibold text-purple-700 hover:underline"
-              >
-                Use a different email
-              </button>
-            </div>
-          ) : (
-          <>
           <h1 className="font-display text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
-            {isSignup ? "Create Your Account" : "Welcome Back"}
+            Welcome Back
           </h1>
           <p className="mt-2 text-sm text-slate-600 sm:text-base">
-            {isSignup ? (
-              <>Start selling for <span className="font-bold text-purple-700">free</span> — no credit card required</>
-            ) : (
-              <>Sign in to manage your store</>
-            )}
+            Sign in to your account to continue
           </p>
 
-
-          {/* Google OAuth */}
+          {/* Google */}
           <button
             type="button"
             onClick={handleGoogle}
@@ -457,7 +266,7 @@ function AuthPage() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setMethod("email")}
+              onClick={() => { setMethod("email"); setError(null); setInfo(null); }}
               className={`rounded-full px-4 py-3 text-sm font-semibold transition ${
                 method === "email"
                   ? "bg-purple-700 text-white shadow-md ring-2 ring-purple-300"
@@ -480,20 +289,7 @@ function AuthPage() {
           </div>
 
           {method === "email" ? (
-            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-              {isSignup && (
-                <Field label="Full Name">
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                  />
-                </Field>
-              )}
-
+            <form onSubmit={handleEmailSignIn} className="mt-6 space-y-5">
               <Field label="Email Address">
                 <input
                   type="email"
@@ -511,12 +307,11 @@ function AuthPage() {
                   <input
                     type={showPwd ? "text" : "password"}
                     required
-                    minLength={isSignup ? 8 : 1}
-                    autoComplete={isSignup ? "new-password" : "current-password"}
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={isSignup ? "At least 8 characters, with a number" : "Your password"}
-                    className="w-full rounded-xl border border-slate-200 bg-purple-50/60 px-4 py-3 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    placeholder="Enter your password"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                   />
                   <button
                     type="button"
@@ -527,16 +322,26 @@ function AuthPage() {
                     {showPwd ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                   </button>
                 </div>
-                {!isSignup && (
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    className="mt-2 text-xs font-semibold text-purple-700 hover:underline"
-                  >
-                    Forgot password?
-                  </button>
-                )}
               </Field>
+
+              <div className="flex items-center justify-between text-sm">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-purple-700 focus:ring-purple-500"
+                  />
+                  <span className="font-medium">Remember me</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="font-semibold text-purple-700 hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
 
               {error && (
                 <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
@@ -551,24 +356,11 @@ function AuthPage() {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isSignup ? "Get Started" : "Sign In"}
+                Sign In
               </button>
             </form>
           ) : (
             <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="mt-6 space-y-5">
-              {isSignup && !otpSent && (
-                <Field label="Full Name">
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                  />
-                </Field>
-              )}
-
               <Field label="Phone Number">
                 <input
                   type="tel"
@@ -630,26 +422,16 @@ function AuthPage() {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                {otpSent ? "Verify & Continue" : isSignup ? "Send Verification Code" : "Send Login Code"}
+                {otpSent ? "Verify & Sign In" : "Send Login Code"}
               </button>
             </form>
           )}
 
           <p className="mt-5 text-center text-sm text-slate-600">
-            {isSignup ? "Already have an account? " : "New here? "}
-            {isSignup ? (
-              <Link to="/login" className="font-semibold text-purple-700 hover:underline">
-                Login
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={() => { setMode("signup"); setError(null); setInfo(null); }}
-                className="font-semibold text-purple-700 hover:underline"
-              >
-                Create an account
-              </button>
-            )}
+            Don't have an account?{" "}
+            <Link to="/auth" className="font-semibold text-purple-700 hover:underline">
+              Sign up
+            </Link>
           </p>
 
           <p className="mt-4 text-center text-xs leading-relaxed text-slate-500">
@@ -659,10 +441,7 @@ function AuthPage() {
             <a href="#" className="font-semibold text-purple-700 hover:underline">Privacy Policy</a>
             {" "}of EazyStore.
           </p>
-          </>
-          )}
         </div>
-
       </div>
     </main>
   );
