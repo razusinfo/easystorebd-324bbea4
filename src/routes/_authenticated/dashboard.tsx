@@ -1,47 +1,58 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Plus, Package, Clock, CheckCircle2, XCircle, Trash2, Sparkles, Store as StoreIcon,
-  Pencil, X as XIcon, Loader2, LogOut, ShieldCheck,
+  Package, ShoppingBag, Users, Globe, FolderTree, Megaphone,
+  Store as StoreIcon, LayoutTemplate, Tag, BarChart3, FileBarChart,
+  Truck, Gem, ReceiptText, LifeBuoy, Zap, Copy, ExternalLink,
+  Home, Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  useMyStore, useMyProducts, useUpsertProduct, useDeleteProduct, useIsSuperAdmin,
-  TEMPLATES, type ProductRow,
-} from "@/lib/eazystore-data";
+import { useMyStore, useMyProducts } from "@/lib/eazystore-data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — EazyStore" }] }),
   component: Dashboard,
 });
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 24) || "mystore";
+}
+
 function Dashboard() {
-  const navigate = useNavigate();
   const myStore = useMyStore();
   const products = useMyProducts(myStore.data?.id);
-  const upsert = useUpsertProduct(myStore.data?.id);
-  const remove = useDeleteProduct(myStore.data?.id);
-  const isAdmin = useIsSuperAdmin();
-
-  const [editing, setEditing] = useState<ProductRow | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [err, setErr] = useState<string | null>(null);
+  const [name, setName] = useState<string>("");
 
   useEffect(() => {
-    if (editing) {
-      setName(editing.name);
-      setPrice(String(editing.price));
-      setStock(String(editing.stock));
-      setShowForm(true);
-    }
-  }, [editing]);
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      const fn =
+        (u?.user_metadata?.full_name as string | undefined) ||
+        (u?.user_metadata?.name as string | undefined) ||
+        u?.email?.split("@")[0] ||
+        "there";
+      setName(fn);
+    });
+  }, []);
+
+  const stats = useMemo(() => {
+    const list = products.data ?? [];
+    return {
+      products: list.filter((p) => p.status === "approved").length,
+      totalProducts: list.length,
+    };
+  }, [products.data]);
 
   if (myStore.isLoading) {
     return (
-      <main className="grid min-h-screen place-items-center bg-background">
+      <main className="grid min-h-[60vh] place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </main>
     );
@@ -49,13 +60,15 @@ function Dashboard() {
 
   if (!myStore.data) {
     return (
-      <main className="grid min-h-screen place-items-center bg-background px-5 text-center">
+      <main className="grid min-h-[60vh] place-items-center px-5 text-center">
         <div className="max-w-sm space-y-4">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl gradient-primary text-white">
             <StoreIcon className="h-7 w-7" />
           </div>
           <h1 className="font-display text-2xl font-bold">No store yet</h1>
-          <p className="text-sm text-muted-foreground">Set up your store with the onboarding wizard.</p>
+          <p className="text-sm text-muted-foreground">
+            Set up your store with the onboarding wizard.
+          </p>
           <Link
             to="/onboarding"
             className="inline-flex items-center justify-center rounded-2xl gradient-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-md"
@@ -68,221 +81,213 @@ function Dashboard() {
   }
 
   const store = myStore.data;
-  const tmpl = TEMPLATES.find((t) => t.id === store.template) ?? TEMPLATES[0];
-  const list = products.data ?? [];
-  const stats = useMemoStats(list);
+  const storeUrl = `www.${slugify(store.name)}.eazystore.app`;
+  const date = new Date().toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "short",
+  });
 
-  function resetForm() {
-    setEditing(null); setName(""); setPrice(""); setStock(""); setErr(null); setShowForm(false);
-  }
-
-  async function submit() {
-    setErr(null);
-    const p = parseFloat(price);
-    const s = parseInt(stock, 10);
-    if (!name.trim() || isNaN(p) || p < 0 || isNaN(s) || s < 0) {
-      setErr("Enter a name, a non-negative price, and stock.");
-      return;
-    }
-    try {
-      await upsert.mutateAsync({ id: editing?.id, name: name.trim(), price: p, stock: s });
-      resetForm();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not save");
-    }
-  }
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    navigate({ to: "/" });
+  async function copyUrl() {
+    try { await navigator.clipboard.writeText(`https://${storeUrl}`); } catch {}
   }
 
   return (
-    <main className="min-h-screen bg-background pb-16 text-foreground">
-      <div className={`relative overflow-hidden bg-gradient-to-br ${tmpl.gradient} text-white`}>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
-        <div className="mx-auto max-w-3xl px-5 pb-8 pt-6">
-          <div className="flex items-center justify-between gap-3">
-            <Link to="/" className="text-xs font-medium text-white/80 hover:text-white">← Home</Link>
-            <div className="flex items-center gap-2">
-              {isAdmin.data && (
-                <Link
-                  to="/admin"
-                  className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/25"
-                >
-                  <ShieldCheck className="h-3 w-3" /> Admin
-                </Link>
-              )}
-              <button
-                onClick={signOut}
-                className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/25"
-              >
-                <LogOut className="h-3 w-3" /> Sign out
-              </button>
+    <main className="relative mx-auto min-h-screen w-full max-w-2xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28">
+      {/* Greeting */}
+      <section className="px-5 pt-5">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="min-w-0">
+            <p className="text-sm text-foreground/70">{greeting()},</p>
+            <h1 className="truncate font-display text-4xl font-black tracking-tight">
+              {name || "there"}
+            </h1>
+            <div className="mt-2 inline-flex items-center gap-1.5 text-sm">
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="truncate text-foreground/80">{store.name} · Live</span>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
-                {store.category} · {tmpl.name}
-              </p>
-              <h1 className="mt-1 truncate font-display text-3xl font-black sm:text-4xl">{store.name}</h1>
-            </div>
-            <Sparkles className="h-8 w-8 shrink-0 text-white/80" />
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-black text-white shadow-lg ring-4 ring-white/60">
+            <span className="font-display text-lg font-black">
+              {store.name.slice(0, 2).toUpperCase()}
+            </span>
           </div>
         </div>
-      </div>
 
-      <div className="mx-auto -mt-6 grid max-w-3xl grid-cols-2 gap-3 px-5 sm:grid-cols-4">
-        <StatCard label="Total" value={stats.total} icon={<Package className="h-4 w-4" />} tone="primary" />
-        <StatCard label="Pending" value={stats.pending} icon={<Clock className="h-4 w-4" />} tone="warning" />
-        <StatCard label="Approved" value={stats.approved} icon={<CheckCircle2 className="h-4 w-4" />} tone="success" />
-        <StatCard label="Rejected" value={stats.rejected} icon={<XCircle className="h-4 w-4" />} tone="destructive" />
-      </div>
-
-      <section className="mx-auto mt-6 max-w-3xl px-5">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Products</h2>
+        {/* URL chip */}
+        <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
+          <Globe className="h-4 w-4 shrink-0 text-primary" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
+            {storeUrl}
+          </span>
           <button
-            onClick={() => (showForm ? resetForm() : setShowForm(true))}
-            className="inline-flex items-center gap-1.5 rounded-full gradient-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-md"
+            onClick={copyUrl}
+            className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
+            aria-label="Copy URL"
           >
-            {showForm ? <XIcon className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {showForm ? "Close" : "New product"}
+            <Copy className="h-4 w-4" />
           </button>
-        </div>
-
-        {showForm && (
-          <div className="mt-3 animate-fade-up rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <input
-                placeholder="Product name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="rounded-xl border-2 border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary sm:col-span-3"
-              />
-              <input
-                type="number" inputMode="decimal" placeholder="Price (৳)" value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="rounded-xl border-2 border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
-              />
-              <input
-                type="number" inputMode="numeric" placeholder="Stock" value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="rounded-xl border-2 border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
-              />
-              <button
-                onClick={submit}
-                disabled={upsert.isPending}
-                className="inline-flex items-center justify-center gap-2 rounded-xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm disabled:opacity-50"
-              >
-                {upsert.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {editing ? "Save changes" : "Submit for review"}
-              </button>
-            </div>
-            {err && <p className="mt-2 text-xs font-medium text-destructive">{err}</p>}
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              {editing ? "Edits go back to pending review." : "New listings go to the Super Admin for review."}
-            </p>
-          </div>
-        )}
-
-        <div className="mt-4 space-y-2.5">
-          {products.isLoading ? (
-            <div className="grid place-items-center py-10">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : list.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center">
-              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
-                <Package className="h-5 w-5" />
-              </div>
-              <p className="mt-3 text-sm font-medium">No products yet</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Tap "New product" to add your first listing.</p>
-            </div>
-          ) : (
-            list.map((p) => (
-              <ProductRowView
-                key={p.id}
-                p={p}
-                onEdit={() => setEditing(p)}
-                onDelete={() => remove.mutate(p.id)}
-              />
-            ))
-          )}
+          <a
+            href={`https://${storeUrl}`} target="_blank" rel="noreferrer"
+            className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
+            aria-label="Open store"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
         </div>
       </section>
+
+      {/* Promo banner */}
+      <section className="mt-4 px-5">
+        <div className="overflow-hidden rounded-2xl bg-white p-4 shadow-sm">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground/60">Introducing</p>
+              <p className="font-display text-xl font-black text-primary">
+                EazyStore Experts
+              </p>
+              <p className="mt-0.5 text-xs text-foreground/70">
+                From confusion to clarity — structured guidance for your business.
+              </p>
+            </div>
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-primary">
+              <LifeBuoy className="h-7 w-7" />
+            </div>
+          </div>
+        </div>
+        <div className="mt-2 flex justify-center gap-1.5">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span
+              key={i}
+              className={`h-1.5 rounded-full transition-all ${
+                i === 0 ? "w-5 bg-primary" : "w-1.5 bg-primary/30"
+              }`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Quick actions */}
+      <section className="mt-6 px-5">
+        <h2 className="mb-3 font-display text-2xl font-black">Quick actions</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <QuickCard to="/categories" icon={FolderTree} title="Categories" sub="Organize products" />
+          <QuickCard to="/customers" icon={Users} title="Customers" sub="Browse buyers" />
+          <QuickCard to="/manage-shop" icon={StoreIcon} title="Manage Shop" sub="Profile & settings" />
+          <QuickCard to="/landing-pages" icon={LayoutTemplate} title="Landing Pages" sub="Custom pages" />
+          <QuickCard to="/promo-codes" icon={Tag} title="Promo Codes" sub="Discounts" />
+          <QuickCard to="/analytics" icon={BarChart3} title="Analytics" sub="Detailed reports" />
+          <QuickCard to="/analytics" icon={FileBarChart} title="Reports" sub="Sales summary" />
+          <QuickCard to="/courier" icon={Truck} title="Courier" sub="Ship & track" />
+          <QuickCard to="/spotlights" icon={Megaphone} title="Spotlights" sub="Promote items" />
+          <QuickCard to="/themes" icon={LayoutTemplate} title="Themes" sub="Storefront look" />
+        </div>
+      </section>
+
+      {/* Account */}
+      <section className="mt-6 px-5">
+        <div className="grid grid-cols-2 gap-3">
+          <QuickCard to="/manage-shop" icon={Gem} title="Subscription" sub="Plans & add-ons" />
+          <QuickCard to="/manage-shop" icon={ReceiptText} title="Billing" sub="Invoices & receipts" />
+          <QuickCard to="/manage-shop" icon={LifeBuoy} title="Help" sub="Talk to us" />
+        </div>
+      </section>
+
+      {/* Today's revenue */}
+      <section className="mt-5 px-5">
+        <div className="relative overflow-hidden rounded-3xl gradient-primary p-5 text-primary-foreground shadow-lg">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+          <div className="relative flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider backdrop-blur">
+              <Zap className="h-3 w-3" /> Today's revenue
+            </span>
+            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-primary">— —</span>
+          </div>
+          <div className="relative mt-4">
+            <div className="font-display text-5xl font-black tabular-nums">৳ 0</div>
+            <p className="mt-1 text-sm text-white/80">৳ 0 this month · {date}</p>
+          </div>
+          <div className="relative mt-6 h-1 w-full rounded-full bg-white/20">
+            <div className="h-1 w-full rounded-full bg-white/60" />
+          </div>
+        </div>
+      </section>
+
+      {/* Stat cards */}
+      <section className="mt-4 px-5">
+        <div className="grid grid-cols-2 gap-3">
+          <StatTile icon={<ReceiptText className="h-5 w-5" />} value={0} label="Orders" sub="today · 0 mo" tone="violet" />
+          <StatTile icon={<Package className="h-5 w-5" />} value={stats.products} label="Products" sub="active" tone="violet" />
+          <StatTile icon={<Users className="h-5 w-5" />} value={0} label="Customers" sub="all time" tone="peach" />
+          <StatTile icon={<Globe className="h-5 w-5" />} value={0} label="Visits" sub="website" tone="sky" />
+        </div>
+      </section>
+
+      {/* Bottom nav (mobile-friendly; visible on all sizes within this max-w pane) */}
+      <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-2xl">
+        <div className="relative mx-3 mb-3 grid grid-cols-3 items-end rounded-3xl border border-white/60 bg-white/90 px-4 py-2 shadow-[0_10px_30px_-10px_rgba(79,70,229,0.35)] backdrop-blur">
+          <Link to="/products" className="flex flex-col items-center gap-0.5 py-2 text-foreground/70">
+            <StoreIcon className="h-5 w-5" />
+            <span className="text-[11px] font-semibold">Products</span>
+          </Link>
+          <div className="flex justify-center">
+            <Link
+              to="/dashboard"
+              className="-mt-8 grid h-14 w-14 place-items-center rounded-full gradient-primary text-primary-foreground shadow-lg ring-4 ring-white"
+              aria-label="Home"
+            >
+              <Home className="h-6 w-6" />
+            </Link>
+          </div>
+          <Link to="/orders" className="flex flex-col items-center gap-0.5 py-2 text-foreground/70">
+            <ShoppingBag className="h-5 w-5" />
+            <span className="text-[11px] font-semibold">Orders</span>
+          </Link>
+        </div>
+      </nav>
     </main>
   );
 }
 
-function useMemoStats(list: ProductRow[]) {
-  return useMemo(
-    () => ({
-      total: list.length,
-      pending: list.filter((p) => p.status === "pending").length,
-      approved: list.filter((p) => p.status === "approved").length,
-      rejected: list.filter((p) => p.status === "rejected").length,
-    }),
-    [list],
+function QuickCard({
+  to, icon: Icon, title, sub,
+}: { to: string; icon: any; title: string; sub: string }) {
+  return (
+    <Link
+      to={to}
+      className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white p-3.5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate font-display text-sm font-black leading-tight">
+          {title}
+        </span>
+        <span className="block truncate text-[11px] text-foreground/60">{sub}</span>
+      </span>
+      <span className="text-foreground/30 transition-transform group-hover:translate-x-0.5">›</span>
+    </Link>
   );
 }
 
-function StatCard({
-  label, value, icon, tone,
+function StatTile({
+  icon, value, label, sub, tone,
 }: {
-  label: string; value: number; icon: React.ReactNode;
-  tone: "primary" | "warning" | "success" | "destructive";
+  icon: React.ReactNode; value: number; label: string; sub: string;
+  tone: "violet" | "peach" | "sky";
 }) {
   const toneCls = {
-    primary: "bg-primary/10 text-primary",
-    warning: "bg-warning/15 text-warning-foreground",
-    success: "bg-success/15 text-success",
-    destructive: "bg-destructive/10 text-destructive",
+    violet: "bg-primary/10 text-primary",
+    peach: "bg-orange-100 text-orange-500",
+    sky: "bg-sky-100 text-sky-500",
   }[tone];
   return (
-    <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
-      <div className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${toneCls}`}>{icon}</div>
-      <div className="mt-2 text-2xl font-black tabular-nums">{value}</div>
-      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-    </div>
-  );
-}
-
-function ProductRowView({
-  p, onEdit, onDelete,
-}: { p: ProductRow; onEdit: () => void; onDelete: () => void }) {
-  const status = {
-    pending: { cls: "bg-warning/15 text-warning-foreground", label: "Pending" },
-    approved: { cls: "bg-success/15 text-success", label: "Approved" },
-    rejected: { cls: "bg-destructive/10 text-destructive", label: "Rejected" },
-  }[p.status];
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-sm">
-      <div className="min-w-0">
-        <div className="truncate font-semibold">{p.name}</div>
-        <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="tabular-nums">৳{Number(p.price).toLocaleString()}</span>
-          <span>·</span>
-          <span>{p.stock} in stock</span>
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5">
-        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${status.cls}`}>{status.label}</span>
-        <button
-          onClick={onEdit} aria-label="Edit"
-          className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-primary/10 hover:text-primary"
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => { if (confirm("Delete this product?")) onDelete(); }}
-          aria-label="Delete"
-          className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
+    <div className="rounded-2xl bg-white p-4 shadow-sm">
+      <span className={`inline-grid h-9 w-9 place-items-center rounded-xl ${toneCls}`}>
+        {icon}
+      </span>
+      <div className="mt-3 font-display text-3xl font-black tabular-nums">{value}</div>
+      <div className="mt-0.5 font-display text-sm font-black">{label}</div>
+      <div className="text-[11px] text-foreground/60">{sub}</div>
     </div>
   );
 }
