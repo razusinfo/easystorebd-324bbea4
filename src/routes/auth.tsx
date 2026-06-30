@@ -682,11 +682,12 @@ function AuthPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: React.ReactElement }) {
+  const id = React.useId();
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-bold text-slate-900">{label}</label>
-      {children}
+      <label htmlFor={id} className="mb-1.5 block text-sm font-bold text-slate-900">{label}</label>
+      {React.cloneElement(children, { id })}
     </div>
   );
 }
