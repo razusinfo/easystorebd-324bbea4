@@ -31,6 +31,7 @@ function slugify(s: string) {
 function ManageShop() {
   const myStore = useMyStore();
   const update = useUpdateStore();
+  const publish = usePublishStore();
 
   const [name, setName] = useState("");
   const [tagline, setTagline] = useState("");
