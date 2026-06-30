@@ -23,7 +23,11 @@ export type StoreRow = {
   instagram_url: string | null;
   whatsapp_number: string | null;
   website_url: string | null;
+  slug: string | null;
+  published: boolean;
+  published_at: string | null;
 };
+
 
 export type StoreSettings = {
   name: string;
