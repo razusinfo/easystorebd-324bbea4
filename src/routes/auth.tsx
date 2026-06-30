@@ -206,7 +206,57 @@ function AuthPage() {
     }
   }
 
+  async function handleResendVerification() {
+    if (!pendingEmail || resendCooldown > 0 || resendBusy) return;
+    setError(null);
+    setInfo(null);
+    setResendBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: pendingEmail,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) throw error;
+      setInfo(`Verification email resent to ${pendingEmail}.`);
+      setResendCooldown(60);
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "Could not resend email"));
+    } finally {
+      setResendBusy(false);
+    }
+  }
+
+  async function handleCheckVerified() {
+    if (!pendingEmail) return;
+    setError(null);
+    setInfo(null);
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (data.user?.email_confirmed_at) {
+        await routeAfterAuth();
+      } else {
+        setInfo("Not verified yet. Please click the link in your email, then try again.");
+      }
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "Could not check status"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleUsedDifferentEmail() {
+    setPendingEmail(null);
+    setMode("signin");
+    setInfo(null);
+    setError(null);
+  }
+
   const isSignup = mode === "signup";
+
+
 
 
   const sendOtpFn = useServerFn(sendPhoneOtp);
