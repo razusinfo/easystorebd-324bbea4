@@ -14,6 +14,30 @@ export type StoreRow = {
   category: Category;
   template: TemplateId;
   created_at: string;
+  logo_url: string | null;
+  tagline: string | null;
+  address: string | null;
+  phone: string | null;
+  contact_email: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  whatsapp_number: string | null;
+  website_url: string | null;
+};
+
+export type StoreSettings = {
+  name: string;
+  category: Category;
+  template: TemplateId;
+  logo_url?: string | null;
+  tagline?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  contact_email?: string | null;
+  facebook_url?: string | null;
+  instagram_url?: string | null;
+  whatsapp_number?: string | null;
+  website_url?: string | null;
 };
 
 export type ProductRow = {
