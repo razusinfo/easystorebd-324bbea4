@@ -653,7 +653,10 @@ function AuthPage() {
             <a href="#" className="font-semibold text-purple-700 hover:underline">Privacy Policy</a>
             {" "}of EazyStore.
           </p>
+          </>
+          )}
         </div>
+
       </div>
     </main>
   );
