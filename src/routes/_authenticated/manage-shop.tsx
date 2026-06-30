@@ -540,7 +540,7 @@ function ManageShop() {
             <div className="flex min-w-0 items-center gap-2">
               <Globe className="h-4 w-4 shrink-0 text-primary-foreground/90" />
               <span className="truncate text-sm font-semibold">
-                {storeUrl || "your-store.eazystore.app"}
+                {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
               </span>
             </div>
             <div className="flex items-center gap-2">
