@@ -30,7 +30,11 @@ export const Route = createFileRoute("/login")({
     meta: [
       { title: "Welcome Back — Sign in to EazyStore" },
       { name: "description", content: "Sign in to your EazyStore account to manage your store." },
+      { property: "og:title", content: "Welcome Back — Sign in to EazyStore" },
+      { property: "og:description", content: "Sign in to your EazyStore account to manage your store." },
+      { property: "og:url", content: "https://eazystorebd.lovable.app/login" },
     ],
+    links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/login" }],
   }),
   component: LoginPage,
 });
