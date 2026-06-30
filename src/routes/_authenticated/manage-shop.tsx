@@ -57,6 +57,11 @@ function ManageShop() {
   const [showStorefront, setShowStorefront] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [slugInput, setSlugInput] = useState("");
+  const [slugError, setSlugError] = useState<string | null>(null);
+  const [slugSavedAt, setSlugSavedAt] = useState<number | null>(null);
+
   const signedLogo = useLogoSignedUrl(logoPath);
 
   useEffect(() => {
