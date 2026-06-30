@@ -142,7 +142,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      owns_store: { Args: { _store_id: string }; Returns: boolean }
     }
     Enums: {
       app_role:
