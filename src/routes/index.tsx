@@ -16,24 +16,24 @@ const NAV = ["Home", "Pricing", "Experts", "Funding", "Learn", "Affiliates", "Ab
 function Landing() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {/* Top hero band with soft blue gradient */}
-      <div className="relative overflow-hidden bg-[linear-gradient(180deg,#f5eefe_0%,#e4d6fb_55%,#f1e8fe_100%)]">
+      {/* Top hero band — colors come from --gradient-landing / --landing-* tokens in src/styles.css */}
+      <div className="gradient-landing relative overflow-hidden">
         <div className="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.6),transparent_60%)]" />
 
         {/* Nav */}
         <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
           <Link to="/" className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-md">
+            <div className="gradient-landing-brand grid h-9 w-9 place-items-center rounded-xl text-white shadow-md">
               <Sparkles className="h-5 w-5" />
             </div>
             <span className="font-display text-xl font-bold tracking-tight text-slate-900">
-              eazy<span className="text-indigo-600">store</span>
+              eazy<span className="text-landing-accent">store</span>
             </span>
           </Link>
 
           <nav className="hidden items-center gap-7 text-sm font-medium text-slate-700 lg:flex">
             {NAV.map((n) => (
-              <a key={n} href="#" className="transition hover:text-indigo-600">
+              <a key={n} href="#" className="hover:text-landing-accent transition">
                 {n}
               </a>
             ))}
@@ -48,7 +48,7 @@ function Landing() {
             </Link>
             <Link
               to="/auth"
-              className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-700 sm:px-5"
+              className="bg-landing-accent hover:bg-landing-accent-hover rounded-full px-4 py-2 text-sm font-semibold text-white shadow-md transition sm:px-5"
             >
               Create Your Store
             </Link>
@@ -57,7 +57,7 @@ function Landing() {
 
         {/* Hero */}
         <section className="relative z-10 mx-auto max-w-4xl px-5 pb-20 pt-16 text-center sm:pt-24">
-          <span className="inline-flex items-center rounded-full border border-indigo-300/70 bg-white/70 px-4 py-1.5 text-xs font-semibold text-indigo-700 backdrop-blur sm:text-sm">
+          <span className="border-landing-accent/40 text-landing-accent inline-flex items-center rounded-full border bg-white/70 px-4 py-1.5 text-xs font-semibold backdrop-blur sm:text-sm">
             No.1 Online business partner
           </span>
 
@@ -76,7 +76,7 @@ function Landing() {
           <div className="mt-9 flex flex-col items-center gap-3">
             <Link
               to="/auth"
-              className="group inline-flex items-center gap-2 rounded-full bg-indigo-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-700"
+              className="group bg-landing-accent hover:bg-landing-accent-hover shadow-landing-accent inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold text-white transition"
             >
               Start for Free
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -85,6 +85,7 @@ function Landing() {
           </div>
         </section>
       </div>
+
 
       {/* Role cards */}
       <section className="mx-auto -mt-10 grid max-w-6xl gap-4 px-5 pb-16 sm:grid-cols-2 sm:gap-6">
