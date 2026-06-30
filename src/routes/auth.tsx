@@ -3,8 +3,25 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
+
+const signupSchema = z.object({
+  fullName: z.string().trim().min(2, "Full name must be at least 2 characters").max(80, "Full name is too long"),
+  email: z.string().trim().email("Please enter a valid email").max(255),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password is too long")
+    .regex(/[A-Za-z]/, "Password must include a letter")
+    .regex(/[0-9]/, "Password must include a number"),
+});
+
+const signinSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email").max(255),
+  password: z.string().min(1, "Password is required").max(72),
+});
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
@@ -27,42 +44,137 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState(false);
+
+  const safeRedirect = redirect && redirect.startsWith("/") ? redirect : null;
+
+  async function routeAfterAuth() {
+    if (safeRedirect) {
+      navigate({ to: safeRedirect as "/" });
+      return;
+    }
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return;
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("owner_user_id", userData.user.id)
+      .maybeSingle();
+    navigate({ to: store ? "/dashboard" : "/onboarding" });
+  }
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getUser().then(({ data }) => {
-      if (mounted && data.user) {
-        navigate({ to: redirect && redirect.startsWith("/") ? (redirect as "/") : "/onboarding" });
-      }
+      if (mounted && data.user) routeAfterAuth();
     });
-    return () => { mounted = false; };
-  }, [navigate, redirect]);
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") routeAfterAuth();
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function friendlyError(msg: string): string {
+    const m = msg.toLowerCase();
+    if (m.includes("invalid login")) return "Wrong email or password.";
+    if (m.includes("already registered") || m.includes("already been registered") || m.includes("user already"))
+      return "This email is already registered. Try logging in instead.";
+    if (m.includes("email not confirmed")) return "Please confirm your email from the link we sent before signing in.";
+    if (m.includes("rate limit")) return "Too many attempts. Please wait a moment and try again.";
+    return msg;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
+        const parsed = signupSchema.safeParse({ fullName, email, password });
+        if (!parsed.success) {
+          setError(parsed.error.errors[0]?.message ?? "Invalid input");
+          return;
+        }
+        const { data, error } = await supabase.auth.signUp({
+          email: parsed.data.email,
+          password: parsed.data.password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: fullName },
+            data: { full_name: parsed.data.fullName, name: parsed.data.fullName },
           },
         });
         if (error) throw error;
+        if (!data.session) {
+          setInfo("Account created! Please check your email to confirm your address, then sign in.");
+          setMode("signin");
+          setPassword("");
+          return;
+        }
+        await routeAfterAuth();
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const parsed = signinSchema.safeParse({ email, password });
+        if (!parsed.success) {
+          setError(parsed.error.errors[0]?.message ?? "Invalid input");
+          return;
+        }
+        const { error } = await supabase.auth.signInWithPassword({
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
         if (error) throw error;
+        await routeAfterAuth();
       }
-      navigate({ to: redirect && redirect.startsWith("/") ? (redirect as "/") : "/onboarding" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(friendlyError(err instanceof Error ? err.message : "Something went wrong"));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setError(null);
+    setInfo(null);
+    setOauthBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setError(friendlyError(result.error.message ?? "Google sign-in failed"));
+        return;
+      }
+      if (result.redirected) return; // browser navigating away
+      await routeAfterAuth();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setOauthBusy(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    setError(null);
+    setInfo(null);
+    const parsed = z.string().trim().email().safeParse(email);
+    if (!parsed.success) {
+      setError("Enter your email above first, then tap 'Forgot password'.");
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) throw error;
+      setInfo("Password reset link sent. Check your email.");
+    } catch (err) {
+      setError(friendlyError(err instanceof Error ? err.message : "Could not send reset email"));
     }
   }
 
@@ -92,8 +204,34 @@ function AuthPage() {
             )}
           </p>
 
+          {/* Google OAuth */}
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={oauthBusy || busy}
+            className="mt-6 inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+          >
+            {oauthBusy ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.75h3.57c2.08-1.92 3.28-4.74 3.28-8.07z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.75c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.12A6.97 6.97 0 0 1 5.47 12c0-.74.13-1.45.36-2.12V7.04H2.18A11 11 0 0 0 1 12c0 1.77.42 3.45 1.18 4.96l3.66-2.84z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.04l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
+              </svg>
+            )}
+            Continue with Google
+          </button>
+
+          <div className="my-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">or</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
           {/* Method tabs */}
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setMethod("email")}
@@ -107,7 +245,7 @@ function AuthPage() {
             </button>
             <button
               type="button"
-              onClick={() => setError("Phone sign-up coming soon — please use Email for now.")}
+              onClick={() => setInfo("Phone sign-in is coming soon — please use Email or Google for now.")}
               className={`rounded-full px-4 py-3 text-sm font-semibold transition ${
                 method === "phone"
                   ? "bg-purple-700 text-white shadow-md"
@@ -149,11 +287,11 @@ function AuthPage() {
                 <input
                   type={showPwd ? "text" : "password"}
                   required
-                  minLength={8}
+                  minLength={isSignup ? 8 : 1}
                   autoComplete={isSignup ? "new-password" : "current-password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 8 characters"
+                  placeholder={isSignup ? "At least 8 characters, with a number" : "Your password"}
                   className="w-full rounded-xl border border-slate-200 bg-purple-50/60 px-4 py-3 pr-11 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                 />
                 <button
@@ -165,15 +303,27 @@ function AuthPage() {
                   {showPwd ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
+              {!isSignup && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="mt-2 text-xs font-semibold text-purple-700 hover:underline"
+                >
+                  Forgot password?
+                </button>
+              )}
             </Field>
 
             {error && (
               <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
             )}
+            {info && (
+              <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
+            )}
 
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || oauthBusy}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-purple-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-purple-700/30 transition hover:bg-purple-800 disabled:opacity-50"
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -185,7 +335,7 @@ function AuthPage() {
             {isSignup ? "Already have an account? " : "New here? "}
             <button
               type="button"
-              onClick={() => { setMode(isSignup ? "signin" : "signup"); setError(null); }}
+              onClick={() => { setMode(isSignup ? "signin" : "signup"); setError(null); setInfo(null); }}
               className="font-semibold text-purple-700 hover:underline"
             >
               {isSignup ? "Login" : "Create an account"}
