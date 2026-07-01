@@ -2,6 +2,13 @@
 // All hooks rely on RLS — owners only see/modify their own data; super_admin sees all.
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  adminListUsers,
+  adminListAuditLogs,
+  adminAssignRole,
+  adminRevokeRole,
+} from "@/lib/admin.functions";
+
 
 export type Category = "Clothes" | "Electronics" | "Sports";
 export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts";
