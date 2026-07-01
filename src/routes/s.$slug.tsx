@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe, Store as StoreIcon } from "lucide-react";
 import { TEMPLATES, usePublicStoreBySlug } from "@/lib/eazystore-data";
+import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 
 export const Route = createFileRoute("/s/$slug")({
   head: ({ params }) => ({
