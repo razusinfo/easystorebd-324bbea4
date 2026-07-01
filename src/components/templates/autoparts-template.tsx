@@ -250,7 +250,7 @@ export function AutoPartsTemplate({
           <div className="flex flex-wrap items-center gap-5">
             <h2 className="font-display text-lg font-black">Featured Products</h2>
             <nav className="flex flex-wrap items-center gap-4 text-xs font-semibold text-neutral-500 sm:text-sm">
-              <a href="#" className="border-b-2 border-red-600 pb-1 text-red-600">Auto Safety & Security</a>
+              <a href="#" className="border-b-2 border-red-600 pb-1 text-red-600">{featuredHeading}</a>
               <a href="#" className="hover:text-red-600">Interior Accessories</a>
               <a href="#" className="hover:text-red-600">Motor Oils</a>
               <a href="#" className="hover:text-red-600">Tires & Wheels</a>
