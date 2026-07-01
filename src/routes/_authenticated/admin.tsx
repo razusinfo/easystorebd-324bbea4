@@ -1,12 +1,18 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog, ScrollText, Plus, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct, useAdminUsers,
+  useAdminAuditLogs, useAssignRole, useRevokeRole,
+  type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
+
+const ASSIGNABLE_ROLES: AppRole[] = [
+  "super_admin", "store_owner", "manager", "cashier", "salesman", "accountant", "technician", "warehouse_manager",
+];
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Super Admin — EazyStore" }] }),
@@ -20,8 +26,11 @@ function Admin() {
   const products = useAdminProducts();
   const moderate = useModerateProduct();
   const users = useAdminUsers();
-  const [tab, setTab] = useState<"pending" | "stores" | "users">("pending");
+  const auditLogs = useAdminAuditLogs();
+  const [tab, setTab] = useState<"pending" | "stores" | "users" | "audit">("pending");
   const [q, setQ] = useState("");
+  const [manageUser, setManageUser] = useState<AdminUserRow | null>(null);
+
 
   const pending = useMemo(
     () => (products.data ?? []).filter((p) => p.status === "pending"),
