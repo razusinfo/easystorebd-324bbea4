@@ -205,6 +205,7 @@ export type Database = {
           slug: string | null
           tagline: string | null
           template: Database["public"]["Enums"]["store_template"]
+          template_settings: Json
           updated_at: string
           website_url: string | null
           whatsapp_number: string | null
@@ -226,6 +227,7 @@ export type Database = {
           slug?: string | null
           tagline?: string | null
           template: Database["public"]["Enums"]["store_template"]
+          template_settings?: Json
           updated_at?: string
           website_url?: string | null
           whatsapp_number?: string | null
@@ -247,6 +249,7 @@ export type Database = {
           slug?: string | null
           tagline?: string | null
           template?: Database["public"]["Enums"]["store_template"]
+          template_settings?: Json
           updated_at?: string
           website_url?: string | null
           whatsapp_number?: string | null
