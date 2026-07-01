@@ -19,7 +19,8 @@ function Admin() {
   const stores = useAdminStores();
   const products = useAdminProducts();
   const moderate = useModerateProduct();
-  const [tab, setTab] = useState<"pending" | "users">("pending");
+  const users = useAdminUsers();
+  const [tab, setTab] = useState<"pending" | "stores" | "users">("pending");
   const [q, setQ] = useState("");
 
   const pending = useMemo(
