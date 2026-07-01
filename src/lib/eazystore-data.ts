@@ -162,6 +162,26 @@ export function useAdminProducts() {
   });
 }
 
+export type AdminUserRow = {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+  roles: string[];
+};
+
+export function useAdminUsers() {
+  return useQuery({
+    queryKey: ["admin", "users"],
+    queryFn: async (): Promise<AdminUserRow[]> => {
+      const { data, error } = await supabase.rpc("admin_list_users");
+      if (error) throw error;
+      return (data ?? []) as AdminUserRow[];
+    },
+  });
+}
+
 // ---------- Mutations ----------
 
 export function useCreateStore() {

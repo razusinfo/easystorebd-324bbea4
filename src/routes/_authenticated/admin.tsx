@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct,
+  useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct, useAdminUsers,
 } from "@/lib/eazystore-data";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -19,7 +19,8 @@ function Admin() {
   const stores = useAdminStores();
   const products = useAdminProducts();
   const moderate = useModerateProduct();
-  const [tab, setTab] = useState<"pending" | "users">("pending");
+  const users = useAdminUsers();
+  const [tab, setTab] = useState<"pending" | "stores" | "users">("pending");
   const [q, setQ] = useState("");
 
   const pending = useMemo(
@@ -33,6 +34,17 @@ function Admin() {
     if (!t) return list;
     return list.filter((s) => s.name.toLowerCase().includes(t) || s.category.toLowerCase().includes(t));
   }, [stores.data, q]);
+
+  const filteredUsers = useMemo(() => {
+    const list = users.data ?? [];
+    const t = q.trim().toLowerCase();
+    if (!t) return list;
+    return list.filter((u) =>
+      (u.email ?? "").toLowerCase().includes(t) ||
+      (u.full_name ?? "").toLowerCase().includes(t) ||
+      u.roles.some((r) => r.toLowerCase().includes(t)),
+    );
+  }, [users.data, q]);
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -122,11 +134,18 @@ function Admin() {
               {pending.length}
             </span>
           </TabBtn>
-          <TabBtn active={tab === "users"} onClick={() => setTab("users")}>
+          <TabBtn active={tab === "stores"} onClick={() => setTab("stores")}>
             <Users className="h-4 w-4" />
             Stores
             <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
               {(stores.data ?? []).length}
+            </span>
+          </TabBtn>
+          <TabBtn active={tab === "users"} onClick={() => setTab("users")}>
+            <UserCog className="h-4 w-4" />
+            Users
+            <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
+              {(users.data ?? []).length}
             </span>
           </TabBtn>
         </div>
@@ -185,7 +204,7 @@ function Admin() {
               })
             )}
           </div>
-        ) : (
+        ) : tab === "stores" ? (
           <div className="space-y-3">
             <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-border focus-within:border-primary">
               <span className="grid place-items-center bg-muted px-3 text-muted-foreground">
@@ -222,6 +241,56 @@ function Admin() {
                     <div className="shrink-0 text-right">
                       <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-semibold">{s.category}</span>
                       <div className="mt-1 text-[11px] text-muted-foreground">{count} products</div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-border focus-within:border-primary">
+              <span className="grid place-items-center bg-muted px-3 text-muted-foreground">
+                <Search className="h-4 w-4" />
+              </span>
+              <input
+                value={q} onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by email, name, or role"
+                className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
+              />
+            </div>
+
+            {users.isLoading ? (
+              <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
+            ) : users.error ? (
+              <Empty title="Couldn't load users" desc={(users.error as Error).message} />
+            ) : filteredUsers.length === 0 ? (
+              <Empty title="No users" desc="Try a different search term." />
+            ) : (
+              filteredUsers.map((u) => {
+                const initial = (u.full_name ?? u.email ?? "?").slice(0, 1).toUpperCase();
+                return (
+                  <div
+                    key={u.user_id}
+                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
+                  >
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl gradient-primary text-sm font-bold text-white">
+                      {initial}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate font-semibold">{u.full_name || u.email || "Unnamed user"}</div>
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">{u.email ?? "—"}</div>
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">
+                        Joined {new Date(u.created_at).toLocaleDateString()}
+                        {u.last_sign_in_at ? ` · Last seen ${new Date(u.last_sign_in_at).toLocaleDateString()}` : ""}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                      {u.roles.length === 0 ? (
+                        <RoleBadge role="none" />
+                      ) : (
+                        u.roles.map((r) => <RoleBadge key={r} role={r} />)
+                      )}
                     </div>
                   </div>
                 );
@@ -272,4 +341,20 @@ function Empty({ title, desc }: { title: string; desc: string }) {
 
 function Center({ children }: { children: React.ReactNode }) {
   return <div className="grid place-items-center py-10">{children}</div>;
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const styles: Record<string, string> = {
+    super_admin: "bg-indigo-600 text-white",
+    store_owner: "bg-emerald-100 text-emerald-800",
+    moderator: "bg-amber-100 text-amber-800",
+    none: "bg-muted text-muted-foreground",
+  };
+  const label = role === "none" ? "no role" : role.replace(/_/g, " ");
+  const cls = styles[role] ?? "bg-slate-200 text-slate-800";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${cls}`}>
+      {label}
+    </span>
+  );
 }
