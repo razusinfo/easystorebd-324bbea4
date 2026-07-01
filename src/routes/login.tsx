@@ -277,31 +277,8 @@ function LoginPage() {
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          {/* Method tabs */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => { setMethod("email"); setError(null); setInfo(null); }}
-              className={`rounded-full px-4 py-3 text-sm font-semibold transition ${
-                method === "email"
-                  ? "bg-purple-700 text-white shadow-md ring-2 ring-purple-300"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              Email
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMethod("phone"); setError(null); setInfo(null); }}
-              className={`rounded-full px-4 py-3 text-sm font-semibold transition ${
-                method === "phone"
-                  ? "bg-purple-700 text-white shadow-md ring-2 ring-purple-300"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-              }`}
-            >
-              Phone No.
-            </button>
-          </div>
+          {/* Phone login temporarily unavailable — Email + Google only */}
+
 
           {method === "email" ? (
             <form onSubmit={handleEmailSignIn} className="mt-6 space-y-5">
