@@ -134,11 +134,18 @@ function Admin() {
               {pending.length}
             </span>
           </TabBtn>
-          <TabBtn active={tab === "users"} onClick={() => setTab("users")}>
+          <TabBtn active={tab === "stores"} onClick={() => setTab("stores")}>
             <Users className="h-4 w-4" />
             Stores
             <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
               {(stores.data ?? []).length}
+            </span>
+          </TabBtn>
+          <TabBtn active={tab === "users"} onClick={() => setTab("users")}>
+            <UserCog className="h-4 w-4" />
+            Users
+            <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
+              {(users.data ?? []).length}
             </span>
           </TabBtn>
         </div>
