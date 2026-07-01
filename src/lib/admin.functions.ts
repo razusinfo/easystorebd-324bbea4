@@ -61,7 +61,7 @@ export const adminAssignRole = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.rpc("admin_assign_role", {
       _target_user_id: data.targetUserId,
       _role: data.role,
-      _notes: data.notes ?? null,
+      _notes: data.notes,
       _actor_id: context.userId,
     });
     if (error) throw new Error(error.message);
@@ -77,7 +77,7 @@ export const adminRevokeRole = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.rpc("admin_revoke_role", {
       _target_user_id: data.targetUserId,
       _role: data.role,
-      _notes: data.notes ?? null,
+      _notes: data.notes,
       _actor_id: context.userId,
     });
     if (error) throw new Error(error.message);
