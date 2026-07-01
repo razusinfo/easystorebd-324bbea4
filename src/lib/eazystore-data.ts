@@ -223,14 +223,17 @@ export function useSaveTemplateSettings() {
           ...input.settings,
         },
       };
-      const patch: Record<string, unknown> = { template_settings: merged };
+      const patch: { template_settings: TemplateSettingsMap; template?: TemplateId } = {
+        template_settings: merged,
+      };
       if (input.activate) patch.template = input.templateId;
       const { data, error } = await supabase
         .from("stores")
-        .update(patch)
+        .update(patch as never)
         .eq("id", input.storeId)
         .select()
         .single();
+
       if (error) throw error;
       return data as StoreRow;
     },
