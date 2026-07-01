@@ -182,12 +182,12 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: ["admin", "users"],
     queryFn: async (): Promise<AdminUserRow[]> => {
-      const { data, error } = await supabase.rpc("admin_list_users");
-      if (error) throw error;
+      const data = await adminListUsers();
       return (data ?? []) as AdminUserRow[];
     },
   });
 }
+
 
 export type AppRole =
   | "super_admin"
