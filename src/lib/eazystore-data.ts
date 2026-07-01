@@ -182,7 +182,15 @@ export function useAdminUsers() {
   });
 }
 
-export type AppRole = "super_admin" | "store_owner" | "moderator";
+export type AppRole =
+  | "super_admin"
+  | "store_owner"
+  | "manager"
+  | "cashier"
+  | "salesman"
+  | "accountant"
+  | "technician"
+  | "warehouse_manager";
 
 export type AuditLogRow = {
   id: string;
