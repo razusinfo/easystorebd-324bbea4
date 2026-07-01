@@ -35,6 +35,17 @@ function Admin() {
     return list.filter((s) => s.name.toLowerCase().includes(t) || s.category.toLowerCase().includes(t));
   }, [stores.data, q]);
 
+  const filteredUsers = useMemo(() => {
+    const list = users.data ?? [];
+    const t = q.trim().toLowerCase();
+    if (!t) return list;
+    return list.filter((u) =>
+      (u.email ?? "").toLowerCase().includes(t) ||
+      (u.full_name ?? "").toLowerCase().includes(t) ||
+      u.roles.some((r) => r.toLowerCase().includes(t)),
+    );
+  }, [users.data, q]);
+
   async function signOut() {
     await supabase.auth.signOut();
     navigate({ to: "/" });
