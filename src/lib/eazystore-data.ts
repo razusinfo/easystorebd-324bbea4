@@ -7,6 +7,16 @@ export type Category = "Clothes" | "Electronics" | "Sports";
 export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
+export type TemplateSettings = {
+  accentColor?: string;
+  logoPath?: string | null;
+  defaultCategoryId?: string | null;
+  defaultCategoryName?: string | null;
+  featuredProductIds?: string[];
+};
+
+export type TemplateSettingsMap = Partial<Record<TemplateId, TemplateSettings>>;
+
 export type StoreRow = {
   id: string;
   owner_user_id: string;
@@ -26,7 +36,17 @@ export type StoreRow = {
   slug: string | null;
   published: boolean;
   published_at: string | null;
+  template_settings: TemplateSettingsMap;
 };
+
+export function getTemplateSettings(
+  store: Pick<StoreRow, "template_settings"> | null | undefined,
+  id: TemplateId,
+): TemplateSettings {
+  return (store?.template_settings?.[id] as TemplateSettings) ?? {};
+}
+
+
 
 
 export type StoreSettings = {
@@ -184,6 +204,43 @@ export function useUpdateStore() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
   });
 }
+
+// Merge-save settings for one template into the stores.template_settings jsonb.
+export function useSaveTemplateSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      storeId: string;
+      templateId: TemplateId;
+      settings: TemplateSettings;
+      currentMap: TemplateSettingsMap;
+      activate?: boolean;
+    }) => {
+      const merged: TemplateSettingsMap = {
+        ...(input.currentMap ?? {}),
+        [input.templateId]: {
+          ...(input.currentMap?.[input.templateId] ?? {}),
+          ...input.settings,
+        },
+      };
+      const patch: { template_settings: TemplateSettingsMap; template?: TemplateId } = {
+        template_settings: merged,
+      };
+      if (input.activate) patch.template = input.templateId;
+      const { data, error } = await supabase
+        .from("stores")
+        .update(patch as never)
+        .eq("id", input.storeId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as StoreRow;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
+  });
+}
+
 
 // Resolve a logo storage path (e.g. "<uid>/logo.png") to a signed URL.
 export function useLogoSignedUrl(path: string | null | undefined) {

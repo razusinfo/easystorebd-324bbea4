@@ -9,7 +9,20 @@ type Props = {
   products?: ProductRow[];
   logoUrl?: string | null;
   demo?: boolean;
+  accentColor?: string;
+  defaultCategoryName?: string | null;
 };
+
+// Convert #RRGGBB → "r, g, b" for use with rgba(...) tints.
+function hexToRgb(hex?: string): string | null {
+  if (!hex) return null;
+  const h = hex.replace("#", "");
+  const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const n = parseInt(v, 16);
+  if (Number.isNaN(n) || v.length !== 6) return null;
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+
 
 const DEMO_CATEGORIES = [
   { name: "Headlights & Lighting", icon: Lightbulb },
@@ -36,7 +49,9 @@ const DEMO_DEALS = [
   { name: "Lumen® – Custom Sealed Beam LED Headlights", price: 69.99, old: 89.99, discount: 23, available: 65, sold: 27 },
 ];
 
-export function AutoPartsTemplate({ store, products, logoUrl, demo = false }: Props) {
+export function AutoPartsTemplate({
+  store, products, logoUrl, demo = false, accentColor, defaultCategoryName,
+}: Props) {
   const name = store?.name ?? "Partdo";
   const tagline = store?.tagline ?? "Auto Parts Marketplace";
   const useDemo = demo || !products || products.length === 0;
@@ -52,9 +67,27 @@ export function AutoPartsTemplate({ store, products, logoUrl, demo = false }: Pr
         name: p.name, price: p.price, old: Math.round(p.price * 1.20 * 100) / 100,
         discount: 20, available: p.stock, sold: Math.floor(p.stock / 2),
       }));
+  const featuredHeading = defaultCategoryName || "Auto Safety & Security";
+  const rgb = hexToRgb(accentColor);
+  const overrideCss = accentColor && rgb ? `
+    .autoparts-scope .bg-red-600 { background-color: ${accentColor} !important; }
+    .autoparts-scope .hover\\:bg-red-700:hover { background-color: ${accentColor} !important; filter: brightness(0.9); }
+    .autoparts-scope .text-red-600 { color: ${accentColor} !important; }
+    .autoparts-scope .hover\\:text-red-600:hover { color: ${accentColor} !important; }
+    .autoparts-scope .border-red-500 { border-color: ${accentColor} !important; }
+    .autoparts-scope .border-red-600 { border-color: ${accentColor} !important; }
+    .autoparts-scope .border-red-300 { border-color: rgba(${rgb}, 0.4) !important; }
+    .autoparts-scope .border-red-200 { border-color: rgba(${rgb}, 0.3) !important; }
+    .autoparts-scope .bg-red-50 { background-color: rgba(${rgb}, 0.08) !important; }
+    .autoparts-scope .from-red-50 { --tw-gradient-from: rgba(${rgb}, 0.08) !important; }
+    .autoparts-scope .to-rose-50 { --tw-gradient-to: rgba(${rgb}, 0.05) !important; }
+    .autoparts-scope .focus\\:border-red-500:focus { border-color: ${accentColor} !important; }
+  ` : "";
 
   return (
-    <div className="min-h-screen bg-neutral-50 font-sans text-neutral-900">
+    <div className="autoparts-scope min-h-screen bg-neutral-50 font-sans text-neutral-900">
+      {overrideCss ? <style dangerouslySetInnerHTML={{ __html: overrideCss }} /> : null}
+
       {/* Utility bar */}
       <div className="hidden bg-white text-[11px] text-neutral-600 lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2">
@@ -217,7 +250,7 @@ export function AutoPartsTemplate({ store, products, logoUrl, demo = false }: Pr
           <div className="flex flex-wrap items-center gap-5">
             <h2 className="font-display text-lg font-black">Featured Products</h2>
             <nav className="flex flex-wrap items-center gap-4 text-xs font-semibold text-neutral-500 sm:text-sm">
-              <a href="#" className="border-b-2 border-red-600 pb-1 text-red-600">Auto Safety & Security</a>
+              <a href="#" className="border-b-2 border-red-600 pb-1 text-red-600">{featuredHeading}</a>
               <a href="#" className="hover:text-red-600">Interior Accessories</a>
               <a href="#" className="hover:text-red-600">Motor Oils</a>
               <a href="#" className="hover:text-red-600">Tires & Wheels</a>
