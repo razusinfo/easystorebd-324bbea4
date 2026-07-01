@@ -205,6 +205,40 @@ export function useUpdateStore() {
   });
 }
 
+// Merge-save settings for one template into the stores.template_settings jsonb.
+export function useSaveTemplateSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      storeId: string;
+      templateId: TemplateId;
+      settings: TemplateSettings;
+      currentMap: TemplateSettingsMap;
+      activate?: boolean;
+    }) => {
+      const merged: TemplateSettingsMap = {
+        ...(input.currentMap ?? {}),
+        [input.templateId]: {
+          ...(input.currentMap?.[input.templateId] ?? {}),
+          ...input.settings,
+        },
+      };
+      const patch: Record<string, unknown> = { template_settings: merged };
+      if (input.activate) patch.template = input.templateId;
+      const { data, error } = await supabase
+        .from("stores")
+        .update(patch)
+        .eq("id", input.storeId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as StoreRow;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-store"] }),
+  });
+}
+
+
 // Resolve a logo storage path (e.g. "<uid>/logo.png") to a signed URL.
 export function useLogoSignedUrl(path: string | null | undefined) {
   return useQuery({
