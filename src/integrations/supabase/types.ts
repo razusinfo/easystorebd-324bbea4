@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       phone_otps: {
         Row: {
           attempts: number
@@ -282,6 +312,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_assign_role: {
+        Args: {
+          _notes?: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
+      admin_list_audit_logs: {
+        Args: { _limit?: number }
+        Returns: {
+          action: string
+          actor_email: string
+          actor_id: string
+          created_at: string
+          id: string
+          notes: string
+          role: string
+          target_email: string
+          target_user_id: string
+        }[]
+      }
       admin_list_users: {
         Args: never
         Returns: {
@@ -292,6 +344,14 @@ export type Database = {
           roles: string[]
           user_id: string
         }[]
+      }
+      admin_revoke_role: {
+        Args: {
+          _notes?: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _target_user_id: string
+        }
+        Returns: undefined
       }
       has_role: {
         Args: {

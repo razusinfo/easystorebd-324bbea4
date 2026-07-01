@@ -182,6 +182,75 @@ export function useAdminUsers() {
   });
 }
 
+export type AppRole =
+  | "super_admin"
+  | "store_owner"
+  | "manager"
+  | "cashier"
+  | "salesman"
+  | "accountant"
+  | "technician"
+  | "warehouse_manager";
+
+export type AuditLogRow = {
+  id: string;
+  actor_id: string;
+  actor_email: string | null;
+  target_user_id: string;
+  target_email: string | null;
+  action: "assign_role" | "revoke_role";
+  role: string;
+  notes: string | null;
+  created_at: string;
+};
+
+export function useAdminAuditLogs() {
+  return useQuery({
+    queryKey: ["admin", "audit-logs"],
+    queryFn: async (): Promise<AuditLogRow[]> => {
+      const { data, error } = await supabase.rpc("admin_list_audit_logs", { _limit: 200 });
+      if (error) throw error;
+      return (data ?? []) as AuditLogRow[];
+    },
+  });
+}
+
+export function useAssignRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { targetUserId: string; role: AppRole; notes?: string }) => {
+      const { error } = await supabase.rpc("admin_assign_role", {
+        _target_user_id: input.targetUserId,
+        _role: input.role,
+        _notes: input.notes,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "audit-logs"] });
+    },
+  });
+}
+
+export function useRevokeRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { targetUserId: string; role: AppRole; notes?: string }) => {
+      const { error } = await supabase.rpc("admin_revoke_role", {
+        _target_user_id: input.targetUserId,
+        _role: input.role,
+        _notes: input.notes,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "audit-logs"] });
+    },
+  });
+}
+
 // ---------- Mutations ----------
 
 export function useCreateStore() {
