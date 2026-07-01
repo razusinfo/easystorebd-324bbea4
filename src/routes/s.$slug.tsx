@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe, Store as StoreIcon } from "lucide-react";
-import { TEMPLATES, usePublicStoreBySlug } from "@/lib/eazystore-data";
+import { TEMPLATES, usePublicStoreBySlug, getTemplateSettings } from "@/lib/eazystore-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+
 
 export const Route = createFileRoute("/s/$slug")({
   head: ({ params }) => ({
