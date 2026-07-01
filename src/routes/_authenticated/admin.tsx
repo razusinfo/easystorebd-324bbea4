@@ -157,8 +157,16 @@ function Admin() {
               {(users.data ?? []).length}
             </span>
           </TabBtn>
+          <TabBtn active={tab === "audit"} onClick={() => setTab("audit")}>
+            <ScrollText className="h-4 w-4" />
+            Audit
+            <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
+              {(auditLogs.data ?? []).length}
+            </span>
+          </TabBtn>
         </div>
       </div>
+
 
       <section className="mx-auto max-w-5xl px-5 py-5">
         {tab === "pending" ? (
