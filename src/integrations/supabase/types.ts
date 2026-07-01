@@ -312,14 +312,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_assign_role: {
-        Args: {
-          _notes?: string
-          _role: Database["public"]["Enums"]["app_role"]
-          _target_user_id: string
-        }
-        Returns: undefined
-      }
+      admin_assign_role:
+        | {
+            Args: {
+              _notes?: string
+              _role: Database["public"]["Enums"]["app_role"]
+              _target_user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _actor_id?: string
+              _notes?: string
+              _role: Database["public"]["Enums"]["app_role"]
+              _target_user_id: string
+            }
+            Returns: undefined
+          }
       admin_list_audit_logs: {
         Args: { _limit?: number }
         Returns: {
@@ -345,14 +355,24 @@ export type Database = {
           user_id: string
         }[]
       }
-      admin_revoke_role: {
-        Args: {
-          _notes?: string
-          _role: Database["public"]["Enums"]["app_role"]
-          _target_user_id: string
-        }
-        Returns: undefined
-      }
+      admin_revoke_role:
+        | {
+            Args: {
+              _notes?: string
+              _role: Database["public"]["Enums"]["app_role"]
+              _target_user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _actor_id?: string
+              _notes?: string
+              _role: Database["public"]["Enums"]["app_role"]
+              _target_user_id: string
+            }
+            Returns: undefined
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
