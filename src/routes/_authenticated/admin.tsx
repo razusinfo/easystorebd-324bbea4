@@ -264,7 +264,7 @@ function Admin() {
               })
             )}
           </div>
-        ) : (
+        ) : tab === "users" ? (
           <div className="space-y-3">
             <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-border focus-within:border-primary">
               <span className="grid place-items-center bg-muted px-3 text-muted-foreground">
@@ -301,24 +301,168 @@ function Admin() {
                         Joined {new Date(u.created_at).toLocaleDateString()}
                         {u.last_sign_in_at ? ` · Last seen ${new Date(u.last_sign_in_at).toLocaleDateString()}` : ""}
                       </div>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {u.roles.length === 0 ? (
+                          <RoleBadge role="none" />
+                        ) : (
+                          u.roles.map((r) => <RoleBadge key={r} role={r} />)
+                        )}
+                      </div>
                     </div>
-                    <div className="flex shrink-0 flex-wrap justify-end gap-1">
-                      {u.roles.length === 0 ? (
-                        <RoleBadge role="none" />
-                      ) : (
-                        u.roles.map((r) => <RoleBadge key={r} role={r} />)
-                      )}
-                    </div>
+                    <button
+                      onClick={() => setManageUser(u)}
+                      className="shrink-0 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-muted"
+                    >
+                      Manage roles
+                    </button>
                   </div>
                 );
               })
             )}
           </div>
+        ) : (
+          <div className="space-y-2">
+            {auditLogs.isLoading ? (
+              <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
+            ) : auditLogs.error ? (
+              <Empty title="Couldn't load audit logs" desc={(auditLogs.error as Error).message} />
+            ) : (auditLogs.data ?? []).length === 0 ? (
+              <Empty title="No activity yet" desc="Role assign/revoke events will appear here." />
+            ) : (
+              (auditLogs.data ?? []).map((l) => (
+                <div key={l.id} className="rounded-2xl border border-border bg-card p-3.5 text-sm shadow-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                      l.action === "assign_role" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                    }`}>
+                      {l.action === "assign_role" ? "Assigned" : "Revoked"}
+                    </span>
+                    <RoleBadge role={l.role} />
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(l.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 text-xs">
+                    <span className="font-semibold">{l.actor_email ?? l.actor_id.slice(0, 8)}</span>
+                    <span className="text-muted-foreground"> {l.action === "assign_role" ? "→" : "×"} </span>
+                    <span className="font-semibold">{l.target_email ?? l.target_user_id.slice(0, 8)}</span>
+                  </div>
+                  {l.notes && <div className="mt-1 text-xs text-muted-foreground">Note: {l.notes}</div>}
+                </div>
+              ))
+            )}
+          </div>
         )}
       </section>
+
+      {manageUser && (
+        <ManageRolesDialog
+          user={manageUser}
+          onClose={() => setManageUser(null)}
+        />
+      )}
     </main>
   );
 }
+
+function ManageRolesDialog({ user, onClose }: { user: AdminUserRow; onClose: () => void }) {
+  const assign = useAssignRole();
+  const revoke = useRevokeRole();
+  const [role, setRole] = useState<AppRole>("store_owner");
+  const [notes, setNotes] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const currentRoles = user.roles as AppRole[];
+  const busy = assign.isPending || revoke.isPending;
+
+  async function handleAssign() {
+    setErr(null);
+    try {
+      await assign.mutateAsync({ targetUserId: user.user_id, role, notes: notes.trim() || undefined });
+      setNotes("");
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }
+  async function handleRevoke(r: AppRole) {
+    setErr(null);
+    try {
+      await revoke.mutateAsync({ targetUserId: user.user_id, role: r, notes: notes.trim() || undefined });
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-2xl bg-card p-5 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-bold">Manage roles</h2>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{user.email ?? user.user_id}</p>
+          </div>
+          <button onClick={onClose} className="rounded-full p-1 text-muted-foreground hover:bg-muted">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-4">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Current roles</div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {currentRoles.length === 0 ? (
+              <RoleBadge role="none" />
+            ) : (
+              currentRoles.map((r) => (
+                <span key={r} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-[11px] font-semibold">
+                  {r.replace(/_/g, " ")}
+                  <button
+                    disabled={busy}
+                    onClick={() => handleRevoke(r)}
+                    className="grid h-4 w-4 place-items-center rounded-full bg-destructive/15 text-destructive hover:bg-destructive/25 disabled:opacity-50"
+                    aria-label={`Revoke ${r}`}
+                  >
+                    <Trash2 className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Assign a role</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value as AppRole)}
+            className="w-full rounded-xl border-2 border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          >
+            {ASSIGNABLE_ROLES.map((r) => (
+              <option key={r} value={r}>{r.replace(/_/g, " ")}</option>
+            ))}
+          </select>
+          <input
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Optional note (saved to audit log)"
+            className="w-full rounded-xl border-2 border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <button
+            disabled={busy || currentRoles.includes(role)}
+            onClick={handleAssign}
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl gradient-primary px-3 py-2.5 text-sm font-bold text-primary-foreground shadow-sm disabled:opacity-50"
+          >
+            {assign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            {currentRoles.includes(role) ? "Already assigned" : "Assign role"}
+          </button>
+          {err && <div className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{err}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function AdminStat({ label, value }: { label: string; value: number }) {
   return (
