@@ -9,7 +9,20 @@ type Props = {
   products?: ProductRow[];
   logoUrl?: string | null;
   demo?: boolean;
+  accentColor?: string;
+  defaultCategoryName?: string | null;
 };
+
+// Convert #RRGGBB → "r, g, b" for use with rgba(...) tints.
+function hexToRgb(hex?: string): string | null {
+  if (!hex) return null;
+  const h = hex.replace("#", "");
+  const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const n = parseInt(v, 16);
+  if (Number.isNaN(n) || v.length !== 6) return null;
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+
 
 const DEMO_CATEGORIES = [
   { name: "Headlights & Lighting", icon: Lightbulb },
