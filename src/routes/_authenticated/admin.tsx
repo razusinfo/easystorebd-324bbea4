@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct,
+  useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct, useAdminUsers,
 } from "@/lib/eazystore-data";
 
 export const Route = createFileRoute("/_authenticated/admin")({
