@@ -342,3 +342,19 @@ function Empty({ title, desc }: { title: string; desc: string }) {
 function Center({ children }: { children: React.ReactNode }) {
   return <div className="grid place-items-center py-10">{children}</div>;
 }
+
+function RoleBadge({ role }: { role: string }) {
+  const styles: Record<string, string> = {
+    super_admin: "bg-indigo-600 text-white",
+    store_owner: "bg-emerald-100 text-emerald-800",
+    moderator: "bg-amber-100 text-amber-800",
+    none: "bg-muted text-muted-foreground",
+  };
+  const label = role === "none" ? "no role" : role.replace(/_/g, " ");
+  const cls = styles[role] ?? "bg-slate-200 text-slate-800";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${cls}`}>
+      {label}
+    </span>
+  );
+}
