@@ -204,7 +204,7 @@ function Admin() {
               })
             )}
           </div>
-        ) : (
+        ) : tab === "stores" ? (
           <div className="space-y-3">
             <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-border focus-within:border-primary">
               <span className="grid place-items-center bg-muted px-3 text-muted-foreground">
@@ -241,6 +241,56 @@ function Admin() {
                     <div className="shrink-0 text-right">
                       <span className="rounded-full bg-muted px-2 py-1 text-[11px] font-semibold">{s.category}</span>
                       <div className="mt-1 text-[11px] text-muted-foreground">{count} products</div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-border focus-within:border-primary">
+              <span className="grid place-items-center bg-muted px-3 text-muted-foreground">
+                <Search className="h-4 w-4" />
+              </span>
+              <input
+                value={q} onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by email, name, or role"
+                className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
+              />
+            </div>
+
+            {users.isLoading ? (
+              <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
+            ) : users.error ? (
+              <Empty title="Couldn't load users" desc={(users.error as Error).message} />
+            ) : filteredUsers.length === 0 ? (
+              <Empty title="No users" desc="Try a different search term." />
+            ) : (
+              filteredUsers.map((u) => {
+                const initial = (u.full_name ?? u.email ?? "?").slice(0, 1).toUpperCase();
+                return (
+                  <div
+                    key={u.user_id}
+                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
+                  >
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl gradient-primary text-sm font-bold text-white">
+                      {initial}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate font-semibold">{u.full_name || u.email || "Unnamed user"}</div>
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">{u.email ?? "—"}</div>
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">
+                        Joined {new Date(u.created_at).toLocaleDateString()}
+                        {u.last_sign_in_at ? ` · Last seen ${new Date(u.last_sign_in_at).toLocaleDateString()}` : ""}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                      {u.roles.length === 0 ? (
+                        <RoleBadge role="none" />
+                      ) : (
+                        u.roles.map((r) => <RoleBadge key={r} role={r} />)
+                      )}
                     </div>
                   </div>
                 );
