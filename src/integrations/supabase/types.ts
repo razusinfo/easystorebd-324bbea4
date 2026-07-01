@@ -299,7 +299,13 @@ export type Database = {
         | "warehouse_manager"
       product_status: "pending" | "approved" | "rejected"
       store_category: "Clothes" | "Electronics" | "Sports"
-      store_template: "minimal" | "boutique" | "techgrid" | "sporty" | "luxe"
+      store_template:
+        | "minimal"
+        | "boutique"
+        | "techgrid"
+        | "sporty"
+        | "luxe"
+        | "autoparts"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -439,7 +445,14 @@ export const Constants = {
       ],
       product_status: ["pending", "approved", "rejected"],
       store_category: ["Clothes", "Electronics", "Sports"],
-      store_template: ["minimal", "boutique", "techgrid", "sporty", "luxe"],
+      store_template: [
+        "minimal",
+        "boutique",
+        "techgrid",
+        "sporty",
+        "luxe",
+        "autoparts",
+      ],
     },
   },
 } as const
