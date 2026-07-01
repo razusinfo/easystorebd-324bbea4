@@ -215,8 +215,7 @@ export function useAdminAuditLogs() {
   return useQuery({
     queryKey: ["admin", "audit-logs"],
     queryFn: async (): Promise<AuditLogRow[]> => {
-      const { data, error } = await supabase.rpc("admin_list_audit_logs", { _limit: 200 });
-      if (error) throw error;
+      const data = await adminListAuditLogs({ data: { limit: 200 } });
       return (data ?? []) as AuditLogRow[];
     },
   });
@@ -226,12 +225,7 @@ export function useAssignRole() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { targetUserId: string; role: AppRole; notes?: string }) => {
-      const { error } = await supabase.rpc("admin_assign_role", {
-        _target_user_id: input.targetUserId,
-        _role: input.role,
-        _notes: input.notes,
-      });
-      if (error) throw error;
+      await adminAssignRole({ data: input });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "users"] });
@@ -244,12 +238,7 @@ export function useRevokeRole() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { targetUserId: string; role: AppRole; notes?: string }) => {
-      const { error } = await supabase.rpc("admin_revoke_role", {
-        _target_user_id: input.targetUserId,
-        _role: input.role,
-        _notes: input.notes,
-      });
-      if (error) throw error;
+      await adminRevokeRole({ data: input });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "users"] });
@@ -257,6 +246,7 @@ export function useRevokeRole() {
     },
   });
 }
+
 
 // ---------- Mutations ----------
 
