@@ -7,6 +7,16 @@ export type Category = "Clothes" | "Electronics" | "Sports";
 export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
+export type TemplateSettings = {
+  accentColor?: string;
+  logoPath?: string | null;
+  defaultCategoryId?: string | null;
+  defaultCategoryName?: string | null;
+  featuredProductIds?: string[];
+};
+
+export type TemplateSettingsMap = Partial<Record<TemplateId, TemplateSettings>>;
+
 export type StoreRow = {
   id: string;
   owner_user_id: string;
@@ -26,7 +36,17 @@ export type StoreRow = {
   slug: string | null;
   published: boolean;
   published_at: string | null;
+  template_settings: TemplateSettingsMap;
 };
+
+export function getTemplateSettings(
+  store: Pick<StoreRow, "template_settings"> | null | undefined,
+  id: TemplateId,
+): TemplateSettings {
+  return (store?.template_settings?.[id] as TemplateSettings) ?? {};
+}
+
+
 
 
 export type StoreSettings = {
