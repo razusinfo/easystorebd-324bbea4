@@ -41,11 +41,18 @@ export const Route = createFileRoute("/")({
 const NAV = ["Home", "Pricing", "Experts", "Funding", "Learn", "Affiliates", "About Us"];
 
 function Landing() {
+  // Wildcard-subdomain storefront: e.g. sylhetionlineshop.eazystore.xyz → render that store.
+  const subSlug = typeof window !== "undefined"
+    ? getStorefrontSlugFromHost(window.location.hostname)
+    : null;
+  if (subSlug) return <StorefrontView slug={subSlug} />;
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Top hero band — colors come from --gradient-landing / --landing-* tokens in src/styles.css */}
       <div className="gradient-landing relative overflow-hidden">
         <div className="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.6),transparent_60%)]" />
+
 
         {/* Nav */}
         <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
