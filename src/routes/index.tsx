@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Store, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
+import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
+import { StorefrontView } from "@/components/storefront-view";
 
 export const Route = createFileRoute("/")({
   head: () => ({
