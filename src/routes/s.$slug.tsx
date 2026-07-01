@@ -49,9 +49,40 @@ function PublicStorefront() {
 
   const { store, products, logoUrl } = q.data;
 
+  const settings = getTemplateSettings(store, store.template);
+  const templateLogoQ = useQuery({
+    queryKey: ["template-logo-signed", settings.logoPath],
+    enabled: !!settings.logoPath,
+    staleTime: 1000 * 60 * 30,
+    queryFn: async () => {
+      const { data, error } = await supabase.storage
+        .from("store-logos")
+        .createSignedUrl(settings.logoPath!, 60 * 60 * 24 * 7);
+      if (error) throw error;
+      return data?.signedUrl ?? null;
+    },
+  });
+  const effectiveLogo = templateLogoQ.data ?? logoUrl;
+  const featuredIds = settings.featuredProductIds ?? [];
+  const orderedProducts = featuredIds.length
+    ? [
+        ...featuredIds.map((id) => products.find((p) => p.id === id)).filter(Boolean) as typeof products,
+        ...products.filter((p) => !featuredIds.includes(p.id)),
+      ]
+    : products;
+
   if (store.template === "autoparts") {
-    return <AutoPartsTemplate store={store} products={products} logoUrl={logoUrl} />;
+    return (
+      <AutoPartsTemplate
+        store={store}
+        products={orderedProducts}
+        logoUrl={effectiveLogo}
+        accentColor={settings.accentColor}
+        defaultCategoryName={settings.defaultCategoryName}
+      />
+    );
   }
+
 
   const t = TEMPLATES.find((x) => x.id === store.template) ?? TEMPLATES[0];
   const dark = store.template === "minimal" || store.template === "techgrid" || store.template === "luxe";
