@@ -222,7 +222,7 @@ export function useAssignRole() {
       const { error } = await supabase.rpc("admin_assign_role", {
         _target_user_id: input.targetUserId,
         _role: input.role,
-        _notes: input.notes ?? null,
+        _notes: input.notes,
       });
       if (error) throw error;
     },
@@ -240,7 +240,7 @@ export function useRevokeRole() {
       const { error } = await supabase.rpc("admin_revoke_role", {
         _target_user_id: input.targetUserId,
         _role: input.role,
-        _notes: input.notes ?? null,
+        _notes: input.notes,
       });
       if (error) throw error;
     },
