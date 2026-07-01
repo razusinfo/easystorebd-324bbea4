@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from "@ta
 import { supabase } from "@/integrations/supabase/client";
 
 export type Category = "Clothes" | "Electronics" | "Sports";
-export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe";
+export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
 export type StoreRow = {
