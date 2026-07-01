@@ -334,9 +334,19 @@ export function slugifyStoreName(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 32);
 }
 
+import { STOREFRONT_APEX_DOMAINS, buildSubdomainStorefrontUrl } from "@/lib/storefront-host";
+
 export function buildStorefrontUrl(slug: string): string {
-  const base = typeof window !== "undefined" ? window.location.origin : "https://eazystorebd.lovable.app";
-  return `${base}/s/${slug}`;
+  if (typeof window === "undefined") {
+    return buildSubdomainStorefrontUrl(slug) ?? `https://eazystorebd.lovable.app/s/${slug}`;
+  }
+  const host = window.location.hostname.toLowerCase();
+  for (const apex of STOREFRONT_APEX_DOMAINS) {
+    if (host === apex || host.endsWith(`.${apex}`)) {
+      return `${window.location.protocol}//${slug}.${apex}/`;
+    }
+  }
+  return `${window.location.origin}/s/${slug}`;
 }
 
 // Generate a unique slug — appends -2, -3... on conflict. Run before publish.
