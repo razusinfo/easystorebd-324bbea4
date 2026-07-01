@@ -54,12 +54,13 @@ export type ProductRow = {
   created_at: string;
 };
 
-export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradient: string }[] = [
-  { id: "minimal", name: "Minimal Mono", tagline: "Clean, editorial, type-led", gradient: "from-slate-900 to-slate-600" },
-  { id: "boutique", name: "Boutique Blush", tagline: "Soft pastels for fashion", gradient: "from-pink-400 to-rose-500" },
-  { id: "techgrid", name: "Tech Grid", tagline: "Dark, sharp, specs-first", gradient: "from-indigo-600 to-cyan-500" },
-  { id: "sporty", name: "Sporty Pulse", tagline: "Bold, kinetic, energetic", gradient: "from-orange-500 to-red-600" },
-  { id: "luxe", name: "Luxe Noir", tagline: "Premium dark with gold accents", gradient: "from-neutral-900 to-amber-600" },
+export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradient: string; accent: string; category: string; premium?: boolean }[] = [
+  { id: "autoparts", name: "AutoParts Pro", tagline: "Multi-vendor auto parts marketplace with hero deals, category rail, and stock-progress cards", gradient: "from-red-600 to-rose-700", accent: "#DC2626", category: "Automotive", premium: true },
+  { id: "minimal", name: "Minimal Mono", tagline: "Clean, editorial, type-led", gradient: "from-slate-900 to-slate-600", accent: "#0F172A", category: "Editorial" },
+  { id: "boutique", name: "Boutique Blush", tagline: "Soft pastels for fashion", gradient: "from-pink-400 to-rose-500", accent: "#EC4899", category: "Fashion" },
+  { id: "techgrid", name: "Tech Grid", tagline: "Dark, sharp, specs-first", gradient: "from-indigo-600 to-cyan-500", accent: "#4F46E5", category: "Electronics" },
+  { id: "sporty", name: "Sporty Pulse", tagline: "Bold, kinetic, energetic", gradient: "from-orange-500 to-red-600", accent: "#F97316", category: "Sports" },
+  { id: "luxe", name: "Luxe Noir", tagline: "Premium dark with gold accents", gradient: "from-neutral-900 to-amber-600", accent: "#D97706", category: "Luxury" },
 ];
 
 // ---------- Queries ----------
