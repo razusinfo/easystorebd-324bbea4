@@ -45,8 +45,14 @@ function PublicStorefront() {
   }
 
   const { store, products, logoUrl } = q.data;
+
+  if (store.template === "autoparts") {
+    return <AutoPartsTemplate store={store} products={products} logoUrl={logoUrl} />;
+  }
+
   const t = TEMPLATES.find((x) => x.id === store.template) ?? TEMPLATES[0];
   const dark = store.template === "minimal" || store.template === "techgrid" || store.template === "luxe";
+
 
   return (
     <main className="min-h-screen bg-neutral-50">
