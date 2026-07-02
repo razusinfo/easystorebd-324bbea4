@@ -7,7 +7,7 @@ import {
   Home, Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useMyStore, useMyProducts } from "@/lib/eazystore-data";
+import { useMyStore, useMyProducts, buildStorefrontUrl } from "@/lib/eazystore-data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — EazyStore" }] }),
@@ -21,9 +21,6 @@ function greeting() {
   return "Good evening";
 }
 
-function slugify(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 24) || "mystore";
-}
 
 function Dashboard() {
   const myStore = useMyStore();
@@ -81,13 +78,18 @@ function Dashboard() {
   }
 
   const store = myStore.data;
-  const storeUrl = `www.${slugify(store.name)}.eazystore.app`;
+  const isLive = !!(store.published && store.slug);
+  const storeUrl = isLive ? buildStorefrontUrl(store.slug!) : null;
+  const storeUrlDisplay = storeUrl
+    ? storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")
+    : "Not published yet";
   const date = new Date().toLocaleDateString("en-GB", {
     weekday: "long", day: "numeric", month: "short",
   });
 
   async function copyUrl() {
-    try { await navigator.clipboard.writeText(`https://${storeUrl}`); } catch {}
+    if (!storeUrl) return;
+    try { await navigator.clipboard.writeText(storeUrl); } catch {}
   }
 
   return (
@@ -101,8 +103,8 @@ function Dashboard() {
               {name || "there"}
             </h1>
             <div className="mt-2 inline-flex items-center gap-1.5 text-sm">
-              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="truncate text-foreground/80">{store.name} · Live</span>
+              <span className={`inline-block h-2 w-2 rounded-full ${isLive ? "bg-emerald-500" : "bg-amber-500"}`} />
+              <span className="truncate text-foreground/80">{store.name} · {isLive ? "Live" : "Draft"}</span>
             </div>
           </div>
           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-black text-white shadow-lg ring-4 ring-white/60">
@@ -116,11 +118,12 @@ function Dashboard() {
         <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
           <Globe className="h-4 w-4 shrink-0 text-primary" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
-            {storeUrl}
+            {storeUrlDisplay}
           </span>
           <button
             onClick={copyUrl}
-            className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
+            disabled={!storeUrl}
+            className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10 disabled:opacity-40 disabled:hover:bg-transparent"
             aria-label="Copy URL"
           >
             <Copy className="h-4 w-4" />
@@ -129,15 +132,25 @@ function Dashboard() {
 
         {/* Visit & Manage tabs */}
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <a
-            href={`https://${storeUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Visit
-          </a>
+          {storeUrl ? (
+            <a
+              href={storeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Visit
+            </a>
+          ) : (
+            <Link
+              to="/manage-shop"
+              className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Publish
+            </Link>
+          )}
           <Link
             to="/manage-shop"
             className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/80 px-4 py-2.5 text-sm font-bold text-primary shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
