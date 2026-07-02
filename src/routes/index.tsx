@@ -516,7 +516,7 @@ function Footer() {
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-landing-accent shadow-sm">
                   <Phone className="h-4 w-4" />
                 </span>
-                +880 1969 909069
+                +8801719220711
               </li>
               <li className="flex items-center gap-3">
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-landing-accent shadow-sm">
