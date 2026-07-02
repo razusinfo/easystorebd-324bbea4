@@ -436,11 +436,16 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
                 <Input placeholder="e.g. kg, ml, l, mg"
                   value={form.unitName} onChange={(e) => set("unitName", e.target.value)} />
               </Field>
-              <Field label="Quantity (Stock)">
+              <Field label="Quantity (Stock)" required error={showError("stock")}>
                 <Input type="number" min="0" step="1" inputMode="numeric"
                   placeholder="Quantity (Stock)"
-                  value={form.stock} onChange={(e) => set("stock", e.target.value)} />
+                  value={form.stock}
+                  onChange={(e) => set("stock", e.target.value)}
+                  onBlur={() => markTouched("stock")}
+                  aria-invalid={!!showError("stock")}
+                />
               </Field>
+
               <Field label="Warranty">
                 <Input placeholder="Warranty"
                   value={form.warranty} onChange={(e) => set("warranty", e.target.value)} />
