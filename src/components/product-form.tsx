@@ -154,6 +154,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       variants: (variantsQ.data ?? []).map((v) => ({ id: v.id, name: v.name, value: v.value })),
       details: (detailsQ.data ?? []).map((d) => ({ id: d.id, key: d.key, value: d.value })),
       imageUrl: src.image_url ?? "",
+      galleryUrls: Array.isArray(src.gallery_urls) ? src.gallery_urls : [],
       videoUrl: src.video_url ?? "",
     }));
     if (mode === "new" && sourceForDuplicate) {
