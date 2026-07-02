@@ -12,6 +12,20 @@ import {
   type SiteSettings, type SidebarCategory, type SidebarIcon,
 } from "@/lib/site-settings";
 import { toast } from "sonner";
+import {
+  MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview,
+  SportyPulsePreview, LuxeNoirPreview,
+} from "@/components/templates/mini-previews";
+
+type PreviewTemplateId = "default" | "minimal" | "boutique" | "techgrid" | "sporty" | "luxe";
+const PREVIEW_TEMPLATES: { id: PreviewTemplateId; label: string }[] = [
+  { id: "default", label: "Default (sidebar + grid)" },
+  { id: "minimal", label: "Minimal Mono" },
+  { id: "boutique", label: "Boutique Blush" },
+  { id: "techgrid", label: "Tech Grid" },
+  { id: "sporty", label: "Sporty Pulse" },
+  { id: "luxe", label: "Luxe Noir" },
+];
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Home, Package, ShoppingCart, Users, Settings, Truck, Tag, MessageSquare,
