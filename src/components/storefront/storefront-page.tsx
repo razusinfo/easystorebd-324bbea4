@@ -72,19 +72,22 @@ export function StorefrontPage({ slug, title, children }: Props) {
             <h1 className="hidden font-display text-xl font-black tracking-wide sm:block">{name}</h1>
           </Link>
 
-          <Link
-            to="/s/$slug"
-            params={{ slug }}
-            className="relative acc-bg grid h-11 w-11 place-items-center rounded-full text-white shadow-md"
-            aria-label="Shop"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {count > 0 && (
-              <span className="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-white px-1 text-[11px] font-black text-neutral-900 shadow ring-2 ring-white">
-                {count}
-              </span>
-            )}
-          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to="/s/$slug"
+              params={{ slug }}
+              className="relative acc-bg grid h-11 w-11 place-items-center rounded-full text-white shadow-md"
+              aria-label="Shop"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-white px-1 text-[11px] font-black text-neutral-900 shadow ring-2 ring-white">
+                  {count}
+                </span>
+              )}
+            </Link>
+            <CustomerAuth />
+          </div>
         </div>
       </header>
 
