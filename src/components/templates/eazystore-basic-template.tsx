@@ -261,6 +261,7 @@ export function EazyStoreBasicTemplate({
                 </span>
               )}
             </button>
+            <CustomerAuth />
             <button type="button" className="hidden items-center gap-1 rounded-full px-2 py-1 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 sm:flex">
               EN <Globe className="h-4 w-4" />
             </button>
