@@ -300,12 +300,34 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 />
               </Field>
               <Field label="Product Description">
-                <Textarea
-                  placeholder="Write something..."
-                  value={form.description}
-                  onChange={(e) => set("description", e.target.value)}
-                  className="min-h-[140px]"
-                />
+                <div className="rounded-md border border-input bg-background">
+                  <div className="flex flex-wrap items-center gap-0.5 border-b border-input px-2 py-1.5 text-foreground/70">
+                    <select className="mr-1 h-7 rounded-sm border border-input bg-background px-2 text-xs">
+                      <option>Normal</option>
+                      <option>Heading 1</option>
+                      <option>Heading 2</option>
+                      <option>Heading 3</option>
+                    </select>
+                    <ToolbarBtn><Bold className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Italic className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Underline className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Quote className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <span className="mx-1 h-4 w-px bg-border" />
+                    <ToolbarBtn><span className="text-xs font-bold underline">A</span></ToolbarBtn>
+                    <ToolbarBtn><ListOrdered className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><List className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <span className="mx-1 h-4 w-px bg-border" />
+                    <ToolbarBtn><Link2 className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><ImageIcon className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Eraser className="h-3.5 w-3.5" /></ToolbarBtn>
+                  </div>
+                  <Textarea
+                    placeholder="Write something..."
+                    value={form.description}
+                    onChange={(e) => set("description", e.target.value)}
+                    className="min-h-[140px] rounded-none border-0 focus-visible:ring-0"
+                  />
+                </div>
               </Field>
             </div>
           </Section>
