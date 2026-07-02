@@ -35,6 +35,12 @@ import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products.index'
+import { Route as SSlugTeamRouteImport } from './routes/s.$slug.team'
+import { Route as SSlugProductsRouteImport } from './routes/s.$slug.products'
+import { Route as SSlugPricingRouteImport } from './routes/s.$slug.pricing'
+import { Route as SSlugContactRouteImport } from './routes/s.$slug.contact'
+import { Route as SSlugBlogsRouteImport } from './routes/s.$slug.blogs'
+import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 
@@ -171,6 +177,36 @@ const AuthenticatedProductsIndexRoute =
     path: '/products/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const SSlugTeamRoute = SSlugTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => SSlugRoute,
+} as any)
+const SSlugProductsRoute = SSlugProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => SSlugRoute,
+} as any)
+const SSlugPricingRoute = SSlugPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => SSlugRoute,
+} as any)
+const SSlugContactRoute = SSlugContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => SSlugRoute,
+} as any)
+const SSlugBlogsRoute = SSlugBlogsRouteImport.update({
+  id: '/blogs',
+  path: '/blogs',
+  getParentRoute: () => SSlugRoute,
+} as any)
+const SSlugAboutRoute = SSlugAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => SSlugRoute,
+} as any)
 const AuthenticatedProductsNewRoute =
   AuthenticatedProductsNewRouteImport.update({
     id: '/products/new',
@@ -208,8 +244,14 @@ export interface FileRoutesByFullPath {
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/demo/bdlove': typeof DemoBdloveRoute
-  '/s/$slug': typeof SSlugRoute
+  '/s/$slug': typeof SSlugRouteWithChildren
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/s/$slug/about': typeof SSlugAboutRoute
+  '/s/$slug/blogs': typeof SSlugBlogsRoute
+  '/s/$slug/contact': typeof SSlugContactRoute
+  '/s/$slug/pricing': typeof SSlugPricingRoute
+  '/s/$slug/products': typeof SSlugProductsRoute
+  '/s/$slug/team': typeof SSlugTeamRoute
   '/products/': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
@@ -237,8 +279,14 @@ export interface FileRoutesByTo {
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/demo/bdlove': typeof DemoBdloveRoute
-  '/s/$slug': typeof SSlugRoute
+  '/s/$slug': typeof SSlugRouteWithChildren
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/s/$slug/about': typeof SSlugAboutRoute
+  '/s/$slug/blogs': typeof SSlugBlogsRoute
+  '/s/$slug/contact': typeof SSlugContactRoute
+  '/s/$slug/pricing': typeof SSlugPricingRoute
+  '/s/$slug/products': typeof SSlugProductsRoute
+  '/s/$slug/team': typeof SSlugTeamRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
@@ -268,8 +316,14 @@ export interface FileRoutesById {
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/demo/bdlove': typeof DemoBdloveRoute
-  '/s/$slug': typeof SSlugRoute
+  '/s/$slug': typeof SSlugRouteWithChildren
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
+  '/s/$slug/about': typeof SSlugAboutRoute
+  '/s/$slug/blogs': typeof SSlugBlogsRoute
+  '/s/$slug/contact': typeof SSlugContactRoute
+  '/s/$slug/pricing': typeof SSlugPricingRoute
+  '/s/$slug/products': typeof SSlugProductsRoute
+  '/s/$slug/team': typeof SSlugTeamRoute
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
@@ -301,6 +355,12 @@ export interface FileRouteTypes {
     | '/demo/bdlove'
     | '/s/$slug'
     | '/products/new'
+    | '/s/$slug/about'
+    | '/s/$slug/blogs'
+    | '/s/$slug/contact'
+    | '/s/$slug/pricing'
+    | '/s/$slug/products'
+    | '/s/$slug/team'
     | '/products/'
     | '/products/$productId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -330,6 +390,12 @@ export interface FileRouteTypes {
     | '/demo/bdlove'
     | '/s/$slug'
     | '/products/new'
+    | '/s/$slug/about'
+    | '/s/$slug/blogs'
+    | '/s/$slug/contact'
+    | '/s/$slug/pricing'
+    | '/s/$slug/products'
+    | '/s/$slug/team'
     | '/products'
     | '/products/$productId/edit'
   id:
@@ -360,6 +426,12 @@ export interface FileRouteTypes {
     | '/demo/bdlove'
     | '/s/$slug'
     | '/_authenticated/products/new'
+    | '/s/$slug/about'
+    | '/s/$slug/blogs'
+    | '/s/$slug/contact'
+    | '/s/$slug/pricing'
+    | '/s/$slug/products'
+    | '/s/$slug/team'
     | '/_authenticated/products/'
     | '/_authenticated/products/$productId/edit'
   fileRoutesById: FileRoutesById
@@ -372,7 +444,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DemoBdloveRoute: typeof DemoBdloveRoute
-  SSlugRoute: typeof SSlugRoute
+  SSlugRoute: typeof SSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -559,6 +631,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/s/$slug/team': {
+      id: '/s/$slug/team'
+      path: '/team'
+      fullPath: '/s/$slug/team'
+      preLoaderRoute: typeof SSlugTeamRouteImport
+      parentRoute: typeof SSlugRoute
+    }
+    '/s/$slug/products': {
+      id: '/s/$slug/products'
+      path: '/products'
+      fullPath: '/s/$slug/products'
+      preLoaderRoute: typeof SSlugProductsRouteImport
+      parentRoute: typeof SSlugRoute
+    }
+    '/s/$slug/pricing': {
+      id: '/s/$slug/pricing'
+      path: '/pricing'
+      fullPath: '/s/$slug/pricing'
+      preLoaderRoute: typeof SSlugPricingRouteImport
+      parentRoute: typeof SSlugRoute
+    }
+    '/s/$slug/contact': {
+      id: '/s/$slug/contact'
+      path: '/contact'
+      fullPath: '/s/$slug/contact'
+      preLoaderRoute: typeof SSlugContactRouteImport
+      parentRoute: typeof SSlugRoute
+    }
+    '/s/$slug/blogs': {
+      id: '/s/$slug/blogs'
+      path: '/blogs'
+      fullPath: '/s/$slug/blogs'
+      preLoaderRoute: typeof SSlugBlogsRouteImport
+      parentRoute: typeof SSlugRoute
+    }
+    '/s/$slug/about': {
+      id: '/s/$slug/about'
+      path: '/about'
+      fullPath: '/s/$slug/about'
+      preLoaderRoute: typeof SSlugAboutRouteImport
+      parentRoute: typeof SSlugRoute
+    }
     '/_authenticated/products/new': {
       id: '/_authenticated/products/new'
       path: '/products/new'
@@ -626,6 +740,26 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface SSlugRouteChildren {
+  SSlugAboutRoute: typeof SSlugAboutRoute
+  SSlugBlogsRoute: typeof SSlugBlogsRoute
+  SSlugContactRoute: typeof SSlugContactRoute
+  SSlugPricingRoute: typeof SSlugPricingRoute
+  SSlugProductsRoute: typeof SSlugProductsRoute
+  SSlugTeamRoute: typeof SSlugTeamRoute
+}
+
+const SSlugRouteChildren: SSlugRouteChildren = {
+  SSlugAboutRoute: SSlugAboutRoute,
+  SSlugBlogsRoute: SSlugBlogsRoute,
+  SSlugContactRoute: SSlugContactRoute,
+  SSlugPricingRoute: SSlugPricingRoute,
+  SSlugProductsRoute: SSlugProductsRoute,
+  SSlugTeamRoute: SSlugTeamRoute,
+}
+
+const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -634,7 +768,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   DemoBdloveRoute: DemoBdloveRoute,
-  SSlugRoute: SSlugRoute,
+  SSlugRoute: SSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

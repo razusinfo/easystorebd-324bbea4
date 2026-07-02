@@ -916,7 +916,7 @@ export function usePublicStoreBySlug(slug: string | undefined) {
       const [{ data: products, error: pErr }, { data: cats, error: cErr }] = await Promise.all([
         supabase
           .from("products")
-          .select("id, store_id, name, price, stock, status, image_url, created_at")
+          .select("id, store_id, name, price, stock, status, image_url, category_id, created_at")
           .eq("store_id", store.id)
           .eq("status", "approved")
           .order("created_at", { ascending: false }),
