@@ -128,8 +128,25 @@ export type ShopSettings = {
       mobile?: 1 | 2 | 3;
       desktop?: 2 | 3 | 4 | 5 | 6;
     };
+    logo?: {
+      max_height?: 32 | 40 | 48 | 56 | 64 | 80 | 96;
+      align?: "left" | "center" | "right";
+    };
   };
 };
+
+export function logoStyle(settings?: ShopSettings | null): React.CSSProperties {
+  const h = settings?.pages?.logo?.max_height ?? 56;
+  return { height: "auto", maxHeight: `${h}px`, width: "auto", maxWidth: `${Math.round(h * 3.5)}px` };
+}
+
+export function logoAlignClass(settings?: ShopSettings | null): string {
+  const a = settings?.pages?.logo?.align ?? "left";
+  if (a === "center") return "justify-center";
+  if (a === "right") return "justify-end";
+  return "justify-start";
+}
+
 
 // Tailwind grid-cols map (must be literal strings so Tailwind can detect them).
 const MOBILE_COL_CLASS: Record<number, string> = {
