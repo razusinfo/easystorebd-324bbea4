@@ -528,7 +528,7 @@ function Footer() {
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-landing-accent shadow-sm">
                   <MapPin className="h-4 w-4" />
                 </span>
-                Dhaka, Bangladesh
+                Sylhet, Bangladesh
               </li>
             </ul>
           </div>
