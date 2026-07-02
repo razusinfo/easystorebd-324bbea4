@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSiteSettings } from "@/lib/site-settings";
-import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X } from "lucide-react";
+import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
 
 type Props = {
@@ -243,6 +243,46 @@ export function EazyStoreBasicTemplate({
           </aside>
         </div>
       )}
+
+
+      {/* Footer */}
+      <footer className="mt-10 border-t border-neutral-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+          <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:gap-x-12">
+            {["Company", "About Us", "Team", "Products", "Blogs", "Pricing"].map((label) => (
+              <a
+                key={label}
+                href="#"
+                className="font-display text-base font-bold text-neutral-900 transition hover:acc-text sm:text-lg"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="mt-8 flex items-center justify-center gap-5 sm:gap-6">
+            {[
+              { Icon: Twitter, label: "Twitter" },
+              { Icon: Youtube, label: "YouTube" },
+              { Icon: Instagram, label: "Instagram" },
+              { Icon: Facebook, label: "Facebook" },
+            ].map(({ Icon, label }) => (
+              <a
+                key={label}
+                href="#"
+                aria-label={label}
+                className="grid h-10 w-10 place-items-center rounded-full text-neutral-700 transition hover:acc-soft"
+              >
+                <Icon className="h-5 w-5" />
+              </a>
+            ))}
+          </div>
+
+          <p className="mt-8 text-center text-sm text-neutral-600">
+            Copyright © {new Date().getFullYear()} {name}
+          </p>
+        </div>
+      </footer>
 
 
       {/* Floating WhatsApp */}
