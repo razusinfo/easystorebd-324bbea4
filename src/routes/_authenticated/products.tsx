@@ -179,9 +179,17 @@ function ProductsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Status change */}
+      <StatusChangeDialog
+        product={statusTarget}
+        storeId={store?.id}
+        onClose={() => setStatusTarget(null)}
+      />
     </main>
   );
 }
+
 
 
 function StatCard({ label, value, tone }: { label: string; value: string; tone?: "warn" | "muted" }) {
