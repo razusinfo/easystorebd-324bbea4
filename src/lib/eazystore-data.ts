@@ -913,13 +913,24 @@ export function usePublicStoreBySlug(slug: string | undefined) {
       if (error) throw error;
       if (!store) return null;
 
-      const { data: products, error: pErr } = await supabase
-        .from("products")
-        .select("id, store_id, name, price, stock, status, image_url, created_at")
-        .eq("store_id", store.id)
-        .eq("status", "approved")
-        .order("created_at", { ascending: false });
+      const [{ data: products, error: pErr }, { data: cats, error: cErr }] = await Promise.all([
+        supabase
+          .from("products")
+          .select("id, store_id, name, price, stock, status, image_url, created_at")
+          .eq("store_id", store.id)
+          .eq("status", "approved")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("product_categories")
+          .select("id, name, slug, parent_id, sort_order")
+          .eq("store_id", store.id)
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true }),
+      ]);
       if (pErr) throw pErr;
+      if (cErr) throw cErr;
+      const categories = (cats ?? []).map((c: any) => ({ id: c.id as string, name: c.name as string }));
+
 
       // Product images live in a private bucket. Re-sign stored URLs so <img> can load on every visit.
       console.log(`[storefront] resigning ${products?.length ?? 0} product image(s) for store "${store.slug}"`);
