@@ -137,7 +137,7 @@ export type ShopSettings = {
   };
 };
 
-export function logoStyle(settings?: ShopSettings | null): React.CSSProperties {
+export function logoStyle(settings?: ShopSettings | null): CSSProperties {
   const h = settings?.pages?.logo?.max_height ?? 56;
   return { height: "auto", maxHeight: `${h}px`, width: "auto", maxWidth: `${Math.round(h * 3.5)}px` };
 }
