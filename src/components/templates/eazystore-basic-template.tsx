@@ -60,10 +60,13 @@ function hexToRgb(hex?: string): string | null {
 export function EazyStoreBasicTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
-  const useDemoCats = demo || !categories || categories.length === 0;
-  const catList: string[] = useDemoCats
+  // Only use demo categories in the theme preview (demo mode). On the real
+  // storefront, show the store's own categories — or just "All Products"
+  // when the owner hasn't created any yet.
+  const catList: string[] = demo
     ? DEMO_CATEGORIES
-    : ["All Products", ...categories!.map((c) => c.name)];
+    : ["All Products", ...(categories ?? []).map((c) => c.name)];
+
 
   const f: Required<FooterSettings> = {
     showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
