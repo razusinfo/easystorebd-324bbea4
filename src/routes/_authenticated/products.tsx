@@ -227,7 +227,18 @@ function ProductTable({
                     {p.stock === 0 ? "Out of stock" : p.stock.toLocaleString()}
                   </span>
                 </td>
-                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                <td className="px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => onChangeStatus(p)}
+                    className="inline-flex items-center gap-1 rounded-full hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Change status"
+                    title="Click to change status"
+                  >
+                    <StatusBadge status={p.status} />
+                  </button>
+                </td>
+
                 <td className="px-4 py-3 text-right">
                   <div className="inline-flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => onEdit(p)} aria-label="Edit">
