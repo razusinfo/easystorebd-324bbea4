@@ -28,7 +28,7 @@ function AuthenticatedLayout() {
           <header className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur">
             <SidebarTrigger />
           </header>
-          <main className="min-w-0 flex-1">
+          <main className="min-w-0 flex-1 overflow-x-hidden">
             <Outlet />
           </main>
         </SidebarInset>

@@ -135,7 +135,7 @@ function Admin() {
       </div>
 
       <div className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl gap-1 px-5">
+        <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto whitespace-nowrap px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabBtn active={tab === "pending"} onClick={() => setTab("pending")}>
             <ClipboardList className="h-4 w-4" />
             Pending

@@ -198,6 +198,10 @@
     letter-spacing: -0.02em;
   }
 
+  html, body {
+    overflow-x: hidden;
+  }
+
   .lang-bn body, [data-lang="bn"] {
     font-family: var(--font-bangla);
   }

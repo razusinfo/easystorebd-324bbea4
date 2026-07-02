@@ -274,7 +274,7 @@ function ManageShop() {
         <div className="space-y-4">
           {/* URL */}
           <div className="rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2 overflow-hidden">
               <Globe className="h-4 w-4 shrink-0 text-primary" />
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
                 {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
