@@ -17,6 +17,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
+import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
 import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
@@ -75,6 +76,11 @@ const DemoBdloveRoute = DemoBdloveRouteImport.update({
   id: '/demo/bdlove',
   path: '/demo/bdlove',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedThemesRoute = AuthenticatedThemesRouteImport.update({
   id: '/themes',
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
+  '/upgrade': typeof AuthenticatedUpgradeRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
+  '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/spotlights'
     | '/theme-builder'
     | '/themes'
+    | '/upgrade'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/products/new'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/spotlights'
     | '/theme-builder'
     | '/themes'
+    | '/upgrade'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/products/new'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/_authenticated/spotlights'
     | '/_authenticated/theme-builder'
     | '/_authenticated/themes'
+    | '/_authenticated/upgrade'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/_authenticated/products/new'
@@ -420,6 +432,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/bdlove'
       preLoaderRoute: typeof DemoBdloveRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/upgrade': {
+      id: '/_authenticated/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof AuthenticatedUpgradeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/themes': {
       id: '/_authenticated/themes'
@@ -574,6 +593,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSpotlightsRoute: typeof AuthenticatedSpotlightsRoute
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
+  AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
   AuthenticatedProductsProductIdEditRoute: typeof AuthenticatedProductsProductIdEditRoute
@@ -596,6 +616,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSpotlightsRoute: AuthenticatedSpotlightsRoute,
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
+  AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
   AuthenticatedProductsProductIdEditRoute:

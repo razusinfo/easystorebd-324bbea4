@@ -107,6 +107,8 @@ export type StoreRow = {
   published_at: string | null;
   template_settings: TemplateSettingsMap;
   shop_settings: ShopSettings;
+  custom_domain: string | null;
+  plan_tier: string;
 };
 
 export function getTemplateSettings(
@@ -133,6 +135,8 @@ export type StoreSettings = {
   whatsapp_number?: string | null;
   website_url?: string | null;
   shop_settings?: ShopSettings;
+  custom_domain?: string | null;
+  plan_tier?: string;
 };
 
 
