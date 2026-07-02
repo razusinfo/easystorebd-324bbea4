@@ -392,7 +392,7 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
                 <Label>Business Type</Label>
                 <Select value={businessType} onValueChange={setBusinessType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[228px]">
                     {BUSINESS_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
