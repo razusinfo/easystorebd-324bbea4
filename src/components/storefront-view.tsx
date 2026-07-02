@@ -48,8 +48,9 @@ export function StorefrontView({ slug }: { slug: string }) {
     );
   }
 
-  const { products, logoUrl } = q.data;
+  const { products, logoUrl, categories } = q.data;
   const s = q.data.store;
+
 
   const effectiveLogo = templateLogoQ.data ?? logoUrl;
   const featuredIds = settings.featuredProductIds ?? [];
