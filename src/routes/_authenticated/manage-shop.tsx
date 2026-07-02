@@ -129,7 +129,6 @@ function ManageShopPage() {
         ))}
       </div>
 
-      {open === "domain" && <ShopDomainDialog store={store} onClose={() => setOpen(null)} />}
       {open === "policy" && <ShopPolicyDialog store={store} onClose={() => setOpen(null)} />}
       {open === "delivery" && <DeliveryDialog store={store} onClose={() => setOpen(null)} />}
       {open === "payment" && <PaymentDialog store={store} onClose={() => setOpen(null)} />}
