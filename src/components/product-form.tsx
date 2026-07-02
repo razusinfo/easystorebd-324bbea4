@@ -292,6 +292,58 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     toast.success("Image removed");
   }
 
+  // --- Gallery (multi-image) ---
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const MAX_GALLERY = 8;
+
+  async function handleGalleryFiles(files: FileList | File[]) {
+    const list = Array.from(files);
+    if (!list.length) return;
+    const room = MAX_GALLERY - form.galleryUrls.length;
+    if (room <= 0) {
+      toast.error(`You can add up to ${MAX_GALLERY} extra images`);
+      return;
+    }
+    const picked = list.slice(0, room);
+    setGalleryUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const f of picked) {
+        if (!f.type.startsWith("image/")) { toast.error(`Skipped ${f.name}: not an image`); continue; }
+        if (f.size > 4 * 1024 * 1024) { toast.error(`Skipped ${f.name}: over 4MB`); continue; }
+        const { publicUrl } = await uploadProductImage(f);
+        uploaded.push(publicUrl);
+      }
+      if (uploaded.length) {
+        set("galleryUrls", [...form.galleryUrls, ...uploaded]);
+        toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} added`);
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setGalleryUploading(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  }
+
+  async function handleRemoveGalleryImage(url: string) {
+    set("galleryUrls", form.galleryUrls.filter((u) => u !== url));
+    if (url.includes("/product-images/")) {
+      try { await deleteProductImage(url); } catch { /* ignore */ }
+    }
+  }
+
+  function handlePromoteGalleryImage(url: string) {
+    // Swap: gallery image becomes the primary, previous primary joins gallery.
+    const prev = form.imageUrl;
+    const nextGallery = form.galleryUrls.filter((u) => u !== url);
+    if (prev) nextGallery.unshift(prev);
+    set("imageUrl", url);
+    set("galleryUrls", nextGallery);
+  }
+
+
   const loading = storeQ.isLoading || (mode === "edit" && productsQ.isLoading);
 
 
