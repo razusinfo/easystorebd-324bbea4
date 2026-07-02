@@ -472,56 +472,29 @@ function useSignedLogoUrl(path: string | null | undefined) {
   return q.data ?? null;
 }
 
-/** Compact stylized SVG thumbnails so each card is visually distinct. */
+/** Accurate scaled-down live render of the actual template for each card. */
 function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient: string; accent: string }) {
-  if (id === "autoparts") {
+  const renderReal = id === "autoparts" || id === "bdlove";
+
+  if (renderReal) {
+    const FULL_W = 1280;
+    const FULL_H = 1000;
+    const scale = 0.28;
     return (
-      <div className="relative h-full w-full overflow-hidden bg-neutral-50">
-        <div className="flex items-center gap-1 bg-white px-2 py-1.5">
-          <span className="h-2 w-2 rounded-full bg-red-400" />
-          <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <div className="ml-2 h-2 flex-1 rounded bg-neutral-100" />
-        </div>
-        <div className="flex items-center gap-2 border-b border-neutral-200 bg-white px-3 py-2">
-          <div className="h-3 w-3 rounded" style={{ backgroundColor: accent }} />
-          <div className="h-2 w-10 rounded bg-neutral-800" />
-          <div className="ml-2 h-3 flex-1 rounded bg-neutral-100" />
-          <div className="h-3 w-3 rounded" style={{ backgroundColor: accent }} />
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1.5">
-          <div className="h-3 w-14 rounded-sm" style={{ backgroundColor: accent }} />
-          <div className="h-1.5 w-8 rounded bg-neutral-300" />
-          <div className="h-1.5 w-8 rounded bg-neutral-300" />
-          <div className="h-1.5 w-8 rounded bg-neutral-300" />
-        </div>
-        <div className="grid grid-cols-[45px_1fr] gap-2 px-3">
-          <div className="space-y-1 rounded bg-white p-1.5 shadow-sm">
-            {[...Array(6)].map((_, i) => <div key={i} className="h-1 rounded bg-neutral-200" />)}
-          </div>
-          <div className="relative overflow-hidden rounded bg-gradient-to-br from-neutral-800 to-neutral-900 p-2">
-            <div className="h-1.5 w-16 rounded bg-white/60" />
-            <div className="mt-1 h-2 w-24 rounded bg-white" />
-            <div className="mt-1 h-2 w-20 rounded bg-white" />
-            <div className="mt-2 h-3 w-12 rounded" style={{ backgroundColor: accent }} />
-            <div className="absolute right-1 top-1 h-10 w-10 rounded-full bg-white/10" />
-          </div>
-        </div>
-        <div className="mt-2 grid grid-cols-5 gap-1.5 px-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="rounded bg-white p-1 shadow-sm">
-              <div className="h-6 rounded bg-neutral-100" />
-              <div className="mt-0.5 h-1 rounded bg-neutral-300" />
-              <div className="mt-0.5 h-1 w-3/4 rounded" style={{ backgroundColor: accent }} />
-            </div>
-          ))}
-        </div>
-        <div className="absolute bottom-1.5 left-3 right-3 flex items-center justify-between rounded bg-red-50 px-2 py-1">
-          <div className="flex items-center gap-1">
-            <span className="rounded px-1 py-0.5 text-[8px] font-black text-white" style={{ backgroundColor: accent }}>-39%</span>
-            <div className="h-1 w-16 rounded bg-neutral-300" />
-          </div>
-          <div className="h-2 w-10 rounded border border-dashed border-red-400 bg-white" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+        <div
+          style={{
+            width: FULL_W,
+            height: FULL_H,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
+        >
+          {id === "autoparts" ? (
+            <AutoPartsTemplate demo accentColor={accent} />
+          ) : (
+            <BdLoveTemplate demo accentColor={accent} />
+          )}
         </div>
       </div>
     );
