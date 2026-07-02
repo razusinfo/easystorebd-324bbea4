@@ -719,7 +719,9 @@ export async function deleteProductImage(publicUrl: string): Promise<void> {
   const marker = "/product-images/";
   const idx = publicUrl.indexOf(marker);
   if (idx === -1) return;
-  const path = publicUrl.slice(idx + marker.length);
+  let path = publicUrl.slice(idx + marker.length);
+  const q = path.indexOf("?");
+  if (q !== -1) path = path.slice(0, q);
   if (!path) return;
   await supabase.storage.from("product-images").remove([path]);
 }
