@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2, Palette, ArrowRight, Plus } from "lucide-react";
+import { Component, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2, Palette, ArrowRight, Plus, AlertTriangle, ImageOff, RefreshCw } from "lucide-react";
+
 import {
   TEMPLATES, useMyStore, useSaveTemplateSettings, getTemplateSettings,
   useMyProducts, uploadStoreLogo, deleteStoreLogo,
@@ -60,6 +61,16 @@ function ThemesPage() {
       toast.error(e?.message ?? "Could not update color");
     }
   };
+  if (storeQ.isLoading) return <ThemesPageSkeleton />;
+  if (storeQ.isError) {
+    return (
+      <ThemesErrorState
+        message={(storeQ.error as any)?.message ?? "We couldn't load your store settings."}
+        onRetry={() => storeQ.refetch()}
+      />
+    );
+  }
+
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8">
@@ -73,10 +84,11 @@ function ThemesPage() {
               <Palette className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="font-display text-xl font-black sm:text-2xl">Theme Builder</h2>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h2 className="whitespace-nowrap font-display text-xl font-black sm:text-2xl">Theme Builder</h2>
                 <span className="rounded-md bg-amber-300 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-900">New</span>
               </div>
+
               <p className="mt-1 max-w-lg text-sm text-white/85">
                 Create your own unique shop design with our powerful drag-and-drop builder.
               </p>
@@ -90,12 +102,13 @@ function ThemesPage() {
           </div>
           <Link
             to="/theme-builder"
-            className="inline-flex items-center justify-center gap-2 self-start rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white hover:text-violet-700 sm:self-auto"
+            className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white hover:text-violet-700 sm:self-auto"
           >
             Open Theme Builder <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
+
 
       {/* Header */}
       <header className="mt-8 mb-4">
@@ -120,8 +133,11 @@ function ThemesPage() {
               }`}
             >
               <div className="relative h-40 overflow-hidden bg-neutral-100">
-                <TemplateThumbnail id={t.id} gradient={t.gradient} accent={swatch} />
+                <ThumbnailBoundary>
+                  <TemplateThumbnail id={t.id} gradient={t.gradient} accent={swatch} />
+                </ThumbnailBoundary>
               </div>
+
               <div className="flex items-center justify-between gap-2 px-3 py-2.5">
                 <span className="truncate text-sm font-bold text-foreground">{t.name}</span>
                 {isActive ? (
@@ -153,45 +169,49 @@ function ThemesPage() {
       {/* Settings strip + Preview panel */}
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+
             {/* Shop Theme Color */}
-            <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
-              <span className="text-sm font-bold">Shop Theme Color</span>
-              <div className="flex items-center gap-2">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+              <span className="min-w-0 truncate text-sm font-bold">Shop Theme Color</span>
+              <div className="flex shrink-0 items-center gap-2">
                 <input
                   type="color"
                   value={activeAccent}
                   onChange={(e) => setActiveAccent(e.target.value)}
-                  className="h-8 w-16 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                  className="h-8 w-12 cursor-pointer rounded-full border-0 bg-transparent p-0"
                   aria-label="Shop theme color"
                 />
-                <div className="h-6 w-24 rounded-full" style={{ backgroundColor: activeAccent }} />
+                <div className="hidden h-6 w-16 rounded-full sm:block lg:w-24" style={{ backgroundColor: activeAccent }} />
               </div>
             </div>
 
             {/* Active template quick actions */}
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active template</p>
                 <p className="truncate text-sm font-bold">{activeTemplate.name}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => setCustomizing(activeTemplate.id)}
                   disabled={!storeQ.data}
                   className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                  aria-label="Customize active template"
                 >
-                  <Settings2 className="h-3.5 w-3.5" /> Customize
+                  <Settings2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Customize</span>
                 </button>
                 <button
                   onClick={() => setPreviewing(activeTemplate.id)}
                   className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
+                  aria-label="Preview active template"
                 >
-                  <Eye className="h-3.5 w-3.5" /> Preview
+                  <Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Preview</span>
                 </button>
               </div>
             </div>
           </div>
+
 
           {/* Status card */}
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/40 px-5 py-4 text-sm">
@@ -218,8 +238,11 @@ function ThemesPage() {
             </button>
           </div>
           <div className="relative h-72 overflow-hidden bg-neutral-100">
-            <TemplateThumbnail id={activeTemplate.id} gradient={activeTemplate.gradient} accent={activeAccent} />
+            <ThumbnailBoundary panel>
+              <TemplateThumbnail id={activeTemplate.id} gradient={activeTemplate.gradient} accent={activeAccent} />
+            </ThumbnailBoundary>
           </div>
+
         </div>
       </div>
 
@@ -621,3 +644,101 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
     </div>
   );
 }
+
+// ---------- Loading / Error UI ----------
+
+function ThemesPageSkeleton() {
+  return (
+    <div className="mx-auto max-w-[1400px] animate-pulse px-4 py-6 sm:px-6 sm:py-8">
+      <div className="h-40 rounded-2xl bg-muted sm:h-36" />
+      <div className="mt-8 mb-4 space-y-2">
+        <div className="h-3 w-40 rounded bg-muted" />
+        <div className="h-7 w-72 rounded bg-muted" />
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="h-40 bg-muted" />
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <div className="h-3 w-20 rounded bg-muted" />
+              <div className="h-4 w-4 rounded-full bg-muted" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="h-16 rounded-2xl bg-muted" />
+            <div className="h-16 rounded-2xl bg-muted" />
+          </div>
+          <div className="h-14 rounded-2xl bg-muted" />
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="h-12 bg-muted" />
+          <div className="h-72 bg-muted/60" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThemesErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-destructive/10 text-destructive">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <h2 className="mt-4 font-display text-xl font-black">Couldn't load your themes</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+        <button
+          onClick={onRetry}
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:opacity-90"
+        >
+          <RefreshCw className="h-4 w-4" /> Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Simple error boundary for thumbnail render failures — one template render
+// crashing must not blank the whole page.
+class ThumbnailBoundary extends Component<
+  { children: ReactNode; panel?: boolean },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(err: unknown) {
+    // eslint-disable-next-line no-console
+    console.warn("[themes] template preview failed:", err);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="absolute inset-0 grid place-items-center bg-muted/40 text-muted-foreground">
+          <div className="flex flex-col items-center gap-1.5 px-4 text-center">
+            <ImageOff className={this.props.panel ? "h-7 w-7" : "h-5 w-5"} />
+            <span className={this.props.panel ? "text-sm font-semibold" : "text-[11px] font-semibold"}>
+              Preview unavailable
+            </span>
+            {this.props.panel && (
+              <button
+                onClick={() => this.setState({ hasError: false })}
+                className="mt-1 inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold hover:bg-accent"
+              >
+                <RefreshCw className="h-3 w-3" /> Retry
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return <>{this.props.children}</>;
+  }
+}
+
