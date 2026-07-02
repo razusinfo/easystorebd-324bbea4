@@ -526,6 +526,67 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 </div>
               )}
 
+              {/* Gallery — additional images */}
+              <div className="rounded-lg border border-border bg-muted/20 p-3">
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length) handleGalleryFiles(e.target.files);
+                  }}
+                />
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-medium">Additional images</p>
+                    <p className="text-xs text-foreground/60">
+                      Add up to {MAX_GALLERY} more photos. Click any to make it the primary image.
+                    </p>
+                  </div>
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    className="bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={galleryUploading || form.galleryUrls.length >= MAX_GALLERY}
+                  >
+                    {galleryUploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+                    Add images
+                  </Button>
+                </div>
+                {form.galleryUrls.length === 0 ? (
+                  <p className="rounded-md border border-dashed border-border p-4 text-center text-xs text-foreground/60">
+                    No extra images yet.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                    {form.galleryUrls.map((url) => (
+                      <div key={url} className="group relative aspect-square overflow-hidden rounded-md border border-border bg-background">
+                        <img src={url} alt="Gallery" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handlePromoteGalleryImage(url)}
+                          className="absolute inset-x-0 bottom-0 hidden bg-black/60 py-1 text-[10px] font-semibold text-white group-hover:block"
+                          title="Set as primary image"
+                        >
+                          Make primary
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(url)}
+                          className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100"
+                          aria-label="Remove image"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+
               {form.videoUrl ? (
                 <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
                   <div className="flex min-w-0 items-center gap-3">
