@@ -11,6 +11,10 @@ import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import {
+  MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview,
+  SportyPulsePreview, LuxeNoirPreview,
+} from "@/components/templates/mini-previews";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -641,11 +645,19 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
     );
   }
 
-  const renderReal = id === "autoparts" || id === "eazystore-basic";
+  const FULL_W = 1280;
+  const FULL_H = 1000;
 
-  if (renderReal) {
-    const FULL_W = 1280;
-    const FULL_H = 1000;
+  let inner: React.ReactNode = null;
+  if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
+  else if (id === "eazystore-basic") inner = <EazyStoreBasicTemplate demo accentColor={accent} />;
+  else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
+  else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
+  else if (id === "techgrid") inner = <TechGridPreview accent={accent} />;
+  else if (id === "sporty") inner = <SportyPulsePreview accent={accent} />;
+  else if (id === "luxe") inner = <LuxeNoirPreview accent={accent} />;
+
+  if (inner) {
     return (
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
@@ -659,11 +671,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
             transformOrigin: "top left",
           }}
         >
-          {id === "autoparts" ? (
-            <AutoPartsTemplate demo accentColor={accent} />
-          ) : (
-            <EazyStoreBasicTemplate demo accentColor={accent} />
-          )}
+          {inner}
         </div>
         <style>{`
           @container (min-width: 260px) { [style*="--tpl-scale"] { --tpl-scale: 0.32; } }
@@ -673,18 +681,13 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
     );
   }
 
-  // Fallback scaled preview for placeholder templates
+  // Final fallback
   return (
     <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${gradient} p-4`}>
       <div className="h-2 w-16 rounded bg-white/40" />
       <div className="mt-1.5 h-3 w-32 rounded bg-white/70" />
       <div className="mt-1 h-3 w-24 rounded bg-white/70" />
       <div className="mt-3 h-6 w-20 rounded-full" style={{ backgroundColor: accent }} />
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="aspect-square rounded bg-white/20 backdrop-blur-sm" />
-        ))}
-      </div>
     </div>
   );
 }
