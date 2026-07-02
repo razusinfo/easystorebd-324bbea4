@@ -564,8 +564,8 @@ function Section({
 }
 
 function Field({
-  label, required, hint, children,
-}: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+  label, required, hint, error, children,
+}: { label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
@@ -575,9 +575,11 @@ function Field({
         {hint && <span className="text-xs text-foreground/50">{hint}</span>}
       </div>
       {children}
+      {error && <p className="mt-1 text-xs font-medium text-destructive">{error}</p>}
     </div>
   );
 }
+
 
 function flattenCategories(nodes: CategoryNode[], depth = 0): { id: string; name: string; depth: number }[] {
   const out: { id: string; name: string; depth: number }[] = [];
