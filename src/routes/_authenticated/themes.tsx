@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2 } from "lucide-react";
+import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2, Palette, ArrowRight, Plus } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useSaveTemplateSettings, getTemplateSettings,
   useMyProducts, uploadStoreLogo, deleteStoreLogo,
@@ -12,6 +12,7 @@ import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/themes")({
   head: () => ({ meta: [{ title: "Themes — EazyStore" }] }),
@@ -42,88 +43,184 @@ function ThemesPage() {
     }
   };
 
+  const activeTemplate = TEMPLATES.find((t) => t.id === activeId) ?? TEMPLATES[0];
+  const activeSettings = getTemplateSettings(storeQ.data, activeTemplate.id);
+  const activeAccent = activeSettings.accentColor || activeTemplate.accent;
+
+  const setActiveAccent = async (color: string) => {
+    if (!storeQ.data || !activeId) return;
+    try {
+      await save.mutateAsync({
+        storeId: storeQ.data.id,
+        templateId: activeId,
+        currentMap: storeQ.data.template_settings ?? {},
+        settings: { ...activeSettings, accentColor: color },
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not update color");
+    }
+  };
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-      <header className="mb-8">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
+    <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8">
+      {/* Theme Builder banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 p-6 text-white shadow-lg sm:p-7">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-16 right-24 h-40 w-40 rounded-full bg-fuchsia-300/20 blur-3xl" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/20">
+              <Palette className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h2 className="font-display text-xl font-black sm:text-2xl">Theme Builder</h2>
+                <span className="rounded-md bg-amber-300 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-900">New</span>
+              </div>
+              <p className="mt-1 max-w-lg text-sm text-white/85">
+                Create your own unique shop design with our powerful drag-and-drop builder.
+              </p>
+              <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-white/80">
+                <span>◇ Drag &amp; drop sections</span>
+                <span>◇ Custom layouts</span>
+                <span>◇ Real-time preview</span>
+                <span>◇ No coding required</span>
+              </div>
+            </div>
+          </div>
+          <Link
+            to="/theme-builder"
+            className="inline-flex items-center justify-center gap-2 self-start rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white hover:text-violet-700 sm:self-auto"
+          >
+            Open Theme Builder <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Header */}
+      <header className="mt-8 mb-4">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-primary">
           <Sparkles className="h-3.5 w-3.5" /> Storefront Templates
         </div>
-        <h1 className="mt-2 font-display text-3xl font-black tracking-tight sm:text-4xl">Pick a design for your store</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Browse premium layouts. Customize accent color, logo, default category, and featured products per template — then activate.
-        </p>
+        <h1 className="mt-1.5 font-display text-2xl font-black tracking-tight sm:text-3xl">Pick a design for your store</h1>
       </header>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Template row — real thumbnails, compact cards */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {TEMPLATES.map((t) => {
           const isActive = activeId === t.id;
           const settings = getTemplateSettings(storeQ.data, t.id);
           const swatch = settings.accentColor || t.accent;
-          const configured = !!(settings.accentColor || settings.logoPath || settings.defaultCategoryId || (settings.featuredProductIds?.length ?? 0) > 0);
           return (
-            <article
+            <button
               key={t.id}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+              onClick={() => setPreviewing(t.id)}
+              className={`group relative overflow-hidden rounded-2xl border-2 bg-card text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg ${
+                isActive ? "border-primary ring-2 ring-primary/20" : "border-border"
+              }`}
             >
-              <div className="relative h-56 overflow-hidden bg-neutral-100">
+              <div className="relative h-40 overflow-hidden bg-neutral-100">
                 <TemplateThumbnail id={t.id} gradient={t.gradient} accent={swatch} />
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
-                  <button
-                    onClick={() => setPreviewing(t.id)}
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-neutral-900 shadow-md transition hover:scale-105"
-                  >
-                    <Eye className="h-4 w-4" /> Live Preview
-                  </button>
-                </div>
-                {t.premium && (
-                  <span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow">Premium</span>
-                )}
-                {isActive && (
-                  <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow">
-                    <ShieldCheck className="h-3 w-3" /> Active
+              </div>
+              <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+                <span className="truncate text-sm font-bold text-foreground">{t.name}</span>
+                {isActive ? (
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                    <Check className="h-3.5 w-3.5" />
                   </span>
-                )}
-                {configured && !isActive && (
-                  <span className="absolute right-3 top-3 rounded-full bg-indigo-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow">Customized</span>
+                ) : (
+                  <span className="h-4 w-4 shrink-0 rounded-full ring-2 ring-border" style={{ backgroundColor: swatch }} />
                 )}
               </div>
-
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="font-display text-lg font-black">{t.name}</h3>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t.category}</p>
-                  </div>
-                  <div className="h-6 w-6 shrink-0 rounded-full ring-2 ring-border" style={{ backgroundColor: swatch }} />
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{t.tagline}</p>
-
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => setCustomizing(t.id)}
-                    disabled={!storeQ.data}
-                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-background px-2 py-2 text-xs font-semibold hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
-                  >
-                    <Settings2 className="h-3.5 w-3.5" /> Customize
-                  </button>
-                  <button
-                    onClick={() => setPreviewing(t.id)}
-                    className="rounded-lg border border-border bg-background px-2 py-2 text-xs font-semibold hover:bg-accent hover:text-accent-foreground"
-                  >
-                    Preview
-                  </button>
-                  <button
-                    onClick={() => handleActivate(t.id)}
-                    disabled={isActive || save.isPending || !storeQ.data}
-                    className="rounded-lg bg-primary px-2 py-2 text-xs font-bold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
-                  >
-                    {isActive ? (<span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Active</span>) : "Activate"}
-                  </button>
-                </div>
-              </div>
-            </article>
+              {t.premium && (
+                <span className="absolute left-2 top-2 rounded-md bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow">Premium</span>
+              )}
+            </button>
           );
         })}
+
+        {/* More themes coming */}
+        <div className="grid place-items-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 p-6 text-center text-white shadow-sm">
+          <div>
+            <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-white/20 ring-1 ring-white/30">
+              <Plus className="h-5 w-5" />
+            </div>
+            <p className="mt-2 text-sm font-bold">More themes coming</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Settings strip + Preview panel */}
+      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {/* Shop Theme Color */}
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+              <span className="text-sm font-bold">Shop Theme Color</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={activeAccent}
+                  onChange={(e) => setActiveAccent(e.target.value)}
+                  className="h-8 w-16 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                  aria-label="Shop theme color"
+                />
+                <div className="h-6 w-24 rounded-full" style={{ backgroundColor: activeAccent }} />
+              </div>
+            </div>
+
+            {/* Active template quick actions */}
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active template</p>
+                <p className="truncate text-sm font-bold">{activeTemplate.name}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCustomizing(activeTemplate.id)}
+                  disabled={!storeQ.data}
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+                >
+                  <Settings2 className="h-3.5 w-3.5" /> Customize
+                </button>
+                <button
+                  onClick={() => setPreviewing(activeTemplate.id)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
+                >
+                  <Eye className="h-3.5 w-3.5" /> Preview
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Status card */}
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/40 px-5 py-4 text-sm">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <span>
+                <span className="font-bold">{activeTemplate.name}</span>{" "}
+                <span className="text-muted-foreground">is active on your storefront.</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Preview Your Shop */}
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <span className="text-sm font-bold">Preview Your Shop</span>
+            <button
+              onClick={() => setPreviewing(activeTemplate.id)}
+              className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-accent"
+              aria-label="Open full preview"
+            >
+              <Eye className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="relative h-72 overflow-hidden bg-neutral-100">
+            <TemplateThumbnail id={activeTemplate.id} gradient={activeTemplate.gradient} accent={activeAccent} />
+          </div>
+        </div>
       </div>
 
       {previewing && storeQ.data && (
@@ -150,6 +247,7 @@ function ThemesPage() {
     </div>
   );
 }
+
 
 // ---------- Customize dialog ----------
 
@@ -479,14 +577,18 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
   if (renderReal) {
     const FULL_W = 1280;
     const FULL_H = 1000;
-    const scale = 0.28;
     return (
-      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
+        style={{
+          containerType: "size",
+        } as React.CSSProperties}
+      >
         <div
           style={{
             width: FULL_W,
             height: FULL_H,
-            transform: `scale(${scale})`,
+            transform: "scale(var(--tpl-scale, 0.28))",
             transformOrigin: "top left",
           }}
         >
@@ -496,9 +598,14 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
             <BdLoveTemplate demo accentColor={accent} />
           )}
         </div>
+        <style>{`
+          @container (min-width: 260px) { [style*="--tpl-scale"] { --tpl-scale: 0.32; } }
+          @container (min-width: 340px) { [style*="--tpl-scale"] { --tpl-scale: 0.42; } }
+        `}</style>
       </div>
     );
   }
+
 
   return (
     <div className={`relative h-full w-full bg-gradient-to-br ${gradient} p-4`}>
