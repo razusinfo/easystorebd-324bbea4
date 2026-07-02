@@ -21,9 +21,6 @@ function greeting() {
   return "Good evening";
 }
 
-function slugify(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 24) || "mystore";
-}
 
 function Dashboard() {
   const myStore = useMyStore();
