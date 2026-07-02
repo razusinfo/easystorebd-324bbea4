@@ -106,6 +106,7 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
         name: editing.name,
         sellPrice: String(editing.price),
         stock: String(editing.stock),
+        imageUrl: editing.image_url ?? "",
       }));
     }
   }, [mode, editing]);
@@ -115,16 +116,59 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
     [categoriesQ.data],
   );
 
+  // --- Inline validation ---
+  type Errors = Partial<Record<"name" | "sellPrice" | "regularPrice" | "buyingPrice" | "stock" | "imageUrl", string>>;
+  const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validate = (f: FormState): Errors => {
+    const e: Errors = {};
+    if (!f.name.trim()) e.name = "Item Name is required";
+    else if (f.name.trim().length > 200) e.name = "Item Name must be 200 characters or less";
+
+    const sp = Number(f.sellPrice);
+    if (f.sellPrice === "" || !Number.isFinite(sp)) e.sellPrice = "Sell/Current Price is required";
+    else if (sp < 0) e.sellPrice = "Price cannot be negative";
+
+    if (f.regularPrice !== "") {
+      const rp = Number(f.regularPrice);
+      if (!Number.isFinite(rp) || rp < 0) e.regularPrice = "Enter a valid regular price";
+    }
+    if (f.buyingPrice !== "") {
+      const bp = Number(f.buyingPrice);
+      if (!Number.isFinite(bp) || bp < 0) e.buyingPrice = "Enter a valid buying price";
+    }
+
+    const st = Number(f.stock || "0");
+    if (!Number.isInteger(st) || st < 0) e.stock = "Enter a valid stock quantity";
+
+    if (f.imageUrl && !/^https?:\/\//i.test(f.imageUrl)) {
+      e.imageUrl = "Image URL must start with http(s)://";
+    }
+    return e;
+  };
+
+  useEffect(() => { setErrors(validate(form)); }, [form]);
+  const markTouched = (name: string) => setTouched((p) => ({ ...p, [name]: true }));
+  const showError = (name: keyof Errors) => touched[name] ? errors[name] : undefined;
+
   async function handleSave() {
     if (!store) return toast.error("No store found");
-    const name = form.name.trim();
-    const price = Number(form.sellPrice);
-    const stock = Number(form.stock || "0");
-    if (!name) return toast.error("Item Name is required");
-    if (!Number.isFinite(price) || price < 0) return toast.error("Sell/Current Price is required");
-    if (!Number.isInteger(stock) || stock < 0) return toast.error("Enter a valid stock quantity");
+    setTouched({ name: true, sellPrice: true, regularPrice: true, buyingPrice: true, stock: true, imageUrl: true });
+    const eNow = validate(form);
+    setErrors(eNow);
+    if (Object.keys(eNow).length) {
+      toast.error("Please fix the highlighted fields");
+      return;
+    }
     try {
-      await upsert.mutateAsync({ id: editing?.id, name, price, stock });
+      await upsert.mutateAsync({
+        id: editing?.id,
+        name: form.name.trim(),
+        price: Number(form.sellPrice),
+        stock: Number(form.stock || "0"),
+        imageUrl: form.imageUrl || null,
+      });
       toast.success(mode === "edit" ? "Product updated" : "Product added");
       onDone();
     } catch (e: any) {
@@ -132,7 +176,49 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
     }
   }
 
+  // --- Image upload ---
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleImageFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files are allowed");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Image must be 4MB or smaller");
+      return;
+    }
+    setUploading(true);
+    try {
+      const { publicUrl } = await uploadProductImage(file);
+      // If replacing an existing uploaded image (same bucket), remove the old file.
+      if (form.imageUrl && form.imageUrl.includes("/product-images/")) {
+        await deleteProductImage(form.imageUrl).catch(() => {});
+      }
+      set("imageUrl", publicUrl);
+      markTouched("imageUrl");
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handleRemoveImage() {
+    const url = form.imageUrl;
+    set("imageUrl", "");
+    markTouched("imageUrl");
+    if (url && url.includes("/product-images/")) {
+      try { await deleteProductImage(url); } catch { /* ignore */ }
+    }
+    toast.success("Image removed");
+  }
+
   const loading = storeQ.isLoading || (mode === "edit" && productsQ.isLoading);
+
 
   return (
     <div className="min-h-screen bg-muted/30">
