@@ -57,8 +57,15 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "eazystore-cart-v1",
-      storage: createJSONStorage(() => localStorage),
+      // SSR-safe: only reach localStorage in the browser.
+      storage: createJSONStorage(() =>
+        typeof window === "undefined"
+          ? ({ getItem: () => null, setItem: () => {}, removeItem: () => {} } as Storage)
+          : window.localStorage
+      ),
+      skipHydration: false,
     }
+
   )
 );
 
