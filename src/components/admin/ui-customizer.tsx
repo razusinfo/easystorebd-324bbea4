@@ -528,3 +528,36 @@ function Field({
     </label>
   );
 }
+
+function TemplateMiniPreview({
+  templateId, accent,
+}: { templateId: Exclude<PreviewTemplateId, "default">; accent: string }) {
+  const safe = HEX_COLOR_RE.test(accent) ? accent : "#5B21B6";
+  const Preview =
+    templateId === "minimal" ? MinimalMonoPreview :
+    templateId === "boutique" ? BoutiqueBlushPreview :
+    templateId === "techgrid" ? TechGridPreview :
+    templateId === "sporty" ? SportyPulsePreview :
+    LuxeNoirPreview;
+  // Mini previews are authored at 1280px wide; scale down to fit the aside.
+  const SCALE = 0.32;
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+        </div>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Live template preview
+        </span>
+      </div>
+      <div style={{ width: 1280 * SCALE, height: 1000 * SCALE }} className="mx-auto">
+        <div style={{ transform: `scale(${SCALE})`, transformOrigin: "top left", width: 1280 }}>
+          <Preview accent={safe} />
+        </div>
+      </div>
+    </div>
+  );
+}
