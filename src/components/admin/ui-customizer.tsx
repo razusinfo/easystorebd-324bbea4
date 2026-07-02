@@ -28,6 +28,15 @@ const PREVIEW_TEMPLATES: { id: PreviewTemplateId; label: string }[] = [
   { id: "luxe", label: "Luxe Noir" },
 ];
 
+type DeviceId = "desktop" | "tablet" | "mobile";
+const DEVICES: { id: DeviceId; label: string; width: number; icon: LucideIcon }[] = [
+  { id: "desktop", label: "Desktop", width: 1280, icon: Monitor },
+  { id: "tablet", label: "Tablet", width: 768, icon: Tablet },
+  { id: "mobile", label: "Mobile", width: 375, icon: Smartphone },
+];
+const FRAME_MAX = 400; // px, aside width budget
+
+
 const ICON_MAP: Record<string, LucideIcon> = {
   Home, Package, ShoppingCart, Users, Settings, Truck, Tag, MessageSquare,
   Heart, Star, Layers, Grid, Store, Gift, Phone, Mail, Zap, Sparkles,
