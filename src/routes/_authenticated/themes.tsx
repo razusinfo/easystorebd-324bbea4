@@ -8,6 +8,7 @@ import {
 } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
+import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -408,6 +409,14 @@ function LivePreviewModal({
       <div className="flex-1 overflow-auto bg-neutral-100">
         {id === "autoparts" ? (
           <AutoPartsTemplate
+            demo={orderedProducts.length === 0}
+            products={orderedProducts.length ? orderedProducts : undefined}
+            logoUrl={logoSigned}
+            accentColor={accent}
+            defaultCategoryName={settings.defaultCategoryName}
+          />
+        ) : id === "bdlove" ? (
+          <BdLoveTemplate
             demo={orderedProducts.length === 0}
             products={orderedProducts.length ? orderedProducts : undefined}
             logoUrl={logoSigned}

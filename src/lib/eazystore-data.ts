@@ -11,7 +11,7 @@ import {
 
 
 export type Category = "Clothes" | "Electronics" | "Sports";
-export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts";
+export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
 export type TemplateSettings = {
@@ -83,6 +83,7 @@ export type ProductRow = {
 
 export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradient: string; accent: string; category: string; premium?: boolean }[] = [
   { id: "autoparts", name: "AutoParts Pro", tagline: "Multi-vendor auto parts marketplace with hero deals, category rail, and stock-progress cards", gradient: "from-red-600 to-rose-700", accent: "#DC2626", category: "Automotive", premium: true },
+  { id: "bdlove", name: "BD Love Shop", tagline: "Gadget bazaar layout — sidebar categories, purple accents, green save badges, rounded search pill", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General", premium: true },
   { id: "minimal", name: "Minimal Mono", tagline: "Clean, editorial, type-led", gradient: "from-slate-900 to-slate-600", accent: "#0F172A", category: "Editorial" },
   { id: "boutique", name: "Boutique Blush", tagline: "Soft pastels for fashion", gradient: "from-pink-400 to-rose-500", accent: "#EC4899", category: "Fashion" },
   { id: "techgrid", name: "Tech Grid", tagline: "Dark, sharp, specs-first", gradient: "from-indigo-600 to-cyan-500", accent: "#4F46E5", category: "Electronics" },
