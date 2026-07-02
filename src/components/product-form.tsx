@@ -135,7 +135,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       lengthCm: src.length_cm != null ? String(src.length_cm) : "",
       widthCm: src.width_cm != null ? String(src.width_cm) : "",
       heightCm: src.height_cm != null ? String(src.height_cm) : "",
-      status: src.status === "inactive" ? "inactive" : "active",
+      status: prev.status,
       brand: src.brand ?? "",
       condition: (src.condition as FormState["condition"]) ?? "new",
       categoryId: src.category_id ?? "",
