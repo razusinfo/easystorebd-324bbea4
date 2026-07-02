@@ -83,6 +83,41 @@ export type ProductRow = {
   status: ProductStatus;
   image_url: string | null;
   created_at: string;
+  // Extended fields
+  short_description?: string | null;
+  description?: string | null;
+  category_id?: string | null;
+  brand?: string | null;
+  condition?: "new" | "used" | "refurbished";
+  weight_kg?: number | null;
+  length_cm?: number | null;
+  width_cm?: number | null;
+  height_cm?: number | null;
+  regular_price?: number | null;
+  buying_price?: number | null;
+  sku?: string | null;
+  unit_name?: string | null;
+  product_serial?: string | null;
+  warranty?: string | null;
+  initial_sold_count?: number;
+  use_default_delivery?: boolean;
+  video_url?: string | null;
+};
+
+export type ProductVariantRow = {
+  id: string;
+  product_id: string;
+  name: string;
+  value: string;
+  position: number;
+};
+
+export type ProductDetailRow = {
+  id: string;
+  product_id: string;
+  key: string;
+  value: string;
+  position: number;
 };
 
 export type ProductAuditLog = {
