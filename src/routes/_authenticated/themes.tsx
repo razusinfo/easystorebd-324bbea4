@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2 } from "lucide-react";
+import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2, Palette, ArrowRight, Plus } from "lucide-react";
 import {
   TEMPLATES, useMyStore, useSaveTemplateSettings, getTemplateSettings,
   useMyProducts, uploadStoreLogo, deleteStoreLogo,
@@ -12,6 +12,7 @@ import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/themes")({
   head: () => ({ meta: [{ title: "Themes — EazyStore" }] }),
