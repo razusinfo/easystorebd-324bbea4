@@ -286,7 +286,7 @@ export function EazyStoreBasicTemplate({
 
         {/* Mobile store name */}
         <div className="border-t border-neutral-100 px-4 py-2 text-center sm:hidden">
-          <span className="font-display text-lg font-black tracking-wide">{name}</span>
+          <span className="store-name text-lg">{name}</span>
         </div>
       </header>
 
