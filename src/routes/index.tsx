@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   Store,
   Package,
@@ -18,10 +19,13 @@ import {
   Youtube,
   Instagram,
   Linkedin,
+  Menu,
+  X,
 } from "lucide-react";
 import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
 import { StorefrontView } from "@/components/storefront-view";
 import heroAsset from "@/assets/hero-storefront.jpg.asset.json";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
