@@ -1540,6 +1540,40 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
           </div>
         </div>
       </section>
+
+      <section className="mt-5 rounded-xl border bg-card p-5">
+        <h2 className="font-semibold mb-1">Product Grid Layout</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Choose how many products appear per row on mobile and desktop. Tablet size adapts automatically.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Mobile columns</Label>
+            <Select value={String(mobileCols)} onValueChange={(v) => setMobileCols(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 per row</SelectItem>
+                <SelectItem value="2">2 per row</SelectItem>
+                <SelectItem value="3">3 per row</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Desktop columns</Label>
+            <Select value={String(desktopCols)} onValueChange={(v) => setDesktopCols(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2 per row</SelectItem>
+                <SelectItem value="3">3 per row</SelectItem>
+                <SelectItem value="4">4 per row</SelectItem>
+                <SelectItem value="5">5 per row</SelectItem>
+                <SelectItem value="6">6 per row</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </section>
     </main>
+
   );
 }
