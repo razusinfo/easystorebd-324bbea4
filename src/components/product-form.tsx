@@ -245,13 +245,16 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
         <div className="space-y-5">
           <Section title="General Information">
             <div className="space-y-4">
-              <Field label="Item Name" required>
+              <Field label="Item Name" required error={showError("name")}>
                 <Input
                   placeholder="Item Name"
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
+                  onBlur={() => markTouched("name")}
+                  aria-invalid={!!showError("name")}
                 />
               </Field>
+
               <Field
                 label="Short Description (SEO & Data Feed)"
                 hint={`${form.shortDescription.length}/255`}
