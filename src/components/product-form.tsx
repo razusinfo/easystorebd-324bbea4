@@ -90,6 +90,7 @@ const initialState: FormState = {
   variants: [],
   details: [],
   imageUrl: "",
+  galleryUrls: [],
   videoUrl: "",
 };
 
