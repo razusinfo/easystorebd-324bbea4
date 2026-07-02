@@ -618,7 +618,19 @@ function useSignedLogoUrl(path: string | null | undefined) {
 
 /** Accurate scaled-down live render of the actual template for each card. */
 function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient: string; accent: string }) {
-  const renderReal = id === "autoparts" || id === "bdlove";
+  if (id === "bdlove") {
+    return (
+      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+        <img
+          src={basicThemePreview.url}
+          alt="Basic Theme preview"
+          className="h-full w-full object-cover object-top"
+        />
+      </div>
+    );
+  }
+
+  const renderReal = id === "autoparts";
 
   if (renderReal) {
     const FULL_W = 1280;
@@ -638,11 +650,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
             transformOrigin: "top left",
           }}
         >
-          {id === "autoparts" ? (
-            <AutoPartsTemplate demo accentColor={accent} />
-          ) : (
-            <BdLoveTemplate demo accentColor={accent} />
-          )}
+          <AutoPartsTemplate demo accentColor={accent} />
         </div>
         <style>{`
           @container (min-width: 260px) { [style*="--tpl-scale"] { --tpl-scale: 0.32; } }
@@ -651,6 +659,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
       </div>
     );
   }
+
 
 
   return (
