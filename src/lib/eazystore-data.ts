@@ -66,6 +66,24 @@ export type ShopSettings = {
     tawk_to_id?: string;
     enabled?: boolean;
   };
+  general?: {
+    business_type?: string;
+    country?: string;
+    default_language?: "en" | "bn";
+    favicon_url?: string | null;
+    theme_color?: string;
+    theme_builder_active?: boolean;
+    maintain_stock?: boolean;
+    show_sold_count?: boolean;
+    allow_image_downloads?: boolean;
+    show_email_field?: boolean;
+    enable_promo?: boolean;
+    show_popularity_filter?: boolean;
+    auto_select_variant?: boolean;
+    per_hour_order_limit?: number | null;
+    vat_percent?: number | null;
+  };
+
 };
 
 export type StoreRow = {
