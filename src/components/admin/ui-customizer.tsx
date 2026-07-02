@@ -12,6 +12,20 @@ import {
   type SiteSettings, type SidebarCategory, type SidebarIcon,
 } from "@/lib/site-settings";
 import { toast } from "sonner";
+import {
+  MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview,
+  SportyPulsePreview, LuxeNoirPreview,
+} from "@/components/templates/mini-previews";
+
+type PreviewTemplateId = "default" | "minimal" | "boutique" | "techgrid" | "sporty" | "luxe";
+const PREVIEW_TEMPLATES: { id: PreviewTemplateId; label: string }[] = [
+  { id: "default", label: "Default (sidebar + grid)" },
+  { id: "minimal", label: "Minimal Mono" },
+  { id: "boutique", label: "Boutique Blush" },
+  { id: "techgrid", label: "Tech Grid" },
+  { id: "sporty", label: "Sporty Pulse" },
+  { id: "luxe", label: "Luxe Noir" },
+];
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Home, Package, ShoppingCart, Users, Settings, Truck, Tag, MessageSquare,
@@ -67,6 +81,7 @@ function CustomizerForm({
   const [phone, setPhone] = useState(initial.contact_phone ?? "");
   const [facebook, setFacebook] = useState(initial.facebook_url ?? "");
   const [instagram, setInstagram] = useState(initial.instagram_url ?? "");
+  const [previewTemplate, setPreviewTemplate] = useState<PreviewTemplateId>("default");
 
   useEffect(() => {
     setLogoPath(initial.logo_url);
@@ -313,13 +328,31 @@ function CustomizerForm({
       </div>
       </div>
 
-      <aside className="lg:sticky lg:top-4 lg:self-start">
-        <StorefrontPreview
-          color={color}
-          logoUrl={logoUrl.data ?? null}
-          cats={cats}
-          whatsapp={whatsapp}
-        />
+      <aside className="lg:sticky lg:top-4 lg:self-start space-y-3">
+        <div className="rounded-xl border border-border bg-card p-3">
+          <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+            Preview on template
+          </label>
+          <select
+            value={previewTemplate}
+            onChange={(e) => setPreviewTemplate(e.target.value as PreviewTemplateId)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          >
+            {PREVIEW_TEMPLATES.map((t) => (
+              <option key={t.id} value={t.id}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+        {previewTemplate === "default" ? (
+          <StorefrontPreview
+            color={color}
+            logoUrl={logoUrl.data ?? null}
+            cats={cats}
+            whatsapp={whatsapp}
+          />
+        ) : (
+          <TemplateMiniPreview templateId={previewTemplate} accent={color} />
+        )}
       </aside>
     </div>
   );
@@ -493,5 +526,38 @@ function Field({
         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
       />
     </label>
+  );
+}
+
+function TemplateMiniPreview({
+  templateId, accent,
+}: { templateId: Exclude<PreviewTemplateId, "default">; accent: string }) {
+  const safe = HEX_COLOR_RE.test(accent) ? accent : "#5B21B6";
+  const Preview =
+    templateId === "minimal" ? MinimalMonoPreview :
+    templateId === "boutique" ? BoutiqueBlushPreview :
+    templateId === "techgrid" ? TechGridPreview :
+    templateId === "sporty" ? SportyPulsePreview :
+    LuxeNoirPreview;
+  // Mini previews are authored at 1280px wide; scale down to fit the aside.
+  const SCALE = 0.32;
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+        </div>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Live template preview
+        </span>
+      </div>
+      <div style={{ width: 1280 * SCALE, height: 1000 * SCALE }} className="mx-auto">
+        <div style={{ transform: `scale(${SCALE})`, transformOrigin: "top left", width: 1280 }}>
+          <Preview accent={safe} />
+        </div>
+      </div>
+    </div>
   );
 }
