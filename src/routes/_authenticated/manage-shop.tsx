@@ -1336,6 +1336,13 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
   const [sections, setSections] = useState<HomeSection[]>(initial);
   const [addingType, setAddingType] = useState<HomeSectionType | "">("");
   const [customTitle, setCustomTitle] = useState("");
+  const [mobileCols, setMobileCols] = useState<number>(
+    store.shop_settings?.pages?.product_grid?.mobile ?? 2,
+  );
+  const [desktopCols, setDesktopCols] = useState<number>(
+    store.shop_settings?.pages?.product_grid?.desktop ?? 4,
+  );
+
 
   function move(i: number, dir: -1 | 1) {
     const j = i + dir;
