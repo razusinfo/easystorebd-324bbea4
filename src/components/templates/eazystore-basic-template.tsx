@@ -56,8 +56,23 @@ function hexToRgb(hex?: string): string | null {
 }
 
 export function EazyStoreBasicTemplate({
-  store, products, logoUrl, demo = false, accentColor, defaultCategoryName,
+  store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer,
 }: Props) {
+  const f: Required<FooterSettings> = {
+    showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
+    navLinks: footer?.navLinks ?? DEFAULT_FOOTER.navLinks,
+    showSocials: footer?.showSocials ?? DEFAULT_FOOTER.showSocials,
+    socials: footer?.socials ?? DEFAULT_FOOTER.socials,
+    showCopyright: footer?.showCopyright ?? DEFAULT_FOOTER.showCopyright,
+  };
+  const enabledLinks = f.navLinks.filter((l) => l.enabled);
+  const enabledSocials = f.socials.filter((s) => s.enabled);
+  const socialIconMap = { twitter: Twitter, youtube: Youtube, instagram: Instagram, facebook: Facebook } as const;
+  const hasFooter =
+    (f.showNav && enabledLinks.length > 0) ||
+    (f.showSocials && enabledSocials.length > 0) ||
+    f.showCopyright;
+
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const siteSettings = useSiteSettings().data;
   const whatsappHref = siteSettings?.whatsapp_url || "#";
