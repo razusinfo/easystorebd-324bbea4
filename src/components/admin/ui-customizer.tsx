@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Loader2, Upload, Trash2, Palette, Plus, ArrowUp, ArrowDown, Save,
-  Monitor, Tablet, Smartphone,
+  Monitor, Tablet, Smartphone, Menu, X,
   Home, Package, ShoppingCart, Users, Settings, Truck, Tag, MessageSquare,
   Heart, Star, Layers, Grid, Store, Gift, Phone, Mail, Zap, Sparkles,
   type LucideIcon,
