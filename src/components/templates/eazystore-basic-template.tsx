@@ -4,7 +4,7 @@ import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
 import { DEFAULT_FOOTER } from "@/lib/eazystore-data";
-import { useCartStore, cartCount, type CartItem } from "@/lib/cart-store";
+import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 
 type Props = {
