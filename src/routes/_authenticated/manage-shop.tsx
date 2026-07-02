@@ -1342,6 +1342,13 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
   const [desktopCols, setDesktopCols] = useState<number>(
     store.shop_settings?.pages?.product_grid?.desktop ?? 4,
   );
+  const [logoMax, setLogoMax] = useState<number>(
+    store.shop_settings?.pages?.logo?.max_height ?? 56,
+  );
+  const [logoAlign, setLogoAlign] = useState<"left" | "center" | "right">(
+    store.shop_settings?.pages?.logo?.align ?? "left",
+  );
+
 
 
   function move(i: number, dir: -1 | 1) {
@@ -1391,6 +1398,8 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
             ...(store.shop_settings?.pages ?? {}),
             home_sections: sections,
             product_grid: { mobile: mobileCols as 1 | 2 | 3, desktop: desktopCols as 2 | 3 | 4 | 5 | 6 },
+            logo: { max_height: logoMax as 32 | 40 | 48 | 56 | 64 | 80 | 96, align: logoAlign },
+
           },
         },
       });
@@ -1573,7 +1582,43 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
           </div>
         </div>
       </section>
+
+      <section className="mt-5 rounded-xl border bg-card p-5">
+        <h2 className="font-semibold mb-1">Header Logo</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Set the maximum logo height and how it aligns in the storefront header.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Max height</Label>
+            <Select value={String(logoMax)} onValueChange={(v) => setLogoMax(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="32">32 px — extra small</SelectItem>
+                <SelectItem value="40">40 px — small</SelectItem>
+                <SelectItem value="48">48 px — medium</SelectItem>
+                <SelectItem value="56">56 px — default</SelectItem>
+                <SelectItem value="64">64 px — large</SelectItem>
+                <SelectItem value="80">80 px — extra large</SelectItem>
+                <SelectItem value="96">96 px — hero</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Alignment</Label>
+            <Select value={logoAlign} onValueChange={(v) => setLogoAlign(v as "left" | "center" | "right")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Left</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="right">Right</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </section>
     </main>
+
 
   );
 }

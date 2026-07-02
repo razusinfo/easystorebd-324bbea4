@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
-import { DEFAULT_FOOTER, productGridClass } from "@/lib/eazystore-data";
+import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
+
 
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
@@ -186,7 +187,7 @@ export function EazyStoreBasicTemplate({
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className={`flex min-w-0 items-center gap-2 sm:gap-3 ${logoAlignClass(store?.shop_settings)}`}>
             <button
               type="button"
               onClick={() => setMobileCatsOpen(true)}
@@ -206,10 +207,11 @@ export function EazyStoreBasicTemplate({
                   <img
                     src={logoUrl}
                     alt={`${name} logo`}
-                    className="h-9 w-auto max-w-[120px] shrink-0 object-contain sm:h-12 sm:max-w-[160px] md:h-14 md:max-w-[200px] lg:h-16 lg:max-w-[240px]"
+                    style={logoStyle(store?.shop_settings)}
+                    className="shrink-0 object-contain"
                   />
                 ) : (
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-16 sm:w-16">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-14 sm:w-14">
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                   </div>
                 )}
@@ -223,20 +225,21 @@ export function EazyStoreBasicTemplate({
                   <img
                     src={logoUrl}
                     alt={`${name} logo`}
-                    className="h-9 w-auto max-w-[120px] shrink-0 object-contain sm:h-12 sm:max-w-[160px] md:h-14 md:max-w-[200px] lg:h-16 lg:max-w-[240px]"
+                    style={logoStyle(store?.shop_settings)}
+                    className="shrink-0 object-contain"
                   />
                 ) : (
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-16 sm:w-16">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-14 sm:w-14">
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                   </div>
                 )}
-
                 <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
                   {name}
                 </h1>
               </>
             )}
           </div>
+
 
 
           {/* Search pill */}
