@@ -66,7 +66,7 @@ export function StorefrontPage({ slug, title, children }: Props) {
               <img
                 src={logo}
                 alt={`${name} logo`}
-                className="h-11 w-auto max-w-[140px] shrink-0 object-contain sm:h-14 sm:max-w-[180px]"
+                className="h-9 w-auto max-w-[120px] shrink-0 object-contain sm:h-12 sm:max-w-[160px] md:h-14 md:max-w-[200px]"
               />
             ) : (
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-14 sm:w-14">

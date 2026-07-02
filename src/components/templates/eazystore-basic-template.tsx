@@ -206,7 +206,7 @@ export function EazyStoreBasicTemplate({
                   <img
                     src={logoUrl}
                     alt={`${name} logo`}
-                    className="h-11 w-auto max-w-[140px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
+                    className="h-9 w-auto max-w-[120px] shrink-0 object-contain sm:h-12 sm:max-w-[160px] md:h-14 md:max-w-[200px] lg:h-16 lg:max-w-[240px]"
                   />
                 ) : (
                   <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-16 sm:w-16">
@@ -223,7 +223,7 @@ export function EazyStoreBasicTemplate({
                   <img
                     src={logoUrl}
                     alt={`${name} logo`}
-                    className="h-11 w-auto max-w-[140px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
+                    className="h-9 w-auto max-w-[120px] shrink-0 object-contain sm:h-12 sm:max-w-[160px] md:h-14 md:max-w-[200px] lg:h-16 lg:max-w-[240px]"
                   />
                 ) : (
                   <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-16 sm:w-16">
