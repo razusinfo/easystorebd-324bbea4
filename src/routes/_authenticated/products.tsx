@@ -348,3 +348,161 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
     </div>
   );
 }
+
+// ---------- Status change with confirmation + audit log ----------
+
+function StatusChangeDialog({
+  product, storeId, onClose,
+}: { product: ProductRow | null; storeId: string | undefined; onClose: () => void }) {
+  const open = !!product;
+  const update = useUpdateProductStatus(storeId);
+  const logsQ = useProductAuditLogs(product?.id);
+  const [next, setNext] = useState<ProductStatus>("pending");
+  const [notes, setNotes] = useState("");
+  const [confirming, setConfirming] = useState(false);
+
+  // Reset local state whenever the target product changes.
+  useMemo(() => {
+    if (product) {
+      setNext(product.status);
+      setNotes("");
+      setConfirming(false);
+    }
+  }, [product?.id]);
+
+  if (!product) return null;
+
+  const changed = next !== product.status;
+
+  async function apply() {
+    if (!product || !changed) return;
+    try {
+      await update.mutateAsync({ id: product.id, status: next, notes });
+      toast.success(`Status updated to ${next}`);
+      setConfirming(false);
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to update status");
+      setConfirming(false);
+    }
+  }
+
+  return (
+    <>
+      <Dialog open={open && !confirming} onOpenChange={(o) => !o && onClose()}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Change product status</DialogTitle>
+            <DialogDescription>
+              <span className="font-semibold text-foreground">{product.name}</span> — current status:{" "}
+              <StatusBadge status={product.status} />
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm">New status</Label>
+              <RadioGroup
+                value={next}
+                onValueChange={(v) => setNext(v as ProductStatus)}
+                className="mt-2 grid grid-cols-1 gap-2"
+              >
+                {(["approved", "pending", "rejected"] as const).map((s) => (
+                  <label
+                    key={s}
+                    className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3 hover:bg-foreground/[0.03]"
+                  >
+                    <RadioGroupItem value={s} id={`st-${s}`} />
+                    <div className="flex flex-1 items-center justify-between">
+                      <span className="text-sm font-medium capitalize">{statusLabel(s)}</span>
+                      <StatusBadge status={s} />
+                    </div>
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div>
+              <Label className="text-sm">Note (optional)</Label>
+              <Textarea
+                placeholder="Reason for this change (added to the audit log)"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="mt-2 min-h-[70px]"
+                maxLength={500}
+              />
+              <p className="mt-1 text-right text-xs text-foreground/50">{notes.length}/500</p>
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                <History className="h-4 w-4" /> Audit log
+              </div>
+              <div className="max-h-40 overflow-y-auto rounded-md border border-border bg-muted/20 p-2 text-xs">
+                {logsQ.isLoading ? (
+                  <div className="p-2 text-foreground/50">Loading…</div>
+                ) : (logsQ.data ?? []).length === 0 ? (
+                  <div className="p-2 text-foreground/50">No history yet.</div>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {logsQ.data!.map((l) => (
+                      <li key={l.id} className="rounded bg-background px-2 py-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold capitalize">{l.action.replace("_", " ")}</span>
+                          <span className="text-foreground/50">
+                            {new Date(l.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 text-foreground/70">
+                          {l.old_status && <span>{l.old_status} → </span>}
+                          {l.new_status && <span className="font-medium">{l.new_status}</span>}
+                          {l.notes && <span className="ml-2 italic text-foreground/60">“{l.notes}”</span>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose} disabled={update.isPending}>Cancel</Button>
+            <Button onClick={() => setConfirming(true)} disabled={!changed || update.isPending}>
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={confirming} onOpenChange={(o) => !o && setConfirming(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm status change</AlertDialogTitle>
+            <AlertDialogDescription>
+              Change status of <span className="font-semibold text-foreground">{product.name}</span> from{" "}
+              <span className="font-semibold">{product.status}</span> to{" "}
+              <span className="font-semibold">{next}</span>? This will be recorded in the audit log.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={update.isPending}>Back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); apply(); }}
+              disabled={update.isPending}
+            >
+              {update.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+function statusLabel(s: ProductStatus): string {
+  if (s === "approved") return "Active (Approved)";
+  if (s === "pending") return "Pending review";
+  return "Inactive (Rejected)";
+}
