@@ -160,111 +160,416 @@ function SectionDialog({
   );
 }
 
-// -------- Shop Settings --------
-function ShopSettingsDialog({ store, onClose }: { store: any; onClose: () => void }) {
+// -------- Shop Settings (full-page view like reference) --------
+const BUSINESS_TYPES = [
+  "Clothing & Apparel", "Electronics", "Sports & Fitness", "Grocery & Food",
+  "Beauty & Cosmetics", "Home & Living", "Books & Stationery", "Health",
+  "Toys & Baby", "Jewelry", "Other",
+];
+const COUNTRIES = [
+  { code: "BD", name: "Bangladesh", flag: "🇧🇩" },
+  { code: "IN", name: "India", flag: "🇮🇳" },
+  { code: "PK", name: "Pakistan", flag: "🇵🇰" },
+  { code: "US", name: "United States", flag: "🇺🇸" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
+];
+
+function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void }) {
   const update = useUpdateStore();
+  const g = (store.shop_settings?.general ?? {}) as any;
+
+  // Basic
   const [name, setName] = useState(store.name);
-  const [tagline, setTagline] = useState(store.tagline ?? "");
-  const [category, setCategory] = useState<Category>(store.category);
-  const [template, setTemplate] = useState<TemplateId>(store.template);
+  const [businessType, setBusinessType] = useState<string>(g.business_type ?? "Clothing & Apparel");
+  const [email, setEmail] = useState(store.contact_email ?? "");
+  const [phone, setPhone] = useState(store.phone ?? "");
+  const [country, setCountry] = useState<string>(g.country ?? "BD");
+  const [address, setAddress] = useState(store.address ?? "");
+
+  // Toggles
+  const [lang, setLang] = useState<"en" | "bn">(g.default_language ?? "en");
+  const [themeBuilder, setThemeBuilder] = useState<boolean>(!!g.theme_builder_active);
+  const [maintainStock, setMaintainStock] = useState<boolean>(!!g.maintain_stock);
+  const [showSold, setShowSold] = useState<boolean>(g.show_sold_count ?? true);
+  const [allowDl, setAllowDl] = useState<boolean>(g.allow_image_downloads ?? true);
+  const [showEmail, setShowEmail] = useState<boolean>(!!g.show_email_field);
+  const [enablePromo, setEnablePromo] = useState<boolean>(g.enable_promo ?? true);
+  const [showPop, setShowPop] = useState<boolean>(!!g.show_popularity_filter);
+  const [autoVariant, setAutoVariant] = useState<boolean>(g.auto_select_variant ?? true);
+  const [orderLimit, setOrderLimit] = useState<string>(g.per_hour_order_limit?.toString() ?? "");
+  const [vat, setVat] = useState<string>(g.vat_percent?.toString() ?? "0");
+
+  // Sidebar
   const [logoPath, setLogoPath] = useState<string | null>(store.logo_url);
   const [localLogo, setLocalLogo] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const signed = useLogoSignedUrl(logoPath);
-  const logo = localLogo || signed.data || null;
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoRef = useRef<HTMLInputElement>(null);
+  const signedLogo = useLogoSignedUrl(logoPath);
+
+  const [faviconPath, setFaviconPath] = useState<string | null>(g.favicon_url ?? null);
+  const [localFavicon, setLocalFavicon] = useState<string | null>(null);
+  const [uploadingFav, setUploadingFav] = useState(false);
+  const favRef = useRef<HTMLInputElement>(null);
+  const signedFav = useLogoSignedUrl(faviconPath);
+
+  const [themeColor, setThemeColor] = useState<string>(g.theme_color ?? "#7c3aed");
+
+  const logo = localLogo || signedLogo.data || null;
+  const favicon = localFavicon || signedFav.data || null;
+
+  const slug = store.slug || slugifyStoreName(store.name);
+  const shopUrl = slug ? buildStorefrontUrl(slug) : "";
+  const qrUrl = shopUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(shopUrl)}`
+    : "";
+  const businessId = store.id.replace(/-/g, "").slice(0, 6).toUpperCase();
 
   async function pickLogo(f: File) {
     if (!f.type.startsWith("image/")) return toast.error("Please choose an image.");
     if (f.size > 2 * 1024 * 1024) return toast.error("Logo must be ≤ 2MB.");
-    const url = URL.createObjectURL(f);
-    setLocalLogo(url);
-    setUploading(true);
+    setLocalLogo(URL.createObjectURL(f));
+    setUploadingLogo(true);
     try {
       const old = logoPath;
       const p = await uploadStoreLogo(f);
       setLogoPath(p);
       if (old && old !== p) await deleteStoreLogo(old);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Upload failed.");
-    } finally { setUploading(false); }
+    } catch (e: any) { toast.error(e?.message ?? "Upload failed."); }
+    finally { setUploadingLogo(false); }
+  }
+  async function pickFavicon(f: File) {
+    if (!f.type.startsWith("image/")) return toast.error("Please choose an image.");
+    if (f.size > 512 * 1024) return toast.error("Favicon must be ≤ 512KB.");
+    setLocalFavicon(URL.createObjectURL(f));
+    setUploadingFav(true);
+    try {
+      const old = faviconPath;
+      const p = await uploadStoreLogo(f);
+      setFaviconPath(p);
+      if (old && old !== p) await deleteStoreLogo(old);
+    } catch (e: any) { toast.error(e?.message ?? "Upload failed."); }
+    finally { setUploadingFav(false); }
   }
 
-  async function save() {
+  async function saveAll() {
+    try {
+      const merged = {
+        ...(store.shop_settings ?? {}),
+        general: {
+          ...(store.shop_settings?.general ?? {}),
+          business_type: businessType,
+          country,
+          default_language: lang,
+          favicon_url: faviconPath,
+          theme_color: themeColor,
+          theme_builder_active: themeBuilder,
+          maintain_stock: maintainStock,
+          show_sold_count: showSold,
+          allow_image_downloads: allowDl,
+          show_email_field: showEmail,
+          enable_promo: enablePromo,
+          show_popularity_filter: showPop,
+          auto_select_variant: autoVariant,
+          per_hour_order_limit: orderLimit === "" ? null : Number(orderLimit),
+          vat_percent: vat === "" ? null : Number(vat),
+        },
+      };
+      await update.mutateAsync({
+        id: store.id,
+        name: name.trim(),
+        contact_email: email.trim() || null,
+        phone: phone.trim() || null,
+        address: address.trim() || null,
+        logo_url: logoPath,
+        shop_settings: merged,
+      });
+      toast.success("Shop settings updated.");
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
+
+  async function saveThemeColor() {
     try {
       await update.mutateAsync({
-        id: store.id, name: name.trim(), tagline: tagline.trim() || null,
-        category, template, logo_url: logoPath,
+        id: store.id,
+        shop_settings: {
+          ...(store.shop_settings ?? {}),
+          general: { ...(store.shop_settings?.general ?? {}), theme_color: themeColor },
+        },
       });
-      toast.success("Shop settings saved.");
-      onClose();
+      toast.success("Theme color saved.");
     } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
   }
 
   return (
-    <SectionDialog
-      title="Shop Settings" description="General configuration for your store."
-      onClose={onClose}
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={update.isPending || name.trim().length < 2}>
-            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-            Save
-          </Button>
-        </>
-      }
-    >
-      <div className="flex items-center gap-4">
-        <div className="h-20 w-20 rounded-xl border bg-muted grid place-items-center overflow-hidden">
-          {logo ? <img src={logo} alt="logo" className="h-full w-full object-cover" /> : <StoreIcon className="h-8 w-8 text-muted-foreground" />}
+    <main className="mx-auto w-full max-w-7xl p-4 md:p-6">
+      <div className="flex items-center gap-3 mb-5">
+        <Button variant="outline" size="icon" onClick={onBack} className="rounded-full h-9 w-9">
+          <X className="h-4 w-4" />
+        </Button>
+        <h1 className="text-xl md:text-2xl font-bold">Shop Settings</h1>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        {/* LEFT column */}
+        <div className="space-y-5">
+          {/* Basic Info */}
+          <section className="rounded-xl border bg-card p-5">
+            <h2 className="font-semibold mb-4">Shop Basic Info</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label>Business ID</Label>
+                <Input value={businessId} readOnly className="bg-muted/40" />
+              </div>
+              <div>
+                <Label>Business Name</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div>
+                <Label>Business Type</Label>
+                <Select value={businessType} onValueChange={setBusinessType}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {BUSINESS_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Shop Email</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div>
+                <Label>Shop Phone Number</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+              <div>
+                <Label>Country</Label>
+                <Select value={country} onValueChange={setCountry}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>{c.flag} {c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Label>Shop Address</Label>
+                <Textarea rows={2} value={address} onChange={(e) => setAddress(e.target.value)} />
+              </div>
+            </div>
+          </section>
+
+          {/* Shop Settings toggles */}
+          <section className="rounded-xl border bg-card p-5">
+            <h2 className="font-semibold mb-4">Shop Settings</h2>
+
+            <div className="flex items-center justify-between py-2">
+              <div className="text-sm font-medium">Default language</div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setLang("en")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border ${lang === "en" ? "border-primary text-primary bg-primary/5" : "border-transparent"}`}
+                >🇺🇸 English</button>
+                <button
+                  onClick={() => setLang("bn")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium border ${lang === "bn" ? "border-primary text-primary bg-primary/5" : "border-transparent"}`}
+                >🇧🇩 Bangla</button>
+              </div>
+            </div>
+
+            <ToggleRow
+              label="Theme Builder"
+              onLabel="ACTIVE" offLabel="INACTIVE"
+              desc="When inactive, your storefront falls back to the default theme."
+              checked={themeBuilder} onChange={setThemeBuilder}
+            />
+            <ToggleRow
+              label="Maintain Stock Quantity"
+              desc="Enabling ensures products with zero stock are marked Out of Stock and cannot be ordered."
+              checked={maintainStock} onChange={setMaintainStock}
+            />
+            <ToggleRow
+              label="Show Product Sold Count"
+              checked={showSold} onChange={setShowSold}
+            />
+            <ToggleRow
+              label="Allow Product Image Downloads"
+              onLabel="YES" offLabel="NO"
+              desc="When enabled, individual products can control their own image download settings."
+              checked={allowDl} onChange={setAllowDl}
+            />
+            <ToggleRow
+              label="Show Email Field for Place Order"
+              onLabel="YES" offLabel="NO"
+              desc="When disabled, the email field will be hidden from the checkout page."
+              checked={showEmail} onChange={setShowEmail}
+            />
+            <ToggleRow
+              label="Enable Promo Code for Place Order"
+              onLabel="YES" offLabel="NO"
+              desc="Customers can apply promo codes during checkout to receive discounts."
+              checked={enablePromo} onChange={setEnablePromo}
+            />
+            <ToggleRow
+              label="Show Product Filter by Popularity (Highest Sold)"
+              onLabel="YES" offLabel="NO"
+              desc="When disabled, popularity-based sorting will be hidden on storefront filters."
+              checked={showPop} onChange={setShowPop}
+            />
+            <ToggleRow
+              label="Auto Select Mandatory Variant"
+              onLabel="YES" offLabel="NO"
+              desc="First option of a mandatory variant will be selected by default on the product page."
+              checked={autoVariant} onChange={setAutoVariant}
+            />
+
+            <div className="mt-4">
+              <Label>Per Hour Order Limit</Label>
+              <Input
+                type="number" placeholder="No limit"
+                value={orderLimit} onChange={(e) => setOrderLimit(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Maximum number of orders a single customer can place per hour. Leave empty for no limit.
+              </p>
+            </div>
+
+            <div className="mt-4">
+              <Label>VAT / Tax Percentage</Label>
+              <Input type="number" value={vat} onChange={(e) => setVat(e.target.value)} />
+            </div>
+
+            <div className="flex justify-end mt-5">
+              <Button onClick={saveAll} disabled={update.isPending}>
+                {update.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Update Shop Settings
+              </Button>
+            </div>
+          </section>
         </div>
-        <div className="flex flex-col gap-2">
-          <input ref={fileRef} type="file" accept="image/*" className="hidden"
-            onChange={(e) => e.target.files?.[0] && pickLogo(e.target.files[0])} />
-          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-            <Upload className="h-4 w-4 mr-1" /> {uploading ? "Uploading..." : "Upload logo"}
-          </Button>
-          {logoPath && (
-            <Button variant="ghost" size="sm" onClick={() => { setLogoPath(null); setLocalLogo(null); }}>
-              <Trash2 className="h-4 w-4 mr-1" /> Remove
+
+        {/* RIGHT sidebar */}
+        <aside className="space-y-5">
+          {/* QR */}
+          <section className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold mb-3">Shop QR</h3>
+            <div className="mx-auto w-full max-w-[240px] aspect-square rounded-lg border bg-white p-3 grid place-items-center">
+              {qrUrl ? (
+                <img src={qrUrl} alt="QR code" className="w-full h-full object-contain" />
+              ) : (
+                <span className="text-xs text-muted-foreground">Publish shop to get QR</span>
+              )}
+            </div>
+            <p className="text-xs text-center text-muted-foreground mt-3">Scan the QR to visit your shop</p>
+            {shopUrl && (
+              <div className="mt-3 flex items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-xs">
+                <span className="flex-1 truncate text-primary">{shopUrl}</span>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(shopUrl); toast.success("Copied"); }}
+                  className="text-primary hover:opacity-80"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+            <input ref={logoRef} type="file" accept="image/*" className="hidden"
+              onChange={(e) => e.target.files?.[0] && pickLogo(e.target.files[0])} />
+            <Button
+              className="w-full mt-3 gradient-primary text-primary-foreground"
+              onClick={() => logoRef.current?.click()}
+              disabled={uploadingLogo}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {uploadingLogo ? "Uploading..." : "Upload Shop Logo"}
             </Button>
-          )}
-        </div>
+            {logo && (
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <img src={logo} alt="logo" className="h-8 w-8 rounded object-cover border" />
+                <span>Current logo</span>
+                <button className="ml-auto text-destructive"
+                  onClick={() => { setLogoPath(null); setLocalLogo(null); }}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* Favicon */}
+          <section className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold mb-3">Shop Favicon</h3>
+            <div className="w-full aspect-video border-2 border-dashed rounded-lg grid place-items-center bg-muted/30 overflow-hidden">
+              {favicon ? (
+                <img src={favicon} alt="favicon" className="max-h-full object-contain" />
+              ) : (
+                <div className="text-muted-foreground">
+                  <Upload className="h-8 w-8 mx-auto opacity-40" />
+                </div>
+              )}
+            </div>
+            <input ref={favRef} type="file" accept="image/*" className="hidden"
+              onChange={(e) => e.target.files?.[0] && pickFavicon(e.target.files[0])} />
+            <Button
+              className="w-full mt-3 gradient-primary text-primary-foreground"
+              onClick={() => favRef.current?.click()}
+              disabled={uploadingFav}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {uploadingFav ? "Uploading..." : "Upload Shop Favicon"}
+            </Button>
+          </section>
+
+          {/* Theme color */}
+          <section className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold text-primary mb-3">Shop Theme</h3>
+            <input
+              type="color" value={themeColor}
+              onChange={(e) => setThemeColor(e.target.value)}
+              className="w-full h-40 rounded-lg border cursor-pointer"
+            />
+            <div className="mt-2 flex items-center gap-2 text-xs">
+              <span className="h-5 w-5 rounded border" style={{ background: themeColor }} />
+              <Input value={themeColor} onChange={(e) => setThemeColor(e.target.value)} className="h-8" />
+            </div>
+            <Button
+              className="w-full mt-3 gradient-primary text-primary-foreground"
+              onClick={saveThemeColor}
+              disabled={update.isPending}
+            >
+              Save Theme Color
+            </Button>
+          </section>
+        </aside>
       </div>
-      <div>
-        <Label>Shop name</Label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} />
-      </div>
-      <div>
-        <Label>Tagline</Label>
-        <Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Short tagline" />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label>Category</Label>
-          <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Clothes">Clothes</SelectItem>
-              <SelectItem value="Electronics">Electronics</SelectItem>
-              <SelectItem value="Sports">Sports</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Template</Label>
-          <Select value={template} onValueChange={(v) => setTemplate(v as TemplateId)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TEMPLATES.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </SectionDialog>
+    </main>
   );
 }
+
+function ToggleRow({
+  label, desc, checked, onChange, onLabel, offLabel,
+}: {
+  label: string; desc?: string; checked: boolean;
+  onChange: (v: boolean) => void; onLabel?: string; offLabel?: string;
+}) {
+  return (
+    <div className="py-3 border-t first:border-t-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium">{label}</div>
+          {desc && <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {(onLabel || offLabel) && (
+            <span className="text-[10px] uppercase font-bold text-muted-foreground">
+              {checked ? onLabel : offLabel}
+            </span>
+          )}
+          <Switch checked={checked} onCheckedChange={onChange} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // -------- Shop Domain --------
 function ShopDomainDialog({ store, onClose }: { store: any; onClose: () => void }) {
