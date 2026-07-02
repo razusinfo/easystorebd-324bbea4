@@ -280,18 +280,101 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
 
           <Section title="Media">
             <div className="space-y-3">
-              <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
-                <ImageIcon className="h-8 w-8 text-foreground/40" />
-                <p className="mt-2 max-w-md text-xs text-foreground/60">
-                  Paste an image URL. Supported: JPG, PNG. Max 4MB. Use 1:1.6 for Sellora theme (e.g. 570×924).
-                </p>
-                <Input
-                  placeholder="https://... (image URL)"
-                  value={form.imageUrl}
-                  onChange={(e) => set("imageUrl", e.target.value)}
-                  className="mt-3 max-w-md"
-                />
-              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImageFile(f);
+                }}
+              />
+
+              {form.imageUrl ? (
+                <div className="rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="flex items-start gap-4">
+                    {/* Preview */}
+                    <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-md border border-border bg-background">
+                      <img
+                        src={form.imageUrl}
+                        alt="Product preview"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{form.imageUrl}</p>
+                      <p className="mt-0.5 text-xs text-foreground/60">
+                        {form.imageUrl.includes("/product-images/")
+                          ? "Uploaded to storage"
+                          : "External URL"}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          type="button" size="sm" variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                        >
+                          {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+                          Replace
+                        </Button>
+                        <Button
+                          type="button" size="sm" variant="outline"
+                          onClick={handleRemoveImage}
+                          disabled={uploading}
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="mr-1 h-4 w-4" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "grid place-items-center rounded-lg border-2 border-dashed p-8 text-center transition-colors",
+                    showError("imageUrl") ? "border-destructive/60 bg-destructive/5" : "border-border bg-muted/40",
+                  )}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const f = e.dataTransfer.files?.[0];
+                    if (f) handleImageFile(f);
+                  }}
+                >
+                  <ImageIcon className="h-8 w-8 text-foreground/40" />
+                  <p className="mt-2 max-w-md text-xs text-foreground/60">
+                    Drag & drop an image, click Upload, or paste a URL. JPG/PNG, max 4MB.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    <Button
+                      type="button" size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+                      Upload image
+                    </Button>
+                  </div>
+                  <div className="mt-3 w-full max-w-md">
+                    <Input
+                      placeholder="or paste image URL: https://..."
+                      value={form.imageUrl}
+                      onChange={(e) => set("imageUrl", e.target.value)}
+                      onBlur={() => markTouched("imageUrl")}
+                      aria-invalid={!!showError("imageUrl")}
+                    />
+                    {showError("imageUrl") && (
+                      <p className="mt-1 text-xs font-medium text-destructive">{showError("imageUrl")}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
                 <Video className="h-8 w-8 text-foreground/40" />
                 <p className="mt-2 text-xs text-foreground/60">Paste the video link here</p>
@@ -304,6 +387,7 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
               </div>
             </div>
           </Section>
+
 
           <Section title="Pricing">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
