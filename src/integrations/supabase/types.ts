@@ -163,41 +163,172 @@ export type Database = {
           },
         ]
       }
-      products: {
+      product_details: {
         Row: {
           created_at: string
           id: string
-          image_url: string | null
-          name: string
-          price: number
-          status: Database["public"]["Enums"]["product_status"]
-          stock: number
-          store_id: string
-          updated_at: string
+          key: string
+          position: number
+          product_id: string
+          value: string
         }
         Insert: {
           created_at?: string
           id?: string
-          image_url?: string | null
-          name: string
-          price: number
-          status?: Database["public"]["Enums"]["product_status"]
-          stock?: number
-          store_id: string
-          updated_at?: string
+          key: string
+          position?: number
+          product_id: string
+          value: string
         }
         Update: {
           created_at?: string
           id?: string
+          key?: string
+          position?: number
+          product_id?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_details_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          product_id: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          product_id: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          product_id?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          brand: string | null
+          buying_price: number | null
+          category_id: string | null
+          condition: string
+          created_at: string
+          description: string | null
+          height_cm: number | null
+          id: string
+          image_url: string | null
+          initial_sold_count: number
+          length_cm: number | null
+          name: string
+          price: number
+          product_serial: string | null
+          regular_price: number | null
+          short_description: string | null
+          sku: string | null
+          status: Database["public"]["Enums"]["product_status"]
+          stock: number
+          store_id: string
+          unit_name: string | null
+          updated_at: string
+          use_default_delivery: boolean
+          video_url: string | null
+          warranty: string | null
+          weight_kg: number | null
+          width_cm: number | null
+        }
+        Insert: {
+          brand?: string | null
+          buying_price?: number | null
+          category_id?: string | null
+          condition?: string
+          created_at?: string
+          description?: string | null
+          height_cm?: number | null
+          id?: string
           image_url?: string | null
+          initial_sold_count?: number
+          length_cm?: number | null
+          name: string
+          price: number
+          product_serial?: string | null
+          regular_price?: number | null
+          short_description?: string | null
+          sku?: string | null
+          status?: Database["public"]["Enums"]["product_status"]
+          stock?: number
+          store_id: string
+          unit_name?: string | null
+          updated_at?: string
+          use_default_delivery?: boolean
+          video_url?: string | null
+          warranty?: string | null
+          weight_kg?: number | null
+          width_cm?: number | null
+        }
+        Update: {
+          brand?: string | null
+          buying_price?: number | null
+          category_id?: string | null
+          condition?: string
+          created_at?: string
+          description?: string | null
+          height_cm?: number | null
+          id?: string
+          image_url?: string | null
+          initial_sold_count?: number
+          length_cm?: number | null
           name?: string
           price?: number
+          product_serial?: string | null
+          regular_price?: number | null
+          short_description?: string | null
+          sku?: string | null
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
           store_id?: string
+          unit_name?: string | null
           updated_at?: string
+          use_default_delivery?: boolean
+          video_url?: string | null
+          warranty?: string | null
+          weight_kg?: number | null
+          width_cm?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_store_id_fkey"
             columns: ["store_id"]
