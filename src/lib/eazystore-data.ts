@@ -585,6 +585,8 @@ export function useUpsertProduct(storeId: string | undefined) {
         productId = input.id;
       } else {
         payload.store_id = storeId;
+        if (payload.status === undefined) payload.status = "approved";
+
         const { data, error } = await supabase
           .from("products")
           .insert(payload as never)
