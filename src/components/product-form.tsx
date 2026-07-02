@@ -222,6 +222,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         price: Number(form.sellPrice),
         stock: Number(form.stock || "0"),
         imageUrl: form.imageUrl || null,
+        galleryUrls: form.galleryUrls,
         shortDescription: form.shortDescription.trim() || null,
         description: form.description.trim() || null,
         categoryId: form.categoryId || null,
