@@ -23,9 +23,14 @@ import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categ
 type Props = {
   mode: "new" | "edit";
   productId?: string;
+  /** When set (and mode="new"), pre-fills the form from this product as a draft copy. */
+  duplicateFromId?: string;
   onDone: () => void;
   onCancel: () => void;
+  /** Optional handler for the top-bar Duplicate button (edit mode only). */
+  onDuplicate?: () => void;
 };
+
 
 type FormState = {
   name: string;
