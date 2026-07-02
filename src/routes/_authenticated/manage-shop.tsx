@@ -253,7 +253,7 @@ function ShopSettingsDialog({ store, onClose }: { store: any; onClose: () => voi
           <Select value={template} onValueChange={(v) => setTemplate(v as TemplateId)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {TEMPLATES.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}
+              {TEMPLATES.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
