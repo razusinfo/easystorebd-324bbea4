@@ -1,7 +1,9 @@
 // Supabase-backed data layer for EazyStore.
 // All hooks rely on RLS — owners only see/modify their own data; super_admin sees all.
+import type { CSSProperties } from "react";
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
 import {
   adminListUsers,
   adminListAuditLogs,
