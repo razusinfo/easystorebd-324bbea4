@@ -1,241 +1,81 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Store as StoreIcon, Save, Check, Loader2, Copy, ExternalLink, Globe,
-  ArrowLeft, Shirt, Cpu, Trophy, Palette, AlertCircle, Upload, Trash2,
-  MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Eye, Smartphone, Monitor,
-  Rocket, X, Link2, Pencil,
+  Store as StoreIcon, Loader2, Globe, FileText, Truck, Landmark, BarChart3,
+  MessageSquare, MessageCircle, Share2, Save, Check, Copy, ExternalLink,
+  Upload, Trash2, Rocket, X,
 } from "lucide-react";
+import { toast } from "sonner";
+
 import {
-  TEMPLATES, useMyStore, useUpdateStore, useLogoSignedUrl,
-  uploadStoreLogo, deleteStoreLogo, usePublishStore, useChangeSlug,
-  slugifyStoreName, buildStorefrontUrl,
-  type Category, type TemplateId,
+  useMyStore, useUpdateStore, useLogoSignedUrl, uploadStoreLogo, deleteStoreLogo,
+  usePublishStore, useChangeSlug, slugifyStoreName, buildStorefrontUrl,
+  TEMPLATES,
+  type Category, type TemplateId, type ShopSettings,
 } from "@/lib/eazystore-data";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/manage-shop")({
-  head: () => ({ meta: [{ title: "Manage Shop — EazyStore" }] }),
-  component: ManageShop,
+  head: () => ({
+    meta: [
+      { title: "Manage Shop — EazyStore" },
+      { name: "description", content: "Manage all shop configurations — settings, domain, policy, delivery, payments, SEO and support in one place." },
+    ],
+  }),
+  component: ManageShopPage,
 });
 
-const CATEGORIES: { id: Category; icon: any; sub: string }[] = [
-  { id: "Clothes", icon: Shirt, sub: "Fashion & apparel" },
-  { id: "Electronics", icon: Cpu, sub: "Gadgets & devices" },
-  { id: "Sports", icon: Trophy, sub: "Gear & fitness" },
+type CardKey =
+  | "settings" | "domain" | "policy" | "delivery" | "payment"
+  | "seo" | "sms" | "chat" | "social";
+
+const CARDS: {
+  key: CardKey;
+  title: string;
+  desc: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}[] = [
+  { key: "settings", title: "Shop Settings", desc: "General shop configurations — name, logo, category and template.", icon: StoreIcon },
+  { key: "domain", title: "Shop Domain", desc: "Manage your shop URL, publish status and custom slug.", icon: Globe },
+  { key: "policy", title: "Shop Policy", desc: "Define return, refund, shipping, privacy and terms policies.", icon: FileText },
+  { key: "delivery", title: "Delivery Support", desc: "Set delivery charges inside/outside Dhaka and free-shipping rules.", icon: Truck },
+  { key: "payment", title: "Payment Gateway", desc: "Configure bKash, Nagad, Rocket, bank transfer and COD.", icon: Landmark },
+  { key: "seo", title: "SEO & Marketing Integrations", desc: "Google Tag Manager, Facebook Pixel, TikTok Pixel and more.", icon: BarChart3, badge: "New" },
+  { key: "sms", title: "SMS Support", desc: "SMS notifications to keep customers updated in real time.", icon: MessageSquare },
+  { key: "chat", title: "Chat Support", desc: "Enable Messenger, WhatsApp or Tawk.to live chat on your store.", icon: MessageCircle },
+  { key: "social", title: "Social Links", desc: "Connect Facebook, Instagram, WhatsApp and your website.", icon: Share2 },
 ];
 
-function slugify(s: string) {
-  return slugifyStoreName(s) || "mystore";
-}
+function ManageShopPage() {
+  const storeQ = useMyStore();
+  const [open, setOpen] = useState<CardKey | null>(null);
 
-function ManageShop() {
-  const myStore = useMyStore();
-  const update = useUpdateStore();
-  const publish = usePublishStore();
-  const changeSlug = useChangeSlug();
-
-  const [name, setName] = useState("");
-  const [tagline, setTagline] = useState("");
-  const [category, setCategory] = useState<Category>("Clothes");
-  const [template, setTemplate] = useState<TemplateId>("minimal");
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [facebook, setFacebook] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [website, setWebsite] = useState("");
-
-  const [logoPath, setLogoPath] = useState<string | null>(null);
-  const [localLogoUrl, setLocalLogoUrl] = useState<string | null>(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("mobile");
-  const [showStorefront, setShowStorefront] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-
-  const [editingSlug, setEditingSlug] = useState(false);
-  const [slugInput, setSlugInput] = useState("");
-  const [slugError, setSlugError] = useState<string | null>(null);
-  const [slugSavedAt, setSlugSavedAt] = useState<number | null>(null);
-
-  const signedLogo = useLogoSignedUrl(logoPath);
-
-  useEffect(() => {
-    const s = myStore.data;
-    if (s) {
-      setName(s.name);
-      setTagline(s.tagline ?? "");
-      setCategory(s.category);
-      setTemplate(s.template);
-      setAddress(s.address ?? "");
-      setPhone(s.phone ?? "");
-      setContactEmail(s.contact_email ?? "");
-      setFacebook(s.facebook_url ?? "");
-      setInstagram(s.instagram_url ?? "");
-      setWhatsapp(s.whatsapp_number ?? "");
-      setWebsite(s.website_url ?? "");
-      setLogoPath(s.logo_url);
-    }
-  }, [myStore.data?.id]);
-
-  useEffect(() => {
-    return () => { if (localLogoUrl) URL.revokeObjectURL(localLogoUrl); };
-  }, [localLogoUrl]);
-
-  const logoDisplay = localLogoUrl || signedLogo.data || null;
-
-  const effectiveSlug = myStore.data?.slug || slugify(name);
-  const storeUrl = useMemo(
-    () => (effectiveSlug ? buildStorefrontUrl(effectiveSlug) : ""),
-    [effectiveSlug],
-  );
-  const isPublished = !!myStore.data?.published && !!myStore.data?.slug;
-
-  const dirty = useMemo(() => {
-    const s = myStore.data;
-    if (!s) return false;
-    return (
-      name.trim() !== s.name ||
-      (tagline.trim() || null) !== (s.tagline || null) ||
-      category !== s.category ||
-      template !== s.template ||
-      (address.trim() || null) !== (s.address || null) ||
-      (phone.trim() || null) !== (s.phone || null) ||
-      (contactEmail.trim() || null) !== (s.contact_email || null) ||
-      (facebook.trim() || null) !== (s.facebook_url || null) ||
-      (instagram.trim() || null) !== (s.instagram_url || null) ||
-      (whatsapp.trim() || null) !== (s.whatsapp_number || null) ||
-      (website.trim() || null) !== (s.website_url || null) ||
-      logoPath !== s.logo_url
-    );
-  }, [myStore.data, name, tagline, category, template, address, phone, contactEmail, facebook, instagram, whatsapp, website, logoPath]);
-
-  const trimmed = name.trim();
-  const canSave = dirty && trimmed.length >= 2 && !update.isPending;
-
-  async function onPickLogo(file: File) {
-    setError(null);
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file.");
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Logo must be 2MB or smaller.");
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setLocalLogoUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return url; });
-    setUploadingLogo(true);
-    try {
-      const oldPath = logoPath;
-      const path = await uploadStoreLogo(file);
-      setLogoPath(path);
-      if (oldPath && oldPath !== path) await deleteStoreLogo(oldPath);
-    } catch (e: any) {
-      setError(e?.message ?? "Could not upload logo.");
-      setLocalLogoUrl(null);
-    } finally {
-      setUploadingLogo(false);
-    }
-  }
-
-  async function onRemoveLogo() {
-    setError(null);
-    const oldPath = logoPath;
-    setLogoPath(null);
-    setLocalLogoUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
-    if (oldPath) {
-      try { await deleteStoreLogo(oldPath); } catch {}
-    }
-  }
-
-  async function onSave() {
-    setError(null);
-    if (!myStore.data) return;
-    if (trimmed.length < 2) {
-      setError("Store name must be at least 2 characters.");
-      return;
-    }
-    try {
-      await update.mutateAsync({
-        id: myStore.data.id,
-        name: trimmed,
-        tagline: tagline.trim() || null,
-        category,
-        template,
-        address: address.trim() || null,
-        phone: phone.trim() || null,
-        contact_email: contactEmail.trim() || null,
-        facebook_url: facebook.trim() || null,
-        instagram_url: instagram.trim() || null,
-        whatsapp_number: whatsapp.trim() || null,
-        website_url: website.trim() || null,
-        logo_url: logoPath,
-      });
-      setSavedAt(Date.now());
-      setTimeout(() => setSavedAt(null), 2500);
-    } catch (e: any) {
-      setError(e?.message ?? "Could not save. Please try again.");
-    }
-  }
-
-  async function copyUrl() {
-    if (!storeUrl) return;
-    try { await navigator.clipboard.writeText(storeUrl); } catch {}
-  }
-
-  async function onPublishAndView() {
-    setError(null);
-    setPublishing(true);
-    try {
-      if (!myStore.data) return;
-      if (trimmed.length < 2) {
-        setError("Store name must be at least 2 characters.");
-        return;
-      }
-      if (dirty) await onSave();
-      const published = await publish.mutateAsync({
-        id: myStore.data.id,
-        name: trimmed,
-        desiredSlug: myStore.data.slug || slugify(trimmed),
-      });
-      const url = buildStorefrontUrl(published.slug!);
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e: any) {
-      setError(e?.message ?? "Could not publish. Please try again.");
-    } finally {
-      setPublishing(false);
-    }
-  }
-
-  function onVisit() {
-    if (isPublished && myStore.data?.slug) {
-      window.open(buildStorefrontUrl(myStore.data.slug), "_blank", "noopener,noreferrer");
-    } else {
-      setShowStorefront(true);
-    }
-  }
-
-  if (myStore.isLoading) {
+  if (storeQ.isLoading) {
     return (
       <main className="grid min-h-[60vh] place-items-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </main>
     );
   }
-
-  if (!myStore.data) {
+  if (!storeQ.data) {
     return (
       <main className="grid min-h-[60vh] place-items-center px-5 text-center">
         <div className="max-w-sm space-y-4">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl gradient-primary text-white">
             <StoreIcon className="h-7 w-7" />
           </div>
-          <h1 className="font-display text-2xl font-bold">No store yet</h1>
+          <h1 className="text-2xl font-bold">No store yet</h1>
           <p className="text-sm text-muted-foreground">
             Set up your store with the onboarding wizard first.
           </p>
@@ -250,528 +90,521 @@ function ManageShop() {
     );
   }
 
+  const store = storeQ.data;
+
   return (
-    <main className="relative mx-auto min-h-screen w-full max-w-6xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28">
-      {/* Header */}
-      <section className="px-5 pt-5">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/70 hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Dashboard
-        </Link>
-        <h1 className="mt-2 font-display text-3xl font-black tracking-tight">
-          Manage Shop
-        </h1>
-        <p className="mt-1 text-sm text-foreground/70">
-          Brand your store, share contact info, and pick a storefront look.
+    <main className="mx-auto w-full max-w-6xl p-4 md:p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Manage Shop</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Set up and customize your shop to ensure a smooth and efficient experience.
         </p>
-      </section>
-
-      <div className="mt-4 grid gap-4 px-5 lg:grid-cols-[1fr_400px]">
-        {/* LEFT: editor */}
-        <div className="space-y-4">
-          {/* URL */}
-          <div className="rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
-            <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-              <Globe className="h-4 w-4 shrink-0 text-primary" />
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
-                {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
-                {!isPublished && (
-                  <span className="ml-2 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
-                    Not published
-                  </span>
-                )}
-                {slugSavedAt && (
-                  <span className="ml-2 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-                    URL updated
-                  </span>
-                )}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setSlugError(null);
-                  setSlugInput(myStore.data?.slug || slugify(name));
-                  setEditingSlug((v) => !v);
-                }}
-                className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
-                aria-label="Edit URL"
-                title="Edit URL"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-              <button onClick={copyUrl} className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10" aria-label="Copy URL">
-                <Copy className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={onVisit}
-                className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-bold text-primary hover:bg-primary/20"
-                aria-label="Visit storefront"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> Visit
-              </button>
-            </div>
-
-            {editingSlug && (
-              <div className="mt-3 border-t border-foreground/10 pt-3">
-                <label htmlFor="slug-input" className="block text-xs font-bold text-foreground/80">
-                  Customize your store URL
-                </label>
-                <p className="mt-0.5 text-[11px] text-foreground/60">
-                  Only lowercase letters and numbers. 3–32 characters.
-                </p>
-                <div className="mt-2 flex flex-wrap items-stretch gap-2">
-                  <div className="flex min-w-0 flex-1 items-center rounded-xl border border-input bg-background px-3 py-2 text-sm">
-                    <Link2 className="mr-2 h-4 w-4 shrink-0 text-foreground/40" />
-                    <input
-                      id="slug-input"
-                      value={slugInput}
-                      onChange={(e) => { setSlugInput(e.target.value); setSlugError(null); }}
-                      placeholder="mystore"
-                      maxLength={32}
-                      className="min-w-0 flex-1 bg-transparent outline-none"
-                      autoFocus
-                    />
-                    <span className="ml-2 shrink-0 text-xs text-foreground/50">/s/{slugifyStoreName(slugInput) || "…"}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setSlugError(null);
-                      if (!myStore.data) return;
-                      try {
-                        await changeSlug.mutateAsync({ id: myStore.data.id, slug: slugInput });
-                        setSlugSavedAt(Date.now());
-                        setEditingSlug(false);
-                        setTimeout(() => setSlugSavedAt(null), 2500);
-                      } catch (e: any) {
-                        setSlugError(e?.message ?? "Could not update URL.");
-                      }
-                    }}
-                    disabled={changeSlug.isPending}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                  >
-                    {changeSlug.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                    Save URL
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setEditingSlug(false); setSlugError(null); }}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold text-foreground/70 hover:bg-foreground/5"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                {slugError && (
-                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-red-600">
-                    <AlertCircle className="h-3.5 w-3.5" /> {slugError}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Logo */}
-          <section className="rounded-2xl bg-white p-4 shadow-sm">
-            <h2 className="font-display text-sm font-black">Store logo</h2>
-            <p className="text-[11px] text-foreground/60">PNG, JPG, or SVG. Max 2MB. Square works best.</p>
-            <div className="mt-3 flex items-center gap-4">
-              <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-dashed border-foreground/20 bg-foreground/5">
-                {logoDisplay ? (
-                  <img src={logoDisplay} alt="Store logo" className="h-full w-full object-cover" />
-                ) : (
-                  <StoreIcon className="h-7 w-7 text-foreground/40" />
-                )}
-              </div>
-              <div className="flex flex-1 flex-wrap gap-2">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickLogo(f); e.target.value = ""; }}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploadingLogo}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50"
-                >
-                  {uploadingLogo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  {logoPath ? "Replace" : "Upload"}
-                </button>
-                {logoPath && (
-                  <button
-                    type="button"
-                    onClick={onRemoveLogo}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-100"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Remove
-                  </button>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Store name + tagline */}
-          <section className="rounded-2xl bg-white p-4 shadow-sm">
-            <label htmlFor="store-name" className="block font-display text-sm font-black">Store name</label>
-            <input
-              id="store-name" type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={60}
-              className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm font-medium outline-none ring-primary/30 focus:ring-2"
-              placeholder="My awesome shop"
-            />
-            <label htmlFor="store-tagline" className="mt-4 block font-display text-sm font-black">Tagline</label>
-            <input
-              id="store-tagline" type="text" value={tagline} onChange={(e) => setTagline(e.target.value)} maxLength={120}
-              className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm font-medium outline-none ring-primary/30 focus:ring-2"
-              placeholder="Quality clothes at honest prices"
-            />
-          </section>
-
-          {/* Category */}
-          <section className="rounded-2xl bg-white p-4 shadow-sm">
-            <h2 className="font-display text-sm font-black">Category</h2>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {CATEGORIES.map((c) => {
-                const active = category === c.id;
-                return (
-                  <button
-                    key={c.id} type="button" onClick={() => setCategory(c.id)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center transition-all ${
-                      active ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-background hover:border-primary/40"
-                    }`}
-                  >
-                    <c.icon className={`h-5 w-5 ${active ? "text-primary" : "text-foreground/60"}`} />
-                    <span className="font-display text-xs font-black">{c.id}</span>
-                    <span className="text-[10px] text-foreground/60">{c.sub}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Contact */}
-          <section className="rounded-2xl bg-white p-4 shadow-sm">
-            <h2 className="font-display text-sm font-black">Contact details</h2>
-            <p className="text-[11px] text-foreground/60">Shown publicly on your storefront.</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <Field icon={MapPin} label="Address" className="sm:col-span-2">
-                <input value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200}
-                  className="w-full bg-transparent text-sm outline-none" placeholder="Shop 12, Zindabazar, Sylhet" />
-              </Field>
-              <Field icon={Phone} label="Phone">
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel"
-                  className="w-full bg-transparent text-sm outline-none" placeholder="+8801XXXXXXXXX" />
-              </Field>
-              <Field icon={Mail} label="Email">
-                <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} type="email"
-                  className="w-full bg-transparent text-sm outline-none" placeholder="hello@yourstore.com" />
-              </Field>
-            </div>
-          </section>
-
-          {/* Socials */}
-          <section className="rounded-2xl bg-white p-4 shadow-sm">
-            <h2 className="font-display text-sm font-black">Social & links</h2>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <Field icon={Facebook} label="Facebook URL">
-                <input value={facebook} onChange={(e) => setFacebook(e.target.value)}
-                  className="w-full bg-transparent text-sm outline-none" placeholder="https://facebook.com/yourpage" />
-              </Field>
-              <Field icon={Instagram} label="Instagram URL">
-                <input value={instagram} onChange={(e) => setInstagram(e.target.value)}
-                  className="w-full bg-transparent text-sm outline-none" placeholder="https://instagram.com/yourhandle" />
-              </Field>
-              <Field icon={MessageCircle} label="WhatsApp number">
-                <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)}
-                  className="w-full bg-transparent text-sm outline-none" placeholder="+8801XXXXXXXXX" />
-              </Field>
-              <Field icon={Globe} label="Website URL">
-                <input value={website} onChange={(e) => setWebsite(e.target.value)}
-                  className="w-full bg-transparent text-sm outline-none" placeholder="https://example.com" />
-              </Field>
-            </div>
-          </section>
-
-          {/* Template */}
-          <section className="rounded-2xl bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2">
-              <Palette className="h-4 w-4 text-primary" />
-              <h2 className="font-display text-sm font-black">Storefront template</h2>
-            </div>
-            <p className="text-[11px] text-foreground/60">Pick a look — preview updates live on the right.</p>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {TEMPLATES.map((t) => {
-                const active = template === t.id;
-                return (
-                  <button
-                    key={t.id} type="button" onClick={() => setTemplate(t.id)}
-                    className={`overflow-hidden rounded-xl border text-left transition-all ${
-                      active ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/40"
-                    }`}
-                  >
-                    <div className={`relative h-16 w-full bg-gradient-to-br ${t.gradient}`}>
-                      {active && (
-                        <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-white text-primary shadow">
-                          <Check className="h-3 w-3" />
-                        </span>
-                      )}
-                    </div>
-                    <div className="p-2">
-                      <div className="font-display text-xs font-black leading-tight">{t.name}</div>
-                      <div className="truncate text-[10px] text-foreground/60">{t.tagline}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT: live storefront preview */}
-        <aside className="lg:sticky lg:top-4 lg:self-start">
-          <div className="rounded-2xl bg-white p-3 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-foreground/70">
-                <Eye className="h-3.5 w-3.5" /> Live preview
-              </div>
-              <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
-                <button
-                  onClick={() => setPreviewMode("mobile")}
-                  className={`grid h-7 w-7 place-items-center rounded-md ${previewMode === "mobile" ? "bg-primary text-primary-foreground" : "text-foreground/60"}`}
-                  aria-label="Mobile preview"
-                >
-                  <Smartphone className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => setPreviewMode("desktop")}
-                  className={`grid h-7 w-7 place-items-center rounded-md ${previewMode === "desktop" ? "bg-primary text-primary-foreground" : "text-foreground/60"}`}
-                  aria-label="Desktop preview"
-                >
-                  <Monitor className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-            <StorefrontPreview
-              mode={previewMode}
-              template={template}
-              name={trimmed || "Your store"}
-              tagline={tagline}
-              category={category}
-              logo={logoDisplay}
-              phone={phone}
-              address={address}
-              facebook={facebook}
-              instagram={instagram}
-              whatsapp={whatsapp}
-              website={website}
-            />
-          </div>
-        </aside>
       </div>
 
-      {/* Save bar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-6xl px-3 pb-3">
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/95 px-4 py-3 shadow-[0_10px_30px_-10px_rgba(79,70,229,0.35)] backdrop-blur">
-          <div className="min-w-0 text-xs">
-            {savedAt ? (
-              <span className="inline-flex items-center gap-1.5 font-bold text-emerald-600">
-                <Check className="h-3.5 w-3.5" /> Saved
-              </span>
-            ) : dirty ? (
-              <span className="font-semibold text-foreground/70">Unsaved changes</span>
-            ) : (
-              <span className="text-foreground/50">All changes saved</span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onSave}
-              disabled={!canSave}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-white px-4 py-2.5 text-sm font-bold text-primary shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-sm"
-            >
-              {update.isPending ? (<><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>) : (<><Save className="h-4 w-4" /> Save</>)}
-            </button>
-            <button
-              onClick={onPublishAndView}
-              disabled={publishing || update.isPending || trimmed.length < 2}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl gradient-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {publishing ? (<><Loader2 className="h-4 w-4 animate-spin" /> Publishing…</>) : (<><Rocket className="h-4 w-4" /> Publish & View</>)}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Storefront modal */}
-      {showStorefront && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/70 backdrop-blur-sm"
-          onClick={() => setShowStorefront(false)}
-        >
-          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white">
-            <div className="flex min-w-0 items-center gap-2">
-              <Globe className="h-4 w-4 shrink-0 text-primary-foreground/90" />
-              <span className="truncate text-sm font-semibold">
-                {storeUrl ? storeUrl.replace(/^https?:\/\//, "") : "your-store.eazystore.app"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="inline-flex rounded-lg border border-white/20 bg-white/10 p-0.5">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setPreviewMode("mobile"); }}
-                  className={`grid h-7 w-7 place-items-center rounded-md ${previewMode === "mobile" ? "bg-white text-primary" : "text-white/70"}`}
-                  aria-label="Mobile"
-                >
-                  <Smartphone className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setPreviewMode("desktop"); }}
-                  className={`grid h-7 w-7 place-items-center rounded-md ${previewMode === "desktop" ? "bg-white text-primary" : "text-white/70"}`}
-                  aria-label="Desktop"
-                >
-                  <Monitor className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <button
-                onClick={() => setShowStorefront(false)}
-                className="grid h-8 w-8 place-items-center rounded-lg bg-white/10 text-white hover:bg-white/20"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-          <div
-            className="flex flex-1 items-start justify-center overflow-auto p-4 sm:p-8"
-            onClick={(e) => e.stopPropagation()}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {CARDS.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => setOpen(c.key)}
+            className="group relative text-left rounded-xl border bg-card p-5 hover:border-primary/40 hover:shadow-md transition-all"
           >
-            <div className={previewMode === "desktop" ? "w-full max-w-4xl" : ""}>
-              <StorefrontPreview
-                mode={previewMode}
-                template={template}
-                name={trimmed || "Your store"}
-                tagline={tagline}
-                category={category}
-                logo={logoDisplay}
-                phone={phone}
-                address={address}
-                facebook={facebook}
-                instagram={instagram}
-                whatsapp={whatsapp}
-                website={website}
-              />
+            {c.badge && (
+              <span className="absolute top-3 right-3 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                {c.badge}
+              </span>
+            )}
+            <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center mb-3 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <c.icon className="h-5 w-5" />
             </div>
-          </div>
-        </div>
-      )}
+            <div className="font-semibold">{c.title}</div>
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{c.desc}</p>
+          </button>
+        ))}
+      </div>
+
+      {open === "settings" && <ShopSettingsDialog store={store} onClose={() => setOpen(null)} />}
+      {open === "domain" && <ShopDomainDialog store={store} onClose={() => setOpen(null)} />}
+      {open === "policy" && <ShopPolicyDialog store={store} onClose={() => setOpen(null)} />}
+      {open === "delivery" && <DeliveryDialog store={store} onClose={() => setOpen(null)} />}
+      {open === "payment" && <PaymentDialog store={store} onClose={() => setOpen(null)} />}
+      {open === "seo" && <SeoDialog store={store} onClose={() => setOpen(null)} />}
+      {open === "sms" && <SmsDialog onClose={() => setOpen(null)} />}
+      {open === "chat" && <ChatDialog store={store} onClose={() => setOpen(null)} />}
+      {open === "social" && <SocialDialog store={store} onClose={() => setOpen(null)} />}
     </main>
   );
 }
 
-function Field({
-  icon: Icon, label, children, className = "",
-}: { icon: any; label: string; children: React.ReactNode; className?: string }) {
+// -------- Reusable dialog shell --------
+function SectionDialog({
+  title, description, onClose, children, footer,
+}: {
+  title: string; description?: string; onClose: () => void;
+  children: React.ReactNode; footer?: React.ReactNode;
+}) {
   return (
-    <label className={`block ${className}`}>
-      <span className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-foreground/60">
-        <Icon className="h-3 w-3" /> {label}
-      </span>
-      <div className="rounded-xl border border-input bg-background px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/30">
-        {children}
-      </div>
-    </label>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
+        </DialogHeader>
+        <div className="space-y-4 py-2">{children}</div>
+        {footer && <DialogFooter>{footer}</DialogFooter>}
+      </DialogContent>
+    </Dialog>
   );
 }
 
-function StorefrontPreview({
-  mode, template, name, tagline, category, logo,
-  phone, address, facebook, instagram, whatsapp, website,
-}: {
-  mode: "mobile" | "desktop";
-  template: TemplateId;
-  name: string;
-  tagline: string;
-  category: Category;
-  logo: string | null;
-  phone: string; address: string;
-  facebook: string; instagram: string; whatsapp: string; website: string;
-}) {
-  const t = TEMPLATES.find((x) => x.id === template)!;
-  const frame =
-    mode === "mobile"
-      ? "mx-auto w-[280px] rounded-[28px] border-[10px] border-neutral-900 shadow-xl"
-      : "w-full rounded-xl border border-neutral-200 shadow-sm";
+// -------- Shop Settings --------
+function ShopSettingsDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const update = useUpdateStore();
+  const [name, setName] = useState(store.name);
+  const [tagline, setTagline] = useState(store.tagline ?? "");
+  const [category, setCategory] = useState<Category>(store.category);
+  const [template, setTemplate] = useState<TemplateId>(store.template);
+  const [logoPath, setLogoPath] = useState<string | null>(store.logo_url);
+  const [localLogo, setLocalLogo] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const signed = useLogoSignedUrl(logoPath);
+  const logo = localLogo || signed.data || null;
 
-  const dark = template === "minimal" || template === "techgrid" || template === "luxe";
-  const txt = dark ? "text-white" : "text-neutral-900";
-  const sub = dark ? "text-white/70" : "text-neutral-600";
+  async function pickLogo(f: File) {
+    if (!f.type.startsWith("image/")) return toast.error("Please choose an image.");
+    if (f.size > 2 * 1024 * 1024) return toast.error("Logo must be ≤ 2MB.");
+    const url = URL.createObjectURL(f);
+    setLocalLogo(url);
+    setUploading(true);
+    try {
+      const old = logoPath;
+      const p = await uploadStoreLogo(f);
+      setLogoPath(p);
+      if (old && old !== p) await deleteStoreLogo(old);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed.");
+    } finally { setUploading(false); }
+  }
 
-  const products = [
-    { name: "Featured item", price: "৳ 1,200" },
-    { name: "New arrival", price: "৳ 850" },
-    { name: "Bestseller", price: "৳ 2,400" },
-    { name: "Special", price: "৳ 599" },
-  ];
+  async function save() {
+    try {
+      await update.mutateAsync({
+        id: store.id, name: name.trim(), tagline: tagline.trim() || null,
+        category, template, logo_url: logoPath,
+      });
+      toast.success("Shop settings saved.");
+      onClose();
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
 
   return (
-    <div className={frame}>
-      <div className="overflow-hidden rounded-[18px] bg-white">
-        {/* Header */}
-        <div className={`bg-gradient-to-br ${t.gradient} p-3 ${txt}`}>
-          <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-white/20 ring-1 ring-white/30">
-              {logo ? (
-                <img src={logo} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <StoreIcon className="h-4 w-4 text-white" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[13px] font-black leading-tight">{name}</div>
-              <div className={`truncate text-[10px] ${sub}`}>{tagline || category}</div>
-            </div>
-          </div>
+    <SectionDialog
+      title="Shop Settings" description="General configuration for your store."
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={save} disabled={update.isPending || name.trim().length < 2}>
+            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            Save
+          </Button>
+        </>
+      }
+    >
+      <div className="flex items-center gap-4">
+        <div className="h-20 w-20 rounded-xl border bg-muted grid place-items-center overflow-hidden">
+          {logo ? <img src={logo} alt="logo" className="h-full w-full object-cover" /> : <StoreIcon className="h-8 w-8 text-muted-foreground" />}
         </div>
-
-        {/* Products grid */}
-        <div className="grid grid-cols-2 gap-1.5 p-2">
-          {products.map((p, i) => (
-            <div key={i} className="overflow-hidden rounded-md border border-neutral-200">
-              <div className={`h-14 bg-gradient-to-br ${t.gradient} opacity-80`} />
-              <div className="p-1.5">
-                <div className="truncate text-[10px] font-bold text-neutral-900">{p.name}</div>
-                <div className="text-[9px] font-semibold text-neutral-600">{p.price}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Contact / socials footer */}
-        <div className="space-y-1 border-t border-neutral-100 bg-neutral-50 p-2 text-[9px] text-neutral-700">
-          {address && <div className="flex items-start gap-1"><MapPin className="mt-0.5 h-2.5 w-2.5 shrink-0" /><span className="truncate">{address}</span></div>}
-          {phone && <div className="flex items-center gap-1"><Phone className="h-2.5 w-2.5" /><span>{phone}</span></div>}
-          {(facebook || instagram || whatsapp || website) && (
-            <div className="flex items-center gap-2 pt-1">
-              {facebook && <Facebook className="h-3 w-3 text-blue-600" />}
-              {instagram && <Instagram className="h-3 w-3 text-pink-600" />}
-              {whatsapp && <MessageCircle className="h-3 w-3 text-emerald-600" />}
-              {website && <Globe className="h-3 w-3 text-neutral-700" />}
-            </div>
+        <div className="flex flex-col gap-2">
+          <input ref={fileRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => e.target.files?.[0] && pickLogo(e.target.files[0])} />
+          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+            <Upload className="h-4 w-4 mr-1" /> {uploading ? "Uploading..." : "Upload logo"}
+          </Button>
+          {logoPath && (
+            <Button variant="ghost" size="sm" onClick={() => { setLogoPath(null); setLocalLogo(null); }}>
+              <Trash2 className="h-4 w-4 mr-1" /> Remove
+            </Button>
           )}
         </div>
       </div>
-    </div>
+      <div>
+        <Label>Shop name</Label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div>
+        <Label>Tagline</Label>
+        <Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Short tagline" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Category</Label>
+          <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Clothes">Clothes</SelectItem>
+              <SelectItem value="Electronics">Electronics</SelectItem>
+              <SelectItem value="Sports">Sports</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Template</Label>
+          <Select value={template} onValueChange={(v) => setTemplate(v as TemplateId)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {TEMPLATES.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </SectionDialog>
+  );
+}
+
+// -------- Shop Domain --------
+function ShopDomainDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const publish = usePublishStore();
+  const changeSlug = useChangeSlug();
+  const [slug, setSlug] = useState(store.slug ?? slugifyStoreName(store.name));
+  const url = slug ? buildStorefrontUrl(slug) : "";
+
+  async function saveSlug() {
+    try {
+      await changeSlug.mutateAsync({ id: store.id, slug });
+      toast.success("Slug updated.");
+    } catch (e: any) { toast.error(e?.message ?? "Slug change failed."); }
+  }
+  async function publishNow() {
+    try {
+      await publish.mutateAsync({ id: store.id, name: store.name, desiredSlug: slug });
+      toast.success("Shop published.");
+    } catch (e: any) { toast.error(e?.message ?? "Publish failed."); }
+  }
+
+  return (
+    <SectionDialog title="Shop Domain" description="Your storefront URL and publish state." onClose={onClose}>
+      <div>
+        <Label>Shop slug</Label>
+        <div className="flex gap-2">
+          <Input value={slug} onChange={(e) => setSlug(slugifyStoreName(e.target.value))} />
+          <Button variant="outline" onClick={saveSlug} disabled={changeSlug.isPending}>Update</Button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          Only lowercase letters, numbers and hyphens.
+        </p>
+      </div>
+      <div className="rounded-lg border p-3 bg-muted/40">
+        <div className="text-xs text-muted-foreground mb-1">Storefront URL</div>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 truncate text-sm">{url || "—"}</code>
+          <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(url); toast.success("Copied"); }}>
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => window.open(url, "_blank")}>
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between rounded-lg border p-3">
+        <div>
+          <div className="font-medium text-sm">Publish status</div>
+          <div className="text-xs text-muted-foreground">
+            {store.published ? "Your storefront is live." : "Not published yet."}
+          </div>
+        </div>
+        <Button onClick={publishNow} disabled={publish.isPending}>
+          {publish.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Rocket className="h-4 w-4 mr-2" />}
+          {store.published ? "Republish" : "Publish"}
+        </Button>
+      </div>
+    </SectionDialog>
+  );
+}
+
+// -------- Generic settings-section save helper --------
+function useSaveSection(store: any) {
+  const update = useUpdateStore();
+  const save = async (patch: Partial<ShopSettings>) => {
+    const merged: ShopSettings = { ...(store.shop_settings ?? {}), ...patch };
+    await update.mutateAsync({ id: store.id, shop_settings: merged });
+  };
+  return { save, isPending: update.isPending };
+}
+
+// -------- Policy --------
+function ShopPolicyDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const p = store.shop_settings?.policy ?? {};
+  const [ret, setRet] = useState(p.return ?? "");
+  const [refund, setRefund] = useState(p.refund ?? "");
+  const [ship, setShip] = useState(p.shipping ?? "");
+  const [terms, setTerms] = useState(p.terms ?? "");
+  const [privacy, setPrivacy] = useState(p.privacy ?? "");
+  const { save, isPending } = useSaveSection(store);
+
+  async function onSave() {
+    try {
+      await save({ policy: { return: ret, refund, shipping: ship, terms, privacy } });
+      toast.success("Policies saved."); onClose();
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
+
+  return (
+    <SectionDialog
+      title="Shop Policy" description="Define store policies shown to customers."
+      onClose={onClose}
+      footer={<>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={onSave} disabled={isPending}><Save className="h-4 w-4 mr-2" />Save</Button>
+      </>}
+    >
+      <div><Label>Return policy</Label><Textarea rows={3} value={ret} onChange={(e) => setRet(e.target.value)} /></div>
+      <div><Label>Refund policy</Label><Textarea rows={3} value={refund} onChange={(e) => setRefund(e.target.value)} /></div>
+      <div><Label>Shipping policy</Label><Textarea rows={3} value={ship} onChange={(e) => setShip(e.target.value)} /></div>
+      <div><Label>Terms & conditions</Label><Textarea rows={3} value={terms} onChange={(e) => setTerms(e.target.value)} /></div>
+      <div><Label>Privacy policy</Label><Textarea rows={3} value={privacy} onChange={(e) => setPrivacy(e.target.value)} /></div>
+    </SectionDialog>
+  );
+}
+
+// -------- Delivery --------
+function DeliveryDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const d = store.shop_settings?.delivery ?? {};
+  const [inside, setInside] = useState<string>(d.inside_dhaka?.toString() ?? "");
+  const [sub, setSub] = useState<string>(d.sub_dhaka?.toString() ?? "");
+  const [outside, setOutside] = useState<string>(d.outside_dhaka?.toString() ?? "");
+  const [free, setFree] = useState<string>(d.free_above?.toString() ?? "");
+  const [note, setNote] = useState(d.note ?? "");
+  const { save, isPending } = useSaveSection(store);
+
+  const n = (v: string) => (v.trim() === "" ? null : Number(v));
+
+  async function onSave() {
+    try {
+      await save({ delivery: { inside_dhaka: n(inside), sub_dhaka: n(sub), outside_dhaka: n(outside), free_above: n(free), note } });
+      toast.success("Delivery settings saved."); onClose();
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
+
+  return (
+    <SectionDialog
+      title="Delivery Support" description="Shipping charges applied at checkout."
+      onClose={onClose}
+      footer={<>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={onSave} disabled={isPending}><Save className="h-4 w-4 mr-2" />Save</Button>
+      </>}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <div><Label>Inside Dhaka (৳)</Label><Input type="number" value={inside} onChange={(e) => setInside(e.target.value)} /></div>
+        <div><Label>Sub Dhaka (৳)</Label><Input type="number" value={sub} onChange={(e) => setSub(e.target.value)} /></div>
+        <div><Label>Outside Dhaka (৳)</Label><Input type="number" value={outside} onChange={(e) => setOutside(e.target.value)} /></div>
+        <div><Label>Free shipping above (৳)</Label><Input type="number" value={free} onChange={(e) => setFree(e.target.value)} /></div>
+      </div>
+      <div><Label>Delivery note</Label><Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Delivery within 2–3 days" /></div>
+    </SectionDialog>
+  );
+}
+
+// -------- Payment --------
+function PaymentDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const p = store.shop_settings?.payment ?? {};
+  const [cod, setCod] = useState<boolean>(p.cod ?? true);
+  const [bkash, setBkash] = useState(p.bkash ?? "");
+  const [nagad, setNagad] = useState(p.nagad ?? "");
+  const [rocket, setRocket] = useState(p.rocket ?? "");
+  const [bankName, setBankName] = useState(p.bank_name ?? "");
+  const [bankAcc, setBankAcc] = useState(p.bank_account ?? "");
+  const [bankBranch, setBankBranch] = useState(p.bank_branch ?? "");
+  const [ins, setIns] = useState(p.instructions ?? "");
+  const { save, isPending } = useSaveSection(store);
+
+  async function onSave() {
+    try {
+      await save({ payment: { cod, bkash, nagad, rocket, bank_name: bankName, bank_account: bankAcc, bank_branch: bankBranch, instructions: ins } });
+      toast.success("Payment settings saved."); onClose();
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
+
+  return (
+    <SectionDialog
+      title="Payment Gateway" description="Payment methods offered at checkout."
+      onClose={onClose}
+      footer={<>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={onSave} disabled={isPending}><Save className="h-4 w-4 mr-2" />Save</Button>
+      </>}
+    >
+      <div className="flex items-center justify-between rounded-lg border p-3">
+        <div>
+          <div className="font-medium text-sm">Cash on Delivery</div>
+          <div className="text-xs text-muted-foreground">Accept payment on delivery.</div>
+        </div>
+        <Switch checked={cod} onCheckedChange={setCod} />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div><Label>bKash</Label><Input value={bkash} onChange={(e) => setBkash(e.target.value)} placeholder="01XXXXXXXXX" /></div>
+        <div><Label>Nagad</Label><Input value={nagad} onChange={(e) => setNagad(e.target.value)} placeholder="01XXXXXXXXX" /></div>
+        <div><Label>Rocket</Label><Input value={rocket} onChange={(e) => setRocket(e.target.value)} placeholder="01XXXXXXXXX" /></div>
+      </div>
+      <div className="rounded-lg border p-3 space-y-2">
+        <div className="text-sm font-medium">Bank transfer</div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label>Bank name</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
+          <div><Label>Account no.</Label><Input value={bankAcc} onChange={(e) => setBankAcc(e.target.value)} /></div>
+        </div>
+        <div><Label>Branch</Label><Input value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} /></div>
+      </div>
+      <div><Label>Payment instructions</Label><Textarea rows={2} value={ins} onChange={(e) => setIns(e.target.value)} /></div>
+    </SectionDialog>
+  );
+}
+
+// -------- SEO --------
+function SeoDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const s = store.shop_settings?.seo ?? {};
+  const [mt, setMt] = useState(s.meta_title ?? "");
+  const [md, setMd] = useState(s.meta_description ?? "");
+  const [gtm, setGtm] = useState(s.google_tag_manager ?? "");
+  const [ga, setGa] = useState(s.google_analytics ?? "");
+  const [fbp, setFbp] = useState(s.facebook_pixel ?? "");
+  const [tt, setTt] = useState(s.tiktok_pixel ?? "");
+  const { save, isPending } = useSaveSection(store);
+
+  async function onSave() {
+    try {
+      await save({ seo: { meta_title: mt, meta_description: md, google_tag_manager: gtm, google_analytics: ga, facebook_pixel: fbp, tiktok_pixel: tt } });
+      toast.success("SEO & marketing saved."); onClose();
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
+
+  return (
+    <SectionDialog
+      title="SEO & Marketing Integrations" description="Tracking pixels and search metadata."
+      onClose={onClose}
+      footer={<>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={onSave} disabled={isPending}><Save className="h-4 w-4 mr-2" />Save</Button>
+      </>}
+    >
+      <div><Label>Meta title</Label><Input value={mt} onChange={(e) => setMt(e.target.value)} /></div>
+      <div><Label>Meta description</Label><Textarea rows={2} value={md} onChange={(e) => setMd(e.target.value)} /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><Label>Google Tag Manager ID</Label><Input value={gtm} onChange={(e) => setGtm(e.target.value)} placeholder="GTM-XXXXXX" /></div>
+        <div><Label>Google Analytics ID</Label><Input value={ga} onChange={(e) => setGa(e.target.value)} placeholder="G-XXXXXXX" /></div>
+        <div><Label>Facebook Pixel ID</Label><Input value={fbp} onChange={(e) => setFbp(e.target.value)} /></div>
+        <div><Label>TikTok Pixel ID</Label><Input value={tt} onChange={(e) => setTt(e.target.value)} /></div>
+      </div>
+    </SectionDialog>
+  );
+}
+
+// -------- SMS (info + link) --------
+function SmsDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <SectionDialog
+      title="SMS Support" description="SMS notifications for OTP and order updates."
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Link to="/sms-settings" onClick={onClose}>
+            <Button><ExternalLink className="h-4 w-4 mr-2" />Open SMS settings</Button>
+          </Link>
+        </>
+      }
+    >
+      <p className="text-sm text-muted-foreground">
+        SMS templates and provider settings are managed centrally. Open the SMS Settings page to configure OTP template, sender signature and app name.
+      </p>
+    </SectionDialog>
+  );
+}
+
+// -------- Chat --------
+function ChatDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const c = store.shop_settings?.chat ?? {};
+  const [enabled, setEnabled] = useState<boolean>(c.enabled ?? false);
+  const [msg, setMsg] = useState(c.messenger_url ?? "");
+  const [wa, setWa] = useState(c.whatsapp_number ?? store.whatsapp_number ?? "");
+  const [tawk, setTawk] = useState(c.tawk_to_id ?? "");
+  const { save, isPending } = useSaveSection(store);
+
+  async function onSave() {
+    try {
+      await save({ chat: { enabled, messenger_url: msg, whatsapp_number: wa, tawk_to_id: tawk } });
+      toast.success("Chat support saved."); onClose();
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
+
+  return (
+    <SectionDialog
+      title="Chat Support" description="Enable live chat on your storefront."
+      onClose={onClose}
+      footer={<>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={onSave} disabled={isPending}><Save className="h-4 w-4 mr-2" />Save</Button>
+      </>}
+    >
+      <div className="flex items-center justify-between rounded-lg border p-3">
+        <div>
+          <div className="font-medium text-sm">Enable chat widget</div>
+          <div className="text-xs text-muted-foreground">Show a floating chat button on your store.</div>
+        </div>
+        <Switch checked={enabled} onCheckedChange={setEnabled} />
+      </div>
+      <div><Label>Messenger page URL</Label><Input value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="https://m.me/yourpage" /></div>
+      <div><Label>WhatsApp number</Label><Input value={wa} onChange={(e) => setWa(e.target.value)} placeholder="8801XXXXXXXXX" /></div>
+      <div><Label>Tawk.to widget ID</Label><Input value={tawk} onChange={(e) => setTawk(e.target.value)} /></div>
+    </SectionDialog>
+  );
+}
+
+// -------- Social --------
+function SocialDialog({ store, onClose }: { store: any; onClose: () => void }) {
+  const update = useUpdateStore();
+  const [fb, setFb] = useState(store.facebook_url ?? "");
+  const [ig, setIg] = useState(store.instagram_url ?? "");
+  const [wa, setWa] = useState(store.whatsapp_number ?? "");
+  const [web, setWeb] = useState(store.website_url ?? "");
+  const [phone, setPhone] = useState(store.phone ?? "");
+  const [email, setEmail] = useState(store.contact_email ?? "");
+  const [addr, setAddr] = useState(store.address ?? "");
+
+  async function onSave() {
+    try {
+      await update.mutateAsync({
+        id: store.id,
+        facebook_url: fb.trim() || null,
+        instagram_url: ig.trim() || null,
+        whatsapp_number: wa.trim() || null,
+        website_url: web.trim() || null,
+        phone: phone.trim() || null,
+        contact_email: email.trim() || null,
+        address: addr.trim() || null,
+      });
+      toast.success("Contact & socials saved."); onClose();
+    } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
+  }
+
+  return (
+    <SectionDialog
+      title="Social Links & Contact" description="How customers can reach you."
+      onClose={onClose}
+      footer={<>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={onSave} disabled={update.isPending}><Save className="h-4 w-4 mr-2" />Save</Button>
+      </>}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <div><Label>Facebook URL</Label><Input value={fb} onChange={(e) => setFb(e.target.value)} /></div>
+        <div><Label>Instagram URL</Label><Input value={ig} onChange={(e) => setIg(e.target.value)} /></div>
+        <div><Label>WhatsApp number</Label><Input value={wa} onChange={(e) => setWa(e.target.value)} /></div>
+        <div><Label>Website</Label><Input value={web} onChange={(e) => setWeb(e.target.value)} /></div>
+        <div><Label>Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+        <div><Label>Contact email</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+      </div>
+      <div><Label>Address</Label><Textarea rows={2} value={addr} onChange={(e) => setAddr(e.target.value)} /></div>
+    </SectionDialog>
   );
 }

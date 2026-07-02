@@ -1,0 +1,1 @@
+ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS shop_settings jsonb NOT NULL DEFAULT '{}'::jsonb;
