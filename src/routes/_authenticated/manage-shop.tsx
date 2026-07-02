@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Store as StoreIcon, Loader2, Globe, FileText, Truck, Landmark, BarChart3,
   MessageSquare, MessageCircle, Share2, Save, Check, Copy, ExternalLink,
-  Upload, Trash2, Rocket, X,
+  Upload, Trash2, Rocket, X, ArrowLeft, Lock, Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -95,6 +95,9 @@ function ManageShopPage() {
   if (open === "settings") {
     return <ShopSettingsView store={store} onBack={() => setOpen(null)} />;
   }
+  if (open === "domain") {
+    return <ShopDomainView store={store} onBack={() => setOpen(null)} />;
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl p-4 md:p-6">
@@ -126,7 +129,6 @@ function ManageShopPage() {
         ))}
       </div>
 
-      {open === "domain" && <ShopDomainDialog store={store} onClose={() => setOpen(null)} />}
       {open === "policy" && <ShopPolicyDialog store={store} onClose={() => setOpen(null)} />}
       {open === "delivery" && <DeliveryDialog store={store} onClose={() => setOpen(null)} />}
       {open === "payment" && <PaymentDialog store={store} onClose={() => setOpen(null)} />}
@@ -635,18 +637,22 @@ function ToggleRow({
 }
 
 
-// -------- Shop Domain --------
-function ShopDomainDialog({ store, onClose }: { store: any; onClose: () => void }) {
+// -------- Shop Domain (full-page view like reference) --------
+function ShopDomainView({ store, onBack }: { store: any; onBack: () => void }) {
   const publish = usePublishStore();
   const changeSlug = useChangeSlug();
-  const [slug, setSlug] = useState(store.slug ?? slugifyStoreName(store.name));
+  const currentSlug = store.slug || slugifyStoreName(store.name);
+  const [slug, setSlug] = useState<string>(currentSlug);
+  const [editing, setEditing] = useState(false);
   const url = slug ? buildStorefrontUrl(slug) : "";
+  const host = url ? url.replace(/^https?:\/\//, "").replace(/\/$/, "") : "";
 
   async function saveSlug() {
     try {
       await changeSlug.mutateAsync({ id: store.id, slug });
-      toast.success("Slug updated.");
-    } catch (e: any) { toast.error(e?.message ?? "Slug change failed."); }
+      toast.success("Domain updated.");
+      setEditing(false);
+    } catch (e: any) { toast.error(e?.message ?? "Domain change failed."); }
   }
   async function publishNow() {
     try {
@@ -654,44 +660,178 @@ function ShopDomainDialog({ store, onClose }: { store: any; onClose: () => void 
       toast.success("Shop published.");
     } catch (e: any) { toast.error(e?.message ?? "Publish failed."); }
   }
+  function copy(v: string) {
+    navigator.clipboard.writeText(v);
+    toast.success("Copied");
+  }
+  async function removeDomain() {
+    if (!confirm("Reset your shop domain to a default slug?")) return;
+    const next = slugifyStoreName(store.name);
+    try {
+      await changeSlug.mutateAsync({ id: store.id, slug: next });
+      setSlug(next);
+      toast.success("Domain reset.");
+    } catch (e: any) { toast.error(e?.message ?? "Reset failed."); }
+  }
+
+  const RESOLVED_IPS = ["185.158.133.1", "185.158.133.2"];
 
   return (
-    <SectionDialog title="Shop Domain" description="Your storefront URL and publish state." onClose={onClose}>
-      <div>
-        <Label>Shop slug</Label>
-        <div className="flex gap-2">
-          <Input value={slug} onChange={(e) => setSlug(slugifyStoreName(e.target.value))} />
-          <Button variant="outline" onClick={saveSlug} disabled={changeSlug.isPending}>Update</Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          Only lowercase letters, numbers and hyphens.
-        </p>
+    <main className="mx-auto w-full max-w-5xl p-4 md:p-6">
+      <div className="mb-5 flex items-center gap-3">
+        <button
+          onClick={onBack}
+          className="grid h-9 w-9 place-items-center rounded-full border bg-card hover:bg-accent"
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <h1 className="text-2xl font-bold tracking-tight">Shop Domain</h1>
       </div>
-      <div className="rounded-lg border p-3 bg-muted/40">
-        <div className="text-xs text-muted-foreground mb-1">Storefront URL</div>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 truncate text-sm">{url || "—"}</code>
-          <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(url); toast.success("Copied"); }}>
-            <Copy className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => window.open(url, "_blank")}>
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="flex items-center justify-between rounded-lg border p-3">
-        <div>
-          <div className="font-medium text-sm">Publish status</div>
-          <div className="text-xs text-muted-foreground">
-            {store.published ? "Your storefront is live." : "Not published yet."}
+
+      <section className="mb-4">
+        <h2 className="text-sm font-semibold mb-3">Shop Domains</h2>
+
+        <div className="rounded-xl border bg-card p-4 md:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center">
+                <Globe className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="font-semibold">Free Domain</div>
+                <p className="text-xs text-muted-foreground">Get your shop online instantly</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-full border border-primary/30 text-primary bg-primary/10">
+              Free
+            </span>
+          </div>
+
+          <div className="mt-4 rounded-lg border p-3 md:p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0 flex-1">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+                  <Globe className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  {editing ? (
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input
+                        value={slug}
+                        onChange={(e) => setSlug(slugifyStoreName(e.target.value))}
+                        className="h-9"
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={saveSlug} disabled={changeSlug.isPending}>
+                          {changeSlug.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => { setSlug(currentSlug); setEditing(false); }}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="font-semibold truncate">{host || "—"}</div>
+                      <p className="text-xs text-muted-foreground">Free domain</p>
+                    </>
+                  )}
+                </div>
+              </div>
+              {!editing && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => url && window.open(url, "_blank")}
+                    className="grid h-8 w-8 place-items-center rounded-md hover:bg-accent text-muted-foreground"
+                    aria-label="Open"
+                  ><ExternalLink className="h-4 w-4" /></button>
+                  <button
+                    onClick={() => copy(url)}
+                    className="grid h-8 w-8 place-items-center rounded-md hover:bg-accent text-muted-foreground"
+                    aria-label="Copy"
+                  ><Copy className="h-4 w-4" /></button>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="grid h-8 w-8 place-items-center rounded-md hover:bg-accent text-muted-foreground"
+                    aria-label="Edit"
+                  ><Pencil className="h-4 w-4" /></button>
+                  <button
+                    onClick={removeDomain}
+                    className="grid h-8 w-8 place-items-center rounded-md hover:bg-destructive/10 text-destructive"
+                    aria-label="Reset"
+                  ><Trash2 className="h-4 w-4" /></button>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 border-t pt-3">
+              <div className="text-xs text-muted-foreground mb-2">Resolved IPs</div>
+              <div className="flex flex-wrap gap-2">
+                {RESOLVED_IPS.map((ip) => (
+                  <button
+                    key={ip}
+                    onClick={() => copy(ip)}
+                    className="inline-flex items-center gap-2 rounded-md border bg-muted/40 px-2.5 py-1 text-xs font-mono hover:bg-accent"
+                  >
+                    {ip}
+                    <Copy className="h-3 w-3 opacity-60" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+            <div className="text-xs">
+              <div className="font-medium">
+                {store.published ? "Your storefront is live." : "Storefront is not published yet."}
+              </div>
+              <div className="text-muted-foreground">Publishing makes your free domain publicly accessible.</div>
+            </div>
+            <Button size="sm" onClick={publishNow} disabled={publish.isPending}>
+              {publish.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Rocket className="h-4 w-4 mr-2" />}
+              {store.published ? "Republish" : "Publish"}
+            </Button>
           </div>
         </div>
-        <Button onClick={publishNow} disabled={publish.isPending}>
-          {publish.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Rocket className="h-4 w-4 mr-2" />}
-          {store.published ? "Republish" : "Publish"}
-        </Button>
-      </div>
-    </SectionDialog>
+      </section>
+
+      <section>
+        <div className="relative rounded-xl border bg-card p-6 overflow-hidden">
+          <div className="pointer-events-none select-none opacity-40 blur-[3px]">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="h-10 w-10 rounded-lg bg-primary/10" />
+              <div className="space-y-1">
+                <div className="h-3 w-40 bg-muted rounded" />
+                <div className="h-2 w-56 bg-muted rounded" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 w-full bg-muted rounded" />
+              <div className="h-3 w-4/5 bg-muted rounded" />
+              <div className="h-3 w-3/5 bg-muted rounded" />
+              <div className="h-3 w-2/3 bg-muted rounded" />
+            </div>
+          </div>
+
+          <div className="absolute inset-0 grid place-items-center">
+            <div className="text-center max-w-sm px-6">
+              <div className="mx-auto mb-3 h-12 w-12 rounded-xl bg-primary/10 text-primary grid place-items-center">
+                <Lock className="h-6 w-6" />
+              </div>
+              <div className="font-semibold">Upgrade to add a custom domain</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Connect your own domain and make your shop look professional with a custom URL.
+              </p>
+              <Button className="mt-4" onClick={() => toast.info("Upgrade plans coming soon.")}>
+                View Plans →
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
 
