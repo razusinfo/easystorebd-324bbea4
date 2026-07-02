@@ -764,6 +764,21 @@ export async function deleteProductImage(publicUrl: string): Promise<void> {
   await supabase.storage.from("product-images").remove([path]);
 }
 
+// Extracts the storage object path from either a public URL, signed URL, or bare path.
+export function extractProductImagePath(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const marker = "/product-images/";
+  const idx = url.indexOf(marker);
+  if (idx === -1) {
+    // Might already be a bare path (e.g. "user-id/file.jpg")
+    return url.includes("://") ? null : url;
+  }
+  let path = url.slice(idx + marker.length);
+  const q = path.indexOf("?");
+  if (q !== -1) path = path.slice(0, q);
+  return path || null;
+}
+
 
 // ---------- Public storefront ----------
 
