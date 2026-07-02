@@ -83,6 +83,41 @@ export type ProductRow = {
   status: ProductStatus;
   image_url: string | null;
   created_at: string;
+  // Extended fields
+  short_description?: string | null;
+  description?: string | null;
+  category_id?: string | null;
+  brand?: string | null;
+  condition?: "new" | "used" | "refurbished";
+  weight_kg?: number | null;
+  length_cm?: number | null;
+  width_cm?: number | null;
+  height_cm?: number | null;
+  regular_price?: number | null;
+  buying_price?: number | null;
+  sku?: string | null;
+  unit_name?: string | null;
+  product_serial?: string | null;
+  warranty?: string | null;
+  initial_sold_count?: number;
+  use_default_delivery?: boolean;
+  video_url?: string | null;
+};
+
+export type ProductVariantRow = {
+  id: string;
+  product_id: string;
+  name: string;
+  value: string;
+  position: number;
+};
+
+export type ProductDetailRow = {
+  id: string;
+  product_id: string;
+  key: string;
+  value: string;
+  position: number;
 };
 
 export type ProductAuditLog = {
@@ -132,11 +167,43 @@ export function useMyProducts(storeId: string | undefined) {
     queryFn: async (): Promise<ProductRow[]> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, store_id, name, price, stock, status, image_url, created_at")
+        .select("*")
         .eq("store_id", storeId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ProductRow[];
+    },
+  });
+}
+
+export function useProductVariants(productId: string | undefined) {
+  return useQuery({
+    queryKey: ["product-variants", productId],
+    enabled: !!productId,
+    queryFn: async (): Promise<ProductVariantRow[]> => {
+      const { data, error } = await supabase
+        .from("product_variants")
+        .select("*")
+        .eq("product_id", productId!)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ProductVariantRow[];
+    },
+  });
+}
+
+export function useProductDetails(productId: string | undefined) {
+  return useQuery({
+    queryKey: ["product-details", productId],
+    enabled: !!productId,
+    queryFn: async (): Promise<ProductDetailRow[]> => {
+      const { data, error } = await supabase
+        .from("product_details")
+        .select("*")
+        .eq("product_id", productId!)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ProductDetailRow[];
     },
   });
 }
@@ -380,32 +447,114 @@ export async function deleteStoreLogo(path: string): Promise<void> {
   await supabase.storage.from("store-logos").remove([path]);
 }
 
+export type UpsertProductInput = {
+  id?: string;
+  name: string;
+  price: number;
+  stock: number;
+  imageUrl?: string | null;
+  shortDescription?: string | null;
+  description?: string | null;
+  categoryId?: string | null;
+  brand?: string | null;
+  condition?: "new" | "used" | "refurbished";
+  weightKg?: number | null;
+  lengthCm?: number | null;
+  widthCm?: number | null;
+  heightCm?: number | null;
+  regularPrice?: number | null;
+  buyingPrice?: number | null;
+  sku?: string | null;
+  unitName?: string | null;
+  productSerial?: string | null;
+  warranty?: string | null;
+  initialSoldCount?: number;
+  useDefaultDelivery?: boolean;
+  videoUrl?: string | null;
+  status?: ProductStatus;
+  variants?: { name: string; value: string }[];
+  details?: { key: string; value: string }[];
+};
+
 export function useUpsertProduct(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: {
-      id?: string;
-      name: string;
-      price: number;
-      stock: number;
-      imageUrl?: string | null;
-    }) => {
+    mutationFn: async (input: UpsertProductInput) => {
       if (!storeId) throw new Error("No store");
-      const imagePatch = input.imageUrl !== undefined ? { image_url: input.imageUrl } : {};
+
+      const payload: Record<string, unknown> = {
+        name: input.name,
+        price: input.price,
+        stock: input.stock,
+      };
+      if (input.imageUrl !== undefined) payload.image_url = input.imageUrl;
+      if (input.shortDescription !== undefined) payload.short_description = input.shortDescription;
+      if (input.description !== undefined) payload.description = input.description;
+      if (input.categoryId !== undefined) payload.category_id = input.categoryId || null;
+      if (input.brand !== undefined) payload.brand = input.brand;
+      if (input.condition !== undefined) payload.condition = input.condition;
+      if (input.weightKg !== undefined) payload.weight_kg = input.weightKg;
+      if (input.lengthCm !== undefined) payload.length_cm = input.lengthCm;
+      if (input.widthCm !== undefined) payload.width_cm = input.widthCm;
+      if (input.heightCm !== undefined) payload.height_cm = input.heightCm;
+      if (input.regularPrice !== undefined) payload.regular_price = input.regularPrice;
+      if (input.buyingPrice !== undefined) payload.buying_price = input.buyingPrice;
+      if (input.sku !== undefined) payload.sku = input.sku;
+      if (input.unitName !== undefined) payload.unit_name = input.unitName;
+      if (input.productSerial !== undefined) payload.product_serial = input.productSerial;
+      if (input.warranty !== undefined) payload.warranty = input.warranty;
+      if (input.initialSoldCount !== undefined) payload.initial_sold_count = input.initialSoldCount;
+      if (input.useDefaultDelivery !== undefined) payload.use_default_delivery = input.useDefaultDelivery;
+      if (input.videoUrl !== undefined) payload.video_url = input.videoUrl;
+      if (input.status !== undefined) payload.status = input.status;
+
+      let productId: string;
       if (input.id) {
-        const { error } = await supabase
-          .from("products")
-          .update({ name: input.name, price: input.price, stock: input.stock, status: "pending", ...imagePatch })
-          .eq("id", input.id);
+        const { error } = await supabase.from("products").update(payload as never).eq("id", input.id);
         if (error) throw error;
+        productId = input.id;
       } else {
-        const { error } = await supabase
+        payload.store_id = storeId;
+        const { data, error } = await supabase
           .from("products")
-          .insert({ store_id: storeId, name: input.name, price: input.price, stock: input.stock, ...imagePatch });
+          .insert(payload as never)
+          .select("id")
+          .single();
         if (error) throw error;
+        productId = (data as { id: string }).id;
+      }
+
+      if (input.variants) {
+        await supabase.from("product_variants").delete().eq("product_id", productId);
+        const rows = input.variants
+          .filter((v) => v.name.trim() || v.value.trim())
+          .map((v, i) => ({ product_id: productId, name: v.name.trim(), value: v.value.trim(), position: i }));
+        if (rows.length) {
+          const { error } = await supabase.from("product_variants").insert(rows);
+          if (error) throw error;
+        }
+      }
+
+      if (input.details) {
+        await supabase.from("product_details").delete().eq("product_id", productId);
+        const rows = input.details
+          .filter((d) => d.key.trim() || d.value.trim())
+          .map((d, i) => ({ product_id: productId, key: d.key.trim(), value: d.value.trim(), position: i }));
+        if (rows.length) {
+          const { error } = await supabase.from("product_details").insert(rows);
+          if (error) throw error;
+        }
+      }
+
+      return { id: productId };
+    },
+    onSuccess: (_res, vars) => {
+      qc.invalidateQueries({ queryKey: ["products", "by-store", storeId] });
+      if (vars.id) {
+        qc.invalidateQueries({ queryKey: ["product-variants", vars.id] });
+        qc.invalidateQueries({ queryKey: ["product-details", vars.id] });
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["products", "by-store", storeId] }),
   });
 }
 
