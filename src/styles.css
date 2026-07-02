@@ -294,3 +294,20 @@
 @utility animate-scale-in {
   animation: scale-in 0.3s ease-out both;
 }
+
+@utility store-name {
+  font-family: var(--font-hero);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--primary) 90%, black 10%) 0%,
+    var(--primary) 40%,
+    color-mix(in oklab, var(--primary) 60%, #f59e0b 40%) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 0 color-mix(in oklab, var(--primary) 15%, transparent);
+}
+
