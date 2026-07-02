@@ -12,7 +12,9 @@ type Props = {
   accentColor?: string;
   defaultCategoryName?: string | null;
   footer?: FooterSettings;
+  categories?: { id: string; name: string }[];
 };
+
 
 
 const DEMO_CATEGORIES = [
@@ -56,8 +58,13 @@ function hexToRgb(hex?: string): string | null {
 }
 
 export function EazyStoreBasicTemplate({
-  store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer,
+  store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
+  const useDemoCats = demo || !categories || categories.length === 0;
+  const catList: string[] = useDemoCats
+    ? DEMO_CATEGORIES
+    : ["All Products", ...categories!.map((c) => c.name)];
+
   const f: Required<FooterSettings> = {
     showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
     navLinks: footer?.navLinks ?? DEFAULT_FOOTER.navLinks,
@@ -171,7 +178,7 @@ export function EazyStoreBasicTemplate({
           <aside className="hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
             <h2 className="mb-3 font-display text-xl font-black text-neutral-900">Categories</h2>
             <ul className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
-              {DEMO_CATEGORIES.map((c) => {
+              {catList.map((c) => {
                 const active = c === activeCat;
                 return (
                   <li key={c}>
@@ -241,7 +248,7 @@ export function EazyStoreBasicTemplate({
               </button>
             </div>
             <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-              {DEMO_CATEGORIES.map((c) => {
+              {catList.map((c) => {
                 const active = c === activeCat;
                 return (
                   <li key={c}>
