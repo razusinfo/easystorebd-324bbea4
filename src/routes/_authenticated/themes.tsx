@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2, Palette, ArrowRight, Plus } from "lucide-react";
+import { Component, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash2, Palette, ArrowRight, Plus, AlertTriangle, ImageOff, RefreshCw } from "lucide-react";
+
 import {
   TEMPLATES, useMyStore, useSaveTemplateSettings, getTemplateSettings,
   useMyProducts, uploadStoreLogo, deleteStoreLogo,
