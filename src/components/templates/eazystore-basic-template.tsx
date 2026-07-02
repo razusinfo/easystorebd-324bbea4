@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
 import { DEFAULT_FOOTER } from "@/lib/eazystore-data";
+import { useCartStore, cartCount, type CartItem } from "@/lib/cart-store";
+import { CartDrawer } from "@/components/storefront/cart-drawer";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
@@ -14,7 +17,6 @@ type Props = {
   footer?: FooterSettings;
   categories?: { id: string; name: string }[];
 };
-
 
 
 const DEMO_CATEGORIES = [
@@ -57,16 +59,24 @@ function hexToRgb(hex?: string): string | null {
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 }
 
+// Map default footer labels to canonical storefront routes.
+const LABEL_TO_SUBPATH: Record<string, string> = {
+  "Company": "about",
+  "About Us": "about",
+  "Team": "team",
+  "Products": "products",
+  "Blogs": "blogs",
+  "Pricing": "pricing",
+  "Contact": "contact",
+};
+
 export function EazyStoreBasicTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
-  // Only use demo categories in the theme preview (demo mode). On the real
-  // storefront, show the store's own categories — or just "All Products"
-  // when the owner hasn't created any yet.
+  // Only use demo categories in preview mode.
   const catList: string[] = demo
     ? DEMO_CATEGORIES
     : ["All Products", ...(categories ?? []).map((c) => c.name)];
-
 
   const f: Required<FooterSettings> = {
     showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
@@ -84,13 +94,41 @@ export function EazyStoreBasicTemplate({
     f.showCopyright;
 
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
+  const [activeCat, setActiveCat] = useState<string>(defaultCategoryName || "All Products");
+  const [search, setSearch] = useState("");
+  const [cartOpen, setCartOpen] = useState(false);
+
   const siteSettings = useSiteSettings().data;
   const whatsappHref = siteSettings?.whatsapp_url || "#";
   const name = (store?.name ?? "EAZYSTORE").toUpperCase();
+  const slug = store?.slug;
+  const storeId = store?.id;
   const useDemo = demo || !products || products.length === 0;
+
+  // Filter real products by category + search text.
+  const catIdByName = useMemo(() => {
+    const m: Record<string, string> = {};
+    (categories ?? []).forEach((c) => { m[c.name] = c.id; });
+    return m;
+  }, [categories]);
+
+  const visibleProducts = useMemo(() => {
+    if (useDemo) return [] as ProductRow[];
+    const q = search.trim().toLowerCase();
+    return (products ?? []).filter((p) => {
+      if (activeCat !== "All Products") {
+        const wantId = catIdByName[activeCat];
+        if (!wantId || p.category_id !== wantId) return false;
+      }
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [products, activeCat, search, catIdByName, useDemo]);
+
   const gridProducts = useDemo
-    ? DEMO_PRODUCTS.map((p) => ({ ...p, imageUrl: null as string | null }))
-    : products!.slice(0, 12).map((p, i) => ({
+    ? DEMO_PRODUCTS.map((p) => ({ id: null as string | null, ...p, imageUrl: null as string | null }))
+    : visibleProducts.slice(0, 60).map((p, i) => ({
+        id: p.id,
         name: p.name,
         price: p.price,
         save: i % 3 === 0 ? Math.max(20, Math.round(p.price * 0.08)) : null,
@@ -98,10 +136,12 @@ export function EazyStoreBasicTemplate({
         imageUrl: p.image_url ?? null,
       }));
 
-
-  const activeCat = defaultCategoryName || "All Products";
-  const accent = accentColor || "#5B21B6"; // purple
+  const accent = accentColor || "#5B21B6";
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
+
+  const cartItems: CartItem[] = useCartStore((s) => (storeId ? s.carts[storeId] ?? [] : []));
+  const addToCart = useCartStore((s) => s.add);
+  const badgeCount = cartCount(cartItems);
 
   const style = `
     .eazystore-basic-scope { --acc: ${accent}; --acc-rgb: ${rgb}; }
@@ -111,6 +151,30 @@ export function EazyStoreBasicTemplate({
     .eazystore-basic-scope .acc-soft:hover { background-color: rgba(var(--acc-rgb), 0.18); }
     .eazystore-basic-scope .acc-ring:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.15); }
   `;
+
+  function handleAdd(p: { id: string | null; name: string; price: number; imageUrl: string | null }) {
+    if (!storeId || !p.id) return;
+    addToCart(storeId, {
+      productId: p.id,
+      name: p.name,
+      price: p.price,
+      imageUrl: p.imageUrl,
+    });
+    setCartOpen(true);
+  }
+
+  function selectCategory(c: string) {
+    setActiveCat(c);
+    setMobileCatsOpen(false);
+  }
+
+  // Resolve a footer link: if user provided a URL, use it; otherwise map known labels to routes.
+  function footerLinkFor(label: string, href?: string) {
+    if (href && href.trim()) return { external: true, to: href };
+    const sub = LABEL_TO_SUBPATH[label];
+    if (sub && slug) return { external: false, to: `/s/${slug}/${sub}` };
+    return null;
+  }
 
   return (
     <div className="eazystore-basic-scope min-h-screen bg-neutral-100 font-sans text-neutral-900">
@@ -129,16 +193,38 @@ export function EazyStoreBasicTemplate({
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
-              {logoUrl ? (
-                <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-cover" />
-              ) : (
-                <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
-              )}
-            </div>
-            <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
-              {name}
-            </h1>
+            {slug ? (
+              <Link
+                to="/s/$slug"
+                params={{ slug }}
+                className="flex items-center gap-2 sm:gap-3"
+                aria-label={`${name} home`}
+              >
+                <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-cover" />
+                  ) : (
+                    <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
+                  )}
+                </div>
+                <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
+                  {name}
+                </h1>
+              </Link>
+            ) : (
+              <>
+                <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-cover" />
+                  ) : (
+                    <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
+                  )}
+                </div>
+                <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
+                  {name}
+                </h1>
+              </>
+            )}
           </div>
 
 
@@ -147,9 +233,12 @@ export function EazyStoreBasicTemplate({
             <input
               type="text"
               placeholder="Search items"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="acc-ring w-full rounded-full border border-neutral-200 bg-white py-3 pl-5 pr-14 text-sm outline-none placeholder:text-neutral-400 sm:py-3.5 sm:text-base"
             />
             <button
+              type="button"
               className="acc-bg absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-white sm:h-10 sm:w-10"
               aria-label="Search"
             >
@@ -159,10 +248,20 @@ export function EazyStoreBasicTemplate({
 
           {/* Right actions */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <button className="acc-bg relative grid h-11 w-11 place-items-center rounded-full text-white shadow-md sm:h-14 sm:w-14" aria-label="Cart">
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              className="acc-bg relative grid h-11 w-11 place-items-center rounded-full text-white shadow-md sm:h-14 sm:w-14"
+              aria-label="Cart"
+            >
               <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
+              {badgeCount > 0 && (
+                <span className="absolute -right-1 -top-1 grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-white px-1 text-[11px] font-black text-neutral-900 shadow ring-2 ring-white">
+                  {badgeCount}
+                </span>
+              )}
             </button>
-            <button className="hidden items-center gap-1 rounded-full px-2 py-1 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 sm:flex">
+            <button type="button" className="hidden items-center gap-1 rounded-full px-2 py-1 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 sm:flex">
               EN <Globe className="h-4 w-4" />
             </button>
           </div>
@@ -185,16 +284,17 @@ export function EazyStoreBasicTemplate({
                 const active = c === activeCat;
                 return (
                   <li key={c}>
-                    <a
-                      href="#"
+                    <button
+                      type="button"
+                      onClick={() => selectCategory(c)}
                       className={
                         active
-                          ? "acc-bg block rounded-xl px-4 py-3 text-sm font-bold text-white"
-                          : "block rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-sm font-bold text-white"
+                          : "block w-full text-left rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
                       }
                     >
                       {c}
-                    </a>
+                    </button>
                   </li>
                 );
               })}
@@ -222,11 +322,21 @@ export function EazyStoreBasicTemplate({
             </div>
 
             {/* Product grid */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-              {gridProducts.map((p, i) => (
-                <ProductCard key={i} {...p} />
-              ))}
-            </div>
+            {gridProducts.length === 0 ? (
+              <div className="rounded-2xl bg-white p-10 text-center text-sm text-neutral-500 shadow-sm">
+                No products match{search ? ` "${search}"` : ""}{activeCat !== "All Products" ? ` in ${activeCat}` : ""}.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+                {gridProducts.map((p, i) => (
+                  <ProductCard
+                    key={p.id ?? i}
+                    {...p}
+                    onAdd={p.id ? () => handleAdd(p) : undefined}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -255,17 +365,17 @@ export function EazyStoreBasicTemplate({
                 const active = c === activeCat;
                 return (
                   <li key={c}>
-                    <a
-                      href="#"
-                      onClick={() => setMobileCatsOpen(false)}
+                    <button
+                      type="button"
+                      onClick={() => selectCategory(c)}
                       className={
                         active
-                          ? "acc-bg block rounded-xl px-4 py-3 text-sm font-bold text-white"
-                          : "block rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-sm font-bold text-white"
+                          : "block w-full text-left rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
                       }
                     >
                       {c}
-                    </a>
+                    </button>
                   </li>
                 );
               })}
@@ -283,15 +393,25 @@ export function EazyStoreBasicTemplate({
               <nav
                 className="grid grid-cols-2 gap-x-4 gap-y-2 text-center sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-12 sm:gap-y-3"
               >
-                {enabledLinks.map((l) => (
-                  <a
-                    key={l.label}
-                    href={l.href || "#"}
-                    className="font-display text-sm font-bold text-neutral-900 transition hover:acc-text sm:text-lg"
-                  >
-                    {l.label}
-                  </a>
-                ))}
+                {enabledLinks.map((l) => {
+                  const resolved = footerLinkFor(l.label, l.href);
+                  const cls = "font-display text-sm font-bold text-neutral-900 transition hover:acc-text sm:text-lg";
+                  if (!resolved) {
+                    return <span key={l.label} className={cls}>{l.label}</span>;
+                  }
+                  if (resolved.external) {
+                    return (
+                      <a key={l.label} href={resolved.to} className={cls} target="_blank" rel="noreferrer">
+                        {l.label}
+                      </a>
+                    );
+                  }
+                  return (
+                    <Link key={l.label} to={resolved.to} className={cls}>
+                      {l.label}
+                    </Link>
+                  );
+                })}
               </nav>
             )}
 
@@ -303,6 +423,8 @@ export function EazyStoreBasicTemplate({
                     <a
                       key={s.key}
                       href={s.url || "#"}
+                      target={s.url ? "_blank" : undefined}
+                      rel={s.url ? "noreferrer" : undefined}
                       aria-label={s.key}
                       className="grid h-9 w-9 place-items-center rounded-full text-neutral-700 transition hover:acc-soft sm:h-10 sm:w-10"
                     >
@@ -322,26 +444,34 @@ export function EazyStoreBasicTemplate({
         </footer>
       )}
 
-
-
-
       {/* Floating WhatsApp */}
       <a
         href={whatsappHref}
         aria-label="WhatsApp"
+        target="_blank"
+        rel="noreferrer"
         className="fixed bottom-4 right-4 grid h-12 w-12 place-items-center rounded-full bg-white text-emerald-500 shadow-lg ring-1 ring-neutral-200 hover:scale-105 sm:h-14 sm:w-14"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 sm:h-7 sm:w-7">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.15-.174.2-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.017 2C6.492 2 2 6.492 2 12.017c0 1.888.526 3.66 1.44 5.184L2 22l4.938-1.295a9.96 9.96 0 004.079.87c5.525 0 10.017-4.492 10.017-10.017 0-2.673-1.042-5.19-2.938-7.086A9.937 9.937 0 0012.017 2z" />
         </svg>
       </a>
+
+      {storeId && (
+        <CartDrawer
+          storeId={storeId}
+          storeName={name}
+          open={cartOpen}
+          onOpenChange={setCartOpen}
+        />
+      )}
     </div>
   );
 }
 
 function ProductCard({
-  name, price, save, hue, imageUrl,
-}: { name: string; price: number; save: number | null; hue: string; imageUrl?: string | null }) {
+  name, price, save, hue, imageUrl, onAdd,
+}: { name: string; price: number; save: number | null; hue: string; imageUrl?: string | null; onAdd?: () => void }) {
   return (
     <article className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200 transition hover:shadow-md">
       <div className={`relative aspect-square bg-gradient-to-br ${hue}`}>
@@ -366,10 +496,14 @@ function ProductCard({
           {price.toLocaleString()} ৳
         </div>
       </div>
-      <button className="acc-soft flex w-full items-center justify-center gap-2 border-t border-neutral-100 py-3 text-sm font-semibold transition">
+      <button
+        type="button"
+        onClick={onAdd}
+        disabled={!onAdd}
+        className="acc-soft flex w-full items-center justify-center gap-2 border-t border-neutral-100 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+      >
         <ShoppingCart className="h-4 w-4" /> Add to cart
       </button>
     </article>
   );
 }
-
