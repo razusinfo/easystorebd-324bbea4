@@ -374,7 +374,9 @@ function CustomizeDialog({
           defaultCategoryId: categoryId,
           defaultCategoryName: categoryName,
           featuredProductIds: featured,
+          footer,
         },
+
       });
       toast.success("Template settings saved");
       onClose();
