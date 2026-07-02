@@ -391,27 +391,34 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
 
           <Section title="Pricing">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Field label="Sell/Current Price" required>
+              <Field label="Sell/Current Price" required error={showError("sellPrice")}>
                 <Input type="number" min="0" step="0.01" inputMode="decimal"
                   placeholder="Sell/Current Price"
                   value={form.sellPrice}
                   onChange={(e) => set("sellPrice", e.target.value)}
+                  onBlur={() => markTouched("sellPrice")}
+                  aria-invalid={!!showError("sellPrice")}
                 />
               </Field>
-              <Field label="Regular/Old Price">
+              <Field label="Regular/Old Price" error={showError("regularPrice")}>
                 <Input type="number" min="0" step="0.01" inputMode="decimal"
                   placeholder="Regular/Old Price"
                   value={form.regularPrice}
                   onChange={(e) => set("regularPrice", e.target.value)}
+                  onBlur={() => markTouched("regularPrice")}
+                  aria-invalid={!!showError("regularPrice")}
                 />
               </Field>
-              <Field label="Buying Price (Optional)">
+              <Field label="Buying Price (Optional)" error={showError("buyingPrice")}>
                 <Input type="number" min="0" step="0.01" inputMode="decimal"
                   placeholder="Buying Price (Optional)"
                   value={form.buyingPrice}
                   onChange={(e) => set("buyingPrice", e.target.value)}
+                  onBlur={() => markTouched("buyingPrice")}
+                  aria-invalid={!!showError("buyingPrice")}
                 />
               </Field>
+
             </div>
           </Section>
 
