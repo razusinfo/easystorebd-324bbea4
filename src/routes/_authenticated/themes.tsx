@@ -61,6 +61,16 @@ function ThemesPage() {
       toast.error(e?.message ?? "Could not update color");
     }
   };
+  if (storeQ.isLoading) return <ThemesPageSkeleton />;
+  if (storeQ.isError) {
+    return (
+      <ThemesErrorState
+        message={(storeQ.error as any)?.message ?? "We couldn't load your store settings."}
+        onRetry={() => storeQ.refetch()}
+      />
+    );
+  }
+
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8">
