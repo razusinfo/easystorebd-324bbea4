@@ -520,6 +520,7 @@ export type UpsertProductInput = {
   price: number;
   stock: number;
   imageUrl?: string | null;
+  galleryUrls?: string[];
   shortDescription?: string | null;
   description?: string | null;
   categoryId?: string | null;
