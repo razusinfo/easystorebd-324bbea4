@@ -11,7 +11,7 @@ import {
 
 
 export type Category = "Clothes" | "Electronics" | "Sports";
-export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove";
+export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
 export type TemplateSettings = {
