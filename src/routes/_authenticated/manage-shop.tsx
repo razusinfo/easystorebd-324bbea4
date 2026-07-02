@@ -1582,7 +1582,43 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
           </div>
         </div>
       </section>
+
+      <section className="mt-5 rounded-xl border bg-card p-5">
+        <h2 className="font-semibold mb-1">Header Logo</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Set the maximum logo height and how it aligns in the storefront header.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Max height</Label>
+            <Select value={String(logoMax)} onValueChange={(v) => setLogoMax(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="32">32 px — extra small</SelectItem>
+                <SelectItem value="40">40 px — small</SelectItem>
+                <SelectItem value="48">48 px — medium</SelectItem>
+                <SelectItem value="56">56 px — default</SelectItem>
+                <SelectItem value="64">64 px — large</SelectItem>
+                <SelectItem value="80">80 px — extra large</SelectItem>
+                <SelectItem value="96">96 px — hero</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Alignment</Label>
+            <Select value={logoAlign} onValueChange={(v) => setLogoAlign(v as "left" | "center" | "right")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Left</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="right">Right</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </section>
     </main>
+
 
   );
 }
