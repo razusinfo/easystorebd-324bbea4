@@ -41,8 +41,10 @@ function ProductsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
+  const [statusTarget, setStatusTarget] = useState<ProductRow | null>(null);
 
   const del = useDeleteProduct(store?.id);
+
 
   const products = productsQ.data ?? [];
 
