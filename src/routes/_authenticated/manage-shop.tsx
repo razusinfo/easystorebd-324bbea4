@@ -1398,6 +1398,8 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
             ...(store.shop_settings?.pages ?? {}),
             home_sections: sections,
             product_grid: { mobile: mobileCols as 1 | 2 | 3, desktop: desktopCols as 2 | 3 | 4 | 5 | 6 },
+            logo: { max_height: logoMax as 32 | 40 | 48 | 56 | 64 | 80 | 96, align: logoAlign },
+
           },
         },
       });
