@@ -154,7 +154,7 @@ export function EazyStoreBasicTemplate({
                 return (
                   <li key={c}>
                     <a
-                      href="#"
+                      href={whatsappHref}
                       className={
                         active
                           ? "acc-bg block rounded-xl px-4 py-3 text-sm font-bold text-white"
@@ -224,7 +224,7 @@ export function EazyStoreBasicTemplate({
                 return (
                   <li key={c}>
                     <a
-                      href="#"
+                      href={whatsappHref}
                       onClick={() => setMobileCatsOpen(false)}
                       className={
                         active
@@ -245,7 +245,7 @@ export function EazyStoreBasicTemplate({
 
       {/* Floating WhatsApp */}
       <a
-        href="#"
+        href={whatsappHref}
         aria-label="WhatsApp"
         className="fixed bottom-4 right-4 grid h-12 w-12 place-items-center rounded-full bg-white text-emerald-500 shadow-lg ring-1 ring-neutral-200 hover:scale-105 sm:h-14 sm:w-14"
       >
