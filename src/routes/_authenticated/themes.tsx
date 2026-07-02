@@ -577,14 +577,18 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
   if (renderReal) {
     const FULL_W = 1280;
     const FULL_H = 1000;
-    const scale = 0.28;
     return (
-      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
+        style={{
+          containerType: "size",
+        } as React.CSSProperties}
+      >
         <div
           style={{
             width: FULL_W,
             height: FULL_H,
-            transform: `scale(${scale})`,
+            transform: "scale(var(--tpl-scale, 0.28))",
             transformOrigin: "top left",
           }}
         >
@@ -594,9 +598,14 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
             <BdLoveTemplate demo accentColor={accent} />
           )}
         </div>
+        <style>{`
+          @container (min-width: 260px) { [style*="--tpl-scale"] { --tpl-scale: 0.32; } }
+          @container (min-width: 340px) { [style*="--tpl-scale"] { --tpl-scale: 0.42; } }
+        `}</style>
       </div>
     );
   }
+
 
   return (
     <div className={`relative h-full w-full bg-gradient-to-br ${gradient} p-4`}>
