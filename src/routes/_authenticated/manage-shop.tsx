@@ -1632,7 +1632,98 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
           </div>
         </div>
       </section>
+
+      <section className="mt-5 rounded-xl border bg-card p-5">
+        <h2 className="font-semibold mb-1">Store Name Style</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Customize the store name shown next to the logo. Changes save to your storefront instantly.
+        </p>
+        <div
+          className="mb-4 rounded-lg border bg-background px-4 py-3"
+          style={{ background: "linear-gradient(180deg, #fff, #fafafa)" }}
+        >
+          <span
+            style={{
+              fontFamily:
+                nameFont === "hero"
+                  ? 'var(--font-hero), "Archivo Black", sans-serif'
+                  : nameFont === "display"
+                    ? 'var(--font-display), "Space Grotesk", sans-serif'
+                    : nameFont === "sans"
+                      ? 'var(--font-sans), "Hind Siliguri", sans-serif'
+                      : nameFont === "serif"
+                        ? '"Instrument Serif", ui-serif, Georgia, serif'
+                        : '"JetBrains Mono", ui-monospace, monospace',
+              fontSize: `${nameSize + 6}px`,
+              fontWeight: 900,
+              letterSpacing: "0.02em",
+              lineHeight: 1.1,
+              backgroundImage: `linear-gradient(135deg, ${nameFrom} 0%, ${nameTo} 100%)`,
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            {(store?.name ?? "STORE NAME").toUpperCase()}
+          </span>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Font</Label>
+            <Select value={nameFont} onValueChange={(v) => setNameFont(v as typeof nameFont)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="hero">Hero — Archivo Black (bold display)</SelectItem>
+                <SelectItem value="display">Display — Space Grotesk</SelectItem>
+                <SelectItem value="sans">Sans — Hind Siliguri</SelectItem>
+                <SelectItem value="serif">Serif — Elegant</SelectItem>
+                <SelectItem value="mono">Mono — Technical</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Size (mobile base, px)</Label>
+            <Select value={String(nameSize)} onValueChange={(v) => setNameSize(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="14">14 px — small</SelectItem>
+                <SelectItem value="16">16 px</SelectItem>
+                <SelectItem value="18">18 px — default-</SelectItem>
+                <SelectItem value="20">20 px — default</SelectItem>
+                <SelectItem value="24">24 px — large</SelectItem>
+                <SelectItem value="28">28 px — xl</SelectItem>
+                <SelectItem value="34">34 px — hero</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Gradient — from</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={nameFrom}
+                onChange={(e) => setNameFrom(e.target.value)}
+                className="h-10 w-14 cursor-pointer rounded border"
+              />
+              <Input value={nameFrom} onChange={(e) => setNameFrom(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Gradient — to</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={nameTo}
+                onChange={(e) => setNameTo(e.target.value)}
+                className="h-10 w-14 cursor-pointer rounded border"
+              />
+              <Input value={nameTo} onChange={(e) => setNameTo(e.target.value)} />
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+
 
 
   );
