@@ -1,4 +1,5 @@
-import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon } from "lucide-react";
+import { useState } from "react";
+import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
 
 type Props = {
