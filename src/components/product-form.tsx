@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, ImageIcon, Loader2, Save, Trash2, Upload, Video, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, ImageIcon, Loader2, Save, Trash2, Upload, Video, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
