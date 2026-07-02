@@ -311,9 +311,129 @@ function CustomizerForm({
           Save changes
         </button>
       </div>
+      </div>
+
+      <aside className="lg:sticky lg:top-4 lg:self-start">
+        <StorefrontPreview
+          color={color}
+          logoUrl={logoUrl.data ?? null}
+          cats={cats}
+          whatsapp={whatsapp}
+        />
+      </aside>
     </div>
   );
 }
+
+function StorefrontPreview({
+  color, logoUrl, cats, whatsapp,
+}: {
+  color: string;
+  logoUrl: string | null;
+  cats: SidebarCategory[];
+  whatsapp: string;
+}) {
+  const safeColor = HEX_COLOR_RE.test(color) ? color : "#5B21B6";
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+        </div>
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Live preview</span>
+      </div>
+
+      <div className="relative" style={{ ["--pv" as any]: safeColor }}>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border px-4 py-3" style={{ backgroundColor: safeColor }}>
+          <div className="flex items-center gap-2">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-6 max-w-[100px] object-contain" />
+            ) : (
+              <span className="text-sm font-bold text-white">Your Store</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-white/20 text-white"><ShoppingCart className="h-3.5 w-3.5" /></span>
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-white/20 text-white"><Users className="h-3.5 w-3.5" /></span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-0">
+          {/* Sidebar */}
+          <div className="border-r border-border bg-muted/30 p-2">
+            <div className="space-y-1">
+              {cats.slice(0, 8).map((c, i) => {
+                const Icon = ICON_MAP[c.icon] ?? Package;
+                const active = i === 0;
+                return (
+                  <div
+                    key={c.id}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-medium"
+                    style={active ? { backgroundColor: safeColor, color: "white" } : { color: "hsl(var(--foreground))" }}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="truncate">{c.label}</span>
+                  </div>
+                );
+              })}
+              {cats.length === 0 && (
+                <div className="px-2 py-1.5 text-[11px] text-muted-foreground">No categories</div>
+              )}
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div className="p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="h-3 w-24 rounded bg-muted" />
+              <button
+                type="button"
+                className="rounded-md px-2.5 py-1 text-[10px] font-bold text-white"
+                style={{ backgroundColor: safeColor }}
+              >
+                Shop now
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="overflow-hidden rounded-lg border border-border bg-background">
+                  <div className="aspect-square bg-muted" />
+                  <div className="space-y-1 p-1.5">
+                    <div className="h-2 w-3/4 rounded bg-muted" />
+                    <div className="h-2 w-1/2 rounded" style={{ backgroundColor: safeColor, opacity: 0.7 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Tabs demo */}
+            <div className="mt-3 flex gap-3 border-b border-border text-[10px] font-semibold">
+              <span className="border-b-2 pb-1" style={{ borderColor: safeColor, color: safeColor }}>Featured</span>
+              <span className="pb-1 text-muted-foreground">New</span>
+              <span className="pb-1 text-muted-foreground">Sale</span>
+            </div>
+          </div>
+        </div>
+
+        {/* WhatsApp float */}
+        {whatsapp && (
+          <div
+            className="absolute bottom-3 right-3 grid h-8 w-8 place-items-center rounded-full text-white shadow-lg"
+            style={{ backgroundColor: "#25D366" }}
+            title={whatsapp}
+          >
+            <MessageSquare className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 
 function AssetUploader({
   label, preview, onFile, onRemove, accept, square,
