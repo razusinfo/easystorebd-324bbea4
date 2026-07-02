@@ -390,8 +390,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
               ) : (
                 <div
                   className={cn(
-                    "grid place-items-center rounded-lg border-2 border-dashed p-8 text-center transition-colors",
-                    showError("imageUrl") ? "border-destructive/60 bg-destructive/5" : "border-border bg-muted/40",
+                    "grid place-items-center rounded-lg border-2 border-dashed p-10 text-center transition-colors",
+                    showError("imageUrl") ? "border-destructive/60 bg-destructive/5" : "border-border bg-transparent",
                   )}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
@@ -401,43 +401,53 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                   }}
                 >
                   <ImageIcon className="h-8 w-8 text-foreground/40" />
-                  <p className="mt-2 max-w-md text-xs text-foreground/60">
-                    Drag & drop an image, click Upload, or paste a URL. JPG/PNG, max 4MB.
+                  <p className="mt-3 max-w-2xl text-xs text-foreground/60">
+                    Drag and drop image here, or click add image. Supported formats: JPG, PNG, Max size: 4MB.
+                    Note: For the Sellora theme, use images with a 1:1.6 aspect ratio — for example, 570×924 pixels or 855×1386 pixels.
                   </p>
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                    <Button
-                      type="button" size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
-                      Upload image
-                    </Button>
-                  </div>
-                  <div className="mt-3 w-full max-w-md">
-                    <Input
-                      placeholder="or paste image URL: https://..."
-                      value={form.imageUrl}
-                      onChange={(e) => set("imageUrl", e.target.value)}
-                      onBlur={() => markTouched("imageUrl")}
-                      aria-invalid={!!showError("imageUrl")}
-                    />
-                    {showError("imageUrl") && (
-                      <p className="mt-1 text-xs font-medium text-destructive">{showError("imageUrl")}</p>
-                    )}
-                  </div>
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    className="mt-4 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+                    Add Image
+                  </Button>
+                  {showError("imageUrl") && (
+                    <p className="mt-2 text-xs font-medium text-destructive">{showError("imageUrl")}</p>
+                  )}
                 </div>
               )}
 
-              <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
-                <Video className="h-8 w-8 text-foreground/40" />
-                <p className="mt-2 text-xs text-foreground/60">Paste the video link here</p>
-                <Input
-                  placeholder="https://youtube.com/..."
-                  value={form.videoUrl}
-                  onChange={(e) => set("videoUrl", e.target.value)}
-                  className="mt-3 max-w-md"
-                />
+              {form.videoUrl ? (
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Video className="h-5 w-5 shrink-0 text-foreground/50" />
+                    <p className="truncate text-sm">{form.videoUrl}</p>
+                  </div>
+                  <Button size="sm" variant="ghost"
+                    onClick={() => set("videoUrl", "")}
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid place-items-center rounded-lg border-2 border-dashed border-border p-10 text-center">
+                  <Video className="h-8 w-8 text-foreground/40" />
+                  <p className="mt-3 text-xs text-foreground/60">Paste the video link here</p>
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    className="mt-4 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                    onClick={() => {
+                      const url = window.prompt("Paste video URL (YouTube, Vimeo, etc.)");
+                      if (url) set("videoUrl", url.trim());
+                    }}
+                  >
+                    <Link2 className="mr-1 h-4 w-4" /> Add Link
+                  </Button>
+                </div>
+              )}
               </div>
             </div>
           </Section>
