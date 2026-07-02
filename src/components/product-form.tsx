@@ -249,11 +249,18 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
       toast.success(mode === "edit" ? "Product updated" : "Product added");
+      // Only now that the DB is updated is it safe to remove the previously
+      // referenced storage files.
+      await flushPendingDeletes();
+      // Invalidate storefront caches so the new product/image shows up right away.
+      queryClient.invalidateQueries({ queryKey: ["public-store"] });
+      queryClient.invalidateQueries({ queryKey: ["products", store?.id] });
       onDone();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save product");
     }
   }
+
 
   // --- Image upload ---
   const fileInputRef = useRef<HTMLInputElement | null>(null);
