@@ -921,17 +921,26 @@ export function usePublicStoreBySlug(slug: string | undefined) {
         .order("created_at", { ascending: false });
       if (pErr) throw pErr;
 
-      // Product images live in a private bucket. Re-sign stored URLs so <img> can load.
+      // Product images live in a private bucket. Re-sign stored URLs so <img> can load on every visit.
+      console.log(`[storefront] resigning ${products?.length ?? 0} product image(s) for store "${store.slug}"`);
       const signedProducts = await Promise.all(
         (products ?? []).map(async (p: any) => {
           const path = extractProductImagePath(p.image_url);
-          if (!path) return p;
-          const { data: sig } = await supabase.storage
+          if (!path) {
+            if (p.image_url) console.warn("[storefront] could not extract path from image_url:", p.image_url);
+            return p;
+          }
+          const { data: sig, error: sErr } = await supabase.storage
             .from("product-images")
             .createSignedUrl(path, 60 * 60 * 24 * 7);
-          return { ...p, image_url: sig?.signedUrl ?? null };
+          if (sErr || !sig?.signedUrl) {
+            console.warn(`[storefront] failed to sign image for product ${p.id} (path=${path}):`, sErr);
+            return { ...p, image_url: null };
+          }
+          return { ...p, image_url: sig.signedUrl };
         })
       );
+
 
       let logoUrl: string | null = null;
       if (store.logo_url) {
