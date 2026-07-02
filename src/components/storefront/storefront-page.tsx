@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ShoppingCart, Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { usePublicStoreBySlug } from "@/lib/eazystore-data";
 import { useStoreCart, cartCount } from "@/lib/cart-store";
+import { CustomerAuth } from "@/components/storefront/customer-auth";
 
 type Props = {
   slug: string;
