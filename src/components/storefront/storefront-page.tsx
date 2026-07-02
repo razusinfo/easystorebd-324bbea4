@@ -74,7 +74,7 @@ export function StorefrontPage({ slug, title, children }: Props) {
                 <StoreIcon className="h-5 w-5 text-white" />
               </div>
             )}
-            <h1 className="hidden font-display text-xl font-black tracking-wide sm:block">{name}</h1>
+            <h1 className="store-name hidden text-xl sm:block">{name}</h1>
           </Link>
 
 

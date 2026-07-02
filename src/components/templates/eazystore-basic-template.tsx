@@ -215,9 +215,10 @@ export function EazyStoreBasicTemplate({
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                   </div>
                 )}
-                <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
+                <h1 className="store-name hidden text-xl sm:block sm:text-2xl md:text-[26px]">
                   {name}
                 </h1>
+
               </Link>
             ) : (
               <>
@@ -233,9 +234,10 @@ export function EazyStoreBasicTemplate({
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                   </div>
                 )}
-                <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
+                <h1 className="store-name hidden text-xl sm:block sm:text-2xl md:text-[26px]">
                   {name}
                 </h1>
+
               </>
             )}
           </div>
@@ -284,7 +286,7 @@ export function EazyStoreBasicTemplate({
 
         {/* Mobile store name */}
         <div className="border-t border-neutral-100 px-4 py-2 text-center sm:hidden">
-          <span className="font-display text-lg font-black tracking-wide">{name}</span>
+          <span className="store-name text-lg">{name}</span>
         </div>
       </header>
 
