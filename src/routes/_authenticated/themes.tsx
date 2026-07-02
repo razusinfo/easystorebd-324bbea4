@@ -581,7 +581,9 @@ function LivePreviewModal({
             logoUrl={logoSigned}
             accentColor={accent}
             defaultCategoryName={settings.defaultCategoryName}
+            footer={settings.footer}
           />
+
         ) : (
           <PlaceholderPreview id={id} accent={accent} />
         )}
