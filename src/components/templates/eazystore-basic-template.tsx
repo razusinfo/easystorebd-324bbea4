@@ -178,7 +178,7 @@ export function EazyStoreBasicTemplate({
           <aside className="hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
             <h2 className="mb-3 font-display text-xl font-black text-neutral-900">Categories</h2>
             <ul className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
-              {DEMO_CATEGORIES.map((c) => {
+              {catList.map((c) => {
                 const active = c === activeCat;
                 return (
                   <li key={c}>
@@ -248,7 +248,7 @@ export function EazyStoreBasicTemplate({
               </button>
             </div>
             <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-              {DEMO_CATEGORIES.map((c) => {
+              {catList.map((c) => {
                 const active = c === activeCat;
                 return (
                   <li key={c}>
