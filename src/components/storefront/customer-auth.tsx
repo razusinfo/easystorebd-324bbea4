@@ -1,0 +1,180 @@
+import { useEffect, useState } from "react";
+import { User, LogOut, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import type { User as SupaUser } from "@supabase/supabase-js";
+
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+type Props = {
+  /** Optional; when set, the button is styled to match the storefront accent. */
+  accentClass?: string;
+};
+
+export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
+  const [user, setUser] = useState<SupaUser | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<"login" | "register">("login");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("Signed in");
+      setOpen(false);
+      setEmail(""); setPassword("");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Login failed");
+    } finally { setBusy(false); }
+  }
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { name: name.trim() || undefined },
+        },
+      });
+      if (error) throw error;
+      toast.success("Account created — check your email to confirm.");
+      setOpen(false);
+      setEmail(""); setPassword(""); setName("");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Registration failed");
+    } finally { setBusy(false); }
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  }
+
+  if (user) {
+    const label = (user.user_metadata?.name as string | undefined) || user.email || "Account";
+    const initial = label.charAt(0).toUpperCase();
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={`${accentClass} grid h-11 w-11 place-items-center rounded-full text-white shadow-md sm:h-14 sm:w-14`}
+            aria-label="Account"
+          >
+            <span className="font-display text-base font-black sm:text-lg">{initial}</span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" /> Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`${accentClass} grid h-11 w-11 place-items-center rounded-full text-white shadow-md sm:h-14 sm:w-14`}
+        aria-label="Login or register"
+      >
+        <User className="h-5 w-5 sm:h-6 sm:w-6" />
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Welcome</DialogTitle>
+            <DialogDescription>
+              Sign in for faster checkout. You can also order as a guest.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "register")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Register</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login">
+              <form onSubmit={handleLogin} className="space-y-3 pt-2">
+                <div>
+                  <Label htmlFor="li-email">Email</Label>
+                  <Input id="li-email" type="email" required
+                    value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="li-pass">Password</Label>
+                  <Input id="li-pass" type="password" required
+                    value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
+                <Button type="submit" className="w-full" disabled={busy}>
+                  {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…</> : "Sign in"}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="register">
+              <form onSubmit={handleRegister} className="space-y-3 pt-2">
+                <div>
+                  <Label htmlFor="re-name">Name</Label>
+                  <Input id="re-name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="re-email">Email</Label>
+                  <Input id="re-email" type="email" required
+                    value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="re-pass">Password</Label>
+                  <Input id="re-pass" type="password" required minLength={6}
+                    value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
+                <Button type="submit" className="w-full" disabled={busy}>
+                  {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating…</> : "Create account"}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+
+          <p className="text-center text-xs text-muted-foreground">
+            Prefer not to sign in? Just add items to your cart and checkout as a guest.
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
