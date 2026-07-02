@@ -54,6 +54,7 @@ function hexToRgb(hex?: string): string | null {
 export function BdLoveTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName,
 }: Props) {
+  const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const name = (store?.name ?? "BD LOVE SHOP").toUpperCase();
   const useDemo = demo || !products || products.length === 0;
   const gridProducts = useDemo
