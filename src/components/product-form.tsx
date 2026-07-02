@@ -4,6 +4,8 @@ import {
   List, ListOrdered, Loader2, Quote, Trash2, Underline, Upload, Video, X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,6 +102,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   const productsQ = useMyProducts(store?.id);
   const categoriesQ = useCategories(store?.id);
   const upsert = useUpsertProduct(store?.id);
+  const queryClient = useQueryClient();
+
 
   const [form, setForm] = useState<FormState>(initialState);
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
@@ -245,15 +249,34 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
       toast.success(mode === "edit" ? "Product updated" : "Product added");
+      // Only now that the DB is updated is it safe to remove the previously
+      // referenced storage files.
+      await flushPendingDeletes();
+      // Invalidate storefront caches so the new product/image shows up right away.
+      queryClient.invalidateQueries({ queryKey: ["public-store"] });
+      queryClient.invalidateQueries({ queryKey: ["products", store?.id] });
       onDone();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save product");
     }
   }
 
+
   // --- Image upload ---
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  // URLs to delete from storage only AFTER the product is saved successfully.
+  // Deleting earlier can leave the DB pointing at a missing storage object
+  // if the user never clicks Save.
+  const pendingDeletes = useRef<Set<string>>(new Set());
+  const queueDelete = (url?: string | null) => {
+    if (url && url.includes("/product-images/")) pendingDeletes.current.add(url);
+  };
+  const flushPendingDeletes = async () => {
+    const urls = Array.from(pendingDeletes.current);
+    pendingDeletes.current.clear();
+    await Promise.all(urls.map((u) => deleteProductImage(u).catch(() => {})));
+  };
 
   async function handleImageFile(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -267,10 +290,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     setUploading(true);
     try {
       const { publicUrl } = await uploadProductImage(file);
-      // If replacing an existing uploaded image (same bucket), remove the old file.
-      if (form.imageUrl && form.imageUrl.includes("/product-images/")) {
-        await deleteProductImage(form.imageUrl).catch(() => {});
-      }
+      // Defer deletion of the previous image until the form is saved.
+      queueDelete(form.imageUrl);
       set("imageUrl", publicUrl);
       markTouched("imageUrl");
       toast.success("Image uploaded");
@@ -286,11 +307,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     const url = form.imageUrl;
     set("imageUrl", "");
     markTouched("imageUrl");
-    if (url && url.includes("/product-images/")) {
-      try { await deleteProductImage(url); } catch { /* ignore */ }
-    }
+    queueDelete(url);
     toast.success("Image removed");
   }
+
 
   // --- Gallery (multi-image) ---
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
@@ -329,10 +349,9 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
   async function handleRemoveGalleryImage(url: string) {
     set("galleryUrls", form.galleryUrls.filter((u) => u !== url));
-    if (url.includes("/product-images/")) {
-      try { await deleteProductImage(url); } catch { /* ignore */ }
-    }
+    queueDelete(url);
   }
+
 
   function handlePromoteGalleryImage(url: string) {
     // Swap: gallery image becomes the primary, previous primary joins gallery.
