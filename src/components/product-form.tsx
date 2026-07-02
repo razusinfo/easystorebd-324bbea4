@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, ImageIcon, Loader2, Save, Video, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronUp, ImageIcon, Loader2, Save, Trash2, Upload, Video, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,12 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 import {
-  useMyStore, useMyProducts, useUpsertProduct, type ProductRow,
+  useMyStore, useMyProducts, useUpsertProduct,
+  uploadProductImage, deleteProductImage,
+  type ProductRow,
 } from "@/lib/eazystore-data";
 import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categories-data";
+
 
 type Props = {
   mode: "new" | "edit";
