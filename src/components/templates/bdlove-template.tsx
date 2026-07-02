@@ -144,8 +144,8 @@ export function BdLoveTemplate({
       {/* Content */}
       <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
-          {/* Sidebar categories */}
-          <aside className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+          {/* Sidebar categories (desktop) */}
+          <aside className="hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
             <h2 className="mb-3 font-display text-xl font-black text-neutral-900">Categories</h2>
             <ul className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
               {DEMO_CATEGORIES.map((c) => {
@@ -167,6 +167,7 @@ export function BdLoveTemplate({
               })}
             </ul>
           </aside>
+
 
           {/* Main product area */}
           <div className="space-y-4">
