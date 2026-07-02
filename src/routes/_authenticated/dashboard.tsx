@@ -78,13 +78,18 @@ function Dashboard() {
   }
 
   const store = myStore.data;
-  const storeUrl = `www.${slugify(store.name)}.eazystore.app`;
+  const isLive = !!(store.published && store.slug);
+  const storeUrl = isLive ? buildStorefrontUrl(store.slug!) : null;
+  const storeUrlDisplay = storeUrl
+    ? storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")
+    : "Not published yet";
   const date = new Date().toLocaleDateString("en-GB", {
     weekday: "long", day: "numeric", month: "short",
   });
 
   async function copyUrl() {
-    try { await navigator.clipboard.writeText(`https://${storeUrl}`); } catch {}
+    if (!storeUrl) return;
+    try { await navigator.clipboard.writeText(storeUrl); } catch {}
   }
 
   return (
