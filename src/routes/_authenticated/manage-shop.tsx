@@ -92,6 +92,10 @@ function ManageShopPage() {
 
   const store = storeQ.data;
 
+  if (open === "settings") {
+    return <ShopSettingsView store={store} onBack={() => setOpen(null)} />;
+  }
+
   return (
     <main className="mx-auto w-full max-w-6xl p-4 md:p-6">
       <div className="mb-6">
@@ -122,7 +126,6 @@ function ManageShopPage() {
         ))}
       </div>
 
-      {open === "settings" && <ShopSettingsDialog store={store} onClose={() => setOpen(null)} />}
       {open === "domain" && <ShopDomainDialog store={store} onClose={() => setOpen(null)} />}
       {open === "policy" && <ShopPolicyDialog store={store} onClose={() => setOpen(null)} />}
       {open === "delivery" && <DeliveryDialog store={store} onClose={() => setOpen(null)} />}
@@ -134,6 +137,7 @@ function ManageShopPage() {
     </main>
   );
 }
+
 
 // -------- Reusable dialog shell --------
 function SectionDialog({
