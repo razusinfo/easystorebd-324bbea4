@@ -273,7 +273,12 @@ function ProductTable({
                 }>
                   {p.stock === 0 ? "Out of stock" : `${p.stock.toLocaleString()} in stock`}
                 </p>
-                <div className="mt-2"><StatusBadge status={p.status} /></div>
+                <div className="mt-2">
+                  <button type="button" onClick={() => onChangeStatus(p)} aria-label="Change status">
+                    <StatusBadge status={p.status} />
+                  </button>
+                </div>
+
               </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="icon" onClick={() => onEdit(p)} aria-label="Edit">
