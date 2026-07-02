@@ -1390,6 +1390,7 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
           pages: {
             ...(store.shop_settings?.pages ?? {}),
             home_sections: sections,
+            product_grid: { mobile: mobileCols as 1 | 2 | 3, desktop: desktopCols as 2 | 3 | 4 | 5 | 6 },
           },
         },
       });
@@ -1398,6 +1399,7 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
       toast.error(e?.message ?? "Save failed.");
     }
   }
+
 
   return (
     <main className="mx-auto w-full max-w-4xl p-4 md:p-6">
