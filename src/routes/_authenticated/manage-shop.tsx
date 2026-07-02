@@ -1342,6 +1342,13 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
   const [desktopCols, setDesktopCols] = useState<number>(
     store.shop_settings?.pages?.product_grid?.desktop ?? 4,
   );
+  const [logoMax, setLogoMax] = useState<number>(
+    store.shop_settings?.pages?.logo?.max_height ?? 56,
+  );
+  const [logoAlign, setLogoAlign] = useState<"left" | "center" | "right">(
+    store.shop_settings?.pages?.logo?.align ?? "left",
+  );
+
 
 
   function move(i: number, dir: -1 | 1) {
