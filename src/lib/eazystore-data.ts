@@ -116,8 +116,17 @@ export type ShopSettings = {
     per_hour_order_limit?: number | null;
     vat_percent?: number | null;
   };
-
+  pages?: {
+    home_sections?: {
+      id: string;
+      type: "flash_sale" | "categories" | "eid_special" | "custom";
+      title: string;
+      enabled: boolean;
+      content?: string;
+    }[];
+  };
 };
+
 
 export type StoreRow = {
   id: string;
