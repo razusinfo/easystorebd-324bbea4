@@ -153,7 +153,7 @@ function ProductsPage() {
             : undefined}
         />
       ) : (
-        <ProductTable rows={filtered} onEdit={openEdit} onDelete={setDeleting} />
+        <ProductTable rows={filtered} onEdit={openEdit} onDelete={setDeleting} onChangeStatus={setStatusTarget} />
       )}
 
       {/* Delete confirm */}
