@@ -62,9 +62,11 @@ export const useCartStore = create<CartState>()(
   )
 );
 
+const EMPTY: CartItem[] = [];
 export function useStoreCart(storeId: string | undefined) {
-  return useCartStore((s) => (storeId ? s.carts[storeId] ?? [] : []));
+  return useCartStore((s) => (storeId ? s.carts[storeId] ?? EMPTY : EMPTY));
 }
+
 
 export function cartTotal(items: CartItem[]): number {
   return items.reduce((sum, i) => sum + i.price * i.qty, 0);
