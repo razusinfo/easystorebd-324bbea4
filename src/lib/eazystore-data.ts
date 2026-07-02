@@ -148,6 +148,7 @@ export type ProductRow = {
   stock: number;
   status: ProductStatus;
   image_url: string | null;
+  gallery_urls?: string[] | null;
   created_at: string;
   // Extended fields
   short_description?: string | null;
