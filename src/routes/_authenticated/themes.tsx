@@ -84,10 +84,11 @@ function ThemesPage() {
               <Palette className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="font-display text-xl font-black sm:text-2xl">Theme Builder</h2>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h2 className="whitespace-nowrap font-display text-xl font-black sm:text-2xl">Theme Builder</h2>
                 <span className="rounded-md bg-amber-300 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-900">New</span>
               </div>
+
               <p className="mt-1 max-w-lg text-sm text-white/85">
                 Create your own unique shop design with our powerful drag-and-drop builder.
               </p>
