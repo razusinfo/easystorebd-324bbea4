@@ -103,8 +103,8 @@ function Dashboard() {
               {name || "there"}
             </h1>
             <div className="mt-2 inline-flex items-center gap-1.5 text-sm">
-              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="truncate text-foreground/80">{store.name} · Live</span>
+              <span className={`inline-block h-2 w-2 rounded-full ${isLive ? "bg-emerald-500" : "bg-amber-500"}`} />
+              <span className="truncate text-foreground/80">{store.name} · {isLive ? "Live" : "Draft"}</span>
             </div>
           </div>
           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-black text-white shadow-lg ring-4 ring-white/60">
