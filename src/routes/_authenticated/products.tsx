@@ -200,8 +200,9 @@ function StatCard({ label, value, tone }: { label: string; value: string; tone?:
 }
 
 function ProductTable({
-  rows, onEdit, onDelete,
-}: { rows: ProductRow[]; onEdit: (p: ProductRow) => void; onDelete: (p: ProductRow) => void }) {
+  rows, onEdit, onDelete, onChangeStatus,
+}: { rows: ProductRow[]; onEdit: (p: ProductRow) => void; onDelete: (p: ProductRow) => void; onChangeStatus: (p: ProductRow) => void }) {
+
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       {/* Desktop table */}
