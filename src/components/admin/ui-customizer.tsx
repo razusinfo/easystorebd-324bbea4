@@ -394,7 +394,17 @@ function DeviceFrame({ device, children }: { device: DeviceId; children: React.R
   const spec = DEVICES.find((d) => d.id === device)!;
   const scale = Math.min(1, FRAME_MAX / spec.width);
   const displayW = spec.width * scale;
-  // Heightless: let content dictate; use a min height for visual weight on mobile.
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const [innerH, setInnerH] = useState(0);
+  useEffect(() => {
+    if (!innerRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      const h = entries[0]?.contentRect.height ?? 0;
+      setInnerH(h);
+    });
+    ro.observe(innerRef.current);
+    return () => ro.disconnect();
+  }, []);
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -402,9 +412,10 @@ function DeviceFrame({ device, children }: { device: DeviceId; children: React.R
       </div>
       <div
         className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm"
-        style={{ width: displayW }}
+        style={{ width: displayW, height: innerH ? innerH * scale : undefined }}
       >
         <div
+          ref={innerRef}
           style={{
             width: spec.width,
             transform: `scale(${scale})`,
@@ -417,6 +428,7 @@ function DeviceFrame({ device, children }: { device: DeviceId; children: React.R
     </div>
   );
 }
+
 
 function StorefrontPreview({
   color, logoUrl, cats, whatsapp,
