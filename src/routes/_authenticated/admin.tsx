@@ -9,6 +9,8 @@ import {
   useAdminAuditLogs, useAssignRole, useRevokeRole,
   type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
+import { UICustomizer } from "@/components/admin/ui-customizer";
+
 
 const ASSIGNABLE_ROLES: AppRole[] = [
   "super_admin", "store_owner", "manager", "cashier", "salesman", "accountant", "technician", "warehouse_manager",
