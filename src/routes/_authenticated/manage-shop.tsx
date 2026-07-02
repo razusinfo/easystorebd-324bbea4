@@ -641,11 +641,16 @@ function ToggleRow({
 function ShopDomainView({ store, onBack }: { store: any; onBack: () => void }) {
   const publish = usePublishStore();
   const changeSlug = useChangeSlug();
+  const updateStore = useUpdateStore();
   const currentSlug = store.slug || slugifyStoreName(store.name);
   const [slug, setSlug] = useState<string>(currentSlug);
   const [editing, setEditing] = useState(false);
   const url = slug ? buildStorefrontUrl(slug) : "";
   const host = url ? url.replace(/^https?:\/\//, "").replace(/\/$/, "") : "";
+
+  const canCustomDomain = store.plan_tier && store.plan_tier !== "free";
+  const customDomain: string | null = store.custom_domain ?? null;
+  const [customDialogOpen, setCustomDialogOpen] = useState(false);
 
   async function saveSlug() {
     try {
@@ -672,6 +677,13 @@ function ShopDomainView({ store, onBack }: { store: any; onBack: () => void }) {
       setSlug(next);
       toast.success("Domain reset.");
     } catch (e: any) { toast.error(e?.message ?? "Reset failed."); }
+  }
+  async function removeCustomDomain() {
+    if (!confirm("Remove your custom domain? You can add it back anytime.")) return;
+    try {
+      await updateStore.mutateAsync({ id: store.id, custom_domain: null } as any);
+      toast.success("Custom domain removed.");
+    } catch (e: any) { toast.error(e?.message ?? "Remove failed."); }
   }
 
   const RESOLVED_IPS = ["185.158.133.1", "185.158.133.2"];
@@ -797,43 +809,202 @@ function ShopDomainView({ store, onBack }: { store: any; onBack: () => void }) {
         </div>
       </section>
 
+      {/* Custom Domain section — locked (Free) OR editable (Pro/Business) */}
       <section>
-        <div className="relative rounded-xl border bg-card p-6 overflow-hidden">
-          <div className="pointer-events-none select-none opacity-40 blur-[3px]">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="h-10 w-10 rounded-lg bg-primary/10" />
-              <div className="space-y-1">
-                <div className="h-3 w-40 bg-muted rounded" />
-                <div className="h-2 w-56 bg-muted rounded" />
+        {canCustomDomain ? (
+          <div className="rounded-xl border bg-card p-4 md:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center">
+                  <Globe className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="font-semibold">Custom Domain</div>
+                  <p className="text-xs text-muted-foreground">Use your own domain for a professional look.</p>
+                </div>
               </div>
+              <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-full border border-emerald-300 text-emerald-700 bg-emerald-50">
+                Pro
+              </span>
             </div>
-            <div className="space-y-2">
-              <div className="h-3 w-full bg-muted rounded" />
-              <div className="h-3 w-4/5 bg-muted rounded" />
-              <div className="h-3 w-3/5 bg-muted rounded" />
-              <div className="h-3 w-2/3 bg-muted rounded" />
-            </div>
-          </div>
 
-          <div className="absolute inset-0 grid place-items-center">
-            <div className="text-center max-w-sm px-6">
-              <div className="mx-auto mb-3 h-12 w-12 rounded-xl bg-primary/10 text-primary grid place-items-center">
-                <Lock className="h-6 w-6" />
+            {customDomain ? (
+              <div className="mt-4 rounded-lg border p-3 md:p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+                      <Globe className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold truncate">{customDomain}</div>
+                      <p className="text-xs text-muted-foreground">Custom domain</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => window.open(`https://${customDomain}`, "_blank")}
+                      className="grid h-8 w-8 place-items-center rounded-md hover:bg-accent text-muted-foreground"
+                      aria-label="Open"
+                    ><ExternalLink className="h-4 w-4" /></button>
+                    <button
+                      onClick={() => copy(`https://${customDomain}`)}
+                      className="grid h-8 w-8 place-items-center rounded-md hover:bg-accent text-muted-foreground"
+                      aria-label="Copy"
+                    ><Copy className="h-4 w-4" /></button>
+                    <button
+                      onClick={() => setCustomDialogOpen(true)}
+                      className="grid h-8 w-8 place-items-center rounded-md hover:bg-accent text-muted-foreground"
+                      aria-label="Edit"
+                    ><Pencil className="h-4 w-4" /></button>
+                    <button
+                      onClick={removeCustomDomain}
+                      className="grid h-8 w-8 place-items-center rounded-md hover:bg-destructive/10 text-destructive"
+                      aria-label="Delete"
+                    ><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                </div>
               </div>
-              <div className="font-semibold">Upgrade to add a custom domain</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Connect your own domain and make your shop look professional with a custom URL.
-              </p>
-              <Button className="mt-4" onClick={() => toast.info("Upgrade plans coming soon.")}>
-                View Plans →
-              </Button>
+            ) : (
+              <div className="mt-4">
+                <Button onClick={() => setCustomDialogOpen(true)}>
+                  <Globe className="h-4 w-4 mr-2" /> Add custom domain
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative rounded-xl border bg-card p-6 overflow-hidden">
+            <div className="pointer-events-none select-none opacity-40 blur-[3px]">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10" />
+                <div className="space-y-1">
+                  <div className="h-3 w-40 bg-muted rounded" />
+                  <div className="h-2 w-56 bg-muted rounded" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 w-full bg-muted rounded" />
+                <div className="h-3 w-4/5 bg-muted rounded" />
+                <div className="h-3 w-3/5 bg-muted rounded" />
+                <div className="h-3 w-2/3 bg-muted rounded" />
+              </div>
+            </div>
+
+            <div className="absolute inset-0 grid place-items-center">
+              <div className="text-center max-w-sm px-6">
+                <div className="mx-auto mb-3 h-12 w-12 rounded-xl bg-primary/10 text-primary grid place-items-center">
+                  <Lock className="h-6 w-6" />
+                </div>
+                <div className="font-semibold">Upgrade to add a custom domain</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Connect your own domain and make your shop look professional with a custom URL.
+                </p>
+                <Button asChild className="mt-4">
+                  <Link to="/upgrade">View Plans →</Link>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
+
+      {customDialogOpen && (
+        <CustomDomainDialog
+          storeId={store.id}
+          initial={customDomain ?? ""}
+          onClose={() => setCustomDialogOpen(false)}
+        />
+      )}
     </main>
   );
 }
+
+// -------- Custom Domain dialog --------
+const DOMAIN_RE = /^(?!-)(?:[a-z0-9-]{1,63}(?<!-)\.)+[a-z]{2,}$/i;
+
+function CustomDomainDialog({
+  storeId, initial, onClose,
+}: { storeId: string; initial: string; onClose: () => void }) {
+  const update = useUpdateStore();
+  const [value, setValue] = useState(initial);
+  const [error, setError] = useState<string | null>(null);
+  const isEdit = !!initial;
+
+  function normalize(v: string) {
+    return v
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/\/.*$/, "");
+  }
+
+  async function onSave() {
+    const clean = normalize(value);
+    if (!clean) {
+      setError("Domain is required.");
+      return;
+    }
+    if (clean.length > 253) {
+      setError("Domain is too long (max 253 characters).");
+      return;
+    }
+    if (!DOMAIN_RE.test(clean)) {
+      setError("Enter a valid domain like myshop.com or shop.myshop.com.");
+      return;
+    }
+    setError(null);
+    try {
+      await update.mutateAsync({ id: storeId, custom_domain: clean } as any);
+      toast.success(isEdit ? "Custom domain updated." : "Custom domain added.");
+      onClose();
+    } catch (e: any) {
+      const msg = e?.message ?? "Save failed.";
+      if (String(msg).includes("stores_custom_domain_unique") || String(e?.code) === "23505") {
+        setError("This domain is already used by another shop.");
+      } else {
+        setError(msg);
+      }
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit custom domain" : "Add custom domain"}</DialogTitle>
+          <DialogDescription>
+            Enter the domain you own (without <code>https://</code>). Example: <code>myshop.com</code>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          <Label htmlFor="custom-domain">Domain</Label>
+          <Input
+            id="custom-domain"
+            placeholder="myshop.com"
+            value={value}
+            onChange={(e) => { setValue(e.target.value); if (error) setError(null); }}
+            autoFocus
+          />
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <p className="text-xs text-muted-foreground">
+            After saving, point an A record to <code>185.158.133.1</code> at your DNS provider.
+          </p>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={update.isPending}>Cancel</Button>
+          <Button onClick={onSave} disabled={update.isPending}>
+            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            {isEdit ? "Save changes" : "Add domain"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 // -------- Generic settings-section save helper --------
 function useSaveSection(store: any) {
