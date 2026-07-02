@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Copy, ImageIcon, Loader2, Save, Trash2, Upload, Video, X } from "lucide-react";
+import {
+  Bold, Check, ChevronDown, ChevronUp, Copy, Eraser, ImageIcon, Italic, Link2,
+  List, ListOrdered, Loader2, Quote, Trash2, Underline, Upload, Video, X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -247,7 +250,12 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
             {mode === "edit" ? "Edit Product" : "Add Product"}
           </h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={onCancel} disabled={upsert.isPending}>
+            <Button
+              variant="ghost"
+              onClick={onCancel}
+              disabled={upsert.isPending}
+              className="bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
+            >
               <X className="mr-1 h-4 w-4" /> Discard
             </Button>
             {mode === "edit" && onDuplicate && (
@@ -256,7 +264,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
               </Button>
             )}
             <Button onClick={handleSave} disabled={upsert.isPending || loading}>
-              {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+              {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
               Save
             </Button>
           </div>
@@ -292,12 +300,34 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 />
               </Field>
               <Field label="Product Description">
-                <Textarea
-                  placeholder="Write something..."
-                  value={form.description}
-                  onChange={(e) => set("description", e.target.value)}
-                  className="min-h-[140px]"
-                />
+                <div className="rounded-md border border-input bg-background">
+                  <div className="flex flex-wrap items-center gap-0.5 border-b border-input px-2 py-1.5 text-foreground/70">
+                    <select className="mr-1 h-7 rounded-sm border border-input bg-background px-2 text-xs">
+                      <option>Normal</option>
+                      <option>Heading 1</option>
+                      <option>Heading 2</option>
+                      <option>Heading 3</option>
+                    </select>
+                    <ToolbarBtn><Bold className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Italic className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Underline className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Quote className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <span className="mx-1 h-4 w-px bg-border" />
+                    <ToolbarBtn><span className="text-xs font-bold underline">A</span></ToolbarBtn>
+                    <ToolbarBtn><ListOrdered className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><List className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <span className="mx-1 h-4 w-px bg-border" />
+                    <ToolbarBtn><Link2 className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><ImageIcon className="h-3.5 w-3.5" /></ToolbarBtn>
+                    <ToolbarBtn><Eraser className="h-3.5 w-3.5" /></ToolbarBtn>
+                  </div>
+                  <Textarea
+                    placeholder="Write something..."
+                    value={form.description}
+                    onChange={(e) => set("description", e.target.value)}
+                    className="min-h-[140px] rounded-none border-0 focus-visible:ring-0"
+                  />
+                </div>
               </Field>
             </div>
           </Section>
@@ -360,8 +390,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
               ) : (
                 <div
                   className={cn(
-                    "grid place-items-center rounded-lg border-2 border-dashed p-8 text-center transition-colors",
-                    showError("imageUrl") ? "border-destructive/60 bg-destructive/5" : "border-border bg-muted/40",
+                    "grid place-items-center rounded-lg border-2 border-dashed p-10 text-center transition-colors",
+                    showError("imageUrl") ? "border-destructive/60 bg-destructive/5" : "border-border bg-transparent",
                   )}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
@@ -371,44 +401,53 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                   }}
                 >
                   <ImageIcon className="h-8 w-8 text-foreground/40" />
-                  <p className="mt-2 max-w-md text-xs text-foreground/60">
-                    Drag & drop an image, click Upload, or paste a URL. JPG/PNG, max 4MB.
+                  <p className="mt-3 max-w-2xl text-xs text-foreground/60">
+                    Drag and drop image here, or click add image. Supported formats: JPG, PNG, Max size: 4MB.
+                    Note: For the Sellora theme, use images with a 1:1.6 aspect ratio — for example, 570×924 pixels or 855×1386 pixels.
                   </p>
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                    <Button
-                      type="button" size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
-                      Upload image
-                    </Button>
-                  </div>
-                  <div className="mt-3 w-full max-w-md">
-                    <Input
-                      placeholder="or paste image URL: https://..."
-                      value={form.imageUrl}
-                      onChange={(e) => set("imageUrl", e.target.value)}
-                      onBlur={() => markTouched("imageUrl")}
-                      aria-invalid={!!showError("imageUrl")}
-                    />
-                    {showError("imageUrl") && (
-                      <p className="mt-1 text-xs font-medium text-destructive">{showError("imageUrl")}</p>
-                    )}
-                  </div>
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    className="mt-4 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+                    Add Image
+                  </Button>
+                  {showError("imageUrl") && (
+                    <p className="mt-2 text-xs font-medium text-destructive">{showError("imageUrl")}</p>
+                  )}
                 </div>
               )}
 
-              <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
-                <Video className="h-8 w-8 text-foreground/40" />
-                <p className="mt-2 text-xs text-foreground/60">Paste the video link here</p>
-                <Input
-                  placeholder="https://youtube.com/..."
-                  value={form.videoUrl}
-                  onChange={(e) => set("videoUrl", e.target.value)}
-                  className="mt-3 max-w-md"
-                />
-              </div>
+              {form.videoUrl ? (
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Video className="h-5 w-5 shrink-0 text-foreground/50" />
+                    <p className="truncate text-sm">{form.videoUrl}</p>
+                  </div>
+                  <Button size="sm" variant="ghost"
+                    onClick={() => set("videoUrl", "")}
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid place-items-center rounded-lg border-2 border-dashed border-border p-10 text-center">
+                  <Video className="h-8 w-8 text-foreground/40" />
+                  <p className="mt-3 text-xs text-foreground/60">Paste the video link here</p>
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    className="mt-4 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                    onClick={() => {
+                      const url = window.prompt("Paste video URL (YouTube, Vimeo, etc.)");
+                      if (url) set("videoUrl", url.trim());
+                    }}
+                  >
+                    <Link2 className="mr-1 h-4 w-4" /> Add Link
+                  </Button>
+                </div>
+              )}
             </div>
           </Section>
 
@@ -697,6 +736,18 @@ function Field({
       {children}
       {error && <p className="mt-1 text-xs font-medium text-destructive">{error}</p>}
     </div>
+  );
+}
+
+function ToolbarBtn({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-sm hover:bg-foreground/5"
+      tabIndex={-1}
+    >
+      {children}
+    </button>
   );
 }
 
