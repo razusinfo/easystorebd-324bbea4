@@ -35,6 +35,7 @@ import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products.index'
+import { Route as SSlugProductsRouteImport } from './routes/s.$slug.products'
 import { Route as SSlugContactRouteImport } from './routes/s.$slug.contact'
 import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
@@ -173,6 +174,11 @@ const AuthenticatedProductsIndexRoute =
     path: '/products/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const SSlugProductsRoute = SSlugProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => SSlugRoute,
+} as any)
 const SSlugContactRoute = SSlugContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/contact': typeof SSlugContactRoute
+  '/s/$slug/products': typeof SSlugProductsRoute
   '/products/': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/contact': typeof SSlugContactRoute
+  '/s/$slug/products': typeof SSlugProductsRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/contact': typeof SSlugContactRoute
+  '/s/$slug/products': typeof SSlugProductsRoute
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
@@ -321,6 +330,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/s/$slug/about'
     | '/s/$slug/contact'
+    | '/s/$slug/products'
     | '/products/'
     | '/products/$productId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/s/$slug/about'
     | '/s/$slug/contact'
+    | '/s/$slug/products'
     | '/products'
     | '/products/$productId/edit'
   id:
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/_authenticated/products/new'
     | '/s/$slug/about'
     | '/s/$slug/contact'
+    | '/s/$slug/products'
     | '/_authenticated/products/'
     | '/_authenticated/products/$productId/edit'
   fileRoutesById: FileRoutesById
@@ -583,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/s/$slug/products': {
+      id: '/s/$slug/products'
+      path: '/products'
+      fullPath: '/s/$slug/products'
+      preLoaderRoute: typeof SSlugProductsRouteImport
+      parentRoute: typeof SSlugRoute
+    }
     '/s/$slug/contact': {
       id: '/s/$slug/contact'
       path: '/contact'
@@ -667,11 +686,13 @@ const AuthenticatedRouteRouteWithChildren =
 interface SSlugRouteChildren {
   SSlugAboutRoute: typeof SSlugAboutRoute
   SSlugContactRoute: typeof SSlugContactRoute
+  SSlugProductsRoute: typeof SSlugProductsRoute
 }
 
 const SSlugRouteChildren: SSlugRouteChildren = {
   SSlugAboutRoute: SSlugAboutRoute,
   SSlugContactRoute: SSlugContactRoute,
+  SSlugProductsRoute: SSlugProductsRoute,
 }
 
 const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
