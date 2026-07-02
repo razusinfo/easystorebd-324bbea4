@@ -88,7 +88,7 @@ const initialState: FormState = {
   videoUrl: "",
 };
 
-export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
+export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel, onDuplicate }: Props) {
   const storeQ = useMyStore();
   const store = storeQ.data;
   const productsQ = useMyProducts(store?.id);
@@ -104,17 +104,30 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
     [mode, productId, productsQ.data],
   );
 
+  const sourceForDuplicate = useMemo<ProductRow | undefined>(
+    () => (mode === "new" && duplicateFromId ? productsQ.data?.find((p) => p.id === duplicateFromId) : undefined),
+    [mode, duplicateFromId, productsQ.data],
+  );
+
+  // Hydrate once — either the product being edited, or the product being duplicated as a draft copy.
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    if (mode === "edit" && editing) {
-      setForm((prev) => ({
-        ...prev,
-        name: editing.name,
-        sellPrice: String(editing.price),
-        stock: String(editing.stock),
-        imageUrl: editing.image_url ?? "",
-      }));
+    if (hydrated) return;
+    const src = editing ?? sourceForDuplicate;
+    if (!src) return;
+    setForm((prev) => ({
+      ...prev,
+      name: mode === "new" ? `${src.name} (Copy)` : src.name,
+      sellPrice: String(src.price),
+      stock: String(src.stock),
+      imageUrl: src.image_url ?? "",
+    }));
+    if (mode === "new" && sourceForDuplicate) {
+      toast.success("Duplicated as a new draft — review and save");
     }
-  }, [mode, editing]);
+    setHydrated(true);
+  }, [hydrated, editing, sourceForDuplicate, mode]);
+
 
   const catTree = useMemo<CategoryNode[]>(
     () => buildCategoryTree(categoriesQ.data ?? []),
