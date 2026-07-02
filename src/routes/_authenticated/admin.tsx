@@ -166,6 +166,10 @@ function Admin() {
               {(auditLogs.data ?? []).length}
             </span>
           </TabBtn>
+          <TabBtn active={tab === "customizer"} onClick={() => setTab("customizer")}>
+            <Palette className="h-4 w-4" />
+            UI Customizer
+          </TabBtn>
         </div>
       </div>
 
