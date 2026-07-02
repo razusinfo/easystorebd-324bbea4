@@ -880,6 +880,18 @@ export function usePublicStoreBySlug(slug: string | undefined) {
         .order("created_at", { ascending: false });
       if (pErr) throw pErr;
 
+      // Product images live in a private bucket. Re-sign stored URLs so <img> can load.
+      const signedProducts = await Promise.all(
+        (products ?? []).map(async (p: any) => {
+          const path = extractProductImagePath(p.image_url);
+          if (!path) return p;
+          const { data: sig } = await supabase.storage
+            .from("product-images")
+            .createSignedUrl(path, 60 * 60 * 24 * 7);
+          return { ...p, image_url: sig?.signedUrl ?? null };
+        })
+      );
+
       let logoUrl: string | null = null;
       if (store.logo_url) {
         const { data: signed } = await supabase.storage
@@ -888,7 +900,8 @@ export function usePublicStoreBySlug(slug: string | undefined) {
         logoUrl = signed?.signedUrl ?? null;
       }
 
-      return { store: store as StoreRow, products: (products ?? []) as ProductRow[], logoUrl };
+      return { store: store as StoreRow, products: signedProducts as ProductRow[], logoUrl };
+
     },
   });
 }
