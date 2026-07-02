@@ -101,12 +101,13 @@ function ThemesPage() {
           </div>
           <Link
             to="/theme-builder"
-            className="inline-flex items-center justify-center gap-2 self-start rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white hover:text-violet-700 sm:self-auto"
+            className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-sm font-bold text-white backdrop-blur transition hover:bg-white hover:text-violet-700 sm:self-auto"
           >
             Open Theme Builder <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
+
 
       {/* Header */}
       <header className="mt-8 mb-4">
