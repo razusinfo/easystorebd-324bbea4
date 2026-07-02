@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useCartStore, cartTotal, cartCount, type CartItem } from "@/lib/cart-store";
+import { useCartStore, useStoreCart, cartTotal, cartCount, type CartItem } from "@/lib/cart-store";
 
 type Props = {
   storeId: string;
