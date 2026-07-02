@@ -388,18 +388,20 @@ export function useUpsertProduct(storeId: string | undefined) {
       name: string;
       price: number;
       stock: number;
+      imageUrl?: string | null;
     }) => {
       if (!storeId) throw new Error("No store");
+      const imagePatch = input.imageUrl !== undefined ? { image_url: input.imageUrl } : {};
       if (input.id) {
         const { error } = await supabase
           .from("products")
-          .update({ name: input.name, price: input.price, stock: input.stock, status: "pending" })
+          .update({ name: input.name, price: input.price, stock: input.stock, status: "pending", ...imagePatch })
           .eq("id", input.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("products")
-          .insert({ store_id: storeId, name: input.name, price: input.price, stock: input.stock });
+          .insert({ store_id: storeId, name: input.name, price: input.price, stock: input.stock, ...imagePatch });
         if (error) throw error;
       }
     },
@@ -431,6 +433,77 @@ export function useModerateProduct() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "products"] }),
   });
 }
+
+// Owner-side status change (creates audit log via DB trigger). Optional notes stored via manual log insert.
+export function useUpdateProductStatus(storeId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; status: ProductStatus; notes?: string }) => {
+      const { error } = await supabase
+        .from("products")
+        .update({ status: input.status })
+        .eq("id", input.id);
+      if (error) throw error;
+      if (input.notes && input.notes.trim()) {
+        // Attach note as a follow-up audit row.
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from("product_audit_logs").insert({
+          product_id: input.id,
+          actor_id: user?.id ?? null,
+          action: "note",
+          new_status: input.status,
+          notes: input.notes.trim(),
+        });
+      }
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["products", "by-store", storeId] });
+      qc.invalidateQueries({ queryKey: ["product-audit", v.id] });
+    },
+  });
+}
+
+export function useProductAuditLogs(productId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["product-audit", productId],
+    enabled: !!productId,
+    queryFn: async (): Promise<ProductAuditLog[]> => {
+      const { data, error } = await supabase
+        .from("product_audit_logs")
+        .select("*")
+        .eq("product_id", productId!)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as ProductAuditLog[];
+    },
+  });
+}
+
+// ---------- Product image storage ----------
+
+export async function uploadProductImage(file: File): Promise<{ path: string; publicUrl: string }> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  const path = `${user.id}/product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage
+    .from("product-images")
+    .upload(path, file, { upsert: false, contentType: file.type });
+  if (error) throw error;
+  const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+  return { path, publicUrl: data.publicUrl };
+}
+
+export async function deleteProductImage(publicUrl: string): Promise<void> {
+  const marker = "/product-images/";
+  const idx = publicUrl.indexOf(marker);
+  if (idx === -1) return;
+  const path = publicUrl.slice(idx + marker.length);
+  if (!path) return;
+  await supabase.storage.from("product-images").remove([path]);
+}
+
 
 // ---------- Public storefront ----------
 
