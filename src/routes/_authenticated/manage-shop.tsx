@@ -1300,3 +1300,237 @@ function SocialDialog({ store, onClose }: { store: any; onClose: () => void }) {
     </SectionDialog>
   );
 }
+
+// -------- Page Settings (Home page section builder) --------
+
+type HomeSectionType = "flash_sale" | "categories" | "eid_special" | "custom";
+type HomeSection = {
+  id: string;
+  type: HomeSectionType;
+  title: string;
+  enabled: boolean;
+  content?: string;
+};
+
+const SECTION_PRESETS: { type: HomeSectionType; title: string; icon: React.ComponentType<{ className?: string }>; desc: string }[] = [
+  { type: "flash_sale", title: "Flash Sale", icon: Zap, desc: "Time-limited discounted products." },
+  { type: "categories", title: "Categories", icon: Grid3x3, desc: "Browse products by category." },
+  { type: "eid_special", title: "Eid Special", icon: Sparkles, desc: "Seasonal Eid collection banner." },
+  { type: "custom", title: "Custom Section", icon: Settings2, desc: "Any custom block with your title & content." },
+];
+
+function defaultHomeSections(): HomeSection[] {
+  return [
+    { id: "s-flash", type: "flash_sale", title: "Flash Sale", enabled: true },
+    { id: "s-cats", type: "categories", title: "Categories", enabled: true },
+  ];
+}
+
+function PageSettingsView({ store, onBack }: { store: any; onBack: () => void }) {
+  const update = useUpdateStore();
+  const initial: HomeSection[] =
+    Array.isArray(store.shop_settings?.pages?.home_sections) && store.shop_settings.pages.home_sections.length
+      ? store.shop_settings.pages.home_sections
+      : defaultHomeSections();
+
+  const [sections, setSections] = useState<HomeSection[]>(initial);
+  const [addingType, setAddingType] = useState<HomeSectionType | "">("");
+  const [customTitle, setCustomTitle] = useState("");
+
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= sections.length) return;
+    const next = [...sections];
+    [next[i], next[j]] = [next[j], next[i]];
+    setSections(next);
+  }
+  function remove(i: number) {
+    setSections(sections.filter((_, idx) => idx !== i));
+  }
+  function toggle(i: number) {
+    const next = [...sections];
+    next[i] = { ...next[i], enabled: !next[i].enabled };
+    setSections(next);
+  }
+  function rename(i: number, title: string) {
+    const next = [...sections];
+    next[i] = { ...next[i], title };
+    setSections(next);
+  }
+  function updateContent(i: number, content: string) {
+    const next = [...sections];
+    next[i] = { ...next[i], content };
+    setSections(next);
+  }
+  function add() {
+    if (!addingType) return;
+    const preset = SECTION_PRESETS.find((p) => p.type === addingType)!;
+    const title = addingType === "custom" ? (customTitle.trim() || "Custom Section") : preset.title;
+    setSections([
+      ...sections,
+      { id: `s-${Date.now()}`, type: addingType, title, enabled: true },
+    ]);
+    setAddingType("");
+    setCustomTitle("");
+  }
+
+  async function save() {
+    try {
+      await update.mutateAsync({
+        id: store.id,
+        shop_settings: {
+          ...(store.shop_settings ?? {}),
+          pages: {
+            ...(store.shop_settings?.pages ?? {}),
+            home_sections: sections,
+          },
+        },
+      });
+      toast.success("Page settings saved.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Save failed.");
+    }
+  }
+
+  return (
+    <main className="mx-auto w-full max-w-4xl p-4 md:p-6">
+      <div className="flex items-center gap-3 mb-5">
+        <Button variant="outline" size="icon" onClick={onBack} className="rounded-full h-9 w-9">
+          <X className="h-4 w-4" />
+        </Button>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold">Page Settings</h1>
+          <p className="text-xs text-muted-foreground">Customize the pages your customers see.</p>
+        </div>
+      </div>
+
+      <section className="rounded-xl border bg-card p-5">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-semibold">Home Page Settings</h2>
+          <Button size="sm" onClick={save} disabled={update.isPending}>
+            {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Save
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Add sections like Flash Sale, Categories, Eid Special or a custom block. Use the arrows to move a section up or down.
+        </p>
+
+        <div className="space-y-2">
+          {sections.length === 0 && (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              No sections yet. Add one below.
+            </div>
+          )}
+          {sections.map((s, i) => {
+            const preset = SECTION_PRESETS.find((p) => p.type === s.type)!;
+            const Icon = preset.icon;
+            return (
+              <div key={s.id} className="rounded-lg border bg-background p-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col">
+                    <button
+                      type="button"
+                      onClick={() => move(i, -1)}
+                      disabled={i === 0}
+                      className="h-6 w-6 grid place-items-center rounded hover:bg-muted disabled:opacity-30"
+                      aria-label="Move up"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => move(i, 1)}
+                      disabled={i === sections.length - 1}
+                      className="h-6 w-6 grid place-items-center rounded hover:bg-muted disabled:opacity-30"
+                      aria-label="Move down"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="h-9 w-9 shrink-0 grid place-items-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Input
+                      value={s.title}
+                      onChange={(e) => rename(i, e.target.value)}
+                      className="h-8"
+                    />
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      #{i + 1} · {preset.title}
+                    </div>
+                  </div>
+                  <Switch checked={s.enabled} onCheckedChange={() => toggle(i)} />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => remove(i)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    aria-label="Remove section"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                {s.type === "custom" && (
+                  <Textarea
+                    value={s.content ?? ""}
+                    onChange={(e) => updateContent(i, e.target.value)}
+                    placeholder="Write the content for this custom section…"
+                    className="mt-3"
+                    rows={3}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 rounded-lg border border-dashed p-4">
+          <div className="text-sm font-semibold mb-2 flex items-center gap-2">
+            <Plus className="h-4 w-4" /> Add a new section
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {SECTION_PRESETS.map((p) => {
+              const Icon = p.icon;
+              const selected = addingType === p.type;
+              return (
+                <button
+                  key={p.type}
+                  type="button"
+                  onClick={() => setAddingType(p.type)}
+                  className={`text-left rounded-lg border p-3 flex items-start gap-2 transition-colors ${
+                    selected ? "border-primary bg-primary/5" : "hover:border-primary/40"
+                  }`}
+                >
+                  <div className="h-8 w-8 grid place-items-center rounded-md bg-primary/10 text-primary shrink-0">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium">{p.title}</div>
+                    <div className="text-[11px] text-muted-foreground line-clamp-2">{p.desc}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {addingType === "custom" && (
+            <div className="mt-3">
+              <Label className="text-xs">Section title</Label>
+              <Input
+                value={customTitle}
+                onChange={(e) => setCustomTitle(e.target.value)}
+                placeholder="e.g. New Arrivals"
+              />
+            </div>
+          )}
+          <div className="mt-3 flex justify-end">
+            <Button size="sm" onClick={add} disabled={!addingType}>
+              <Plus className="h-4 w-4" /> Add section
+            </Button>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
