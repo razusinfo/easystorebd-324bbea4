@@ -510,14 +510,14 @@ export function useUpsertProduct(storeId: string | undefined) {
 
       let productId: string;
       if (input.id) {
-        const { error } = await supabase.from("products").update(payload).eq("id", input.id);
+        const { error } = await supabase.from("products").update(payload as never).eq("id", input.id);
         if (error) throw error;
         productId = input.id;
       } else {
         payload.store_id = storeId;
         const { data, error } = await supabase
           .from("products")
-          .insert(payload)
+          .insert(payload as never)
           .select("id")
           .single();
         if (error) throw error;
