@@ -4,7 +4,9 @@ import {
   Store as StoreIcon, Loader2, Globe, FileText, Truck, Landmark, BarChart3,
   MessageSquare, MessageCircle, Share2, Save, Check, Copy, ExternalLink,
   Upload, Trash2, Rocket, X, ArrowLeft, Lock, Pencil,
+  LayoutList, ChevronUp, ChevronDown, Plus, Zap, Grid3x3, Sparkles, Settings2,
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 import {
