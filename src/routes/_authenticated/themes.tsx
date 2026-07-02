@@ -236,8 +236,11 @@ function ThemesPage() {
             </button>
           </div>
           <div className="relative h-72 overflow-hidden bg-neutral-100">
-            <TemplateThumbnail id={activeTemplate.id} gradient={activeTemplate.gradient} accent={activeAccent} />
+            <ThumbnailBoundary panel>
+              <TemplateThumbnail id={activeTemplate.id} gradient={activeTemplate.gradient} accent={activeAccent} />
+            </ThumbnailBoundary>
           </div>
+
         </div>
       </div>
 
