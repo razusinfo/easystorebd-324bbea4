@@ -134,6 +134,12 @@ export type ShopSettings = {
       max_height?: 32 | 40 | 48 | 56 | 64 | 80 | 96;
       align?: "left" | "center" | "right";
     };
+    store_name?: {
+      font?: "hero" | "display" | "sans" | "serif" | "mono";
+      size?: number; // px, mobile size; desktop scales +4
+      gradient_from?: string; // css color
+      gradient_to?: string; // css color
+    };
   };
 };
 
@@ -148,6 +154,35 @@ export function logoAlignClass(settings?: ShopSettings | null): string {
   if (a === "right") return "justify-end";
   return "justify-start";
 }
+
+const STORE_NAME_FONT_MAP: Record<string, string> = {
+  hero: 'var(--font-hero), "Archivo Black", sans-serif',
+  display: 'var(--font-display), "Space Grotesk", sans-serif',
+  sans: 'var(--font-sans), "Hind Siliguri", sans-serif',
+  serif: '"Instrument Serif", ui-serif, Georgia, serif',
+  mono: '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
+};
+
+export function storeNameStyle(settings?: ShopSettings | null, opts?: { desktop?: boolean }): CSSProperties {
+  const s = settings?.pages?.store_name ?? {};
+  const font = STORE_NAME_FONT_MAP[s.font ?? "hero"] ?? STORE_NAME_FONT_MAP.hero;
+  const baseSize = s.size ?? 20;
+  const size = opts?.desktop ? baseSize + 6 : baseSize;
+  const from = s.gradient_from ?? "#059669";
+  const to = s.gradient_to ?? "#f59e0b";
+  return {
+    fontFamily: font,
+    fontSize: `${size}px`,
+    lineHeight: 1.1,
+    fontWeight: 900,
+    letterSpacing: "0.02em",
+    backgroundImage: `linear-gradient(135deg, ${from} 0%, ${to} 100%)`,
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    color: "transparent",
+  };
+}
+
 
 
 // Tailwind grid-cols map (must be literal strings so Tailwind can detect them).
