@@ -63,17 +63,16 @@ export const useCartStore = create<CartState>()(
           ? ({ getItem: () => null, setItem: () => {}, removeItem: () => {} } as unknown as Storage)
           : window.localStorage
       ),
-      skipHydration: false,
+      // Persist ONLY the carts field so action refs are never overwritten on rehydrate.
+      partialize: (state) => ({ carts: state.carts }),
     }
-
   )
 );
 
 const EMPTY: CartItem[] = [];
-export function useStoreCart(storeId: string | undefined) {
-  return useCartStore((s) => (storeId ? s.carts[storeId] ?? EMPTY : EMPTY));
+export function useStoreCart(storeId: string | undefined): CartItem[] {
+  return useCartStore((s) => (storeId && s.carts[storeId]) || EMPTY);
 }
-
 
 export function cartTotal(items: CartItem[]): number {
   return items.reduce((sum, i) => sum + i.price * i.qty, 0);
