@@ -60,7 +60,7 @@ export const useCartStore = create<CartState>()(
       // SSR-safe: only reach localStorage in the browser.
       storage: createJSONStorage(() =>
         typeof window === "undefined"
-          ? ({ getItem: () => null, setItem: () => {}, removeItem: () => {} } as Storage)
+          ? ({ getItem: () => null, setItem: () => {}, removeItem: () => {} } as unknown as Storage)
           : window.localStorage
       ),
       skipHydration: false,
