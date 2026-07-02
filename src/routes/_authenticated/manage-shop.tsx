@@ -1336,6 +1336,13 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
   const [sections, setSections] = useState<HomeSection[]>(initial);
   const [addingType, setAddingType] = useState<HomeSectionType | "">("");
   const [customTitle, setCustomTitle] = useState("");
+  const [mobileCols, setMobileCols] = useState<number>(
+    store.shop_settings?.pages?.product_grid?.mobile ?? 2,
+  );
+  const [desktopCols, setDesktopCols] = useState<number>(
+    store.shop_settings?.pages?.product_grid?.desktop ?? 4,
+  );
+
 
   function move(i: number, dir: -1 | 1) {
     const j = i + dir;
@@ -1383,6 +1390,7 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
           pages: {
             ...(store.shop_settings?.pages ?? {}),
             home_sections: sections,
+            product_grid: { mobile: mobileCols as 1 | 2 | 3, desktop: desktopCols as 2 | 3 | 4 | 5 | 6 },
           },
         },
       });
@@ -1391,6 +1399,7 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
       toast.error(e?.message ?? "Save failed.");
     }
   }
+
 
   return (
     <main className="mx-auto w-full max-w-4xl p-4 md:p-6">
@@ -1531,6 +1540,40 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
           </div>
         </div>
       </section>
+
+      <section className="mt-5 rounded-xl border bg-card p-5">
+        <h2 className="font-semibold mb-1">Product Grid Layout</h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Choose how many products appear per row on mobile and desktop. Tablet size adapts automatically.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Mobile columns</Label>
+            <Select value={String(mobileCols)} onValueChange={(v) => setMobileCols(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 per row</SelectItem>
+                <SelectItem value="2">2 per row</SelectItem>
+                <SelectItem value="3">3 per row</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Desktop columns</Label>
+            <Select value={String(desktopCols)} onValueChange={(v) => setDesktopCols(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2 per row</SelectItem>
+                <SelectItem value="3">3 per row</SelectItem>
+                <SelectItem value="4">4 per row</SelectItem>
+                <SelectItem value="5">5 per row</SelectItem>
+                <SelectItem value="6">6 per row</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </section>
     </main>
+
   );
 }

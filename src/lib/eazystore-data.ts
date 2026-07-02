@@ -124,8 +124,41 @@ export type ShopSettings = {
       enabled: boolean;
       content?: string;
     }[];
+    product_grid?: {
+      mobile?: 1 | 2 | 3;
+      desktop?: 2 | 3 | 4 | 5 | 6;
+    };
   };
 };
+
+// Tailwind grid-cols map (must be literal strings so Tailwind can detect them).
+const MOBILE_COL_CLASS: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+};
+const DESKTOP_COL_CLASS: Record<number, string> = {
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+  5: "lg:grid-cols-5",
+  6: "lg:grid-cols-6",
+};
+const MD_COL_CLASS: Record<number, string> = {
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-3",
+  4: "md:grid-cols-4",
+  5: "md:grid-cols-4",
+  6: "md:grid-cols-5",
+};
+
+export function productGridClass(settings?: ShopSettings | null): string {
+  const m = settings?.pages?.product_grid?.mobile ?? 2;
+  const d = settings?.pages?.product_grid?.desktop ?? 4;
+  const sm = d >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2";
+  return `grid gap-3 sm:gap-4 ${MOBILE_COL_CLASS[m] ?? "grid-cols-2"} ${sm} ${MD_COL_CLASS[d] ?? "md:grid-cols-4"} ${DESKTOP_COL_CLASS[d] ?? "lg:grid-cols-4"}`;
+}
+
 
 
 export type StoreRow = {

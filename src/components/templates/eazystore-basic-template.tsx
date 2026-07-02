@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
-import { DEFAULT_FOOTER } from "@/lib/eazystore-data";
+import { DEFAULT_FOOTER, productGridClass } from "@/lib/eazystore-data";
+
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CustomerAuth } from "@/components/storefront/customer-auth";
@@ -329,7 +330,7 @@ export function EazyStoreBasicTemplate({
                 No products match{search ? ` "${search}"` : ""}{activeCat !== "All Products" ? ` in ${activeCat}` : ""}.
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              <div className={productGridClass(store?.shop_settings)}>
                 {gridProducts.map((p, i) => (
                   <ProductCard
                     key={p.id ?? i}
