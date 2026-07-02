@@ -135,6 +135,8 @@ export type StoreSettings = {
   whatsapp_number?: string | null;
   website_url?: string | null;
   shop_settings?: ShopSettings;
+  custom_domain?: string | null;
+  plan_tier?: string;
 };
 
 
