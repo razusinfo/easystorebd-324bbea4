@@ -741,17 +741,43 @@ export async function uploadProductImage(file: File): Promise<{ path: string; pu
   if (!user) throw new Error("Not signed in");
   const ext = (file.name.split(".").pop() || "png").toLowerCase();
   const path = `${user.id}/product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await supabase.storage
+
+  const { error: upErr } = await supabase.storage
     .from("product-images")
     .upload(path, file, { upsert: false, contentType: file.type });
-  if (error) throw error;
-  // Bucket is private; use a long-lived signed URL (~10 years) so <img> can load it.
+  if (upErr) throw upErr;
+  console.log("[uploadProductImage] uploaded to path:", path);
+
+  // Validate the object actually exists in the bucket.
+  const dir = path.slice(0, path.lastIndexOf("/"));
+  const fname = path.slice(path.lastIndexOf("/") + 1);
+  const { data: listed, error: listErr } = await supabase.storage
+    .from("product-images")
+    .list(dir, { search: fname, limit: 1 });
+  if (listErr) throw listErr;
+  if (!listed?.some((o) => o.name === fname)) {
+    throw new Error("Upload verification failed: object not found in bucket");
+  }
+  console.log("[uploadProductImage] verified object exists:", fname);
+
+  // Bucket is private; sign a long-lived URL (~10y) so <img> can load it.
   const { data: signed, error: signErr } = await supabase.storage
     .from("product-images")
     .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
   if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Failed to sign image URL");
+
+  // Best-effort HEAD to confirm the signed URL is fetchable.
+  try {
+    const head = await fetch(signed.signedUrl, { method: "HEAD" });
+    console.log("[uploadProductImage] signed URL HEAD status:", head.status);
+    if (!head.ok) console.warn("[uploadProductImage] signed URL not reachable:", head.status);
+  } catch (e) {
+    console.warn("[uploadProductImage] HEAD check failed:", e);
+  }
+
   return { path, publicUrl: signed.signedUrl };
 }
+
 
 export async function deleteProductImage(publicUrl: string): Promise<void> {
   const marker = "/product-images/";
