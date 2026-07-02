@@ -154,7 +154,7 @@ export function BdLoveTemplate({
                 return (
                   <li key={c}>
                     <a
-                      href={whatsappHref}
+                      href="#"
                       className={
                         active
                           ? "acc-bg block rounded-xl px-4 py-3 text-sm font-bold text-white"
@@ -224,7 +224,7 @@ export function BdLoveTemplate({
                 return (
                   <li key={c}>
                     <a
-                      href={whatsappHref}
+                      href="#"
                       onClick={() => setMobileCatsOpen(false)}
                       className={
                         active
