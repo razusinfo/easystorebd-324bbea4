@@ -167,11 +167,43 @@ export function useMyProducts(storeId: string | undefined) {
     queryFn: async (): Promise<ProductRow[]> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, store_id, name, price, stock, status, image_url, created_at")
+        .select("*")
         .eq("store_id", storeId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ProductRow[];
+    },
+  });
+}
+
+export function useProductVariants(productId: string | undefined) {
+  return useQuery({
+    queryKey: ["product-variants", productId],
+    enabled: !!productId,
+    queryFn: async (): Promise<ProductVariantRow[]> => {
+      const { data, error } = await supabase
+        .from("product_variants")
+        .select("*")
+        .eq("product_id", productId!)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ProductVariantRow[];
+    },
+  });
+}
+
+export function useProductDetails(productId: string | undefined) {
+  return useQuery({
+    queryKey: ["product-details", productId],
+    enabled: !!productId,
+    queryFn: async (): Promise<ProductDetailRow[]> => {
+      const { data, error } = await supabase
+        .from("product_details")
+        .select("*")
+        .eq("product_id", productId!)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ProductDetailRow[];
     },
   });
 }
