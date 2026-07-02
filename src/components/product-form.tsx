@@ -211,6 +211,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       toast.error("Please fix the highlighted fields");
       return;
     }
+    const numOrNull = (s: string) => (s === "" ? null : Number(s));
     try {
       await upsert.mutateAsync({
         id: editing?.id,
@@ -218,6 +219,26 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         price: Number(form.sellPrice),
         stock: Number(form.stock || "0"),
         imageUrl: form.imageUrl || null,
+        shortDescription: form.shortDescription.trim() || null,
+        description: form.description.trim() || null,
+        categoryId: form.categoryId || null,
+        brand: form.brand.trim() || null,
+        condition: form.condition,
+        weightKg: numOrNull(form.weightKg),
+        lengthCm: numOrNull(form.lengthCm),
+        widthCm: numOrNull(form.widthCm),
+        heightCm: numOrNull(form.heightCm),
+        regularPrice: numOrNull(form.regularPrice),
+        buyingPrice: numOrNull(form.buyingPrice),
+        sku: form.sku.trim() || null,
+        unitName: form.unitName.trim() || null,
+        productSerial: form.productSerial.trim() || null,
+        warranty: form.warranty.trim() || null,
+        initialSoldCount: Number(form.initialSoldCount || "0"),
+        useDefaultDelivery: form.useDefaultDelivery,
+        videoUrl: form.videoUrl.trim() || null,
+        variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
+        details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
       toast.success(mode === "edit" ? "Product updated" : "Product added");
       onDone();
