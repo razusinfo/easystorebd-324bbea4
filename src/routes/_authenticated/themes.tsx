@@ -323,6 +323,18 @@ function CustomizeDialog({
   const [categoryId, setCategoryId] = useState<string | null>(initial.defaultCategoryId ?? null);
   const [featured, setFeatured] = useState<string[]>(initial.featuredProductIds ?? []);
   const [uploading, setUploading] = useState(false);
+  const [footer, setFooter] = useState<Required<FooterSettings>>({
+    showNav: initial.footer?.showNav ?? DEFAULT_FOOTER.showNav,
+    navLinks: initial.footer?.navLinks ?? DEFAULT_FOOTER.navLinks,
+    showSocials: initial.footer?.showSocials ?? DEFAULT_FOOTER.showSocials,
+    socials: initial.footer?.socials ?? DEFAULT_FOOTER.socials,
+    showCopyright: initial.footer?.showCopyright ?? DEFAULT_FOOTER.showCopyright,
+  });
+  const toggleFooterLink = (label: string) =>
+    setFooter((f) => ({ ...f, navLinks: f.navLinks.map((l) => l.label === label ? { ...l, enabled: !l.enabled } : l) }));
+  const toggleFooterSocial = (key: FooterSocialKey) =>
+    setFooter((f) => ({ ...f, socials: f.socials.map((s) => s.key === key ? { ...s, enabled: !s.enabled } : s) }));
+
 
   const logoSigned = useSignedLogoUrl(logoPath);
 
