@@ -6,6 +6,7 @@ import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data"
 import { DEFAULT_FOOTER } from "@/lib/eazystore-data";
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
+import { CustomerAuth } from "@/components/storefront/customer-auth";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
