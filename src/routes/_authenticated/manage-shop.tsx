@@ -95,6 +95,9 @@ function ManageShopPage() {
   if (open === "settings") {
     return <ShopSettingsView store={store} onBack={() => setOpen(null)} />;
   }
+  if (open === "domain") {
+    return <ShopDomainView store={store} onBack={() => setOpen(null)} />;
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl p-4 md:p-6">
