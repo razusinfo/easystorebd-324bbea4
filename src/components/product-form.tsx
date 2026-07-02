@@ -102,6 +102,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   const productsQ = useMyProducts(store?.id);
   const categoriesQ = useCategories(store?.id);
   const upsert = useUpsertProduct(store?.id);
+  const queryClient = useQueryClient();
+
 
   const [form, setForm] = useState<FormState>(initialState);
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
