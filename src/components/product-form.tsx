@@ -113,24 +113,52 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     [mode, duplicateFromId, productsQ.data],
   );
 
+  // Load variants/details for the source product (edit target or duplicate source)
+  const sourceId = editing?.id ?? sourceForDuplicate?.id;
+  const variantsQ = useProductVariants(sourceId);
+  const detailsQ = useProductDetails(sourceId);
+
   // Hydrate once — either the product being edited, or the product being duplicated as a draft copy.
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     if (hydrated) return;
     const src = editing ?? sourceForDuplicate;
     if (!src) return;
+    // Wait until variants/details finish loading so we hydrate everything together.
+    if (variantsQ.isLoading || detailsQ.isLoading) return;
     setForm((prev) => ({
       ...prev,
       name: mode === "new" ? `${src.name} (Copy)` : src.name,
+      shortDescription: src.short_description ?? "",
+      description: src.description ?? "",
+      weightKg: src.weight_kg != null ? String(src.weight_kg) : "",
+      lengthCm: src.length_cm != null ? String(src.length_cm) : "",
+      widthCm: src.width_cm != null ? String(src.width_cm) : "",
+      heightCm: src.height_cm != null ? String(src.height_cm) : "",
+      status: src.status === "inactive" ? "inactive" : "active",
+      brand: src.brand ?? "",
+      condition: (src.condition as FormState["condition"]) ?? "new",
+      categoryId: src.category_id ?? "",
       sellPrice: String(src.price),
+      regularPrice: src.regular_price != null ? String(src.regular_price) : "",
+      buyingPrice: src.buying_price != null ? String(src.buying_price) : "",
+      productSerial: src.product_serial ?? "0",
+      sku: src.sku ?? "",
+      unitName: src.unit_name ?? "",
       stock: String(src.stock),
+      warranty: src.warranty ?? "",
+      initialSoldCount: src.initial_sold_count != null ? String(src.initial_sold_count) : "0",
+      useDefaultDelivery: src.use_default_delivery ?? true,
+      variants: (variantsQ.data ?? []).map((v) => ({ id: v.id, name: v.name, value: v.value })),
+      details: (detailsQ.data ?? []).map((d) => ({ id: d.id, key: d.key, value: d.value })),
       imageUrl: src.image_url ?? "",
+      videoUrl: src.video_url ?? "",
     }));
     if (mode === "new" && sourceForDuplicate) {
       toast.success("Duplicated as a new draft — review and save");
     }
     setHydrated(true);
-  }, [hydrated, editing, sourceForDuplicate, mode]);
+  }, [hydrated, editing, sourceForDuplicate, mode, variantsQ.data, variantsQ.isLoading, detailsQ.data, detailsQ.isLoading]);
 
 
   const catTree = useMemo<CategoryNode[]>(
