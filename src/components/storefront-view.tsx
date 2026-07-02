@@ -2,6 +2,7 @@ import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe
 import { TEMPLATES, usePublicStoreBySlug, getTemplateSettings } from "@/lib/eazystore-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
+import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -82,6 +83,19 @@ export function StorefrontView({ slug }: { slug: string }) {
       />
     );
   }
+
+  if (s.template === "eazystore-basic") {
+    return (
+      <EazyStoreBasicTemplate
+        store={s}
+        products={orderedProducts}
+        logoUrl={effectiveLogo}
+        accentColor={settings.accentColor}
+        defaultCategoryName={settings.defaultCategoryName}
+      />
+    );
+  }
+
 
   const t = TEMPLATES.find((x) => x.id === s.template) ?? TEMPLATES[0];
   const dark = s.template === "minimal" || s.template === "techgrid" || s.template === "luxe";

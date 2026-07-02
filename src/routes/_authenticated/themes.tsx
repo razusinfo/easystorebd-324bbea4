@@ -10,6 +10,7 @@ import {
 import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
+import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -563,6 +564,14 @@ function LivePreviewModal({
           />
         ) : id === "bdlove" ? (
           <BdLoveTemplate
+            demo={orderedProducts.length === 0}
+            products={orderedProducts.length ? orderedProducts : undefined}
+            logoUrl={logoSigned}
+            accentColor={accent}
+            defaultCategoryName={settings.defaultCategoryName}
+          />
+        ) : id === "eazystore-basic" ? (
+          <EazyStoreBasicTemplate
             demo={orderedProducts.length === 0}
             products={orderedProducts.length ? orderedProducts : undefined}
             logoUrl={logoSigned}
