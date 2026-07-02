@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 
 export type CartItem = {
   productId: string;
@@ -9,7 +8,6 @@ export type CartItem = {
   qty: number;
 };
 
-// Cart is scoped per-store so each storefront has its own basket.
 type CartMap = Record<string, CartItem[]>;
 
 type CartState = {
@@ -20,54 +18,64 @@ type CartState = {
   clear: (storeId: string) => void;
 };
 
-export const useCartStore = create<CartState>()(
-  persist(
-    (set) => ({
-      carts: {},
-      add: (storeId, item, qty = 1) =>
-        set((state) => {
-          const cart = state.carts[storeId] ?? [];
-          const idx = cart.findIndex((i) => i.productId === item.productId);
-          const next =
-            idx >= 0
-              ? cart.map((it, i) => (i === idx ? { ...it, qty: it.qty + qty } : it))
-              : [...cart, { ...item, qty }];
-          return { carts: { ...state.carts, [storeId]: next } };
-        }),
-      setQty: (storeId, productId, qty) =>
-        set((state) => {
-          const cart = state.carts[storeId] ?? [];
-          const next = qty <= 0
-            ? cart.filter((i) => i.productId !== productId)
-            : cart.map((i) => (i.productId === productId ? { ...i, qty } : i));
-          return { carts: { ...state.carts, [storeId]: next } };
-        }),
-      remove: (storeId, productId) =>
-        set((state) => {
-          const cart = state.carts[storeId] ?? [];
-          return {
-            carts: {
-              ...state.carts,
-              [storeId]: cart.filter((i) => i.productId !== productId),
-            },
-          };
-        }),
-      clear: (storeId) =>
-        set((state) => ({ carts: { ...state.carts, [storeId]: [] } })),
+const STORAGE_KEY = "eazystore-cart-v1";
+
+function loadInitial(): CartMap {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as CartMap) : {};
+  } catch { return {}; }
+}
+
+function saveCarts(carts: CartMap) {
+  if (typeof window === "undefined") return;
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(carts)); } catch { /* ignore */ }
+}
+
+export const useCartStore = create<CartState>((set) => ({
+  carts: loadInitial(),
+  add: (storeId, item, qty = 1) =>
+    set((state) => {
+      const cart = state.carts[storeId] ?? [];
+      const idx = cart.findIndex((i) => i.productId === item.productId);
+      const next =
+        idx >= 0
+          ? cart.map((it, i) => (i === idx ? { ...it, qty: it.qty + qty } : it))
+          : [...cart, { ...item, qty }];
+      const carts = { ...state.carts, [storeId]: next };
+      saveCarts(carts);
+      return { carts };
     }),
-    {
-      name: "eazystore-cart-v1",
-      // SSR-safe: only reach localStorage in the browser.
-      storage: createJSONStorage(() =>
-        typeof window === "undefined"
-          ? ({ getItem: () => null, setItem: () => {}, removeItem: () => {} } as unknown as Storage)
-          : window.localStorage
-      ),
-      // Persist ONLY the carts field so action refs are never overwritten on rehydrate.
-      partialize: (state) => ({ carts: state.carts }),
-    }
-  )
-);
+  setQty: (storeId, productId, qty) =>
+    set((state) => {
+      const cart = state.carts[storeId] ?? [];
+      const nextCart = qty <= 0
+        ? cart.filter((i) => i.productId !== productId)
+        : cart.map((i) => (i.productId === productId ? { ...i, qty } : i));
+      const carts = { ...state.carts, [storeId]: nextCart };
+      saveCarts(carts);
+      return { carts };
+    }),
+  remove: (storeId, productId) =>
+    set((state) => {
+      const cart = state.carts[storeId] ?? [];
+      const carts = {
+        ...state.carts,
+        [storeId]: cart.filter((i) => i.productId !== productId),
+      };
+      saveCarts(carts);
+      return { carts };
+    }),
+  clear: (storeId) =>
+    set((state) => {
+      const carts = { ...state.carts, [storeId]: [] };
+      saveCarts(carts);
+      return { carts };
+    }),
+}));
 
 const EMPTY: CartItem[] = [];
 export function useStoreCart(storeId: string | undefined): CartItem[] {
