@@ -414,21 +414,155 @@ function CtaBanner() {
   );
 }
 
-/* ---------------- Footer ---------------- */
+/* ---------------- Footer (Zatiq-style) ---------------- */
 
 function Footer() {
   return (
-    <footer className="border-t border-emerald-100 bg-emerald-50/40">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-6 text-sm text-slate-600 sm:flex-row sm:px-8">
-        <div className="flex items-center gap-2">
-          <div className="gradient-landing-brand grid h-7 w-7 place-items-center rounded-lg text-white">
-            <Store className="h-4 w-4" />
+    <footer className="bg-gradient-to-b from-emerald-50 via-white to-emerald-50/60 px-4 pb-10 pt-16 sm:px-8">
+      {/* Tagline */}
+      <p className="mx-auto max-w-4xl text-center font-hero text-2xl leading-snug tracking-tight text-slate-900 sm:text-4xl">
+        Easily take your business online with{" "}
+        <span className="font-hero italic text-landing-accent">EazyStore</span> in just one click.
+      </p>
+
+      {/* Main card */}
+      <div className="mx-auto mt-10 max-w-6xl rounded-3xl bg-white p-6 shadow-[0_10px_40px_-15px_rgba(16,185,129,0.25)] ring-1 ring-emerald-100 sm:p-10">
+        <div className="grid gap-10 md:grid-cols-4">
+          {/* Brand */}
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="gradient-landing-brand grid h-9 w-9 place-items-center rounded-xl text-white shadow-md">
+                <Store className="h-5 w-5" />
+              </div>
+              <span className="font-hero text-lg text-slate-900">
+                eazy<span className="text-landing-accent">store</span>
+              </span>
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-slate-600">
+              Launch and manage your online store with a beautiful storefront, powerful dashboard
+              and local payments — built for modern merchants.
+            </p>
           </div>
-          <span className="font-hero text-slate-900">EazyStore</span>
-          <span className="text-slate-400">© {new Date().getFullYear()}</span>
+
+          {/* General */}
+          <FooterCol title="General">
+            <FooterLink to="/">Home</FooterLink>
+            <FooterAnchor href="#pricing">Pricing</FooterAnchor>
+            <FooterAnchor href="#features">About Us</FooterAnchor>
+          </FooterCol>
+
+          {/* Company */}
+          <FooterCol title="Company">
+            <FooterAnchor href="#contact">Contact Us</FooterAnchor>
+            <FooterAnchor href="#terms">Terms &amp; Conditions</FooterAnchor>
+            <FooterAnchor href="#privacy">Privacy Policy</FooterAnchor>
+            <FooterAnchor href="#refund">Return and Refund Policy</FooterAnchor>
+          </FooterCol>
+
+          {/* Partner Program */}
+          <FooterCol title="Partner Program">
+            <p className="text-sm text-slate-600">Earn up to 15% recurring commission</p>
+            <a
+              href="#partner"
+              className="text-landing-accent hover:text-landing-accent-hover mt-2 inline-flex items-center gap-1.5 text-sm font-semibold"
+            >
+              Become A Partner
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </FooterCol>
         </div>
-        <p>Built for merchants who move fast. Cash on Delivery, bKash &amp; Nagad ready.</p>
+
+        {/* Address / Follow us */}
+        <div className="mt-10 grid gap-8 rounded-2xl bg-emerald-50/70 p-6 sm:p-8 md:grid-cols-2">
+          <div>
+            <h4 className="font-hero text-base text-slate-900">Address</h4>
+            <ul className="mt-4 space-y-3 text-sm text-slate-700">
+              <li className="flex items-center gap-3">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-landing-accent shadow-sm">
+                  <Phone className="h-4 w-4" />
+                </span>
+                +880 1969 909069
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-landing-accent shadow-sm">
+                  <Mail className="h-4 w-4" />
+                </span>
+                info@eazystore.xyz
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-landing-accent shadow-sm">
+                  <MapPin className="h-4 w-4" />
+                </span>
+                Dhaka, Bangladesh
+              </li>
+            </ul>
+          </div>
+
+          <div className="md:text-right">
+            <h4 className="font-hero text-base text-slate-900">Follow Us</h4>
+            <div className="mt-4 flex gap-3 md:justify-end">
+              <SocialIcon href="#" label="Facebook"><Facebook className="h-4 w-4" /></SocialIcon>
+              <SocialIcon href="#" label="YouTube"><Youtube className="h-4 w-4" /></SocialIcon>
+              <SocialIcon href="#" label="Instagram"><Instagram className="h-4 w-4" /></SocialIcon>
+              <SocialIcon href="#" label="LinkedIn"><Linkedin className="h-4 w-4" /></SocialIcon>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider + copyright */}
+        <div className="mt-8 border-t border-emerald-100 pt-6 text-center text-sm text-slate-500">
+          Copyright © 2022–{new Date().getFullYear()} EazyStore. All rights reserved.
+        </div>
       </div>
     </footer>
+  );
+}
+
+function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h4 className="font-hero text-base text-slate-900">{title}</h4>
+      <ul className="mt-4 space-y-3 text-sm text-slate-600">{children}</ul>
+    </div>
+  );
+}
+
+function FooterLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <li>
+      <Link to={to} className="hover:text-landing-accent transition">
+        {children}
+      </Link>
+    </li>
+  );
+}
+
+function FooterAnchor({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <li>
+      <a href={href} className="hover:text-landing-accent transition">
+        {children}
+      </a>
+    </li>
+  );
+}
+
+function SocialIcon({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      aria-label={label}
+      className="text-landing-accent hover:bg-landing-accent grid h-9 w-9 place-items-center rounded-full bg-white shadow-sm ring-1 ring-emerald-100 transition hover:text-white"
+    >
+      {children}
+    </a>
   );
 }
