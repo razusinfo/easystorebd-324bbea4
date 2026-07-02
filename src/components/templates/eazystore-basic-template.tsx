@@ -139,7 +139,7 @@ export function EazyStoreBasicTemplate({
   const accent = accentColor || "#5B21B6";
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
 
-  const cartItems: CartItem[] = useCartStore((s) => (storeId ? s.carts[storeId] ?? [] : []));
+  const cartItems: CartItem[] = useStoreCart(storeId);
   const addToCart = useCartStore((s) => s.add);
   const badgeCount = cartCount(cartItems);
 
