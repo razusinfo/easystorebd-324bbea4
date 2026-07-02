@@ -457,7 +457,15 @@ export function EazyStoreBasicTemplate({
         </svg>
       </a>
 
-      {/* CartDrawer temporarily disabled for isolation */}
+      {storeId && (
+        <CartDrawer
+          storeId={storeId}
+          storeName={name}
+          open={cartOpen}
+          onOpenChange={setCartOpen}
+        />
+      )}
+
 
 
     </div>
