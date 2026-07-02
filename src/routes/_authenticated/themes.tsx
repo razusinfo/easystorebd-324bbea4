@@ -570,6 +570,14 @@ function LivePreviewModal({
             accentColor={accent}
             defaultCategoryName={settings.defaultCategoryName}
           />
+        ) : id === "eazystore-basic" ? (
+          <EazyStoreBasicTemplate
+            demo={orderedProducts.length === 0}
+            products={orderedProducts.length ? orderedProducts : undefined}
+            logoUrl={logoSigned}
+            accentColor={accent}
+            defaultCategoryName={settings.defaultCategoryName}
+          />
         ) : (
           <PlaceholderPreview id={id} accent={accent} />
         )}
