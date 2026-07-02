@@ -961,7 +961,7 @@ export function usePublicStoreBySlug(slug: string | undefined) {
         logoUrl = signed?.signedUrl ?? null;
       }
 
-      return { store: store as StoreRow, products: signedProducts as ProductRow[], logoUrl };
+      return { store: store as StoreRow, products: signedProducts as ProductRow[], logoUrl, categories };
 
     },
   });
