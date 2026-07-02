@@ -132,7 +132,7 @@ export function useMyProducts(storeId: string | undefined) {
     queryFn: async (): Promise<ProductRow[]> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, store_id, name, price, stock, status, created_at")
+        .select("id, store_id, name, price, stock, status, image_url, created_at")
         .eq("store_id", storeId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -179,7 +179,7 @@ export function useAdminProducts() {
     queryFn: async (): Promise<ProductRow[]> => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, store_id, name, price, stock, status, created_at")
+        .select("id, store_id, name, price, stock, status, image_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ProductRow[];
@@ -541,7 +541,7 @@ export function usePublicStoreBySlug(slug: string | undefined) {
 
       const { data: products, error: pErr } = await supabase
         .from("products")
-        .select("id, store_id, name, price, stock, status, created_at")
+        .select("id, store_id, name, price, stock, status, image_url, created_at")
         .eq("store_id", store.id)
         .eq("status", "approved")
         .order("created_at", { ascending: false });
