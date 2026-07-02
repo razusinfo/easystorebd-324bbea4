@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { usePublicStoreBySlug } from "@/lib/eazystore-data";
+import { usePublicStoreBySlug, productGridClass } from "@/lib/eazystore-data";
 import { StorefrontPage } from "@/components/storefront/storefront-page";
+
 
 export const Route = createFileRoute("/s/$slug/products")({
   head: ({ params }) => ({
