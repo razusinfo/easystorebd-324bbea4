@@ -20,7 +20,7 @@ type Props = {
 };
 
 export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
-  const items: CartItem[] = useCartStore((s) => s.carts[storeId] ?? []);
+  const items: CartItem[] = useStoreCart(storeId);
   const setQty = useCartStore((s) => s.setQty);
   const remove = useCartStore((s) => s.remove);
   const clear = useCartStore((s) => s.clear);
