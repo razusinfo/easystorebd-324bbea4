@@ -1348,6 +1348,19 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
   const [logoAlign, setLogoAlign] = useState<"left" | "center" | "right">(
     store.shop_settings?.pages?.logo?.align ?? "left",
   );
+  const [nameFont, setNameFont] = useState<"hero" | "display" | "sans" | "serif" | "mono">(
+    store.shop_settings?.pages?.store_name?.font ?? "hero",
+  );
+  const [nameSize, setNameSize] = useState<number>(
+    store.shop_settings?.pages?.store_name?.size ?? 20,
+  );
+  const [nameFrom, setNameFrom] = useState<string>(
+    store.shop_settings?.pages?.store_name?.gradient_from ?? "#059669",
+  );
+  const [nameTo, setNameTo] = useState<string>(
+    store.shop_settings?.pages?.store_name?.gradient_to ?? "#f59e0b",
+  );
+
 
 
 
