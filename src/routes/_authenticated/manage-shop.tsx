@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/manage-shop")({
 });
 
 type CardKey =
-  | "settings" | "domain" | "policy" | "delivery" | "payment"
+  | "settings" | "pages" | "domain" | "policy" | "delivery" | "payment"
   | "seo" | "sms" | "chat" | "social";
 
 const CARDS: {
@@ -49,6 +49,7 @@ const CARDS: {
   badge?: string;
 }[] = [
   { key: "settings", title: "Shop Settings", desc: "General shop configurations — name, logo, category and template.", icon: StoreIcon },
+  { key: "pages", title: "Page Settings", desc: "Customize your storefront pages — reorder home sections like Flash Sale, Categories, Eid Special and more.", icon: LayoutList, badge: "New" },
   { key: "domain", title: "Shop Domain", desc: "Manage your shop URL, publish status and custom slug.", icon: Globe },
   { key: "policy", title: "Shop Policy", desc: "Define return, refund, shipping, privacy and terms policies.", icon: FileText },
   { key: "delivery", title: "Delivery Support", desc: "Set delivery charges inside/outside Dhaka and free-shipping rules.", icon: Truck },
@@ -58,6 +59,7 @@ const CARDS: {
   { key: "chat", title: "Chat Support", desc: "Enable Messenger, WhatsApp or Tawk.to live chat on your store.", icon: MessageCircle },
   { key: "social", title: "Social Links", desc: "Connect Facebook, Instagram, WhatsApp and your website.", icon: Share2 },
 ];
+
 
 function ManageShopPage() {
   const storeQ = useMyStore();
