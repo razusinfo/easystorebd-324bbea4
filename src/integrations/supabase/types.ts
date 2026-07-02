@@ -514,6 +514,7 @@ export type Database = {
           category: Database["public"]["Enums"]["store_category"]
           contact_email: string | null
           created_at: string
+          custom_domain: string | null
           facebook_url: string | null
           id: string
           instagram_url: string | null
@@ -521,6 +522,7 @@ export type Database = {
           name: string
           owner_user_id: string
           phone: string | null
+          plan_tier: string
           published: boolean
           published_at: string | null
           shop_settings: Json
@@ -537,6 +539,7 @@ export type Database = {
           category: Database["public"]["Enums"]["store_category"]
           contact_email?: string | null
           created_at?: string
+          custom_domain?: string | null
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
@@ -544,6 +547,7 @@ export type Database = {
           name: string
           owner_user_id: string
           phone?: string | null
+          plan_tier?: string
           published?: boolean
           published_at?: string | null
           shop_settings?: Json
@@ -560,6 +564,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["store_category"]
           contact_email?: string | null
           created_at?: string
+          custom_domain?: string | null
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
@@ -567,6 +572,7 @@ export type Database = {
           name?: string
           owner_user_id?: string
           phone?: string | null
+          plan_tier?: string
           published?: boolean
           published_at?: string | null
           shop_settings?: Json
