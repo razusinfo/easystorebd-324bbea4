@@ -79,13 +79,15 @@ export function EazyStoreBasicTemplate({
   const name = (store?.name ?? "EAZYSTORE").toUpperCase();
   const useDemo = demo || !products || products.length === 0;
   const gridProducts = useDemo
-    ? DEMO_PRODUCTS
+    ? DEMO_PRODUCTS.map((p) => ({ ...p, imageUrl: null as string | null }))
     : products!.slice(0, 12).map((p, i) => ({
         name: p.name,
         price: p.price,
         save: i % 3 === 0 ? Math.max(20, Math.round(p.price * 0.08)) : null,
         hue: DEMO_PRODUCTS[i % DEMO_PRODUCTS.length].hue,
+        imageUrl: p.image_url ?? null,
       }));
+
 
   const activeCat = defaultCategoryName || "All Products";
   const accent = accentColor || "#5B21B6"; // purple
@@ -328,19 +330,23 @@ export function EazyStoreBasicTemplate({
 }
 
 function ProductCard({
-  name, price, save, hue,
-}: { name: string; price: number; save: number | null; hue: string }) {
+  name, price, save, hue, imageUrl,
+}: { name: string; price: number; save: number | null; hue: string; imageUrl?: string | null }) {
   return (
     <article className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200 transition hover:shadow-md">
       <div className={`relative aspect-square bg-gradient-to-br ${hue}`}>
         {save != null && (
-          <span className="absolute left-3 top-3 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow">
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow">
             Save {save} ৳
           </span>
         )}
-        <div className="absolute inset-0 grid place-items-center opacity-40">
-          <div className="h-24 w-24 rounded-2xl bg-white/60" />
-        </div>
+        {imageUrl ? (
+          <img src={imageUrl} alt={name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center opacity-40">
+            <div className="h-24 w-24 rounded-2xl bg-white/60" />
+          </div>
+        )}
       </div>
       <div className="px-3 pb-2 pt-3 sm:px-4">
         <h3 className="line-clamp-2 min-h-[2.6em] text-sm font-medium leading-snug text-neutral-800 sm:text-[15px]">
@@ -356,3 +362,4 @@ function ProductCard({
     </article>
   );
 }
+
