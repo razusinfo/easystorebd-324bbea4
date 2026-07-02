@@ -165,7 +165,9 @@ function CustomizerForm({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
+      <div className="space-y-6 min-w-0">
+
       {/* Branding */}
       <Section title="Branding" description="Main logo and browser tab favicon shown across the site.">
         <div className="grid gap-6 sm:grid-cols-2">
