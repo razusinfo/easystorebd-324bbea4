@@ -338,10 +338,9 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
   async function handleRemoveGalleryImage(url: string) {
     set("galleryUrls", form.galleryUrls.filter((u) => u !== url));
-    if (url.includes("/product-images/")) {
-      try { await deleteProductImage(url); } catch { /* ignore */ }
-    }
+    queueDelete(url);
   }
+
 
   function handlePromoteGalleryImage(url: string) {
     // Swap: gallery image becomes the primary, previous primary joins gallery.
