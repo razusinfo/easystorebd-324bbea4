@@ -11,6 +11,10 @@ import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import {
+  MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview,
+  SportyPulsePreview, LuxeNoirPreview,
+} from "@/components/templates/mini-previews";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
