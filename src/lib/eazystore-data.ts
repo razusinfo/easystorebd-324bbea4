@@ -81,8 +81,21 @@ export type ProductRow = {
   price: number;
   stock: number;
   status: ProductStatus;
+  image_url: string | null;
   created_at: string;
 };
+
+export type ProductAuditLog = {
+  id: string;
+  product_id: string;
+  actor_id: string | null;
+  action: string;
+  old_status: ProductStatus | null;
+  new_status: ProductStatus | null;
+  notes: string | null;
+  created_at: string;
+};
+
 
 export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradient: string; accent: string; category: string; premium?: boolean }[] = [
   { id: "bdlove", name: "Basic Theme", tagline: "Gadget bazaar layout — sidebar categories, purple accents, green save badges, rounded search pill", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
