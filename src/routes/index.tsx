@@ -11,6 +11,13 @@ import {
   ShoppingCart,
   ShieldCheck,
   Sparkles,
+  Phone,
+  Mail,
+  MapPin,
+  Facebook,
+  Youtube,
+  Instagram,
+  Linkedin,
 } from "lucide-react";
 import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
 import { StorefrontView } from "@/components/storefront-view";
