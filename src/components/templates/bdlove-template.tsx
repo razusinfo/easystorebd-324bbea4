@@ -1,4 +1,5 @@
-import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon } from "lucide-react";
+import { useState } from "react";
+import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
 
 type Props = {
@@ -53,6 +54,7 @@ function hexToRgb(hex?: string): string | null {
 export function BdLoveTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName,
 }: Props) {
+  const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const name = (store?.name ?? "BD LOVE SHOP").toUpperCase();
   const useDemo = demo || !products || products.length === 0;
   const gridProducts = useDemo
@@ -85,18 +87,27 @@ export function BdLoveTemplate({
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileCatsOpen(true)}
+              className="grid h-10 w-10 place-items-center rounded-full text-neutral-700 hover:bg-neutral-100 lg:hidden"
+              aria-label="Open categories"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
               {logoUrl ? (
                 <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-cover" />
               ) : (
-                <StoreIcon className="h-6 w-6 text-white" />
+                <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
               )}
             </div>
             <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
               {name}
             </h1>
           </div>
+
 
           {/* Search pill */}
           <div className="relative min-w-0">
@@ -133,8 +144,8 @@ export function BdLoveTemplate({
       {/* Content */}
       <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
-          {/* Sidebar categories */}
-          <aside className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+          {/* Sidebar categories (desktop) */}
+          <aside className="hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
             <h2 className="mb-3 font-display text-xl font-black text-neutral-900">Categories</h2>
             <ul className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
               {DEMO_CATEGORIES.map((c) => {
@@ -156,6 +167,7 @@ export function BdLoveTemplate({
               })}
             </ul>
           </aside>
+
 
           {/* Main product area */}
           <div className="space-y-4">
@@ -185,6 +197,50 @@ export function BdLoveTemplate({
           </div>
         </div>
       </section>
+
+      {/* Mobile categories drawer */}
+      {mobileCatsOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileCatsOpen(false)}
+          />
+          <aside className="absolute inset-y-0 left-0 flex w-[82%] max-w-xs flex-col bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+              <h2 className="font-display text-lg font-black">Categories</h2>
+              <button
+                type="button"
+                onClick={() => setMobileCatsOpen(false)}
+                className="grid h-9 w-9 place-items-center rounded-full hover:bg-neutral-100"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <ul className="flex-1 space-y-1 overflow-y-auto p-3">
+              {DEMO_CATEGORIES.map((c) => {
+                const active = c === activeCat;
+                return (
+                  <li key={c}>
+                    <a
+                      href="#"
+                      onClick={() => setMobileCatsOpen(false)}
+                      className={
+                        active
+                          ? "acc-bg block rounded-xl px-4 py-3 text-sm font-bold text-white"
+                          : "block rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                      }
+                    >
+                      {c}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
+        </div>
+      )}
+
 
       {/* Floating WhatsApp */}
       <a
