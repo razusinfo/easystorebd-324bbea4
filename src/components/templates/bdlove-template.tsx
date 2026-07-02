@@ -198,6 +198,50 @@ export function BdLoveTemplate({
         </div>
       </section>
 
+      {/* Mobile categories drawer */}
+      {mobileCatsOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileCatsOpen(false)}
+          />
+          <aside className="absolute inset-y-0 left-0 flex w-[82%] max-w-xs flex-col bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+              <h2 className="font-display text-lg font-black">Categories</h2>
+              <button
+                type="button"
+                onClick={() => setMobileCatsOpen(false)}
+                className="grid h-9 w-9 place-items-center rounded-full hover:bg-neutral-100"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <ul className="flex-1 space-y-1 overflow-y-auto p-3">
+              {DEMO_CATEGORIES.map((c) => {
+                const active = c === activeCat;
+                return (
+                  <li key={c}>
+                    <a
+                      href="#"
+                      onClick={() => setMobileCatsOpen(false)}
+                      className={
+                        active
+                          ? "acc-bg block rounded-xl px-4 py-3 text-sm font-bold text-white"
+                          : "block rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                      }
+                    >
+                      {c}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
+        </div>
+      )}
+
+
       {/* Floating WhatsApp */}
       <a
         href="#"
