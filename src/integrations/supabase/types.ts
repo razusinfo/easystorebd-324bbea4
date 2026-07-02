@@ -74,6 +74,47 @@ export type Database = {
         }
         Relationships: []
       }
+      product_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["product_status"] | null
+          notes: string | null
+          old_status: Database["public"]["Enums"]["product_status"] | null
+          product_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["product_status"] | null
+          notes?: string | null
+          old_status?: Database["public"]["Enums"]["product_status"] | null
+          product_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["product_status"] | null
+          notes?: string | null
+          old_status?: Database["public"]["Enums"]["product_status"] | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_audit_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_categories: {
         Row: {
           created_at: string
@@ -126,6 +167,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image_url: string | null
           name: string
           price: number
           status: Database["public"]["Enums"]["product_status"]
@@ -136,6 +178,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          image_url?: string | null
           name: string
           price: number
           status?: Database["public"]["Enums"]["product_status"]
@@ -146,6 +189,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          image_url?: string | null
           name?: string
           price?: number
           status?: Database["public"]["Enums"]["product_status"]
