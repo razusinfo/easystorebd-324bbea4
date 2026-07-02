@@ -739,6 +739,18 @@ function Field({
   );
 }
 
+function ToolbarBtn({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-sm hover:bg-foreground/5"
+      tabIndex={-1}
+    >
+      {children}
+    </button>
+  );
+}
+
 
 function flattenCategories(nodes: CategoryNode[], depth = 0): { id: string; name: string; depth: number }[] {
   const out: { id: string; name: string; depth: number }[] = [];
