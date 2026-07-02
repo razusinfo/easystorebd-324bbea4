@@ -296,10 +296,9 @@
 }
 
 @utility store-name {
-  font-family: "DM Serif Display", "Cormorant Garamond", Georgia, serif;
-  font-style: italic;
+  font-family: "Italiana", "Cormorant Garamond", Georgia, serif;
   font-weight: 400;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.04em;
   background: linear-gradient(
     135deg,
     color-mix(in oklab, var(--primary) 85%, black 15%) 0%,
@@ -311,6 +310,7 @@
   color: transparent;
   text-shadow: 0 1px 0 color-mix(in oklab, var(--primary) 15%, transparent);
 }
+
 
 
 
