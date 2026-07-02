@@ -79,13 +79,15 @@ export function EazyStoreBasicTemplate({
   const name = (store?.name ?? "EAZYSTORE").toUpperCase();
   const useDemo = demo || !products || products.length === 0;
   const gridProducts = useDemo
-    ? DEMO_PRODUCTS
+    ? DEMO_PRODUCTS.map((p) => ({ ...p, imageUrl: null as string | null }))
     : products!.slice(0, 12).map((p, i) => ({
         name: p.name,
         price: p.price,
         save: i % 3 === 0 ? Math.max(20, Math.round(p.price * 0.08)) : null,
         hue: DEMO_PRODUCTS[i % DEMO_PRODUCTS.length].hue,
+        imageUrl: p.image_url ?? null,
       }));
+
 
   const activeCat = defaultCategoryName || "All Products";
   const accent = accentColor || "#5B21B6"; // purple
