@@ -264,43 +264,50 @@ export function EazyStoreBasicTemplate({
 
 
       {/* Footer */}
-      <footer className="mt-10 border-t border-neutral-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
-          <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:gap-x-12">
-            {["Company", "About Us", "Team", "Products", "Blogs", "Pricing"].map((label) => (
-              <a
-                key={label}
-                href="#"
-                className="font-display text-base font-bold text-neutral-900 transition hover:acc-text sm:text-lg"
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
+      {hasFooter && (
+        <footer className="mt-10 border-t border-neutral-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+            {f.showNav && enabledLinks.length > 0 && (
+              <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:gap-x-12">
+                {enabledLinks.map((l) => (
+                  <a
+                    key={l.label}
+                    href={l.href || "#"}
+                    className="font-display text-base font-bold text-neutral-900 transition hover:acc-text sm:text-lg"
+                  >
+                    {l.label}
+                  </a>
+                ))}
+              </nav>
+            )}
 
-          <div className="mt-8 flex items-center justify-center gap-5 sm:gap-6">
-            {[
-              { Icon: Twitter, label: "Twitter" },
-              { Icon: Youtube, label: "YouTube" },
-              { Icon: Instagram, label: "Instagram" },
-              { Icon: Facebook, label: "Facebook" },
-            ].map(({ Icon, label }) => (
-              <a
-                key={label}
-                href="#"
-                aria-label={label}
-                className="grid h-10 w-10 place-items-center rounded-full text-neutral-700 transition hover:acc-soft"
-              >
-                <Icon className="h-5 w-5" />
-              </a>
-            ))}
+            {f.showSocials && enabledSocials.length > 0 && (
+              <div className={`${f.showNav && enabledLinks.length > 0 ? "mt-8" : ""} flex items-center justify-center gap-5 sm:gap-6`}>
+                {enabledSocials.map((s) => {
+                  const Icon = socialIconMap[s.key];
+                  return (
+                    <a
+                      key={s.key}
+                      href={s.url || "#"}
+                      aria-label={s.key}
+                      className="grid h-10 w-10 place-items-center rounded-full text-neutral-700 transition hover:acc-soft"
+                    >
+                      <Icon className="h-5 w-5" />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+
+            {f.showCopyright && (
+              <p className={`${(f.showNav && enabledLinks.length > 0) || (f.showSocials && enabledSocials.length > 0) ? "mt-8" : ""} text-center text-sm text-neutral-600`}>
+                Copyright © {new Date().getFullYear()} {name}
+              </p>
+            )}
           </div>
+        </footer>
+      )}
 
-          <p className="mt-8 text-center text-sm text-neutral-600">
-            Copyright © {new Date().getFullYear()} {name}
-          </p>
-        </div>
-      </footer>
 
 
       {/* Floating WhatsApp */}
