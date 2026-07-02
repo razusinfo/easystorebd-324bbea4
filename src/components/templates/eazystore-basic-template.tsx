@@ -6,6 +6,7 @@ import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data"
 import { DEFAULT_FOOTER } from "@/lib/eazystore-data";
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
+import { CustomerAuth } from "@/components/storefront/customer-auth";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
@@ -261,6 +262,7 @@ export function EazyStoreBasicTemplate({
                 </span>
               )}
             </button>
+            <CustomerAuth />
             <button type="button" className="hidden items-center gap-1 rounded-full px-2 py-1 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 sm:flex">
               EN <Globe className="h-4 w-4" />
             </button>
