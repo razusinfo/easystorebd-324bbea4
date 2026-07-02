@@ -58,8 +58,13 @@ function hexToRgb(hex?: string): string | null {
 }
 
 export function EazyStoreBasicTemplate({
-  store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer,
+  store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
+  const useDemoCats = demo || !categories || categories.length === 0;
+  const catList: string[] = useDemoCats
+    ? DEMO_CATEGORIES
+    : ["All Products", ...categories!.map((c) => c.name)];
+
   const f: Required<FooterSettings> = {
     showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
     navLinks: footer?.navLinks ?? DEFAULT_FOOTER.navLinks,
