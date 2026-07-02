@@ -95,10 +95,10 @@ function Landing() {
             No.1 Online business partner
           </span>
 
-          <h1 className="mt-7 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:text-6xl">
-            EazyStore — Launch and manage
+          <h1 className="mt-7 font-hero text-4xl leading-[1.05] tracking-tight text-slate-900 sm:text-6xl">
+            Launch your <span className="text-landing-accent">online store</span>
             <br />
-            your mobile-first online store
+            in minutes.
           </h1>
 
           <p className="mx-auto mt-5 max-w-2xl text-base text-slate-700 sm:text-lg">
