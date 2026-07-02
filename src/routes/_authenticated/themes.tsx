@@ -13,6 +13,8 @@ import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import basicThemePreview from "@/assets/basic-theme-preview.png.asset.json";
+
 
 
 export const Route = createFileRoute("/_authenticated/themes")({
