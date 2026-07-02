@@ -4,8 +4,8 @@ import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash
 
 import {
   TEMPLATES, useMyStore, useSaveTemplateSettings, getTemplateSettings,
-  useMyProducts, uploadStoreLogo, deleteStoreLogo,
-  type TemplateId, type TemplateSettings,
+  useMyProducts, uploadStoreLogo, deleteStoreLogo, DEFAULT_FOOTER,
+  type TemplateId, type TemplateSettings, type FooterSettings, type FooterSocialKey,
 } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
