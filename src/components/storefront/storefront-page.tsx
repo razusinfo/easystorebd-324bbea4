@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ShoppingCart, Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { usePublicStoreBySlug } from "@/lib/eazystore-data";
-import { useCartStore, cartCount } from "@/lib/cart-store";
+import { useStoreCart, cartCount } from "@/lib/cart-store";
 
 type Props = {
   slug: string;
