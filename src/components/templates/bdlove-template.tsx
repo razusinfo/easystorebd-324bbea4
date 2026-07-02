@@ -1,0 +1,231 @@
+import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon } from "lucide-react";
+import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
+
+type Props = {
+  store?: Partial<StoreRow> & { name: string };
+  products?: ProductRow[];
+  logoUrl?: string | null;
+  demo?: boolean;
+  accentColor?: string;
+  defaultCategoryName?: string | null;
+};
+
+const DEMO_CATEGORIES = [
+  "All Products",
+  "Smartwatches",
+  "Best Headphone and Earbuds",
+  "Best T-Shirt",
+  "পাঞ্জাবি কালেকশন",
+  "All Gift Package",
+  "পাঞ্জাবি কম্বো পেকেজ",
+  "Best Shirt",
+  "Audio Adapter",
+  "Best LED Table RGD",
+  "Power Bank",
+  "Game Controller",
+  "Hand Mixer",
+  "iOT Devices",
+  "Juicer",
+  "Laptop Cooler",
+  "Laptop Table",
+];
+
+const DEMO_PRODUCTS = [
+  { name: "Waterproof Bike Phone Holder With Magnetic Lock", price: 2150, save: null, hue: "from-sky-100 to-sky-50" },
+  { name: "Yellow Duck With Egg Shape Led Night Light", price: 200, save: null, hue: "from-amber-100 to-yellow-50" },
+  { name: "AY-49 Video Vlogger Kits With Microphone & LED Fill Light", price: 640, save: 30, hue: "from-cyan-100 to-sky-50" },
+  { name: "3G/4G LTE All Operator SIM Supported WiFi Modem & Router", price: 1350, save: 150, hue: "from-neutral-100 to-white" },
+  { name: "Xiaomi Mijia Automatic Air Freshener Spray – Perfume", price: 2500, save: null, hue: "from-orange-50 to-amber-50" },
+  { name: "Elf Rechargeable Table Lamp", price: 500, save: 50, hue: "from-sky-200 to-cyan-100" },
+  { name: "Led Mirror Digital Clock", price: 920, save: 30, hue: "from-blue-100 to-indigo-50" },
+  { name: "Triangle Wooden Style Digital Led Clock", price: 1351, save: 49, hue: "from-teal-200 to-emerald-100" },
+];
+
+function hexToRgb(hex?: string): string | null {
+  if (!hex) return null;
+  const h = hex.replace("#", "");
+  const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const n = parseInt(v, 16);
+  if (Number.isNaN(n) || v.length !== 6) return null;
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+
+export function BdLoveTemplate({
+  store, products, logoUrl, demo = false, accentColor, defaultCategoryName,
+}: Props) {
+  const name = (store?.name ?? "BD LOVE SHOP").toUpperCase();
+  const useDemo = demo || !products || products.length === 0;
+  const gridProducts = useDemo
+    ? DEMO_PRODUCTS
+    : products!.slice(0, 12).map((p, i) => ({
+        name: p.name,
+        price: p.price,
+        save: i % 3 === 0 ? Math.max(20, Math.round(p.price * 0.08)) : null,
+        hue: DEMO_PRODUCTS[i % DEMO_PRODUCTS.length].hue,
+      }));
+
+  const activeCat = defaultCategoryName || "All Products";
+  const accent = accentColor || "#5B21B6"; // purple
+  const rgb = hexToRgb(accent) ?? "91, 33, 182";
+
+  const style = `
+    .bdlove-scope { --acc: ${accent}; --acc-rgb: ${rgb}; }
+    .bdlove-scope .acc-bg { background-color: var(--acc); }
+    .bdlove-scope .acc-text { color: var(--acc); }
+    .bdlove-scope .acc-soft { background-color: rgba(var(--acc-rgb), 0.10); color: var(--acc); }
+    .bdlove-scope .acc-soft:hover { background-color: rgba(var(--acc-rgb), 0.18); }
+    .bdlove-scope .acc-ring:focus { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.15); }
+  `;
+
+  return (
+    <div className="bdlove-scope min-h-screen bg-neutral-100 font-sans text-neutral-900">
+      <style dangerouslySetInnerHTML={{ __html: style }} />
+
+      {/* Header */}
+      <header className="border-b border-neutral-200 bg-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 sm:gap-6 sm:px-6 sm:py-4">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
+              {logoUrl ? (
+                <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-cover" />
+              ) : (
+                <StoreIcon className="h-6 w-6 text-white" />
+              )}
+            </div>
+            <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
+              {name}
+            </h1>
+          </div>
+
+          {/* Search pill */}
+          <div className="relative min-w-0">
+            <input
+              type="text"
+              placeholder="Search items"
+              className="acc-ring w-full rounded-full border border-neutral-200 bg-white py-3 pl-5 pr-14 text-sm outline-none placeholder:text-neutral-400 sm:py-3.5 sm:text-base"
+            />
+            <button
+              className="acc-bg absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-white sm:h-10 sm:w-10"
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+          </div>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button className="acc-bg relative grid h-11 w-11 place-items-center rounded-full text-white shadow-md sm:h-14 sm:w-14" aria-label="Cart">
+              <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
+            </button>
+            <button className="hidden items-center gap-1 rounded-full px-2 py-1 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 sm:flex">
+              EN <Globe className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile store name */}
+        <div className="border-t border-neutral-100 px-4 py-2 text-center sm:hidden">
+          <span className="font-display text-lg font-black tracking-wide">{name}</span>
+        </div>
+      </header>
+
+      {/* Content */}
+      <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
+        <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
+          {/* Sidebar categories */}
+          <aside className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+            <h2 className="mb-3 font-display text-xl font-black text-neutral-900">Categories</h2>
+            <ul className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
+              {DEMO_CATEGORIES.map((c) => {
+                const active = c === activeCat;
+                return (
+                  <li key={c}>
+                    <a
+                      href="#"
+                      className={
+                        active
+                          ? "acc-bg block rounded-xl px-4 py-3 text-sm font-bold text-white"
+                          : "block rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                      }
+                    >
+                      {c}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
+
+          {/* Main product area */}
+          <div className="space-y-4">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-4 shadow-sm sm:px-6">
+              <h2 className="font-display text-xl font-black sm:text-2xl">{activeCat}</h2>
+              <label className="flex items-center gap-2 text-sm text-neutral-600">
+                <span className="hidden sm:inline">Sort by:</span>
+                <span className="relative">
+                  <select className="appearance-none rounded-md border border-neutral-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-neutral-800 outline-none">
+                    <option>Default</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Newest</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+                </span>
+              </label>
+            </div>
+
+            {/* Product grid */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {gridProducts.map((p, i) => (
+                <ProductCard key={i} {...p} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Floating WhatsApp */}
+      <a
+        href="#"
+        aria-label="WhatsApp"
+        className="fixed bottom-4 right-4 grid h-12 w-12 place-items-center rounded-full bg-white text-emerald-500 shadow-lg ring-1 ring-neutral-200 hover:scale-105 sm:h-14 sm:w-14"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 sm:h-7 sm:w-7">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.15-.174.2-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12.017 2C6.492 2 2 6.492 2 12.017c0 1.888.526 3.66 1.44 5.184L2 22l4.938-1.295a9.96 9.96 0 004.079.87c5.525 0 10.017-4.492 10.017-10.017 0-2.673-1.042-5.19-2.938-7.086A9.937 9.937 0 0012.017 2z" />
+        </svg>
+      </a>
+    </div>
+  );
+}
+
+function ProductCard({
+  name, price, save, hue,
+}: { name: string; price: number; save: number | null; hue: string }) {
+  return (
+    <article className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200 transition hover:shadow-md">
+      <div className={`relative aspect-square bg-gradient-to-br ${hue}`}>
+        {save != null && (
+          <span className="absolute left-3 top-3 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow">
+            Save {save} ৳
+          </span>
+        )}
+        <div className="absolute inset-0 grid place-items-center opacity-40">
+          <div className="h-24 w-24 rounded-2xl bg-white/60" />
+        </div>
+      </div>
+      <div className="px-3 pb-2 pt-3 sm:px-4">
+        <h3 className="line-clamp-2 min-h-[2.6em] text-sm font-medium leading-snug text-neutral-800 sm:text-[15px]">
+          {name}
+        </h3>
+        <div className="mt-2 acc-text font-display text-lg font-black sm:text-xl">
+          {price.toLocaleString()} ৳
+        </div>
+      </div>
+      <button className="acc-soft flex w-full items-center justify-center gap-2 border-t border-neutral-100 py-3 text-sm font-semibold transition">
+        <ShoppingCart className="h-4 w-4" /> Add to cart
+      </button>
+    </article>
+  );
+}

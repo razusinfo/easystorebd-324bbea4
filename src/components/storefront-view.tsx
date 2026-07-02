@@ -1,6 +1,7 @@
 import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe, Store as StoreIcon } from "lucide-react";
 import { TEMPLATES, usePublicStoreBySlug, getTemplateSettings } from "@/lib/eazystore-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
+import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -61,6 +62,18 @@ export function StorefrontView({ slug }: { slug: string }) {
   if (s.template === "autoparts") {
     return (
       <AutoPartsTemplate
+        store={s}
+        products={orderedProducts}
+        logoUrl={effectiveLogo}
+        accentColor={settings.accentColor}
+        defaultCategoryName={settings.defaultCategoryName}
+      />
+    );
+  }
+
+  if (s.template === "bdlove") {
+    return (
+      <BdLoveTemplate
         store={s}
         products={orderedProducts}
         logoUrl={effectiveLogo}
