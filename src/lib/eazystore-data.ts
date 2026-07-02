@@ -27,6 +27,47 @@ export type TemplateSettings = {
 
 export type TemplateSettingsMap = Partial<Record<TemplateId, TemplateSettings>>;
 
+export type ShopSettings = {
+  policy?: {
+    return?: string;
+    refund?: string;
+    terms?: string;
+    privacy?: string;
+    shipping?: string;
+  };
+  delivery?: {
+    inside_dhaka?: number | null;
+    outside_dhaka?: number | null;
+    sub_dhaka?: number | null;
+    free_above?: number | null;
+    note?: string;
+  };
+  payment?: {
+    cod?: boolean;
+    bkash?: string;
+    nagad?: string;
+    rocket?: string;
+    bank_name?: string;
+    bank_account?: string;
+    bank_branch?: string;
+    instructions?: string;
+  };
+  seo?: {
+    meta_title?: string;
+    meta_description?: string;
+    google_tag_manager?: string;
+    facebook_pixel?: string;
+    tiktok_pixel?: string;
+    google_analytics?: string;
+  };
+  chat?: {
+    messenger_url?: string;
+    whatsapp_number?: string;
+    tawk_to_id?: string;
+    enabled?: boolean;
+  };
+};
+
 export type StoreRow = {
   id: string;
   owner_user_id: string;
@@ -47,6 +88,7 @@ export type StoreRow = {
   published: boolean;
   published_at: string | null;
   template_settings: TemplateSettingsMap;
+  shop_settings: ShopSettings;
 };
 
 export function getTemplateSettings(
@@ -72,7 +114,9 @@ export type StoreSettings = {
   instagram_url?: string | null;
   whatsapp_number?: string | null;
   website_url?: string | null;
+  shop_settings?: ShopSettings;
 };
+
 
 export type ProductRow = {
   id: string;
