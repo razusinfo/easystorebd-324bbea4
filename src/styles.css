@@ -296,9 +296,10 @@
 }
 
 @utility store-name {
-  font-family: var(--font-hero);
-  font-weight: 900;
-  letter-spacing: 0.02em;
+  font-family: "Bungee", var(--font-hero);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
   background: linear-gradient(
     135deg,
     color-mix(in oklab, var(--primary) 90%, black 10%) 0%,
