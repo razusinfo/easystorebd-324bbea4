@@ -641,7 +641,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
     );
   }
 
-  const renderReal = id === "autoparts";
+  const renderReal = id === "autoparts" || id === "eazystore-basic";
 
   if (renderReal) {
     const FULL_W = 1280;
@@ -649,9 +649,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
     return (
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
-        style={{
-          containerType: "size",
-        } as React.CSSProperties}
+        style={{ containerType: "size" } as React.CSSProperties}
       >
         <div
           style={{
@@ -661,7 +659,11 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
             transformOrigin: "top left",
           }}
         >
-          <AutoPartsTemplate demo accentColor={accent} />
+          {id === "autoparts" ? (
+            <AutoPartsTemplate demo accentColor={accent} />
+          ) : (
+            <EazyStoreBasicTemplate demo accentColor={accent} />
+          )}
         </div>
         <style>{`
           @container (min-width: 260px) { [style*="--tpl-scale"] { --tpl-scale: 0.32; } }
@@ -671,10 +673,9 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
     );
   }
 
-
-
+  // Fallback scaled preview for placeholder templates
   return (
-    <div className={`relative h-full w-full bg-gradient-to-br ${gradient} p-4`}>
+    <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${gradient} p-4`}>
       <div className="h-2 w-16 rounded bg-white/40" />
       <div className="mt-1.5 h-3 w-32 rounded bg-white/70" />
       <div className="mt-1 h-3 w-24 rounded bg-white/70" />
