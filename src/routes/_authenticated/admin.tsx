@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog, ScrollText, Plus, Trash2,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog, ScrollText, Plus, Trash2, Palette,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,6 +9,8 @@ import {
   useAdminAuditLogs, useAssignRole, useRevokeRole,
   type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
+import { UICustomizer } from "@/components/admin/ui-customizer";
+
 
 const ASSIGNABLE_ROLES: AppRole[] = [
   "super_admin", "store_owner", "manager", "cashier", "salesman", "accountant", "technician", "warehouse_manager",
@@ -27,7 +29,7 @@ function Admin() {
   const moderate = useModerateProduct();
   const users = useAdminUsers();
   const auditLogs = useAdminAuditLogs();
-  const [tab, setTab] = useState<"pending" | "stores" | "users" | "audit">("pending");
+  const [tab, setTab] = useState<"pending" | "stores" | "users" | "audit" | "customizer">("pending");
   const [q, setQ] = useState("");
   const [manageUser, setManageUser] = useState<AdminUserRow | null>(null);
 
@@ -163,6 +165,10 @@ function Admin() {
             <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
               {(auditLogs.data ?? []).length}
             </span>
+          </TabBtn>
+          <TabBtn active={tab === "customizer"} onClick={() => setTab("customizer")}>
+            <Palette className="h-4 w-4" />
+            UI Customizer
           </TabBtn>
         </div>
       </div>
@@ -320,7 +326,7 @@ function Admin() {
               })
             )}
           </div>
-        ) : (
+        ) : tab === "audit" ? (
           <div className="space-y-2">
             {auditLogs.isLoading ? (
               <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
@@ -352,6 +358,8 @@ function Admin() {
               ))
             )}
           </div>
+        ) : (
+          <UICustomizer />
         )}
       </section>
 

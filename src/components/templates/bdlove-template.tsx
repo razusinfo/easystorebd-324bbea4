@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
 
@@ -55,6 +56,8 @@ export function BdLoveTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName,
 }: Props) {
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
+  const siteSettings = useSiteSettings().data;
+  const whatsappHref = siteSettings?.whatsapp_url || "#";
   const name = (store?.name ?? "BD LOVE SHOP").toUpperCase();
   const useDemo = demo || !products || products.length === 0;
   const gridProducts = useDemo
@@ -244,7 +247,7 @@ export function BdLoveTemplate({
 
       {/* Floating WhatsApp */}
       <a
-        href="#"
+        href={whatsappHref}
         aria-label="WhatsApp"
         className="fixed bottom-4 right-4 grid h-12 w-12 place-items-center rounded-full bg-white text-emerald-500 shadow-lg ring-1 ring-neutral-200 hover:scale-105 sm:h-14 sm:w-14"
       >

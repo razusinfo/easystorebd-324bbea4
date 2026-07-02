@@ -478,6 +478,54 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          facebook_url: string | null
+          favicon_url: string | null
+          id: string
+          instagram_url: string | null
+          logo_url: string | null
+          primary_color: string
+          sidebar_categories: Json
+          updated_at: string
+          updated_by: string | null
+          whatsapp_url: string | null
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          favicon_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          logo_url?: string | null
+          primary_color?: string
+          sidebar_categories?: Json
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp_url?: string | null
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          favicon_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          logo_url?: string | null
+          primary_color?: string
+          sidebar_categories?: Json
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp_url?: string | null
+        }
+        Relationships: []
+      }
       sms_settings: {
         Row: {
           app_name: string

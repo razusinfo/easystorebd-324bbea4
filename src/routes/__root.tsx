@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
+import { useSiteSettings, useSignedSiteAsset } from "@/lib/site-settings";
 
 function NotFoundComponent() {
   return (
@@ -121,9 +122,37 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <I18nProvider>
+          <SiteSettingsInjector />
           <Outlet />
         </I18nProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
+}
+
+/** Applies site-wide primary color and favicon from the site_settings table. */
+function SiteSettingsInjector() {
+  const s = useSiteSettings();
+  const favicon = useSignedSiteAsset(s.data?.favicon_url);
+  const primary = s.data?.primary_color;
+
+  useEffect(() => {
+    if (!primary) return;
+    document.documentElement.style.setProperty("--primary", primary);
+    document.documentElement.style.setProperty("--sidebar-primary", primary);
+  }, [primary]);
+
+  useEffect(() => {
+    const href = favicon.data;
+    if (!href) return;
+    let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [favicon.data]);
+
+  return null;
 }
