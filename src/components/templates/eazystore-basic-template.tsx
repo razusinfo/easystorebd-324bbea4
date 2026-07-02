@@ -56,6 +56,8 @@ export function EazyStoreBasicTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName,
 }: Props) {
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
+  const siteSettings = useSiteSettings().data;
+  const whatsappHref = siteSettings?.whatsapp_url || "#";
   const name = (store?.name ?? "EAZYSTORE").toUpperCase();
   const useDemo = demo || !products || products.length === 0;
   const gridProducts = useDemo
