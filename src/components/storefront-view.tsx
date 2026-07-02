@@ -92,9 +92,11 @@ export function StorefrontView({ slug }: { slug: string }) {
         logoUrl={effectiveLogo}
         accentColor={settings.accentColor}
         defaultCategoryName={settings.defaultCategoryName}
+        footer={settings.footer}
       />
     );
   }
+
 
 
   const t = TEMPLATES.find((x) => x.id === s.template) ?? TEMPLATES[0];
