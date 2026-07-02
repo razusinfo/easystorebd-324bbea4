@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
-import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass, storeNameStyle } from "@/lib/eazystore-data";
+import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
 
 
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
@@ -215,10 +215,9 @@ export function EazyStoreBasicTemplate({
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                   </div>
                 )}
-                <h1 className="hidden sm:block" style={storeNameStyle(store?.shop_settings, { desktop: true })}>
+                <h1 className="store-name hidden text-xl sm:block sm:text-2xl md:text-[26px]">
                   {name}
                 </h1>
-
 
               </Link>
             ) : (
@@ -235,10 +234,9 @@ export function EazyStoreBasicTemplate({
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                   </div>
                 )}
-                <h1 className="hidden sm:block" style={storeNameStyle(store?.shop_settings, { desktop: true })}>
+                <h1 className="store-name hidden text-xl sm:block sm:text-2xl md:text-[26px]">
                   {name}
                 </h1>
-
 
               </>
             )}
@@ -288,7 +286,7 @@ export function EazyStoreBasicTemplate({
 
         {/* Mobile store name */}
         <div className="border-t border-neutral-100 px-4 py-2 text-center sm:hidden">
-          <span style={storeNameStyle(store?.shop_settings)}>{name}</span>
+          <span className="store-name text-lg">{name}</span>
         </div>
       </header>
 
