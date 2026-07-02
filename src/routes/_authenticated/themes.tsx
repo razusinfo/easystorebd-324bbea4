@@ -642,3 +642,101 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
     </div>
   );
 }
+
+// ---------- Loading / Error UI ----------
+
+function ThemesPageSkeleton() {
+  return (
+    <div className="mx-auto max-w-[1400px] animate-pulse px-4 py-6 sm:px-6 sm:py-8">
+      <div className="h-40 rounded-2xl bg-muted sm:h-36" />
+      <div className="mt-8 mb-4 space-y-2">
+        <div className="h-3 w-40 rounded bg-muted" />
+        <div className="h-7 w-72 rounded bg-muted" />
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="h-40 bg-muted" />
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <div className="h-3 w-20 rounded bg-muted" />
+              <div className="h-4 w-4 rounded-full bg-muted" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="h-16 rounded-2xl bg-muted" />
+            <div className="h-16 rounded-2xl bg-muted" />
+          </div>
+          <div className="h-14 rounded-2xl bg-muted" />
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="h-12 bg-muted" />
+          <div className="h-72 bg-muted/60" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThemesErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-destructive/10 text-destructive">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <h2 className="mt-4 font-display text-xl font-black">Couldn't load your themes</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+        <button
+          onClick={onRetry}
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:opacity-90"
+        >
+          <RefreshCw className="h-4 w-4" /> Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Simple error boundary for thumbnail render failures — one template render
+// crashing must not blank the whole page.
+class ThumbnailBoundary extends Component<
+  { children: ReactNode; panel?: boolean },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(err: unknown) {
+    // eslint-disable-next-line no-console
+    console.warn("[themes] template preview failed:", err);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="absolute inset-0 grid place-items-center bg-muted/40 text-muted-foreground">
+          <div className="flex flex-col items-center gap-1.5 px-4 text-center">
+            <ImageOff className={this.props.panel ? "h-7 w-7" : "h-5 w-5"} />
+            <span className={this.props.panel ? "text-sm font-semibold" : "text-[11px] font-semibold"}>
+              Preview unavailable
+            </span>
+            {this.props.panel && (
+              <button
+                onClick={() => this.setState({ hasError: false })}
+                className="mt-1 inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold hover:bg-accent"
+              >
+                <RefreshCw className="h-3 w-3" /> Retry
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return <>{this.props.children}</>;
+  }
+}
+
