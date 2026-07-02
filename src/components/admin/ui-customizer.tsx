@@ -81,6 +81,7 @@ function CustomizerForm({
   const [phone, setPhone] = useState(initial.contact_phone ?? "");
   const [facebook, setFacebook] = useState(initial.facebook_url ?? "");
   const [instagram, setInstagram] = useState(initial.instagram_url ?? "");
+  const [previewTemplate, setPreviewTemplate] = useState<PreviewTemplateId>("default");
 
   useEffect(() => {
     setLogoPath(initial.logo_url);
