@@ -250,11 +250,17 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
             <Button variant="outline" onClick={onCancel} disabled={upsert.isPending}>
               <X className="mr-1 h-4 w-4" /> Discard
             </Button>
+            {mode === "edit" && onDuplicate && (
+              <Button variant="outline" onClick={onDuplicate} disabled={upsert.isPending || loading}>
+                <Copy className="mr-1 h-4 w-4" /> Duplicate
+              </Button>
+            )}
             <Button onClick={handleSave} disabled={upsert.isPending || loading}>
               {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
               Save
             </Button>
           </div>
+
         </div>
       </header>
 
