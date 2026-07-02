@@ -132,8 +132,11 @@ function ThemesPage() {
               }`}
             >
               <div className="relative h-40 overflow-hidden bg-neutral-100">
-                <TemplateThumbnail id={t.id} gradient={t.gradient} accent={swatch} />
+                <ThumbnailBoundary>
+                  <TemplateThumbnail id={t.id} gradient={t.gradient} accent={swatch} />
+                </ThumbnailBoundary>
               </div>
+
               <div className="flex items-center justify-between gap-2 px-3 py-2.5">
                 <span className="truncate text-sm font-bold text-foreground">{t.name}</span>
                 {isActive ? (
