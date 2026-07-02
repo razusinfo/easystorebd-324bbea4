@@ -380,6 +380,7 @@ function CustomizerForm({
               logoUrl={logoUrl.data ?? null}
               cats={cats}
               whatsapp={whatsapp}
+              device={device}
             />
           ) : (
             <TemplateMiniPreview templateId={previewTemplate} accent={color} />
