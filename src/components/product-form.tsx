@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, ImageIcon, Loader2, Save, Trash2, Upload, Video, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, ImageIcon, Loader2, Save, Trash2, Upload, Video, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -23,9 +23,14 @@ import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categ
 type Props = {
   mode: "new" | "edit";
   productId?: string;
+  /** When set (and mode="new"), pre-fills the form from this product as a draft copy. */
+  duplicateFromId?: string;
   onDone: () => void;
   onCancel: () => void;
+  /** Optional handler for the top-bar Duplicate button (edit mode only). */
+  onDuplicate?: () => void;
 };
+
 
 type FormState = {
   name: string;
@@ -83,7 +88,7 @@ const initialState: FormState = {
   videoUrl: "",
 };
 
-export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
+export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel, onDuplicate }: Props) {
   const storeQ = useMyStore();
   const store = storeQ.data;
   const productsQ = useMyProducts(store?.id);
@@ -99,17 +104,30 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
     [mode, productId, productsQ.data],
   );
 
+  const sourceForDuplicate = useMemo<ProductRow | undefined>(
+    () => (mode === "new" && duplicateFromId ? productsQ.data?.find((p) => p.id === duplicateFromId) : undefined),
+    [mode, duplicateFromId, productsQ.data],
+  );
+
+  // Hydrate once — either the product being edited, or the product being duplicated as a draft copy.
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    if (mode === "edit" && editing) {
-      setForm((prev) => ({
-        ...prev,
-        name: editing.name,
-        sellPrice: String(editing.price),
-        stock: String(editing.stock),
-        imageUrl: editing.image_url ?? "",
-      }));
+    if (hydrated) return;
+    const src = editing ?? sourceForDuplicate;
+    if (!src) return;
+    setForm((prev) => ({
+      ...prev,
+      name: mode === "new" ? `${src.name} (Copy)` : src.name,
+      sellPrice: String(src.price),
+      stock: String(src.stock),
+      imageUrl: src.image_url ?? "",
+    }));
+    if (mode === "new" && sourceForDuplicate) {
+      toast.success("Duplicated as a new draft — review and save");
     }
-  }, [mode, editing]);
+    setHydrated(true);
+  }, [hydrated, editing, sourceForDuplicate, mode]);
+
 
   const catTree = useMemo<CategoryNode[]>(
     () => buildCategoryTree(categoriesQ.data ?? []),
@@ -232,11 +250,17 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
             <Button variant="outline" onClick={onCancel} disabled={upsert.isPending}>
               <X className="mr-1 h-4 w-4" /> Discard
             </Button>
+            {mode === "edit" && onDuplicate && (
+              <Button variant="outline" onClick={onDuplicate} disabled={upsert.isPending || loading}>
+                <Copy className="mr-1 h-4 w-4" /> Duplicate
+              </Button>
+            )}
             <Button onClick={handleSave} disabled={upsert.isPending || loading}>
               {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
               Save
             </Button>
           </div>
+
         </div>
       </header>
 

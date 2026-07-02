@@ -20,6 +20,9 @@ function EditProductPage() {
       productId={productId}
       onDone={() => navigate({ to: "/products" })}
       onCancel={() => navigate({ to: "/products" })}
+      onDuplicate={() =>
+        navigate({ to: "/products/new", search: { from: productId } })
+      }
     />
   );
 }
