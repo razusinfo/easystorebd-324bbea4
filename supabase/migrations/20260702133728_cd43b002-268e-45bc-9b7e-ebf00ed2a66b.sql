@@ -1,0 +1,1 @@
+ALTER TYPE public.store_template ADD VALUE IF NOT EXISTS 'bdlove';
