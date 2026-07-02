@@ -1412,6 +1412,8 @@ function PageSettingsView({ store, onBack }: { store: any; onBack: () => void })
             home_sections: sections,
             product_grid: { mobile: mobileCols as 1 | 2 | 3, desktop: desktopCols as 2 | 3 | 4 | 5 | 6 },
             logo: { max_height: logoMax as 32 | 40 | 48 | 56 | 64 | 80 | 96, align: logoAlign },
+            store_name: { font: nameFont, size: nameSize, gradient_from: nameFrom, gradient_to: nameTo },
+
 
           },
         },
