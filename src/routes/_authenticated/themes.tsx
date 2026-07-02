@@ -47,20 +47,27 @@ function ThemesPage() {
   const activeTemplate = TEMPLATES.find((t) => t.id === activeId) ?? TEMPLATES[0];
   const activeSettings = getTemplateSettings(storeQ.data, activeTemplate.id);
   const activeAccent = activeSettings.accentColor || activeTemplate.accent;
+  const themeMode: "light" | "dark" = activeSettings.themeMode ?? "light";
+  const buyNowEnabled: boolean = activeSettings.buyNowEnabled ?? false;
 
-  const setActiveAccent = async (color: string) => {
+  const patchActiveSettings = async (patch: Partial<TemplateSettings>, errMsg: string) => {
     if (!storeQ.data || !activeId) return;
     try {
       await save.mutateAsync({
         storeId: storeQ.data.id,
         templateId: activeId,
         currentMap: storeQ.data.template_settings ?? {},
-        settings: { ...activeSettings, accentColor: color },
+        settings: { ...activeSettings, ...patch },
       });
     } catch (e: any) {
-      toast.error(e?.message ?? "Could not update color");
+      toast.error(e?.message ?? errMsg);
     }
   };
+
+  const setActiveAccent = (color: string) => patchActiveSettings({ accentColor: color }, "Could not update color");
+  const setThemeMode = (mode: "light" | "dark") => patchActiveSettings({ themeMode: mode }, "Could not update theme mode");
+  const setBuyNow = (enabled: boolean) => patchActiveSettings({ buyNowEnabled: enabled }, "Could not update setting");
+
   if (storeQ.isLoading) return <ThemesPageSkeleton />;
   if (storeQ.isError) {
     return (
@@ -166,64 +173,80 @@ function ThemesPage() {
         </div>
       </div>
 
-      {/* Settings strip + Preview panel */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
-
-            {/* Shop Theme Color */}
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
-              <span className="min-w-0 truncate text-sm font-bold">Shop Theme Color</span>
-              <div className="flex shrink-0 items-center gap-2">
-                <input
-                  type="color"
-                  value={activeAccent}
-                  onChange={(e) => setActiveAccent(e.target.value)}
-                  className="h-8 w-12 cursor-pointer rounded-full border-0 bg-transparent p-0"
-                  aria-label="Shop theme color"
-                />
-                <div className="hidden h-6 w-16 rounded-full sm:block lg:w-24" style={{ backgroundColor: activeAccent }} />
-              </div>
-            </div>
-
-            {/* Active template quick actions */}
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active template</p>
-                <p className="truncate text-sm font-bold">{activeTemplate.name}</p>
-              </div>
-              <div className="flex shrink-0 gap-2">
-                <button
-                  onClick={() => setCustomizing(activeTemplate.id)}
-                  disabled={!storeQ.data}
-                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent disabled:opacity-50"
-                  aria-label="Customize active template"
-                >
-                  <Settings2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Customize</span>
-                </button>
-                <button
-                  onClick={() => setPreviewing(activeTemplate.id)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
-                  aria-label="Preview active template"
-                >
-                  <Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Preview</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-
-          {/* Status card */}
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/40 px-5 py-4 text-sm">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
-              <span>
-                <span className="font-bold">{activeTemplate.name}</span>{" "}
-                <span className="text-muted-foreground">is active on your storefront.</span>
-              </span>
-            </div>
+      {/* Full-width settings row */}
+      <div className="mt-6 grid gap-3 sm:grid-cols-1 md:grid-cols-3">
+        {/* Shop Theme Color */}
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+          <span className="min-w-0 text-sm font-bold leading-tight">Shop Theme Color</span>
+          <div className="flex shrink-0 items-center gap-2">
+            <input
+              type="color"
+              value={activeAccent}
+              onChange={(e) => setActiveAccent(e.target.value)}
+              className="h-8 w-12 cursor-pointer rounded-full border-0 bg-transparent p-0"
+              aria-label="Shop theme color"
+            />
+            <div className="h-6 w-16 rounded-full lg:w-20" style={{ backgroundColor: activeAccent }} />
           </div>
         </div>
+
+        {/* Shop Theme Mode */}
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+          <span className="min-w-0 text-sm font-bold leading-tight">Shop Theme Mode</span>
+          <SegmentedToggle
+            value={themeMode}
+            onChange={(v) => setThemeMode(v as "light" | "dark")}
+            options={[
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+            ]}
+          />
+        </div>
+
+        {/* Enable Buy Now Button */}
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+          <span className="min-w-0 text-sm font-bold leading-tight">Enable Buy Now Button</span>
+          <SegmentedToggle
+            value={buyNowEnabled ? "yes" : "no"}
+            onChange={(v) => setBuyNow(v === "yes")}
+            options={[
+              { value: "yes", label: "Yes" },
+              { value: "no", label: "No" },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Info bar + Preview panel */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/40 px-5 py-4 text-sm">
+          <div className="flex min-w-0 items-center gap-2">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
+            <span className="min-w-0 truncate">
+              <span className="font-bold">{activeTemplate.name}</span>{" "}
+              <span className="text-muted-foreground">is active on your storefront.</span>
+            </span>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <button
+              onClick={() => setCustomizing(activeTemplate.id)}
+              disabled={!storeQ.data}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent disabled:opacity-50"
+            >
+              <Settings2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Customize</span>
+            </button>
+            <button
+              onClick={() => handleActivate(activeTemplate.id)}
+              disabled={save.isPending}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-60"
+            >
+              {save.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              Apply Theme
+            </button>
+          </div>
+        </div>
+
+
 
         {/* Preview Your Shop */}
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -645,7 +668,42 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
   );
 }
 
+// ---------- Segmented pill toggle (Light/Dark, Yes/No) ----------
+
+function SegmentedToggle({
+  value, onChange, options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-background p-1">
+      {options.map((opt) => {
+        const active = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className={
+              active
+                ? "inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow-sm"
+                : "inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-foreground/70 hover:text-foreground"
+            }
+            aria-pressed={active}
+          >
+            {opt.label}
+            {active && <Check className="h-3 w-3" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ---------- Loading / Error UI ----------
+
 
 function ThemesPageSkeleton() {
   return (

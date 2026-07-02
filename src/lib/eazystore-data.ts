@@ -20,7 +20,10 @@ export type TemplateSettings = {
   defaultCategoryId?: string | null;
   defaultCategoryName?: string | null;
   featuredProductIds?: string[];
+  themeMode?: "light" | "dark";
+  buyNowEnabled?: boolean;
 };
+
 
 export type TemplateSettingsMap = Partial<Record<TemplateId, TemplateSettings>>;
 
