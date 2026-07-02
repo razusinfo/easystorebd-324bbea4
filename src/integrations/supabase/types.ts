@@ -523,6 +523,7 @@ export type Database = {
           phone: string | null
           published: boolean
           published_at: string | null
+          shop_settings: Json
           slug: string | null
           tagline: string | null
           template: Database["public"]["Enums"]["store_template"]
@@ -545,6 +546,7 @@ export type Database = {
           phone?: string | null
           published?: boolean
           published_at?: string | null
+          shop_settings?: Json
           slug?: string | null
           tagline?: string | null
           template: Database["public"]["Enums"]["store_template"]
@@ -567,6 +569,7 @@ export type Database = {
           phone?: string | null
           published?: boolean
           published_at?: string | null
+          shop_settings?: Json
           slug?: string | null
           tagline?: string | null
           template?: Database["public"]["Enums"]["store_template"]
