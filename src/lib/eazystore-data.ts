@@ -707,15 +707,21 @@ export async function uploadProductImage(file: File): Promise<{ path: string; pu
     .from("product-images")
     .upload(path, file, { upsert: false, contentType: file.type });
   if (error) throw error;
-  const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-  return { path, publicUrl: data.publicUrl };
+  // Bucket is private; use a long-lived signed URL (~10 years) so <img> can load it.
+  const { data: signed, error: signErr } = await supabase.storage
+    .from("product-images")
+    .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+  if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Failed to sign image URL");
+  return { path, publicUrl: signed.signedUrl };
 }
 
 export async function deleteProductImage(publicUrl: string): Promise<void> {
   const marker = "/product-images/";
   const idx = publicUrl.indexOf(marker);
   if (idx === -1) return;
-  const path = publicUrl.slice(idx + marker.length);
+  let path = publicUrl.slice(idx + marker.length);
+  const q = path.indexOf("?");
+  if (q !== -1) path = path.slice(0, q);
   if (!path) return;
   await supabase.storage.from("product-images").remove([path]);
 }
