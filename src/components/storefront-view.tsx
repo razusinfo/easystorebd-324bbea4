@@ -94,7 +94,9 @@ export function StorefrontView({ slug }: { slug: string }) {
         accentColor={settings.accentColor}
         defaultCategoryName={settings.defaultCategoryName}
         footer={settings.footer}
+        categories={categories}
       />
+
     );
   }
 
