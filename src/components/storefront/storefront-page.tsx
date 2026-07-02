@@ -61,21 +61,22 @@ export function StorefrontPage({ slug, title, children }: Props) {
 
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-          <Link to="/s/$slug" params={{ slug }} className="flex items-center gap-2 sm:gap-3">
+          <Link to="/s/$slug" params={{ slug }} className={`flex min-w-0 flex-1 items-center gap-2 sm:gap-3 ${logoAlignClass(store.shop_settings)}`}>
             {logo ? (
               <img
                 src={logo}
                 alt={`${name} logo`}
-                className="h-9 w-auto max-w-[120px] shrink-0 object-contain sm:h-12 sm:max-w-[160px] md:h-14 md:max-w-[200px]"
+                style={logoStyle(store.shop_settings)}
+                className="shrink-0 object-contain"
               />
             ) : (
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-14 sm:w-14">
                 <StoreIcon className="h-5 w-5 text-white" />
               </div>
             )}
-
             <h1 className="hidden font-display text-xl font-black tracking-wide sm:block">{name}</h1>
           </Link>
+
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
