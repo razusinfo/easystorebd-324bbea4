@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Loader2, Upload, Trash2, Palette, Plus, ArrowUp, ArrowDown, Save,
+  Monitor, Tablet, Smartphone,
   Home, Package, ShoppingCart, Users, Settings, Truck, Tag, MessageSquare,
   Heart, Star, Layers, Grid, Store, Gift, Phone, Mail, Zap, Sparkles,
   type LucideIcon,
@@ -26,6 +27,15 @@ const PREVIEW_TEMPLATES: { id: PreviewTemplateId; label: string }[] = [
   { id: "sporty", label: "Sporty Pulse" },
   { id: "luxe", label: "Luxe Noir" },
 ];
+
+type DeviceId = "desktop" | "tablet" | "mobile";
+const DEVICES: { id: DeviceId; label: string; width: number; icon: LucideIcon }[] = [
+  { id: "desktop", label: "Desktop", width: 1280, icon: Monitor },
+  { id: "tablet", label: "Tablet", width: 768, icon: Tablet },
+  { id: "mobile", label: "Mobile", width: 375, icon: Smartphone },
+];
+const FRAME_MAX = 400; // px, aside width budget
+
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Home, Package, ShoppingCart, Users, Settings, Truck, Tag, MessageSquare,
@@ -82,6 +92,7 @@ function CustomizerForm({
   const [facebook, setFacebook] = useState(initial.facebook_url ?? "");
   const [instagram, setInstagram] = useState(initial.instagram_url ?? "");
   const [previewTemplate, setPreviewTemplate] = useState<PreviewTemplateId>("default");
+  const [device, setDevice] = useState<DeviceId>("desktop");
 
   useEffect(() => {
     setLogoPath(initial.logo_url);
@@ -343,20 +354,81 @@ function CustomizerForm({
             ))}
           </select>
         </div>
-        {previewTemplate === "default" ? (
-          <StorefrontPreview
-            color={color}
-            logoUrl={logoUrl.data ?? null}
-            cats={cats}
-            whatsapp={whatsapp}
-          />
-        ) : (
-          <TemplateMiniPreview templateId={previewTemplate} accent={color} />
-        )}
+        <div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-1">
+          {DEVICES.map((d) => {
+            const Icon = d.icon;
+            const active = device === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDevice(d.id)}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                }`}
+                aria-pressed={active}
+              >
+                <Icon className="h-3.5 w-3.5" /> {d.label}
+              </button>
+            );
+          })}
+        </div>
+        <DeviceFrame device={device}>
+          {previewTemplate === "default" ? (
+            <StorefrontPreview
+              color={color}
+              logoUrl={logoUrl.data ?? null}
+              cats={cats}
+              whatsapp={whatsapp}
+            />
+          ) : (
+            <TemplateMiniPreview templateId={previewTemplate} accent={color} />
+          )}
+        </DeviceFrame>
       </aside>
     </div>
   );
 }
+
+function DeviceFrame({ device, children }: { device: DeviceId; children: React.ReactNode }) {
+  const spec = DEVICES.find((d) => d.id === device)!;
+  const scale = Math.min(1, FRAME_MAX / spec.width);
+  const displayW = spec.width * scale;
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const [innerH, setInnerH] = useState(0);
+  useEffect(() => {
+    if (!innerRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      const h = entries[0]?.contentRect.height ?? 0;
+      setInnerH(h);
+    });
+    ro.observe(innerRef.current);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {spec.label} · {spec.width}px
+      </div>
+      <div
+        className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm"
+        style={{ width: displayW, height: innerH ? innerH * scale : undefined }}
+      >
+        <div
+          ref={innerRef}
+          style={{
+            width: spec.width,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function StorefrontPreview({
   color, logoUrl, cats, whatsapp,
@@ -539,25 +611,6 @@ function TemplateMiniPreview({
     templateId === "techgrid" ? TechGridPreview :
     templateId === "sporty" ? SportyPulsePreview :
     LuxeNoirPreview;
-  // Mini previews are authored at 1280px wide; scale down to fit the aside.
-  const SCALE = 0.32;
-  return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-          <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-        </div>
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Live template preview
-        </span>
-      </div>
-      <div style={{ width: 1280 * SCALE, height: 1000 * SCALE }} className="mx-auto">
-        <div style={{ transform: `scale(${SCALE})`, transformOrigin: "top left", width: 1280 }}>
-          <Preview accent={safe} />
-        </div>
-      </div>
-    </div>
-  );
+  // Rendered unscaled at native 1280 width — DeviceFrame handles fit-scaling.
+  return <Preview accent={safe} />;
 }
