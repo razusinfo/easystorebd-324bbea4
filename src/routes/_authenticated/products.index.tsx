@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 
-export const Route = createFileRoute("/_authenticated/products")({
+export const Route = createFileRoute("/_authenticated/products/")({
   head: () => ({
     meta: [
       { title: "Products — EazyStore" },
