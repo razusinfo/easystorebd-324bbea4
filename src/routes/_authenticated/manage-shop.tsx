@@ -836,6 +836,9 @@ function ShopDomainView({ store, onBack }: { store: any; onBack: () => void }) {
   );
 }
 
+// -------- Generic settings-section save helper --------
+function useSaveSection(store: any) {
+  const update = useUpdateStore();
   const save = async (patch: Partial<ShopSettings>) => {
     const merged: ShopSettings = { ...(store.shop_settings ?? {}), ...patch };
     await update.mutateAsync({ id: store.id, shop_settings: merged });
