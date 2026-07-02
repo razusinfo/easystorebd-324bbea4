@@ -169,7 +169,8 @@ function ThemesPage() {
       {/* Settings strip + Preview panel */}
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+
             {/* Shop Theme Color */}
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
               <span className="min-w-0 truncate text-sm font-bold">Shop Theme Color</span>
