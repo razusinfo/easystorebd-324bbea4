@@ -448,7 +448,6 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                   </Button>
                 </div>
               )}
-              </div>
             </div>
           </Section>
 
