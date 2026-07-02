@@ -202,26 +202,35 @@ export function EazyStoreBasicTemplate({
                 className="flex items-center gap-2 sm:gap-3"
                 aria-label={`${name} home`}
               >
-                <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
-                  {logoUrl ? (
-                    <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-cover" />
-                  ) : (
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={`${name} logo`}
+                    className="h-11 w-auto max-w-[140px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
+                  />
+                ) : (
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-16 sm:w-16">
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
-                  )}
-                </div>
+                  </div>
+                )}
                 <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
                   {name}
                 </h1>
               </Link>
             ) : (
               <>
-                <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black sm:h-16 sm:w-16">
-                  {logoUrl ? (
-                    <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-cover" />
-                  ) : (
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={`${name} logo`}
+                    className="h-11 w-auto max-w-[140px] shrink-0 object-contain sm:h-16 sm:max-w-[200px]"
+                  />
+                ) : (
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-neutral-900 sm:h-16 sm:w-16">
                     <StoreIcon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
-                  )}
-                </div>
+                  </div>
+                )}
+
                 <h1 className="hidden font-display text-xl font-black tracking-wide text-neutral-900 sm:block sm:text-2xl md:text-[26px]">
                   {name}
                 </h1>
