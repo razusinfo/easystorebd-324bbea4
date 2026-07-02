@@ -354,17 +354,66 @@ function CustomizerForm({
             ))}
           </select>
         </div>
-        {previewTemplate === "default" ? (
-          <StorefrontPreview
-            color={color}
-            logoUrl={logoUrl.data ?? null}
-            cats={cats}
-            whatsapp={whatsapp}
-          />
-        ) : (
-          <TemplateMiniPreview templateId={previewTemplate} accent={color} />
-        )}
+        <div className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card p-1">
+          {DEVICES.map((d) => {
+            const Icon = d.icon;
+            const active = device === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDevice(d.id)}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+                  active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                }`}
+                aria-pressed={active}
+              >
+                <Icon className="h-3.5 w-3.5" /> {d.label}
+              </button>
+            );
+          })}
+        </div>
+        <DeviceFrame device={device}>
+          {previewTemplate === "default" ? (
+            <StorefrontPreview
+              color={color}
+              logoUrl={logoUrl.data ?? null}
+              cats={cats}
+              whatsapp={whatsapp}
+            />
+          ) : (
+            <TemplateMiniPreview templateId={previewTemplate} accent={color} />
+          )}
+        </DeviceFrame>
       </aside>
+    </div>
+  );
+}
+
+function DeviceFrame({ device, children }: { device: DeviceId; children: React.ReactNode }) {
+  const spec = DEVICES.find((d) => d.id === device)!;
+  const scale = Math.min(1, FRAME_MAX / spec.width);
+  const displayW = spec.width * scale;
+  // Heightless: let content dictate; use a min height for visual weight on mobile.
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {spec.label} · {spec.width}px
+      </div>
+      <div
+        className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm"
+        style={{ width: displayW }}
+      >
+        <div
+          style={{
+            width: spec.width,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+          }}
+        >
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
