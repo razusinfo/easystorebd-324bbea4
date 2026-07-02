@@ -2,6 +2,7 @@ import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe
 import { TEMPLATES, usePublicStoreBySlug, getTemplateSettings } from "@/lib/eazystore-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
+import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
