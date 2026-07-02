@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, ImageIcon, Loader2, Save, Video, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronUp, ImageIcon, Loader2, Save, Trash2, Upload, Video, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,12 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 import {
-  useMyStore, useMyProducts, useUpsertProduct, type ProductRow,
+  useMyStore, useMyProducts, useUpsertProduct,
+  uploadProductImage, deleteProductImage,
+  type ProductRow,
 } from "@/lib/eazystore-data";
 import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categories-data";
+
 
 type Props = {
   mode: "new" | "edit";
@@ -103,6 +106,7 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
         name: editing.name,
         sellPrice: String(editing.price),
         stock: String(editing.stock),
+        imageUrl: editing.image_url ?? "",
       }));
     }
   }, [mode, editing]);
@@ -112,16 +116,59 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
     [categoriesQ.data],
   );
 
+  // --- Inline validation ---
+  type Errors = Partial<Record<"name" | "sellPrice" | "regularPrice" | "buyingPrice" | "stock" | "imageUrl", string>>;
+  const [errors, setErrors] = useState<Errors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validate = (f: FormState): Errors => {
+    const e: Errors = {};
+    if (!f.name.trim()) e.name = "Item Name is required";
+    else if (f.name.trim().length > 200) e.name = "Item Name must be 200 characters or less";
+
+    const sp = Number(f.sellPrice);
+    if (f.sellPrice === "" || !Number.isFinite(sp)) e.sellPrice = "Sell/Current Price is required";
+    else if (sp < 0) e.sellPrice = "Price cannot be negative";
+
+    if (f.regularPrice !== "") {
+      const rp = Number(f.regularPrice);
+      if (!Number.isFinite(rp) || rp < 0) e.regularPrice = "Enter a valid regular price";
+    }
+    if (f.buyingPrice !== "") {
+      const bp = Number(f.buyingPrice);
+      if (!Number.isFinite(bp) || bp < 0) e.buyingPrice = "Enter a valid buying price";
+    }
+
+    const st = Number(f.stock || "0");
+    if (!Number.isInteger(st) || st < 0) e.stock = "Enter a valid stock quantity";
+
+    if (f.imageUrl && !/^https?:\/\//i.test(f.imageUrl)) {
+      e.imageUrl = "Image URL must start with http(s)://";
+    }
+    return e;
+  };
+
+  useEffect(() => { setErrors(validate(form)); }, [form]);
+  const markTouched = (name: string) => setTouched((p) => ({ ...p, [name]: true }));
+  const showError = (name: keyof Errors) => touched[name] ? errors[name] : undefined;
+
   async function handleSave() {
     if (!store) return toast.error("No store found");
-    const name = form.name.trim();
-    const price = Number(form.sellPrice);
-    const stock = Number(form.stock || "0");
-    if (!name) return toast.error("Item Name is required");
-    if (!Number.isFinite(price) || price < 0) return toast.error("Sell/Current Price is required");
-    if (!Number.isInteger(stock) || stock < 0) return toast.error("Enter a valid stock quantity");
+    setTouched({ name: true, sellPrice: true, regularPrice: true, buyingPrice: true, stock: true, imageUrl: true });
+    const eNow = validate(form);
+    setErrors(eNow);
+    if (Object.keys(eNow).length) {
+      toast.error("Please fix the highlighted fields");
+      return;
+    }
     try {
-      await upsert.mutateAsync({ id: editing?.id, name, price, stock });
+      await upsert.mutateAsync({
+        id: editing?.id,
+        name: form.name.trim(),
+        price: Number(form.sellPrice),
+        stock: Number(form.stock || "0"),
+        imageUrl: form.imageUrl || null,
+      });
       toast.success(mode === "edit" ? "Product updated" : "Product added");
       onDone();
     } catch (e: any) {
@@ -129,7 +176,49 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
     }
   }
 
+  // --- Image upload ---
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleImageFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files are allowed");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Image must be 4MB or smaller");
+      return;
+    }
+    setUploading(true);
+    try {
+      const { publicUrl } = await uploadProductImage(file);
+      // If replacing an existing uploaded image (same bucket), remove the old file.
+      if (form.imageUrl && form.imageUrl.includes("/product-images/")) {
+        await deleteProductImage(form.imageUrl).catch(() => {});
+      }
+      set("imageUrl", publicUrl);
+      markTouched("imageUrl");
+      toast.success("Image uploaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handleRemoveImage() {
+    const url = form.imageUrl;
+    set("imageUrl", "");
+    markTouched("imageUrl");
+    if (url && url.includes("/product-images/")) {
+      try { await deleteProductImage(url); } catch { /* ignore */ }
+    }
+    toast.success("Image removed");
+  }
+
   const loading = storeQ.isLoading || (mode === "edit" && productsQ.isLoading);
+
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -156,13 +245,16 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
         <div className="space-y-5">
           <Section title="General Information">
             <div className="space-y-4">
-              <Field label="Item Name" required>
+              <Field label="Item Name" required error={showError("name")}>
                 <Input
                   placeholder="Item Name"
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
+                  onBlur={() => markTouched("name")}
+                  aria-invalid={!!showError("name")}
                 />
               </Field>
+
               <Field
                 label="Short Description (SEO & Data Feed)"
                 hint={`${form.shortDescription.length}/255`}
@@ -188,18 +280,101 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
 
           <Section title="Media">
             <div className="space-y-3">
-              <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
-                <ImageIcon className="h-8 w-8 text-foreground/40" />
-                <p className="mt-2 max-w-md text-xs text-foreground/60">
-                  Paste an image URL. Supported: JPG, PNG. Max 4MB. Use 1:1.6 for Sellora theme (e.g. 570×924).
-                </p>
-                <Input
-                  placeholder="https://... (image URL)"
-                  value={form.imageUrl}
-                  onChange={(e) => set("imageUrl", e.target.value)}
-                  className="mt-3 max-w-md"
-                />
-              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImageFile(f);
+                }}
+              />
+
+              {form.imageUrl ? (
+                <div className="rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="flex items-start gap-4">
+                    {/* Preview */}
+                    <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-md border border-border bg-background">
+                      <img
+                        src={form.imageUrl}
+                        alt="Product preview"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{form.imageUrl}</p>
+                      <p className="mt-0.5 text-xs text-foreground/60">
+                        {form.imageUrl.includes("/product-images/")
+                          ? "Uploaded to storage"
+                          : "External URL"}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          type="button" size="sm" variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                        >
+                          {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+                          Replace
+                        </Button>
+                        <Button
+                          type="button" size="sm" variant="outline"
+                          onClick={handleRemoveImage}
+                          disabled={uploading}
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="mr-1 h-4 w-4" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "grid place-items-center rounded-lg border-2 border-dashed p-8 text-center transition-colors",
+                    showError("imageUrl") ? "border-destructive/60 bg-destructive/5" : "border-border bg-muted/40",
+                  )}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const f = e.dataTransfer.files?.[0];
+                    if (f) handleImageFile(f);
+                  }}
+                >
+                  <ImageIcon className="h-8 w-8 text-foreground/40" />
+                  <p className="mt-2 max-w-md text-xs text-foreground/60">
+                    Drag & drop an image, click Upload, or paste a URL. JPG/PNG, max 4MB.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    <Button
+                      type="button" size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
+                      Upload image
+                    </Button>
+                  </div>
+                  <div className="mt-3 w-full max-w-md">
+                    <Input
+                      placeholder="or paste image URL: https://..."
+                      value={form.imageUrl}
+                      onChange={(e) => set("imageUrl", e.target.value)}
+                      onBlur={() => markTouched("imageUrl")}
+                      aria-invalid={!!showError("imageUrl")}
+                    />
+                    {showError("imageUrl") && (
+                      <p className="mt-1 text-xs font-medium text-destructive">{showError("imageUrl")}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
                 <Video className="h-8 w-8 text-foreground/40" />
                 <p className="mt-2 text-xs text-foreground/60">Paste the video link here</p>
@@ -213,29 +388,37 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
             </div>
           </Section>
 
+
           <Section title="Pricing">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Field label="Sell/Current Price" required>
+              <Field label="Sell/Current Price" required error={showError("sellPrice")}>
                 <Input type="number" min="0" step="0.01" inputMode="decimal"
                   placeholder="Sell/Current Price"
                   value={form.sellPrice}
                   onChange={(e) => set("sellPrice", e.target.value)}
+                  onBlur={() => markTouched("sellPrice")}
+                  aria-invalid={!!showError("sellPrice")}
                 />
               </Field>
-              <Field label="Regular/Old Price">
+              <Field label="Regular/Old Price" error={showError("regularPrice")}>
                 <Input type="number" min="0" step="0.01" inputMode="decimal"
                   placeholder="Regular/Old Price"
                   value={form.regularPrice}
                   onChange={(e) => set("regularPrice", e.target.value)}
+                  onBlur={() => markTouched("regularPrice")}
+                  aria-invalid={!!showError("regularPrice")}
                 />
               </Field>
-              <Field label="Buying Price (Optional)">
+              <Field label="Buying Price (Optional)" error={showError("buyingPrice")}>
                 <Input type="number" min="0" step="0.01" inputMode="decimal"
                   placeholder="Buying Price (Optional)"
                   value={form.buyingPrice}
                   onChange={(e) => set("buyingPrice", e.target.value)}
+                  onBlur={() => markTouched("buyingPrice")}
+                  aria-invalid={!!showError("buyingPrice")}
                 />
               </Field>
+
             </div>
           </Section>
 
@@ -253,11 +436,16 @@ export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
                 <Input placeholder="e.g. kg, ml, l, mg"
                   value={form.unitName} onChange={(e) => set("unitName", e.target.value)} />
               </Field>
-              <Field label="Quantity (Stock)">
+              <Field label="Quantity (Stock)" required error={showError("stock")}>
                 <Input type="number" min="0" step="1" inputMode="numeric"
                   placeholder="Quantity (Stock)"
-                  value={form.stock} onChange={(e) => set("stock", e.target.value)} />
+                  value={form.stock}
+                  onChange={(e) => set("stock", e.target.value)}
+                  onBlur={() => markTouched("stock")}
+                  aria-invalid={!!showError("stock")}
+                />
               </Field>
+
               <Field label="Warranty">
                 <Input placeholder="Warranty"
                   value={form.warranty} onChange={(e) => set("warranty", e.target.value)} />
@@ -472,8 +660,8 @@ function Section({
 }
 
 function Field({
-  label, required, hint, children,
-}: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+  label, required, hint, error, children,
+}: { label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
@@ -483,9 +671,11 @@ function Field({
         {hint && <span className="text-xs text-foreground/50">{hint}</span>}
       </div>
       {children}
+      {error && <p className="mt-1 text-xs font-medium text-destructive">{error}</p>}
     </div>
   );
 }
+
 
 function flattenCategories(nodes: CategoryNode[], depth = 0): { id: string; name: string; depth: number }[] {
   const out: { id: string; name: string; depth: number }[] = [];
