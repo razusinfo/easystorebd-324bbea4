@@ -24,7 +24,7 @@ export function StorefrontPage({ slug, title, children }: Props) {
   const q = usePublicStoreBySlug(slug);
   const store = q.data?.store;
   const storeId = store?.id;
-  const items = useCartStore((s) => (storeId ? s.carts[storeId] ?? [] : []));
+  const items = useStoreCart(storeId);
   const count = cartCount(items);
 
   const accent = "#5B21B6";
