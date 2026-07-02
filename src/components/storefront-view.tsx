@@ -84,6 +84,19 @@ export function StorefrontView({ slug }: { slug: string }) {
     );
   }
 
+  if (s.template === "eazystore-basic") {
+    return (
+      <EazyStoreBasicTemplate
+        store={s}
+        products={orderedProducts}
+        logoUrl={effectiveLogo}
+        accentColor={settings.accentColor}
+        defaultCategoryName={settings.defaultCategoryName}
+      />
+    );
+  }
+
+
   const t = TEMPLATES.find((x) => x.id === s.template) ?? TEMPLATES[0];
   const dark = s.template === "minimal" || s.template === "techgrid" || s.template === "luxe";
 
