@@ -254,6 +254,18 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   // --- Image upload ---
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  // URLs to delete from storage only AFTER the product is saved successfully.
+  // Deleting earlier can leave the DB pointing at a missing storage object
+  // if the user never clicks Save.
+  const pendingDeletes = useRef<Set<string>>(new Set());
+  const queueDelete = (url?: string | null) => {
+    if (url && url.includes("/product-images/")) pendingDeletes.current.add(url);
+  };
+  const flushPendingDeletes = async () => {
+    const urls = Array.from(pendingDeletes.current);
+    pendingDeletes.current.clear();
+    await Promise.all(urls.map((u) => deleteProductImage(u).catch(() => {})));
+  };
 
   async function handleImageFile(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -267,10 +279,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     setUploading(true);
     try {
       const { publicUrl } = await uploadProductImage(file);
-      // If replacing an existing uploaded image (same bucket), remove the old file.
-      if (form.imageUrl && form.imageUrl.includes("/product-images/")) {
-        await deleteProductImage(form.imageUrl).catch(() => {});
-      }
+      // Defer deletion of the previous image until the form is saved.
+      queueDelete(form.imageUrl);
       set("imageUrl", publicUrl);
       markTouched("imageUrl");
       toast.success("Image uploaded");
@@ -286,11 +296,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     const url = form.imageUrl;
     set("imageUrl", "");
     markTouched("imageUrl");
-    if (url && url.includes("/product-images/")) {
-      try { await deleteProductImage(url); } catch { /* ignore */ }
-    }
+    queueDelete(url);
     toast.success("Image removed");
   }
+
 
   // --- Gallery (multi-image) ---
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
