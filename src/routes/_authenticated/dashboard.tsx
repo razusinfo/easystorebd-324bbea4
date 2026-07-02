@@ -118,11 +118,12 @@ function Dashboard() {
         <div className="mt-4 flex items-center gap-2 rounded-2xl border border-white bg-white/70 px-3 py-2.5 shadow-sm backdrop-blur">
           <Globe className="h-4 w-4 shrink-0 text-primary" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
-            {storeUrl}
+            {storeUrlDisplay}
           </span>
           <button
             onClick={copyUrl}
-            className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10"
+            disabled={!storeUrl}
+            className="grid h-7 w-7 place-items-center rounded-lg text-primary hover:bg-primary/10 disabled:opacity-40 disabled:hover:bg-transparent"
             aria-label="Copy URL"
           >
             <Copy className="h-4 w-4" />
@@ -131,15 +132,25 @@ function Dashboard() {
 
         {/* Visit & Manage tabs */}
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <a
-            href={`https://${storeUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Visit
-          </a>
+          {storeUrl ? (
+            <a
+              href={storeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Visit
+            </a>
+          ) : (
+            <Link
+              to="/manage-shop"
+              className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Publish
+            </Link>
+          )}
           <Link
             to="/manage-shop"
             className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/80 px-4 py-2.5 text-sm font-bold text-primary shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
