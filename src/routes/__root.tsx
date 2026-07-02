@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
+import { useSiteSettings, useSignedSiteAsset } from "@/lib/site-settings";
 
 function NotFoundComponent() {
   return (
