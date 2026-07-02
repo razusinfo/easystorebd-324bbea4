@@ -903,7 +903,7 @@ export function usePublicStoreBySlug(slug: string | undefined) {
   return useQuery({
     queryKey: ["public-store", slug],
     enabled: !!slug,
-    queryFn: async (): Promise<{ store: StoreRow; products: ProductRow[]; logoUrl: string | null } | null> => {
+    queryFn: async (): Promise<{ store: StoreRow; products: ProductRow[]; logoUrl: string | null; categories: { id: string; name: string }[] } | null> => {
       const { data: store, error } = await supabase
         .from("stores")
         .select("*")
