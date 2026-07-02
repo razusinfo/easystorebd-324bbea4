@@ -61,6 +61,7 @@ type FormState = {
   variants: { id: string; name: string; value: string }[];
   details: { id: string; key: string; value: string }[];
   imageUrl: string;
+  galleryUrls: string[];
   videoUrl: string;
 };
 
