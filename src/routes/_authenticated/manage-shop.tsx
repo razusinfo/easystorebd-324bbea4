@@ -162,9 +162,11 @@ function SectionDialog({
 
 // -------- Shop Settings (full-page view like reference) --------
 const BUSINESS_TYPES = [
-  "Clothing & Apparel", "Electronics", "Sports & Fitness", "Grocery & Food",
-  "Beauty & Cosmetics", "Home & Living", "Books & Stationery", "Health",
-  "Toys & Baby", "Jewelry", "Other",
+  "Not Selected", "Clothing & Apparel", "Shoes & Footwear", "Accessories & Jewelry",
+  "Beauty & Cosmetics", "Electronics & Gadgets", "Home & Furniture", "Books & Media",
+  "Toys & Games", "Sports & Outdoors", "Health & Wellness", "Food & Beverage",
+  "Pet Supplies", "Grocery", "Telecommunication Items", "Pharmaceuticals",
+  "Utilities", "Others",
 ];
 const COUNTRIES = [
   { code: "BD", name: "Bangladesh", flag: "🇧🇩" },
