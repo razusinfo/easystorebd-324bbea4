@@ -638,9 +638,6 @@ function ToggleRow({
 }
 
 
-// -------- Shop Domain --------
-function ShopDomainDialog({ store, onClose }: { store: any; onClose: () => void }) {
-  const publish = usePublishStore();
 // -------- Shop Domain (full-page view like reference) --------
 function ShopDomainView({ store, onBack }: { store: any; onBack: () => void }) {
   const publish = usePublishStore();
