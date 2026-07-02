@@ -26,7 +26,7 @@ function ProductsPage() {
       ) : (
         <>
           <p className="mb-4 text-sm text-neutral-600">{products.length} product{products.length === 1 ? "" : "s"}</p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {products.map((p) => (
               <Link
                 key={p.id}
