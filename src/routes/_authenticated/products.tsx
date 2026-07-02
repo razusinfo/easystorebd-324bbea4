@@ -1,18 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  useMyStore, useMyProducts, useUpsertProduct, useDeleteProduct,
+  useMyStore, useMyProducts, useDeleteProduct,
   type ProductRow, type ProductStatus,
 } from "@/lib/eazystore-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription,
-} from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -28,19 +24,16 @@ export const Route = createFileRoute("/_authenticated/products")({
   component: ProductsPage,
 });
 
-type EditingProduct = { id?: string; name: string; price: string; stock: string } | null;
-
 function ProductsPage() {
+  const navigate = useNavigate();
   const storeQ = useMyStore();
   const store = storeQ.data;
   const productsQ = useMyProducts(store?.id);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
-  const [editing, setEditing] = useState<EditingProduct>(null);
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
 
-  const upsert = useUpsertProduct(store?.id);
   const del = useDeleteProduct(store?.id);
 
   const products = productsQ.data ?? [];
@@ -61,27 +54,9 @@ function ProductsPage() {
     return { count: products.length, totalStock, totalValue, outOfStock };
   }, [products]);
 
-  const openNew = () => setEditing({ name: "", price: "", stock: "" });
+  const openNew = () => navigate({ to: "/products/new" });
   const openEdit = (p: ProductRow) =>
-    setEditing({ id: p.id, name: p.name, price: String(p.price), stock: String(p.stock) });
-
-  async function handleSave() {
-    if (!editing) return;
-    const name = editing.name.trim();
-    const price = Number(editing.price);
-    const stock = Number(editing.stock);
-    if (!name) return toast.error("Product name required");
-    if (!Number.isFinite(price) || price < 0) return toast.error("Enter a valid price");
-    if (!Number.isInteger(stock) || stock < 0) return toast.error("Enter a valid stock");
-
-    try {
-      await upsert.mutateAsync({ id: editing.id, name, price, stock });
-      toast.success(editing.id ? "Product updated" : "Product added");
-      setEditing(null);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to save product");
-    }
-  }
+    navigate({ to: "/products/$productId/edit", params: { productId: p.id } });
 
   async function handleDelete() {
     if (!deleting) return;
@@ -171,63 +146,6 @@ function ProductsPage() {
         <ProductTable rows={filtered} onEdit={openEdit} onDelete={setDeleting} />
       )}
 
-      {/* Edit / Add dialog */}
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editing?.id ? "Edit product" : "Add product"}</DialogTitle>
-            <DialogDescription>
-              {editing?.id
-                ? "Edits are re-submitted for approval before appearing in your storefront."
-                : "New products are reviewed before they appear publicly."}
-            </DialogDescription>
-          </DialogHeader>
-          {editing && (
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="p-name">Name</Label>
-                <Input
-                  id="p-name"
-                  value={editing.name}
-                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  placeholder="e.g. Wireless Earbuds"
-                  autoFocus
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="p-price">Price (৳)</Label>
-                  <Input
-                    id="p-price"
-                    type="number" min="0" step="0.01" inputMode="decimal"
-                    value={editing.price}
-                    onChange={(e) => setEditing({ ...editing, price: e.target.value })}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="p-stock">Stock</Label>
-                  <Input
-                    id="p-stock"
-                    type="number" min="0" step="1" inputMode="numeric"
-                    value={editing.stock}
-                    onChange={(e) => setEditing({ ...editing, stock: e.target.value })}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)} disabled={upsert.isPending}>Cancel</Button>
-            <Button onClick={handleSave} disabled={upsert.isPending}>
-              {upsert.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
-              {editing?.id ? "Save changes" : "Add product"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Delete confirm */}
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent>
@@ -254,6 +172,7 @@ function ProductsPage() {
     </main>
   );
 }
+
 
 function StatCard({ label, value, tone }: { label: string; value: string; tone?: "warn" | "muted" }) {
   return (
