@@ -70,17 +70,18 @@ function Landing() {
 /* ---------------- Top band: nav + hero ---------------- */
 
 function TopBand() {
+  const [open, setOpen] = useState(false);
   return (
     <div className="gradient-landing relative overflow-hidden">
       <div className="absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.7),transparent_60%)]" />
 
       {/* Nav */}
-      <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="gradient-landing-brand grid h-9 w-9 place-items-center rounded-xl text-white shadow-md">
+      <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <div className="gradient-landing-brand grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-md">
             <Store className="h-5 w-5" />
           </div>
-          <span className="font-hero text-xl tracking-tight text-slate-900">EazyStore</span>
+          <span className="font-hero truncate text-lg tracking-tight text-slate-900 sm:text-xl">EazyStore</span>
         </Link>
 
         <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
@@ -89,7 +90,7 @@ function TopBand() {
           <a href="#how" className="hover:text-landing-accent transition">How it works</a>
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             to="/auth"
             className="hidden text-sm font-semibold text-slate-800 hover:text-landing-accent sm:inline"
@@ -98,22 +99,53 @@ function TopBand() {
           </Link>
           <Link
             to="/auth"
-            className="bg-landing-accent hover:bg-landing-accent-hover rounded-full px-4 py-2 text-sm font-semibold text-white shadow-md transition sm:px-5"
+            className="bg-landing-accent hover:bg-landing-accent-hover hidden rounded-full px-4 py-2 text-sm font-semibold text-white shadow-md transition sm:inline-flex sm:px-5"
           >
             Create your store
           </Link>
+
+          {/* Mobile menu trigger */}
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <button
+                aria-label="Open menu"
+                className="grid h-10 w-10 place-items-center rounded-full border border-slate-300 bg-white/80 text-slate-800 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 max-w-[85vw] p-0">
+              <SheetHeader className="border-b border-emerald-100 p-5">
+                <SheetTitle className="flex items-center gap-2">
+                  <div className="gradient-landing-brand grid h-8 w-8 place-items-center rounded-lg text-white">
+                    <Store className="h-4 w-4" />
+                  </div>
+                  <span className="font-hero text-slate-900">EazyStore</span>
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col p-4 text-base font-medium text-slate-800">
+                <a onClick={() => setOpen(false)} href="#features" className="rounded-lg px-3 py-3 hover:bg-emerald-50">Features</a>
+                <a onClick={() => setOpen(false)} href="#pricing" className="rounded-lg px-3 py-3 hover:bg-emerald-50">Pricing</a>
+                <a onClick={() => setOpen(false)} href="#how" className="rounded-lg px-3 py-3 hover:bg-emerald-50">How it works</a>
+              </nav>
+              <div className="mt-auto space-y-2 border-t border-emerald-100 p-4">
+                <Link to="/auth" onClick={() => setOpen(false)} className="block rounded-full border border-slate-300 py-3 text-center text-sm font-semibold text-slate-800">Sign in</Link>
+                <Link to="/auth" onClick={() => setOpen(false)} className="bg-landing-accent hover:bg-landing-accent-hover block rounded-full py-3 text-center text-sm font-semibold text-white">Create your store</Link>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </header>
 
       {/* Hero split */}
-      <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-10 px-5 pb-24 pt-10 sm:px-8 lg:grid-cols-2 lg:pt-16">
+      <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-8 sm:px-8 sm:pb-24 sm:pt-10 lg:grid-cols-2 lg:pt-16">
         <div>
           <span className="border-landing-accent/40 text-landing-accent inline-flex items-center gap-2 rounded-full border bg-white/70 px-4 py-1.5 text-xs font-semibold backdrop-blur sm:text-sm">
             <span className="bg-landing-accent inline-block h-1.5 w-1.5 rounded-full" />
             The e-commerce builder for modern merchants
           </span>
 
-          <h1 className="mt-6 font-hero text-4xl leading-[1.05] tracking-tight text-slate-900 sm:text-6xl">
+          <h1 className="mt-6 font-hero text-3xl leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
             Build your <span className="text-landing-accent">online store</span> in minutes.
           </h1>
 
