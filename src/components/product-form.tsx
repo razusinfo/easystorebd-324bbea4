@@ -250,7 +250,12 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
             {mode === "edit" ? "Edit Product" : "Add Product"}
           </h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={onCancel} disabled={upsert.isPending}>
+            <Button
+              variant="ghost"
+              onClick={onCancel}
+              disabled={upsert.isPending}
+              className="bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
+            >
               <X className="mr-1 h-4 w-4" /> Discard
             </Button>
             {mode === "edit" && onDuplicate && (
@@ -259,7 +264,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
               </Button>
             )}
             <Button onClick={handleSave} disabled={upsert.isPending || loading}>
-              {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+              {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
               Save
             </Button>
           </div>
