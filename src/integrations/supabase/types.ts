@@ -357,6 +357,7 @@ export type Database = {
           condition: string
           created_at: string
           description: string | null
+          gallery_urls: string[]
           height_cm: number | null
           id: string
           image_url: string | null
@@ -386,6 +387,7 @@ export type Database = {
           condition?: string
           created_at?: string
           description?: string | null
+          gallery_urls?: string[]
           height_cm?: number | null
           id?: string
           image_url?: string | null
@@ -415,6 +417,7 @@ export type Database = {
           condition?: string
           created_at?: string
           description?: string | null
+          gallery_urls?: string[]
           height_cm?: number | null
           id?: string
           image_url?: string | null

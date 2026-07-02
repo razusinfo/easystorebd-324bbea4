@@ -148,6 +148,7 @@ export type ProductRow = {
   stock: number;
   status: ProductStatus;
   image_url: string | null;
+  gallery_urls?: string[] | null;
   created_at: string;
   // Extended fields
   short_description?: string | null;
@@ -520,6 +521,7 @@ export type UpsertProductInput = {
   price: number;
   stock: number;
   imageUrl?: string | null;
+  galleryUrls?: string[];
   shortDescription?: string | null;
   description?: string | null;
   categoryId?: string | null;
@@ -555,6 +557,7 @@ export function useUpsertProduct(storeId: string | undefined) {
         stock: input.stock,
       };
       if (input.imageUrl !== undefined) payload.image_url = input.imageUrl;
+      if (input.galleryUrls !== undefined) payload.gallery_urls = input.galleryUrls;
       if (input.shortDescription !== undefined) payload.short_description = input.shortDescription;
       if (input.description !== undefined) payload.description = input.description;
       if (input.categoryId !== undefined) payload.category_id = input.categoryId || null;
