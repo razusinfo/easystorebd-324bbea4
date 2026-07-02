@@ -458,14 +458,7 @@ export function EazyStoreBasicTemplate({
       </a>
 
       {/* CartDrawer temporarily disabled for isolation */}
-      {false && storeId && (
-        <CartDrawer
-          storeId={storeId}
-          storeName={name}
-          open={cartOpen}
-          onOpenChange={setCartOpen}
-        />
-      )}
+
 
     </div>
   );
