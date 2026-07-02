@@ -22,7 +22,6 @@ import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authent
 import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
 import { Route as AuthenticatedSmsSettingsRouteImport } from './routes/_authenticated/sms-settings'
 import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authenticated/promo-codes'
-import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMobileAppRouteImport } from './routes/_authenticated/mobile-app'
@@ -34,6 +33,7 @@ import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products.index'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 
@@ -103,11 +103,6 @@ const AuthenticatedPromoCodesRoute = AuthenticatedPromoCodesRouteImport.update({
   path: '/promo-codes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -164,17 +159,23 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductsIndexRoute =
+  AuthenticatedProductsIndexRouteImport.update({
+    id: '/products/',
+    path: '/products/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProductsNewRoute =
   AuthenticatedProductsNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedProductsRoute,
+    id: '/products/new',
+    path: '/products/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProductsProductIdEditRoute =
   AuthenticatedProductsProductIdEditRouteImport.update({
-    id: '/$productId/edit',
-    path: '/$productId/edit',
-    getParentRoute: () => AuthenticatedProductsRoute,
+    id: '/products/$productId/edit',
+    path: '/products/$productId/edit',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -194,7 +195,6 @@ export interface FileRoutesByFullPath {
   '/mobile-app': typeof AuthenticatedMobileAppRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
-  '/products': typeof AuthenticatedProductsRouteWithChildren
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
@@ -203,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/products/': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -222,7 +223,6 @@ export interface FileRoutesByTo {
   '/mobile-app': typeof AuthenticatedMobileAppRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
-  '/products': typeof AuthenticatedProductsRouteWithChildren
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
@@ -231,6 +231,7 @@ export interface FileRoutesByTo {
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/products': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
 export interface FileRoutesById {
@@ -252,7 +253,6 @@ export interface FileRoutesById {
   '/_authenticated/mobile-app': typeof AuthenticatedMobileAppRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
-  '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
   '/_authenticated/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/_authenticated/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
@@ -261,6 +261,7 @@ export interface FileRoutesById {
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
+  '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
 }
 export interface FileRouteTypes {
@@ -282,7 +283,6 @@ export interface FileRouteTypes {
     | '/mobile-app'
     | '/onboarding'
     | '/orders'
-    | '/products'
     | '/promo-codes'
     | '/sms-settings'
     | '/spotlights'
@@ -291,6 +291,7 @@ export interface FileRouteTypes {
     | '/demo/bdlove'
     | '/s/$slug'
     | '/products/new'
+    | '/products/'
     | '/products/$productId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -310,7 +311,6 @@ export interface FileRouteTypes {
     | '/mobile-app'
     | '/onboarding'
     | '/orders'
-    | '/products'
     | '/promo-codes'
     | '/sms-settings'
     | '/spotlights'
@@ -319,6 +319,7 @@ export interface FileRouteTypes {
     | '/demo/bdlove'
     | '/s/$slug'
     | '/products/new'
+    | '/products'
     | '/products/$productId/edit'
   id:
     | '__root__'
@@ -339,7 +340,6 @@ export interface FileRouteTypes {
     | '/_authenticated/mobile-app'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
-    | '/_authenticated/products'
     | '/_authenticated/promo-codes'
     | '/_authenticated/sms-settings'
     | '/_authenticated/spotlights'
@@ -348,6 +348,7 @@ export interface FileRouteTypes {
     | '/demo/bdlove'
     | '/s/$slug'
     | '/_authenticated/products/new'
+    | '/_authenticated/products/'
     | '/_authenticated/products/$productId/edit'
   fileRoutesById: FileRoutesById
 }
@@ -455,13 +456,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPromoCodesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/products': {
-      id: '/_authenticated/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof AuthenticatedProductsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/orders': {
       id: '/_authenticated/orders'
       path: '/orders'
@@ -539,38 +533,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/products/': {
+      id: '/_authenticated/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof AuthenticatedProductsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/products/new': {
       id: '/_authenticated/products/new'
-      path: '/new'
+      path: '/products/new'
       fullPath: '/products/new'
       preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
-      parentRoute: typeof AuthenticatedProductsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/products/$productId/edit': {
       id: '/_authenticated/products/$productId/edit'
-      path: '/$productId/edit'
+      path: '/products/$productId/edit'
       fullPath: '/products/$productId/edit'
       preLoaderRoute: typeof AuthenticatedProductsProductIdEditRouteImport
-      parentRoute: typeof AuthenticatedProductsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
-
-interface AuthenticatedProductsRouteChildren {
-  AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
-  AuthenticatedProductsProductIdEditRoute: typeof AuthenticatedProductsProductIdEditRoute
-}
-
-const AuthenticatedProductsRouteChildren: AuthenticatedProductsRouteChildren = {
-  AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
-  AuthenticatedProductsProductIdEditRoute:
-    AuthenticatedProductsProductIdEditRoute,
-}
-
-const AuthenticatedProductsRouteWithChildren =
-  AuthenticatedProductsRoute._addFileChildren(
-    AuthenticatedProductsRouteChildren,
-  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
@@ -584,12 +569,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMobileAppRoute: typeof AuthenticatedMobileAppRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
-  AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
   AuthenticatedPromoCodesRoute: typeof AuthenticatedPromoCodesRoute
   AuthenticatedSmsSettingsRoute: typeof AuthenticatedSmsSettingsRoute
   AuthenticatedSpotlightsRoute: typeof AuthenticatedSpotlightsRoute
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
+  AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
+  AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
+  AuthenticatedProductsProductIdEditRoute: typeof AuthenticatedProductsProductIdEditRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -604,12 +591,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMobileAppRoute: AuthenticatedMobileAppRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
-  AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
   AuthenticatedPromoCodesRoute: AuthenticatedPromoCodesRoute,
   AuthenticatedSmsSettingsRoute: AuthenticatedSmsSettingsRoute,
   AuthenticatedSpotlightsRoute: AuthenticatedSpotlightsRoute,
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
+  AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
+  AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
+  AuthenticatedProductsProductIdEditRoute:
+    AuthenticatedProductsProductIdEditRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -628,3 +618,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
