@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Loader2, Upload, Trash2, Palette, Plus, ArrowUp, ArrowDown, Save,
-  Monitor, Tablet, Smartphone,
+  Monitor, Tablet, Smartphone, Menu, X,
   Home, Package, ShoppingCart, Users, Settings, Truck, Tag, MessageSquare,
   Heart, Star, Layers, Grid, Store, Gift, Phone, Mail, Zap, Sparkles,
   type LucideIcon,
@@ -380,6 +380,7 @@ function CustomizerForm({
               logoUrl={logoUrl.data ?? null}
               cats={cats}
               whatsapp={whatsapp}
+              device={device}
             />
           ) : (
             <TemplateMiniPreview templateId={previewTemplate} accent={color} />
@@ -431,14 +432,47 @@ function DeviceFrame({ device, children }: { device: DeviceId; children: React.R
 
 
 function StorefrontPreview({
-  color, logoUrl, cats, whatsapp,
+  color, logoUrl, cats, whatsapp, device,
 }: {
   color: string;
   logoUrl: string | null;
   cats: SidebarCategory[];
   whatsapp: string;
+  device: DeviceId;
 }) {
   const safeColor = HEX_COLOR_RE.test(color) ? color : "#5B21B6";
+  const isMobile = device === "mobile";
+  const isTablet = device === "tablet";
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeCat, setActiveCat] = useState(0);
+  const [activeTab, setActiveTab] = useState<"featured" | "new" | "sale">("featured");
+  const productCols = isMobile ? 2 : isTablet ? 3 : 4;
+  const sidebarWidth = isTablet ? 88 : 140;
+
+  const CategoryList = (
+    <div className="space-y-1">
+      {cats.slice(0, 8).map((c, i) => {
+        const Icon = ICON_MAP[c.icon] ?? Package;
+        const active = i === activeCat;
+        return (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => { setActiveCat(i); if (isMobile) setDrawerOpen(false); }}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] font-medium transition"
+            style={active ? { backgroundColor: safeColor, color: "white" } : { color: "hsl(var(--foreground))" }}
+          >
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{c.label}</span>
+          </button>
+        );
+      })}
+      {cats.length === 0 && (
+        <div className="px-2 py-1.5 text-[11px] text-muted-foreground">No categories</div>
+      )}
+    </div>
+  );
+
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
@@ -450,10 +484,20 @@ function StorefrontPreview({
         <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Live preview</span>
       </div>
 
-      <div className="relative" style={{ ["--pv" as any]: safeColor }}>
+      <div className="relative">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3" style={{ backgroundColor: safeColor }}>
           <div className="flex items-center gap-2">
+            {isMobile && (
+              <button
+                type="button"
+                onClick={() => setDrawerOpen((v) => !v)}
+                className="grid h-6 w-6 place-items-center rounded-md bg-white/20 text-white"
+                aria-label="Toggle menu"
+              >
+                {drawerOpen ? <X className="h-3.5 w-3.5" /> : <Menu className="h-3.5 w-3.5" />}
+              </button>
+            )}
             {logoUrl ? (
               <img src={logoUrl} alt="Logo" className="h-6 max-w-[100px] object-contain" />
             ) : (
@@ -466,62 +510,32 @@ function StorefrontPreview({
           </div>
         </div>
 
-        <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-0">
-          {/* Sidebar */}
-          <div className="border-r border-border bg-muted/30 p-2">
-            <div className="space-y-1">
-              {cats.slice(0, 8).map((c, i) => {
-                const Icon = ICON_MAP[c.icon] ?? Package;
-                const active = i === 0;
-                return (
-                  <div
-                    key={c.id}
-                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-medium"
-                    style={active ? { backgroundColor: safeColor, color: "white" } : { color: "hsl(var(--foreground))" }}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span className="truncate">{c.label}</span>
-                  </div>
-                );
-              })}
-              {cats.length === 0 && (
-                <div className="px-2 py-1.5 text-[11px] text-muted-foreground">No categories</div>
-              )}
-            </div>
+        {isMobile ? (
+          <div className="relative">
+            {/* Collapsible mobile drawer */}
+            {drawerOpen && (
+              <div className="absolute inset-x-0 top-0 z-10 border-b border-border bg-background p-2 shadow-md">
+                {CategoryList}
+              </div>
+            )}
+            <MainContent
+              safeColor={safeColor}
+              cols={productCols}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
           </div>
-
-          {/* Main content */}
-          <div className="p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="h-3 w-24 rounded bg-muted" />
-              <button
-                type="button"
-                className="rounded-md px-2.5 py-1 text-[10px] font-bold text-white"
-                style={{ backgroundColor: safeColor }}
-              >
-                Shop now
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="overflow-hidden rounded-lg border border-border bg-background">
-                  <div className="aspect-square bg-muted" />
-                  <div className="space-y-1 p-1.5">
-                    <div className="h-2 w-3/4 rounded bg-muted" />
-                    <div className="h-2 w-1/2 rounded" style={{ backgroundColor: safeColor, opacity: 0.7 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Tabs demo */}
-            <div className="mt-3 flex gap-3 border-b border-border text-[10px] font-semibold">
-              <span className="border-b-2 pb-1" style={{ borderColor: safeColor, color: safeColor }}>Featured</span>
-              <span className="pb-1 text-muted-foreground">New</span>
-              <span className="pb-1 text-muted-foreground">Sale</span>
-            </div>
+        ) : (
+          <div className="grid gap-0" style={{ gridTemplateColumns: `${sidebarWidth}px minmax(0,1fr)` }}>
+            <div className="border-r border-border bg-muted/30 p-2">{CategoryList}</div>
+            <MainContent
+              safeColor={safeColor}
+              cols={productCols}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
           </div>
-        </div>
+        )}
 
         {/* WhatsApp float */}
         {whatsapp && (
@@ -537,6 +551,67 @@ function StorefrontPreview({
     </div>
   );
 }
+
+function MainContent({
+  safeColor, cols, activeTab, setActiveTab,
+}: {
+  safeColor: string;
+  cols: number;
+  activeTab: "featured" | "new" | "sale";
+  setActiveTab: (t: "featured" | "new" | "sale") => void;
+}) {
+  const tabs: { id: "featured" | "new" | "sale"; label: string }[] = [
+    { id: "featured", label: "Featured" },
+    { id: "new", label: "New" },
+    { id: "sale", label: "Sale" },
+  ];
+  return (
+    <div className="p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="h-3 w-24 rounded bg-muted" />
+        <button
+          type="button"
+          className="rounded-md px-2.5 py-1 text-[10px] font-bold text-white"
+          style={{ backgroundColor: safeColor }}
+        >
+          Shop now
+        </button>
+      </div>
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+        {Array.from({ length: cols * 2 }).map((_, i) => (
+          <div key={i} className="overflow-hidden rounded-lg border border-border bg-background">
+            <div className="aspect-square bg-muted" />
+            <div className="space-y-1 p-1.5">
+              <div className="h-2 w-3/4 rounded bg-muted" />
+              <div className="h-2 w-1/2 rounded" style={{ backgroundColor: safeColor, opacity: 0.7 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs demo — click to verify active styling */}
+      <div className="mt-3 flex gap-3 border-b border-border text-[10px] font-semibold">
+        {tabs.map((t) => {
+          const active = t.id === activeTab;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTab(t.id)}
+              className="pb-1 transition"
+              style={active
+                ? { borderBottom: `2px solid ${safeColor}`, color: safeColor }
+                : { borderBottom: "2px solid transparent", color: "hsl(var(--muted-foreground))" }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 
 
