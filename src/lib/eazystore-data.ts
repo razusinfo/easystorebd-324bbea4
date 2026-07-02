@@ -556,6 +556,7 @@ export function useUpsertProduct(storeId: string | undefined) {
         stock: input.stock,
       };
       if (input.imageUrl !== undefined) payload.image_url = input.imageUrl;
+      if (input.galleryUrls !== undefined) payload.gallery_urls = input.galleryUrls;
       if (input.shortDescription !== undefined) payload.short_description = input.shortDescription;
       if (input.description !== undefined) payload.description = input.description;
       if (input.categoryId !== undefined) payload.category_id = input.categoryId || null;
