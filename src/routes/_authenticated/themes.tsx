@@ -4,8 +4,8 @@ import { Check, Eye, Sparkles, X, Loader2, ShieldCheck, Settings2, Upload, Trash
 
 import {
   TEMPLATES, useMyStore, useSaveTemplateSettings, getTemplateSettings,
-  useMyProducts, uploadStoreLogo, deleteStoreLogo,
-  type TemplateId, type TemplateSettings,
+  useMyProducts, uploadStoreLogo, deleteStoreLogo, DEFAULT_FOOTER,
+  type TemplateId, type TemplateSettings, type FooterSettings, type FooterSocialKey,
 } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
@@ -323,6 +323,18 @@ function CustomizeDialog({
   const [categoryId, setCategoryId] = useState<string | null>(initial.defaultCategoryId ?? null);
   const [featured, setFeatured] = useState<string[]>(initial.featuredProductIds ?? []);
   const [uploading, setUploading] = useState(false);
+  const [footer, setFooter] = useState<Required<FooterSettings>>({
+    showNav: initial.footer?.showNav ?? DEFAULT_FOOTER.showNav,
+    navLinks: initial.footer?.navLinks ?? DEFAULT_FOOTER.navLinks,
+    showSocials: initial.footer?.showSocials ?? DEFAULT_FOOTER.showSocials,
+    socials: initial.footer?.socials ?? DEFAULT_FOOTER.socials,
+    showCopyright: initial.footer?.showCopyright ?? DEFAULT_FOOTER.showCopyright,
+  });
+  const toggleFooterLink = (label: string) =>
+    setFooter((f) => ({ ...f, navLinks: f.navLinks.map((l) => l.label === label ? { ...l, enabled: !l.enabled } : l) }));
+  const toggleFooterSocial = (key: FooterSocialKey) =>
+    setFooter((f) => ({ ...f, socials: f.socials.map((s) => s.key === key ? { ...s, enabled: !s.enabled } : s) }));
+
 
   const logoSigned = useSignedLogoUrl(logoPath);
 
@@ -362,7 +374,9 @@ function CustomizeDialog({
           defaultCategoryId: categoryId,
           defaultCategoryName: categoryName,
           featuredProductIds: featured,
+          footer,
         },
+
       });
       toast.success("Template settings saved");
       onClose();
@@ -486,7 +500,53 @@ function CustomizeDialog({
               })}
             </div>
           </section>
+
+          {/* Footer */}
+          <section>
+            <h3 className="text-sm font-bold">Footer</h3>
+            <p className="text-xs text-muted-foreground">Pick which sections and links appear in your storefront footer.</p>
+
+            <div className="mt-3 space-y-3 rounded-lg border border-border p-3">
+              <label className="flex cursor-pointer items-center justify-between gap-2 text-sm">
+                <span className="font-semibold">Show navigation links</span>
+                <input type="checkbox" checked={footer.showNav} onChange={(e) => setFooter((f) => ({ ...f, showNav: e.target.checked }))} className="h-4 w-4" />
+              </label>
+              {footer.showNav && (
+                <div className="grid grid-cols-2 gap-1.5 pl-1">
+                  {footer.navLinks.map((l) => (
+                    <label key={l.label} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent">
+                      <input type="checkbox" checked={l.enabled} onChange={() => toggleFooterLink(l.label)} className="h-4 w-4" />
+                      <span className="truncate">{l.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-3 space-y-3 rounded-lg border border-border p-3">
+              <label className="flex cursor-pointer items-center justify-between gap-2 text-sm">
+                <span className="font-semibold">Show social icons</span>
+                <input type="checkbox" checked={footer.showSocials} onChange={(e) => setFooter((f) => ({ ...f, showSocials: e.target.checked }))} className="h-4 w-4" />
+              </label>
+              {footer.showSocials && (
+                <div className="grid grid-cols-2 gap-1.5 pl-1">
+                  {footer.socials.map((s) => (
+                    <label key={s.key} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm capitalize hover:bg-accent">
+                      <input type="checkbox" checked={s.enabled} onChange={() => toggleFooterSocial(s.key)} className="h-4 w-4" />
+                      <span>{s.key}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <label className="mt-3 flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-border p-3 text-sm">
+              <span className="font-semibold">Show copyright line</span>
+              <input type="checkbox" checked={footer.showCopyright} onChange={(e) => setFooter((f) => ({ ...f, showCopyright: e.target.checked }))} className="h-4 w-4" />
+            </label>
+          </section>
         </div>
+
 
         <div className="flex items-center justify-end gap-2 border-t border-border bg-muted/30 px-5 py-3">
           <button onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-semibold hover:bg-accent">Cancel</button>
@@ -581,7 +641,9 @@ function LivePreviewModal({
             logoUrl={logoSigned}
             accentColor={accent}
             defaultCategoryName={settings.defaultCategoryName}
+            footer={settings.footer}
           />
+
         ) : (
           <PlaceholderPreview id={id} accent={accent} />
         )}

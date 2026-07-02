@@ -14,6 +14,17 @@ export type Category = "Clothes" | "Electronics" | "Sports";
 export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
+export type FooterLink = { label: string; href?: string; enabled: boolean };
+export type FooterSocialKey = "twitter" | "youtube" | "instagram" | "facebook";
+export type FooterSocial = { key: FooterSocialKey; url?: string; enabled: boolean };
+export type FooterSettings = {
+  showNav?: boolean;
+  navLinks?: FooterLink[];
+  showSocials?: boolean;
+  socials?: FooterSocial[];
+  showCopyright?: boolean;
+};
+
 export type TemplateSettings = {
   accentColor?: string;
   logoPath?: string | null;
@@ -22,7 +33,29 @@ export type TemplateSettings = {
   featuredProductIds?: string[];
   themeMode?: "light" | "dark";
   buyNowEnabled?: boolean;
+  footer?: FooterSettings;
 };
+
+export const DEFAULT_FOOTER: Required<FooterSettings> = {
+  showNav: true,
+  navLinks: [
+    { label: "Company", enabled: true },
+    { label: "About Us", enabled: true },
+    { label: "Team", enabled: true },
+    { label: "Products", enabled: true },
+    { label: "Blogs", enabled: true },
+    { label: "Pricing", enabled: true },
+  ],
+  showSocials: true,
+  socials: [
+    { key: "twitter", enabled: true },
+    { key: "youtube", enabled: true },
+    { key: "instagram", enabled: true },
+    { key: "facebook", enabled: true },
+  ],
+  showCopyright: true,
+};
+
 
 
 export type TemplateSettingsMap = Partial<Record<TemplateId, TemplateSettings>>;
