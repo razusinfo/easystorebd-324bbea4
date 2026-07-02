@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 import {
   useMyStore, useMyProducts, useUpsertProduct,
+  useProductVariants, useProductDetails,
   uploadProductImage, deleteProductImage,
   type ProductRow,
 } from "@/lib/eazystore-data";
