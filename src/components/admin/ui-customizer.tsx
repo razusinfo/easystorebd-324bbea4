@@ -328,13 +328,31 @@ function CustomizerForm({
       </div>
       </div>
 
-      <aside className="lg:sticky lg:top-4 lg:self-start">
-        <StorefrontPreview
-          color={color}
-          logoUrl={logoUrl.data ?? null}
-          cats={cats}
-          whatsapp={whatsapp}
-        />
+      <aside className="lg:sticky lg:top-4 lg:self-start space-y-3">
+        <div className="rounded-xl border border-border bg-card p-3">
+          <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+            Preview on template
+          </label>
+          <select
+            value={previewTemplate}
+            onChange={(e) => setPreviewTemplate(e.target.value as PreviewTemplateId)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          >
+            {PREVIEW_TEMPLATES.map((t) => (
+              <option key={t.id} value={t.id}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+        {previewTemplate === "default" ? (
+          <StorefrontPreview
+            color={color}
+            logoUrl={logoUrl.data ?? null}
+            cats={cats}
+            whatsapp={whatsapp}
+          />
+        ) : (
+          <TemplateMiniPreview templateId={previewTemplate} accent={color} />
+        )}
       </aside>
     </div>
   );
