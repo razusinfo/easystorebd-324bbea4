@@ -4,6 +4,8 @@ import {
   List, ListOrdered, Loader2, Quote, Trash2, Underline, Upload, Video, X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
