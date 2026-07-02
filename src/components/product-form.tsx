@@ -1,0 +1,497 @@
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, ChevronUp, Discard, ImageIcon, Loader2, Save, Video, X } from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+
+import {
+  useMyStore, useMyProducts, useUpsertProduct, type ProductRow,
+} from "@/lib/eazystore-data";
+import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categories-data";
+
+type Props = {
+  mode: "new" | "edit";
+  productId?: string;
+  onDone: () => void;
+  onCancel: () => void;
+};
+
+type FormState = {
+  name: string;
+  shortDescription: string;
+  description: string;
+  weightKg: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
+  status: "active" | "inactive";
+  brand: string;
+  condition: "new" | "used" | "refurbished";
+  categoryId: string;
+  sellPrice: string;
+  regularPrice: string;
+  buyingPrice: string;
+  productSerial: string;
+  sku: string;
+  unitName: string;
+  stock: string;
+  warranty: string;
+  initialSoldCount: string;
+  useDefaultDelivery: boolean;
+  variants: { id: string; name: string; value: string }[];
+  details: { id: string; key: string; value: string }[];
+  imageUrl: string;
+  videoUrl: string;
+};
+
+const initialState: FormState = {
+  name: "",
+  shortDescription: "",
+  description: "",
+  weightKg: "",
+  lengthCm: "",
+  widthCm: "",
+  heightCm: "",
+  status: "active",
+  brand: "",
+  condition: "new",
+  categoryId: "",
+  sellPrice: "",
+  regularPrice: "",
+  buyingPrice: "",
+  productSerial: "0",
+  sku: "",
+  unitName: "",
+  stock: "",
+  warranty: "",
+  initialSoldCount: "0",
+  useDefaultDelivery: true,
+  variants: [],
+  details: [],
+  imageUrl: "",
+  videoUrl: "",
+};
+
+export function ProductForm({ mode, productId, onDone, onCancel }: Props) {
+  const storeQ = useMyStore();
+  const store = storeQ.data;
+  const productsQ = useMyProducts(store?.id);
+  const categoriesQ = useCategories(store?.id);
+  const upsert = useUpsertProduct(store?.id);
+
+  const [form, setForm] = useState<FormState>(initialState);
+  const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
+    setForm((prev) => ({ ...prev, [k]: v }));
+
+  const editing = useMemo<ProductRow | undefined>(
+    () => (mode === "edit" && productId ? productsQ.data?.find((p) => p.id === productId) : undefined),
+    [mode, productId, productsQ.data],
+  );
+
+  useEffect(() => {
+    if (mode === "edit" && editing) {
+      setForm((prev) => ({
+        ...prev,
+        name: editing.name,
+        sellPrice: String(editing.price),
+        stock: String(editing.stock),
+      }));
+    }
+  }, [mode, editing]);
+
+  const catTree = useMemo<CategoryNode[]>(
+    () => buildCategoryTree(categoriesQ.data ?? []),
+    [categoriesQ.data],
+  );
+
+  async function handleSave() {
+    if (!store) return toast.error("No store found");
+    const name = form.name.trim();
+    const price = Number(form.sellPrice);
+    const stock = Number(form.stock || "0");
+    if (!name) return toast.error("Item Name is required");
+    if (!Number.isFinite(price) || price < 0) return toast.error("Sell/Current Price is required");
+    if (!Number.isInteger(stock) || stock < 0) return toast.error("Enter a valid stock quantity");
+    try {
+      await upsert.mutateAsync({ id: editing?.id, name, price, stock });
+      toast.success(mode === "edit" ? "Product updated" : "Product added");
+      onDone();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save product");
+    }
+  }
+
+  const loading = storeQ.isLoading || (mode === "edit" && productsQ.isLoading);
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      {/* Top bar */}
+      <header className="sticky top-12 z-10 border-b border-border bg-background/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <h1 className="font-display text-xl font-black sm:text-2xl">
+            {mode === "edit" ? "Edit Product" : "Add Product"}
+          </h1>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={onCancel} disabled={upsert.isPending}>
+              <X className="mr-1 h-4 w-4" /> Discard
+            </Button>
+            <Button onClick={handleSave} disabled={upsert.isPending || loading}>
+              {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
+              Save
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_360px]">
+        {/* LEFT column */}
+        <div className="space-y-5">
+          <Section title="General Information">
+            <div className="space-y-4">
+              <Field label="Item Name" required>
+                <Input
+                  placeholder="Item Name"
+                  value={form.name}
+                  onChange={(e) => set("name", e.target.value)}
+                />
+              </Field>
+              <Field
+                label="Short Description (SEO & Data Feed)"
+                hint={`${form.shortDescription.length}/255`}
+              >
+                <Textarea
+                  maxLength={255}
+                  placeholder="Short Description"
+                  value={form.shortDescription}
+                  onChange={(e) => set("shortDescription", e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </Field>
+              <Field label="Product Description">
+                <Textarea
+                  placeholder="Write something..."
+                  value={form.description}
+                  onChange={(e) => set("description", e.target.value)}
+                  className="min-h-[140px]"
+                />
+              </Field>
+            </div>
+          </Section>
+
+          <Section title="Media">
+            <div className="space-y-3">
+              <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
+                <ImageIcon className="h-8 w-8 text-foreground/40" />
+                <p className="mt-2 max-w-md text-xs text-foreground/60">
+                  Paste an image URL. Supported: JPG, PNG. Max 4MB. Use 1:1.6 for Sellora theme (e.g. 570×924).
+                </p>
+                <Input
+                  placeholder="https://... (image URL)"
+                  value={form.imageUrl}
+                  onChange={(e) => set("imageUrl", e.target.value)}
+                  className="mt-3 max-w-md"
+                />
+              </div>
+              <div className="grid place-items-center rounded-lg border-2 border-dashed border-border bg-muted/40 p-8 text-center">
+                <Video className="h-8 w-8 text-foreground/40" />
+                <p className="mt-2 text-xs text-foreground/60">Paste the video link here</p>
+                <Input
+                  placeholder="https://youtube.com/..."
+                  value={form.videoUrl}
+                  onChange={(e) => set("videoUrl", e.target.value)}
+                  className="mt-3 max-w-md"
+                />
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Pricing">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Field label="Sell/Current Price" required>
+                <Input type="number" min="0" step="0.01" inputMode="decimal"
+                  placeholder="Sell/Current Price"
+                  value={form.sellPrice}
+                  onChange={(e) => set("sellPrice", e.target.value)}
+                />
+              </Field>
+              <Field label="Regular/Old Price">
+                <Input type="number" min="0" step="0.01" inputMode="decimal"
+                  placeholder="Regular/Old Price"
+                  value={form.regularPrice}
+                  onChange={(e) => set("regularPrice", e.target.value)}
+                />
+              </Field>
+              <Field label="Buying Price (Optional)">
+                <Input type="number" min="0" step="0.01" inputMode="decimal"
+                  placeholder="Buying Price (Optional)"
+                  value={form.buyingPrice}
+                  onChange={(e) => set("buyingPrice", e.target.value)}
+                />
+              </Field>
+            </div>
+          </Section>
+
+          <Section title="Inventory">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Field label="Product Serial">
+                <Input value={form.productSerial}
+                  onChange={(e) => set("productSerial", e.target.value)} />
+              </Field>
+              <Field label="SKU / Product Code">
+                <Input placeholder="SKU / Product Code"
+                  value={form.sku} onChange={(e) => set("sku", e.target.value)} />
+              </Field>
+              <Field label="Unit Name">
+                <Input placeholder="e.g. kg, ml, l, mg"
+                  value={form.unitName} onChange={(e) => set("unitName", e.target.value)} />
+              </Field>
+              <Field label="Quantity (Stock)">
+                <Input type="number" min="0" step="1" inputMode="numeric"
+                  placeholder="Quantity (Stock)"
+                  value={form.stock} onChange={(e) => set("stock", e.target.value)} />
+              </Field>
+              <Field label="Warranty">
+                <Input placeholder="Warranty"
+                  value={form.warranty} onChange={(e) => set("warranty", e.target.value)} />
+              </Field>
+              <Field label="Initial Sold Count">
+                <Input type="number" min="0" step="1" inputMode="numeric"
+                  value={form.initialSoldCount}
+                  onChange={(e) => set("initialSoldCount", e.target.value)} />
+              </Field>
+            </div>
+          </Section>
+
+          <Section title="Shipping">
+            <div className="space-y-2">
+              <h3 className="font-semibold">Delivery Charge</h3>
+              <p className="text-sm text-foreground/60">
+                You can add specific delivery charge for this product or use the default charges
+              </p>
+              <div className="mt-2 flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+                <span className="text-sm font-medium">Apply default delivery charges</span>
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "text-xs font-bold",
+                    form.useDefaultDelivery ? "text-primary" : "text-foreground/50",
+                  )}>
+                    {form.useDefaultDelivery ? "Applied" : "Off"}
+                  </span>
+                  <Switch
+                    checked={form.useDefaultDelivery}
+                    onCheckedChange={(v) => set("useDefaultDelivery", v)}
+                  />
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Product Variants">
+            <p className="text-sm text-foreground/60">
+              You can add multiple variants for a single product here. Like Size, Color, Weight etc.
+            </p>
+            {form.variants.length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {form.variants.map((v, i) => (
+                  <li key={v.id} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                    <Input placeholder="Name (e.g. Size)" value={v.name}
+                      onChange={(e) => {
+                        const next = [...form.variants];
+                        next[i] = { ...v, name: e.target.value };
+                        set("variants", next);
+                      }} />
+                    <Input placeholder="Value (e.g. XL)" value={v.value}
+                      onChange={(e) => {
+                        const next = [...form.variants];
+                        next[i] = { ...v, value: e.target.value };
+                        set("variants", next);
+                      }} />
+                    <Button variant="ghost" size="icon"
+                      onClick={() => set("variants", form.variants.filter((x) => x.id !== v.id))}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button variant="outline" size="sm" className="mt-3"
+              onClick={() => set("variants", [
+                ...form.variants,
+                { id: crypto.randomUUID(), name: "", value: "" },
+              ])}>
+              + Add a new variant
+            </Button>
+          </Section>
+
+          <Section title="Product Details">
+            <p className="text-sm text-foreground/60">
+              You can add multiple product details here. Like Brand, Model, Serial Number, Fabric Type, EMI etc.
+            </p>
+            {form.details.length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {form.details.map((d, i) => (
+                  <li key={d.id} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                    <Input placeholder="Label" value={d.key}
+                      onChange={(e) => {
+                        const next = [...form.details];
+                        next[i] = { ...d, key: e.target.value };
+                        set("details", next);
+                      }} />
+                    <Input placeholder="Value" value={d.value}
+                      onChange={(e) => {
+                        const next = [...form.details];
+                        next[i] = { ...d, value: e.target.value };
+                        set("details", next);
+                      }} />
+                    <Button variant="ghost" size="icon"
+                      onClick={() => set("details", form.details.filter((x) => x.id !== d.id))}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button variant="outline" size="sm" className="mt-3"
+              onClick={() => set("details", [
+                ...form.details,
+                { id: crypto.randomUUID(), key: "", value: "" },
+              ])}>
+              + Add a new field
+            </Button>
+          </Section>
+        </div>
+
+        {/* RIGHT column */}
+        <aside className="space-y-5">
+          <Section title="Category">
+            {catTree.length === 0 ? (
+              <div className="space-y-3 text-center">
+                <p className="text-sm text-foreground/60">No assigned category found</p>
+                <Button className="w-full" variant="default"
+                  onClick={() => toast.info("Create categories from the Categories page.")}>
+                  Assign category
+                </Button>
+              </div>
+            ) : (
+              <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
+                <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
+                <SelectContent>
+                  {flattenCategories(catTree).map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {"— ".repeat(c.depth)}{c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Section>
+
+          <Section title="Product Weight & Dimensions">
+            <div className="space-y-4">
+              <Field label="Weight (kg)" hint="Enter weight in kilograms">
+                <Input type="number" min="0" step="0.01" inputMode="decimal"
+                  placeholder="e.g. 1.5"
+                  value={form.weightKg} onChange={(e) => set("weightKg", e.target.value)} />
+              </Field>
+              <div>
+                <Label className="text-sm">Dimensions (cm)</Label>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  <Input placeholder="L" value={form.lengthCm}
+                    onChange={(e) => set("lengthCm", e.target.value)} />
+                  <Input placeholder="W" value={form.widthCm}
+                    onChange={(e) => set("widthCm", e.target.value)} />
+                  <Input placeholder="H" value={form.heightCm}
+                    onChange={(e) => set("heightCm", e.target.value)} />
+                </div>
+                <p className="mt-1 text-xs text-foreground/50">Enter dimensions in centimeters (L × W × H)</p>
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Product Status" collapsible={false}>
+            <Select value={form.status} onValueChange={(v) => set("status", v as FormState["status"])}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">ACTIVE</SelectItem>
+                <SelectItem value="inactive">INACTIVE</SelectItem>
+              </SelectContent>
+            </Select>
+          </Section>
+
+          <Section title="Brand (SEO & Data Feed)">
+            <Input placeholder="Brand Name" value={form.brand}
+              onChange={(e) => set("brand", e.target.value)} />
+          </Section>
+
+          <Section title="Condition (SEO & Data Feed)">
+            <Select value={form.condition} onValueChange={(v) => set("condition", v as FormState["condition"])}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="used">Used</SelectItem>
+                <SelectItem value="refurbished">Refurbished</SelectItem>
+              </SelectContent>
+            </Select>
+          </Section>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  title, children, collapsible = true,
+}: { title: string; children: React.ReactNode; collapsible?: boolean }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <section className="rounded-xl border border-border bg-card shadow-sm">
+      <header className="flex items-center justify-between px-5 py-3">
+        <h2 className="font-display text-base font-black">{title}</h2>
+        {collapsible && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="rounded-md p-1 text-foreground/50 hover:bg-foreground/5 hover:text-foreground"
+            aria-label={open ? "Collapse" : "Expand"}
+          >
+            {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        )}
+      </header>
+      {open && <div className="border-t border-border px-5 py-4">{children}</div>}
+    </section>
+  );
+}
+
+function Field({
+  label, required, hint, children,
+}: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center justify-between">
+        <Label className="text-sm">
+          {label} {required && <span className="text-destructive">*</span>}
+        </Label>
+        {hint && <span className="text-xs text-foreground/50">{hint}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function flattenCategories(nodes: CategoryNode[], depth = 0): { id: string; name: string; depth: number }[] {
+  const out: { id: string; name: string; depth: number }[] = [];
+  for (const n of nodes) {
+    out.push({ id: n.id, name: n.name, depth });
+    if (n.children.length) out.push(...flattenCategories(n.children, depth + 1));
+  }
+  return out;
+}
