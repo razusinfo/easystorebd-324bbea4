@@ -362,13 +362,14 @@ function StatusChangeDialog({
   const [confirming, setConfirming] = useState(false);
 
   // Reset local state whenever the target product changes.
-  useMemo(() => {
+  useEffect(() => {
     if (product) {
       setNext(product.status);
       setNotes("");
       setConfirming(false);
     }
   }, [product?.id]);
+
 
   if (!product) return null;
 
