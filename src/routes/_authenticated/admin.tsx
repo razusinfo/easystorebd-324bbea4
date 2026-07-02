@@ -326,7 +326,7 @@ function Admin() {
               })
             )}
           </div>
-        ) : (
+        ) : tab === "audit" ? (
           <div className="space-y-2">
             {auditLogs.isLoading ? (
               <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
@@ -358,6 +358,8 @@ function Admin() {
               ))
             )}
           </div>
+        ) : (
+          <UICustomizer />
         )}
       </section>
 
