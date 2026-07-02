@@ -271,7 +271,7 @@ function ShopDomainDialog({ store, onClose }: { store: any; onClose: () => void 
 
   async function saveSlug() {
     try {
-      await changeSlug.mutateAsync({ id: store.id, desiredSlug: slug });
+      await changeSlug.mutateAsync({ id: store.id, slug });
       toast.success("Slug updated.");
     } catch (e: any) { toast.error(e?.message ?? "Slug change failed."); }
   }
