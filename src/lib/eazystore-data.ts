@@ -339,6 +339,43 @@ export function useMyProducts(storeId: string | undefined) {
   });
 }
 
+export type ProductsQueryParams = {
+  storeId: string | undefined;
+  page: number;
+  perPage: number;
+  search?: string;
+  status?: ProductStatus | "all";
+  sku?: string;
+};
+
+export function useMyProductsPaged(params: ProductsQueryParams) {
+  const { storeId, page, perPage, search, status, sku } = params;
+  return useQuery({
+    queryKey: ["products", "by-store", storeId, "paged", { page, perPage, search: search ?? "", status: status ?? "all", sku: sku ?? "" }],
+    enabled: !!storeId,
+    queryFn: async (): Promise<{ rows: ProductRow[]; total: number }> => {
+      const from = (page - 1) * perPage;
+      const to = from + perPage - 1;
+      let q = supabase
+        .from("products")
+        .select("*", { count: "exact" })
+        .eq("store_id", storeId!)
+        .order("created_at", { ascending: false });
+
+      const s = (search ?? "").trim();
+      if (s) q = q.ilike("name", `%${s}%`);
+      const skuQ = (sku ?? "").trim();
+      if (skuQ) q = q.ilike("sku", `%${skuQ}%`);
+      if (status && status !== "all") q = q.eq("status", status);
+
+      const { data, error, count } = await q.range(from, to);
+      if (error) throw error;
+      return { rows: (data ?? []) as ProductRow[], total: count ?? 0 };
+    },
+    placeholderData: (prev) => prev,
+  });
+}
+
 export function useProductVariants(productId: string | undefined) {
   return useQuery({
     queryKey: ["product-variants", productId],
