@@ -95,6 +95,60 @@ export type Database = {
           },
         ]
       }
+      order_requests: {
+        Row: {
+          created_at: string
+          customer_user_id: string | null
+          id: string
+          order_id: string
+          reason: string
+          resolution_notes: string | null
+          status: Database["public"]["Enums"]["order_request_status"]
+          store_id: string
+          type: Database["public"]["Enums"]["order_request_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_user_id?: string | null
+          id?: string
+          order_id: string
+          reason: string
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["order_request_status"]
+          store_id: string
+          type: Database["public"]["Enums"]["order_request_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_user_id?: string | null
+          id?: string
+          order_id?: string
+          reason?: string
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["order_request_status"]
+          store_id?: string
+          type?: Database["public"]["Enums"]["order_request_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_requests_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
@@ -745,6 +799,8 @@ export type Database = {
         | "accountant"
         | "technician"
         | "warehouse_manager"
+      order_request_status: "pending" | "approved" | "rejected" | "completed"
+      order_request_type: "cancellation" | "return"
       order_status:
         | "pending"
         | "confirmed"
@@ -901,6 +957,8 @@ export const Constants = {
         "technician",
         "warehouse_manager",
       ],
+      order_request_status: ["pending", "approved", "rejected", "completed"],
+      order_request_type: ["cancellation", "return"],
       order_status: [
         "pending",
         "confirmed",
