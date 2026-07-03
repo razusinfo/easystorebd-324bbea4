@@ -93,10 +93,12 @@ export function EazyStoreBasicTemplate({
   const enabledLinks = f.navLinks.filter((l) => l.enabled && l.label !== "Blogs" && l.label !== "Pricing");
   const enabledSocials = f.socials.filter((s) => s.enabled);
   const socialIconMap = { twitter: Twitter, youtube: Youtube, instagram: Instagram, facebook: Facebook } as const;
+  const showDevBadge = useShowDevelopedBadge(store as any);
   const hasFooter =
     (f.showNav && enabledLinks.length > 0) ||
     (f.showSocials && enabledSocials.length > 0) ||
-    f.showCopyright;
+    f.showCopyright ||
+    showDevBadge;
 
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<string>(defaultCategoryName || "All Products");
