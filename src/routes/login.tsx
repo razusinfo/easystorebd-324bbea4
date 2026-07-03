@@ -435,7 +435,7 @@ function LoginPage() {
             <a href="#" className="font-semibold text-purple-700 hover:underline">Terms of Use</a>
             {" "}&amp;{" "}
             <a href="#" className="font-semibold text-purple-700 hover:underline">Privacy Policy</a>
-            {" "}of EazyStore.
+            {" "}of <EazyStoreWordmark className="text-xs align-baseline" />.
           </p>
         </div>
       </div>

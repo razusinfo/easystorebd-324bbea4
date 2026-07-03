@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Smartphone, Monitor, Apple, Chrome, Share, MoreVertical, Download, Home } from "lucide-react";
 import { PwaInstallButton } from "@/components/pwa-install-button";
 import logoAsset from "@/assets/eazystore-logo.png.asset.json";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export const Route = createFileRoute("/install")({
   head: () => ({
@@ -83,7 +84,7 @@ function InstallPage() {
             className="mx-auto h-20 sm:h-24 w-auto object-contain drop-shadow-md"
           />
           <h1 className="text-3xl sm:text-4xl font-black text-emerald-900">
-            EazyStore অ্যাপ ইনস্টল করুন
+            <EazyStoreWordmark className="text-3xl sm:text-4xl align-baseline" /> অ্যাপ ইনস্টল করুন
           </h1>
           <p className="mx-auto max-w-xl text-sm sm:text-base text-slate-600">
             কোনো Play Store বা App Store লাগবে না। সরাসরি ব্রাউজার থেকেই আপনার ফোন ও কম্পিউটারে

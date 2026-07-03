@@ -151,7 +151,7 @@ function TopBand() {
           </h1>
 
           <p className="mt-5 max-w-lg text-base text-slate-700 sm:text-lg">
-            EazyStore gives every merchant a beautiful storefront, powerful dashboard and local
+            <EazyStoreWordmark className="text-base sm:text-lg align-baseline" /> gives every merchant a beautiful storefront, powerful dashboard and local
             payments — no code, no hassle. Just sell.
           </p>
 
@@ -239,7 +239,7 @@ function Features() {
           Everything you need to sell online
         </h2>
         <p className="mt-4 text-slate-600">
-          From your first product to your thousandth order, EazyStore has the tools to grow.
+          From your first product to your thousandth order, <EazyStoreWordmark className="text-base align-baseline" /> has the tools to grow.
         </p>
       </div>
 
@@ -440,7 +440,7 @@ function CtaBanner() {
             Ready to open your store?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-emerald-50">
-            Join merchants selling smarter with EazyStore. Set up your store today — it's free.
+            Join merchants selling smarter with <EazyStoreWordmark className="text-base align-baseline" />. Set up your store today — it's free.
           </p>
           <Link
             to="/auth"
@@ -548,7 +548,7 @@ function Footer() {
 
         {/* Divider + copyright */}
         <div className="mt-8 border-t border-emerald-100 pt-6 text-center text-sm text-slate-500">
-          Copyright © 2022–{new Date().getFullYear()} EazyStore. All rights reserved.
+          Copyright © 2022–{new Date().getFullYear()} <EazyStoreWordmark className="text-sm align-baseline" />. All rights reserved.
         </div>
       </div>
     </footer>
