@@ -121,7 +121,7 @@ function CategoriesPage() {
                 key={node.id}
                 node={node}
                 depth={0}
-                storeSlug={myStore.data!.slug}
+                storeSlug={myStore.data!.slug ?? ""}
                 expanded={expanded}
                 onToggle={toggle}
                 onEdit={(n) => setModal({ mode: "edit", node: n })}
