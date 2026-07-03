@@ -63,7 +63,7 @@ function ProductsPage() {
   }, [skuFilter]);
 
   // Reset to page 1 whenever filters change
-  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, perPage]);
+  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, categoryFilter, perPage]);
 
   const productsQ = useMyProductsPaged({
     storeId: store?.id,
@@ -72,6 +72,7 @@ function ProductsPage() {
     search: debouncedSearch,
     sku: debouncedSku,
     status: statusFilter,
+    categoryId: categoryFilter,
   });
   const statsQ = useMyProductsStats(store?.id);
 
