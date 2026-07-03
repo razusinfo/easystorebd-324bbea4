@@ -61,7 +61,22 @@ function ResetPasswordPage() {
       const { error: updErr } = await supabase.auth.updateUser({ password });
       if (updErr) throw updErr;
       setInfo("Password updated. Redirecting…");
-      setTimeout(() => navigate({ to: "/dashboard" }), 900);
+      setTimeout(() => {
+        // Store owners land on /dashboard; customers on the home page.
+        // Detect owner role by checking user_roles; fall back to "/".
+        supabase.auth.getUser().then(async ({ data }) => {
+          const uid = data.user?.id;
+          if (!uid) return navigate({ to: "/" });
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", uid);
+          const isOwner = (roles ?? []).some(
+            (r) => r.role === "store_owner" || r.role === "super_admin",
+          );
+          navigate({ to: isOwner ? "/dashboard" : "/" });
+        });
+      }, 900);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update password");
     } finally {
