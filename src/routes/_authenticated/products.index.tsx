@@ -120,6 +120,15 @@ function ProductsPage() {
         <StatCard label="Out of Stock" value={stats.outOfStock.toString()} tone={stats.outOfStock ? "warn" : "muted"} />
       </div>
 
+      {/* Category strip */}
+      <CategoryStrip
+        categories={categoriesQ.data ?? []}
+        isLoading={categoriesQ.isLoading}
+        selected={categoryFilter}
+        onSelect={setCategoryFilter}
+      />
+
+
       {/* Filters */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative flex-1">
