@@ -31,6 +31,26 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"login" | "register">("login");
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotBusy, setForgotBusy] = useState(false);
+
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent — check your email.");
+      setForgotOpen(false);
+      setForgotEmail("");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not send reset email");
+    } finally { setForgotBusy(false); }
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
