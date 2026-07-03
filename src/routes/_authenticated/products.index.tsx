@@ -435,24 +435,44 @@ function ProductTable({
         {rows.map((p) => (
           <li key={p.id} className="p-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{p.name}</p>
-                <p className="mt-0.5 font-bold text-primary">৳ {p.price.toLocaleString()}</p>
-                <p className={
-                  p.stock === 0
-                    ? "mt-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400"
-                    : "mt-0.5 text-xs text-foreground/60"
-                }>
-                  {p.stock === 0 ? "Out of stock" : `${p.stock.toLocaleString()} in stock`}
-                </p>
-                <div className="mt-2">
-                  <button type="button" onClick={() => onChangeStatus(p)} aria-label="Change status">
-                    <StatusBadge status={p.status} />
-                  </button>
+              <button
+                type="button"
+                onClick={() => onEdit(p)}
+                className="flex min-w-0 flex-1 items-start gap-3 text-left hover:opacity-80"
+                aria-label={`Edit ${p.name}`}
+              >
+                <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md border border-border bg-muted/40">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <ImageIcon className="h-5 w-5 text-foreground/30" />
+                  )}
                 </div>
-
-              </div>
-              <div className="flex gap-1">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold hover:text-primary">{p.name}</p>
+                  <p className="mt-0.5 font-bold text-primary">৳ {p.price.toLocaleString()}</p>
+                  <p className={
+                    p.stock === 0
+                      ? "mt-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400"
+                      : "mt-0.5 text-xs text-foreground/60"
+                  }>
+                    {p.stock === 0 ? "Out of stock" : `${p.stock.toLocaleString()} in stock`}
+                  </p>
+                  <div className="mt-2">
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); onChangeStatus(p); }}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onChangeStatus(p); } }}
+                      aria-label="Change status"
+                      className="inline-block"
+                    >
+                      <StatusBadge status={p.status} />
+                    </span>
+                  </div>
+                </div>
+              </button>
+              <div className="flex shrink-0 gap-1">
                 <Button variant="ghost" size="icon" onClick={() => onEdit(p)} aria-label="Edit">
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -465,6 +485,7 @@ function ProductTable({
               </div>
             </div>
           </li>
+
         ))}
       </ul>
     </div>
