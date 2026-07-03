@@ -247,7 +247,27 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
                 <span>Subtotal</span>
                 <span className="font-bold">{total.toLocaleString()} ৳</span>
               </div>
+              {savedAddresses.length > 0 && (
+                <div>
+                  <Label className="text-xs">Deliver to</Label>
+                  <Select value={selectedAddrId} onValueChange={handleSelectAddress}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Choose an address" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {savedAddresses.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.full_name} — {composeAddress(a)}
+                          {a.is_default_shipping ? " (Default)" : ""}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value={MANUAL_ADDR}>Enter a new address…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid gap-2">
+
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label htmlFor="cart-name" className="text-xs">Name *</Label>
