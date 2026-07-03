@@ -47,6 +47,7 @@ import { Route as SSlugPricingRouteImport } from './routes/s.$slug.pricing'
 import { Route as SSlugContactRouteImport } from './routes/s.$slug.contact'
 import { Route as SSlugBlogsRouteImport } from './routes/s.$slug.blogs'
 import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
+import { Route as AccountOrdersIdRouteImport } from './routes/account.orders.$id'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 
@@ -243,6 +244,11 @@ const SSlugAboutRoute = SSlugAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => SSlugRoute,
 } as any)
+const AccountOrdersIdRoute = AccountOrdersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AccountOrdersRoute,
+} as any)
 const AuthenticatedProductsNewRoute =
   AuthenticatedProductsNewRouteImport.update({
     id: '/products/new',
@@ -280,7 +286,7 @@ export interface FileRoutesByFullPath {
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
-  '/account/orders': typeof AccountOrdersRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/account/orders/$id': typeof AccountOrdersIdRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/blogs': typeof SSlugBlogsRoute
   '/s/$slug/contact': typeof SSlugContactRoute
@@ -320,7 +327,7 @@ export interface FileRoutesByTo {
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
-  '/account/orders': typeof AccountOrdersRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
@@ -328,6 +335,7 @@ export interface FileRoutesByTo {
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account': typeof AccountIndexRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
+  '/account/orders/$id': typeof AccountOrdersIdRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/blogs': typeof SSlugBlogsRoute
   '/s/$slug/contact': typeof SSlugContactRoute
@@ -363,7 +371,7 @@ export interface FileRoutesById {
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
-  '/account/orders': typeof AccountOrdersRoute
+  '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
+  '/account/orders/$id': typeof AccountOrdersIdRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/blogs': typeof SSlugBlogsRoute
   '/s/$slug/contact': typeof SSlugContactRoute
@@ -414,6 +423,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/account/'
     | '/products/new'
+    | '/account/orders/$id'
     | '/s/$slug/about'
     | '/s/$slug/blogs'
     | '/s/$slug/contact'
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/account'
     | '/products/new'
+    | '/account/orders/$id'
     | '/s/$slug/about'
     | '/s/$slug/blogs'
     | '/s/$slug/contact'
@@ -496,6 +507,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/account/'
     | '/_authenticated/products/new'
+    | '/account/orders/$id'
     | '/s/$slug/about'
     | '/s/$slug/blogs'
     | '/s/$slug/contact'
@@ -786,6 +798,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugAboutRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/account/orders/$id': {
+      id: '/account/orders/$id'
+      path: '/$id'
+      fullPath: '/account/orders/$id'
+      preLoaderRoute: typeof AccountOrdersIdRouteImport
+      parentRoute: typeof AccountOrdersRoute
+    }
     '/_authenticated/products/new': {
       id: '/_authenticated/products/new'
       path: '/products/new'
@@ -853,8 +872,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AccountOrdersRouteChildren {
+  AccountOrdersIdRoute: typeof AccountOrdersIdRoute
+}
+
+const AccountOrdersRouteChildren: AccountOrdersRouteChildren = {
+  AccountOrdersIdRoute: AccountOrdersIdRoute,
+}
+
+const AccountOrdersRouteWithChildren = AccountOrdersRoute._addFileChildren(
+  AccountOrdersRouteChildren,
+)
+
 interface AccountRouteChildren {
-  AccountOrdersRoute: typeof AccountOrdersRoute
+  AccountOrdersRoute: typeof AccountOrdersRouteWithChildren
   AccountReturnsRoute: typeof AccountReturnsRoute
   AccountReviewsRoute: typeof AccountReviewsRoute
   AccountWishlistRoute: typeof AccountWishlistRoute
@@ -862,7 +893,7 @@ interface AccountRouteChildren {
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
-  AccountOrdersRoute: AccountOrdersRoute,
+  AccountOrdersRoute: AccountOrdersRouteWithChildren,
   AccountReturnsRoute: AccountReturnsRoute,
   AccountReviewsRoute: AccountReviewsRoute,
   AccountWishlistRoute: AccountWishlistRoute,
