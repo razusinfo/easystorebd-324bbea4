@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
+import { Route as DemoPrestigeRouteImport } from './routes/demo.prestige'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
 import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as AccountReviewsRouteImport } from './routes/account.reviews'
@@ -93,6 +94,11 @@ const AccountIndexRoute = AccountIndexRouteImport.update({
 const SSlugRoute = SSlugRouteImport.update({
   id: '/s/$slug',
   path: '/s/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoPrestigeRoute = DemoPrestigeRouteImport.update({
+  id: '/demo/prestige',
+  path: '/demo/prestige',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoBdloveRoute = DemoBdloveRouteImport.update({
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
+  '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
@@ -332,6 +339,7 @@ export interface FileRoutesByTo {
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
+  '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account': typeof AccountIndexRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
@@ -376,6 +384,7 @@ export interface FileRoutesById {
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
+  '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/account/reviews'
     | '/account/wishlist'
     | '/demo/bdlove'
+    | '/demo/prestige'
     | '/s/$slug'
     | '/account/'
     | '/products/new'
@@ -461,6 +471,7 @@ export interface FileRouteTypes {
     | '/account/reviews'
     | '/account/wishlist'
     | '/demo/bdlove'
+    | '/demo/prestige'
     | '/s/$slug'
     | '/account'
     | '/products/new'
@@ -504,6 +515,7 @@ export interface FileRouteTypes {
     | '/account/reviews'
     | '/account/wishlist'
     | '/demo/bdlove'
+    | '/demo/prestige'
     | '/s/$slug'
     | '/account/'
     | '/_authenticated/products/new'
@@ -527,6 +539,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DemoBdloveRoute: typeof DemoBdloveRoute
+  DemoPrestigeRoute: typeof DemoPrestigeRoute
   SSlugRoute: typeof SSlugRouteWithChildren
 }
 
@@ -593,6 +606,13 @@ declare module '@tanstack/react-router' {
       path: '/s/$slug'
       fullPath: '/s/$slug'
       preLoaderRoute: typeof SSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/prestige': {
+      id: '/demo/prestige'
+      path: '/demo/prestige'
+      fullPath: '/demo/prestige'
+      preLoaderRoute: typeof DemoPrestigeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/bdlove': {
@@ -932,6 +952,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   DemoBdloveRoute: DemoBdloveRoute,
+  DemoPrestigeRoute: DemoPrestigeRoute,
   SSlugRoute: SSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
