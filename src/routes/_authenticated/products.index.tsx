@@ -47,8 +47,10 @@ function ProductsPage() {
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
+  const [categoryFilter, setCategoryFilter] = useState<string | "all">("all");
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
   const [statusTarget, setStatusTarget] = useState<ProductRow | null>(null);
+  const categoriesQ = useCategories(store?.id);
 
   // Debounce search + sku to avoid spamming API
   useEffect(() => {
