@@ -45,8 +45,8 @@ export const DEFAULT_FOOTER: Required<FooterSettings> = {
     { label: "About Us", enabled: true },
     { label: "Team", enabled: true },
     { label: "Products", enabled: true },
-    { label: "Blogs", enabled: true },
-    { label: "Pricing", enabled: true },
+    { label: "Blogs", enabled: false },
+    { label: "Pricing", enabled: false },
   ],
   showSocials: true,
   socials: [
