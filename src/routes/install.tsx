@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Smartphone, Monitor, Apple, Chrome, Share, MoreVertical, Download, Home } from "lucide-react";
+import { PwaInstallButton } from "@/components/pwa-install-button";
 
 export const Route = createFileRoute("/install")({
   head: () => ({
