@@ -312,7 +312,12 @@ function ProductTable({
                     <ChevronRight className="h-4 w-4" />
                   </td>
                   <td className="px-3 py-3">
-                    <div className="flex min-w-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(p)}
+                      className="flex min-w-0 w-full items-center gap-3 rounded-md text-left hover:opacity-80"
+                      aria-label={`Edit ${p.name}`}
+                    >
                       <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-md border border-border bg-muted/40">
                         {p.image_url ? (
                           <img src={p.image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
@@ -321,22 +326,25 @@ function ProductTable({
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-[13px] font-medium leading-tight text-foreground">
+                        <p className="truncate text-[13px] font-medium leading-tight text-foreground hover:text-primary">
                           {p.name}
                           {p.sku ? ` (Code: ${p.sku})` : ""}
                         </p>
                         <p className="mt-0.5 text-[11px] text-foreground/50">
-                          <button
-                            type="button"
-                            onClick={() => onChangeStatus(p)}
-                            className="hover:opacity-80"
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => { e.stopPropagation(); onChangeStatus(p); }}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onChangeStatus(p); } }}
+                            className="inline-block hover:opacity-80"
                           >
                             <StatusBadge status={p.status} />
-                          </button>
+                          </span>
                         </p>
                       </div>
-                    </div>
+                    </button>
                   </td>
+
                   <td className="px-3 py-3 align-middle text-[13px] text-foreground/70">Own</td>
                   <td className="px-3 py-3 align-middle">
                     <span className="block max-w-[280px] truncate text-[12px] text-foreground/60">
