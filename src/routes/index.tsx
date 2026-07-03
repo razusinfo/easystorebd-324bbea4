@@ -467,9 +467,7 @@ function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2">
-              <div className="gradient-landing-brand grid h-9 w-9 place-items-center rounded-xl text-white shadow-md">
-                <Store className="h-5 w-5" />
-              </div>
+              <img src={eazystoreLogo.url} alt="EazyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
               <span className="font-hero text-lg text-slate-900">
                 eazy<span className="text-landing-accent">store</span>
               </span>
