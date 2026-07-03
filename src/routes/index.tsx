@@ -84,7 +84,7 @@ function TopBand() {
             alt="EazyStore"
             className="h-9 w-9 shrink-0 rounded-xl object-contain"
           />
-          <span className="font-hero truncate text-lg tracking-tight text-slate-900 sm:text-xl">EazyStore</span>
+          <EazyStoreWordmark className="truncate text-lg sm:text-xl" />
         </Link>
 
         <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
