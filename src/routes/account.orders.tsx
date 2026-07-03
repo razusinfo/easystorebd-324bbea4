@@ -68,6 +68,7 @@ function MyOrdersPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Payment</TableHead>
                 <TableHead className="text-right">Total</TableHead>
+                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -79,6 +80,13 @@ function MyOrdersPage() {
                   <TableCell><Badge variant="outline">{o.payment_status}</Badge></TableCell>
                   <TableCell className="text-right font-bold">
                     {Number(o.total).toLocaleString()} ৳
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button asChild size="sm" variant="ghost">
+                      <Link to="/account/orders/$id" params={{ id: o.id }}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
