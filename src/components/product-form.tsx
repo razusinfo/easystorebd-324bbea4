@@ -397,7 +397,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_360px]">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 pb-6 pt-10 sm:px-6 sm:pt-12 lg:grid-cols-[1fr_360px]">
         {/* LEFT column */}
         <div className="space-y-5">
           <Section title="General Information">
