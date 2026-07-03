@@ -430,7 +430,11 @@ function CtaBanner() {
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 px-8 py-16 text-center text-white shadow-xl">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.25),transparent_60%)]" />
         <div className="relative">
-          <ShoppingCart className="mx-auto h-10 w-10" />
+          <img
+            src={eazystoreLogo.url}
+            alt="EazyStore"
+            className="mx-auto h-16 w-16 rounded-2xl bg-white/90 p-1.5 object-contain shadow-md ring-1 ring-white/40"
+          />
           <h2 className="font-hero mt-6 text-3xl leading-tight tracking-tight sm:text-5xl">
             Ready to open your store?
           </h2>
