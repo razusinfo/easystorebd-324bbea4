@@ -243,23 +243,23 @@ function OrderDetailsPage() {
       {/* Return / cancellation requests */}
       {(requests ?? []).length > 0 && (
         <div className="rounded-lg border p-4 print:hidden">
-          <h2 className="mb-3 text-sm font-semibold">Your requests</h2>
-          <ul className="space-y-3">
+          <h2 className="mb-4 text-sm font-semibold">Your requests</h2>
+          <ul className="space-y-6">
             {(requests ?? []).map((r) => (
-              <li key={r.id} className="rounded border p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium capitalize">{r.type}</span>
+              <li key={r.id} className="rounded-lg border p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="font-medium capitalize">{r.type} request</span>
                   <Badge variant="secondary" className="capitalize">{r.status}</Badge>
                 </div>
-                <p className="mt-1 text-muted-foreground">{r.reason}</p>
-                {r.resolution_notes && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">Response:</span> {r.resolution_notes}
-                  </p>
-                )}
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {new Date(r.created_at).toLocaleString()}
+                <p className="mb-4 text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Reason:</span> {r.reason}
                 </p>
+                <RequestTimeline
+                  status={r.status}
+                  createdAt={r.created_at}
+                  updatedAt={r.updated_at}
+                  notes={r.resolution_notes}
+                />
               </li>
             ))}
           </ul>
@@ -268,6 +268,85 @@ function OrderDetailsPage() {
     </div>
   );
 }
+
+function RequestTimeline({
+  status, createdAt, updatedAt, notes,
+}: {
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  notes: string | null;
+}) {
+  const isResolved = status !== "pending";
+  const isRejected = status === "rejected";
+  const isCompleted = status === "completed";
+
+  const reviewLabel = isRejected ? "Denied" : status === "approved" || isCompleted ? "Approved" : "Under review";
+  const steps = [
+    {
+      key: "requested",
+      label: "Requested",
+      done: true,
+      time: createdAt,
+      note: null as string | null,
+    },
+    {
+      key: "review",
+      label: reviewLabel,
+      done: isResolved,
+      time: isResolved ? updatedAt : null,
+      note: isResolved ? notes : null,
+      danger: isRejected,
+    },
+    {
+      key: "processed",
+      label: "Processed",
+      done: isCompleted,
+      time: isCompleted ? updatedAt : null,
+      note: null,
+    },
+  ];
+
+  return (
+    <ol className="relative space-y-4 border-l pl-5">
+      {steps.map((s) => (
+        <li key={s.key} className="relative">
+          <span
+            className={
+              "absolute -left-[27px] top-1 grid h-4 w-4 place-items-center rounded-full border-2 " +
+              (s.done
+                ? s.danger
+                  ? "border-destructive bg-destructive"
+                  : "border-primary bg-primary"
+                : "border-muted-foreground/40 bg-background")
+            }
+          />
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span
+              className={
+                "text-sm font-medium " +
+                (s.done ? (s.danger ? "text-destructive" : "") : "text-muted-foreground")
+              }
+            >
+              {s.label}
+            </span>
+            {s.time && (
+              <span className="text-xs text-muted-foreground">
+                {new Date(s.time).toLocaleString()}
+              </span>
+            )}
+          </div>
+          {s.note && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Admin note:</span> {s.note}
+            </p>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 
 function RequestDialog({
   orderId, storeId, disabled,
