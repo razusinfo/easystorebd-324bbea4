@@ -72,7 +72,7 @@ function CategoriesPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-4xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28">
+    <main className="mx-auto min-h-screen w-full max-w-4xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28 lg:max-w-7xl lg:bg-none lg:pb-8">
       <section className="px-5 pt-5">
         <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/70 hover:text-primary">
           <ArrowLeft className="h-4 w-4" /> Dashboard
