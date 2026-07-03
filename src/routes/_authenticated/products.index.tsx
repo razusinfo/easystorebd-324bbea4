@@ -240,17 +240,27 @@ function StatCard({ label, value, tone }: { label: string; value: string; tone?:
 }
 
 function ProductTable({
-  rows, onEdit, onDelete, onChangeStatus,
-}: { rows: ProductRow[]; onEdit: (p: ProductRow) => void; onDelete: (p: ProductRow) => void; onChangeStatus: (p: ProductRow) => void }) {
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
+  rows, total, page, perPage, isFetching, onPageChange, onPerPageChange,
+  onEdit, onDelete, onChangeStatus,
+}: {
+  rows: ProductRow[];
+  total: number;
+  page: number;
+  perPage: number;
+  isFetching: boolean;
+  onPageChange: (p: number) => void;
+  onPerPageChange: (n: number) => void;
+  onEdit: (p: ProductRow) => void;
+  onDelete: (p: ProductRow) => void;
+  onChangeStatus: (p: ProductRow) => void;
+}) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const total = rows.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * perPage;
-  const pageRows = rows.slice(start, start + perPage);
+  const pageRows = rows;
+
 
   const toggle = (id: string) => {
     setSelected((s) => {
