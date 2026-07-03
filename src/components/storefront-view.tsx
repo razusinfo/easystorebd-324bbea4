@@ -101,6 +101,17 @@ export function StorefrontView({ slug }: { slug: string }) {
     );
   }
 
+  if (s.template === "prestige") {
+    return (
+      <PrestigeTemplate
+        store={s}
+        products={orderedProducts}
+        logoUrl={effectiveLogo}
+        categories={categories}
+      />
+    );
+  }
+
 
 
   const t = TEMPLATES.find((x) => x.id === s.template) ?? TEMPLATES[0];
