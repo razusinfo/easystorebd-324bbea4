@@ -25,6 +25,7 @@ export const Route = createFileRoute("/account/orders/$id")({
 
 type OrderDetails = {
   id: string;
+  store_id: string;
   order_number: string;
   status: string;
   payment_status: string;
