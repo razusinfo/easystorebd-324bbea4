@@ -17,9 +17,34 @@ export const Route = createFileRoute("/account")({
   component: AccountLayout,
 });
 
-const NAV: ReadonlyArray<{ to: string; label: string; icon: typeof UserCog; exact?: boolean }> = [
-  { to: "/account", label: "Manage My Account", icon: UserCog, exact: true },
-  { to: "/account/orders", label: "My Orders", icon: Package },
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof UserCog;
+  exact?: boolean;
+  children?: ReadonlyArray<{ to: string; label: string; hash?: string }>;
+};
+
+const NAV: ReadonlyArray<NavItem> = [
+  {
+    to: "/account",
+    label: "Manage My Account",
+    icon: UserCog,
+    exact: true,
+    children: [
+      { to: "/account", label: "My Profile", hash: "profile" },
+      { to: "/account", label: "Address Book", hash: "address" },
+    ],
+  },
+  {
+    to: "/account/orders",
+    label: "My Orders",
+    icon: Package,
+    children: [
+      { to: "/account/returns", label: "My Returns" },
+      { to: "/account/returns", label: "My Cancellations" },
+    ],
+  },
   { to: "/account/wishlist", label: "Wishlist & Followed Stores", icon: Heart },
   { to: "/account/reviews", label: "My Reviews", icon: Star },
   { to: "/account/returns", label: "Returns & Cancellations", icon: RotateCcw },
