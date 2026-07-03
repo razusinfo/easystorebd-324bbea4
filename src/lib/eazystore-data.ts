@@ -346,12 +346,13 @@ export type ProductsQueryParams = {
   search?: string;
   status?: ProductStatus | "all";
   sku?: string;
+  categoryId?: string | "all";
 };
 
 export function useMyProductsPaged(params: ProductsQueryParams) {
-  const { storeId, page, perPage, search, status, sku } = params;
+  const { storeId, page, perPage, search, status, sku, categoryId } = params;
   return useQuery({
-    queryKey: ["products", "by-store", storeId, "paged", { page, perPage, search: search ?? "", status: status ?? "all", sku: sku ?? "" }],
+    queryKey: ["products", "by-store", storeId, "paged", { page, perPage, search: search ?? "", status: status ?? "all", sku: sku ?? "", categoryId: categoryId ?? "all" }],
     enabled: !!storeId,
     queryFn: async (): Promise<{ rows: ProductRow[]; total: number }> => {
       const from = (page - 1) * perPage;
@@ -367,12 +368,30 @@ export function useMyProductsPaged(params: ProductsQueryParams) {
       const skuQ = (sku ?? "").trim();
       if (skuQ) q = q.ilike("sku", `%${skuQ}%`);
       if (status && status !== "all") q = q.eq("status", status);
+      if (categoryId && categoryId !== "all") q = q.eq("category_id", categoryId);
 
       const { data, error, count } = await q.range(from, to);
       if (error) throw error;
       return { rows: (data ?? []) as ProductRow[], total: count ?? 0 };
     },
     placeholderData: (prev) => prev,
+  });
+}
+
+export function useMyCategories(storeId: string | undefined) {
+  return useQuery({
+    queryKey: ["product-categories", "by-store", storeId],
+    enabled: !!storeId,
+    queryFn: async (): Promise<{ id: string; name: string }[]> => {
+      const { data, error } = await supabase
+        .from("product_categories")
+        .select("id, name, sort_order")
+        .eq("store_id", storeId!)
+        .order("sort_order", { ascending: true })
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((c: any) => ({ id: c.id as string, name: c.name as string }));
+    },
   });
 }
 
