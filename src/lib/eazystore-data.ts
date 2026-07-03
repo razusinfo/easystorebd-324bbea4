@@ -312,9 +312,15 @@ export function useMyStore(opts?: Partial<UseQueryOptions<StoreRow | null>>) {
   return useQuery({
     queryKey: ["my-store"],
     queryFn: async (): Promise<StoreRow | null> => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) return null;
       const { data, error } = await supabase
         .from("stores")
         .select("*")
+        .eq("owner_user_id", uid)
+        .order("created_at", { ascending: true })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
       return (data as StoreRow | null) ?? null;
