@@ -204,7 +204,7 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
                 <button
                   type="button"
                   className="w-full text-center text-xs font-medium text-muted-foreground underline hover:text-foreground"
-                  onClick={() => { setForgotEmail(email); setForgotOpen(true); }}
+                  onClick={() => { setForgotEmail(loginMode === "email" ? loginId : ""); setForgotOpen(true); }}
                 >
                   Forgot password?
                 </button>
