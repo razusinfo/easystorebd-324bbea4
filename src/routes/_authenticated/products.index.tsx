@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy, Filter } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -121,66 +121,6 @@ function ProductsPage() {
         <StatCard label="Out of Stock" value={stats.outOfStock.toString()} tone={stats.outOfStock ? "warn" : "muted"} />
       </div>
 
-      {/* Category tabs + Show All filter */}
-      <CategoryTabs
-        categories={categories}
-        activeId={categoryId}
-        onChange={setCategoryId}
-        filterSlot={
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="shrink-0 rounded-full">
-                <Filter className="mr-1.5 h-3.5 w-3.5" />
-                Show All
-                <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-64 space-y-3 p-3">
-              <div>
-                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                  SKU / Code
-                </label>
-                <Input
-                  placeholder="Filter by SKU..."
-                  value={skuFilter}
-                  onChange={(e) => setSkuFilter(e.target.value)}
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                  Status
-                </label>
-                <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1 text-xs">
-                  {(["all", "pending", "approved", "rejected"] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setStatusFilter(s)}
-                      className={
-                        statusFilter === s
-                          ? "rounded-md bg-primary px-2.5 py-1 font-bold text-primary-foreground capitalize"
-                          : "rounded-md px-2.5 py-1 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
-                      }
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {(skuFilter || statusFilter !== "all") && (
-                <Button
-                  variant="ghost" size="sm"
-                  onClick={() => { setSkuFilter(""); setStatusFilter("all"); }}
-                  className="h-8 w-full"
-                >
-                  Clear filters
-                </Button>
-              )}
-            </PopoverContent>
-          </Popover>
-        }
-      />
-
       {/* Search */}
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
@@ -192,6 +132,77 @@ function ProductsPage() {
         />
       </div>
 
+      {/* Category tabs + Show All filter */}
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1 overflow-x-auto">
+          <div className="flex items-center gap-2 pb-1">
+            <CategoryPill
+              label="All products"
+              active={categoryId === "all"}
+              onClick={() => setCategoryId("all")}
+            />
+            {categories.map((c) => (
+              <CategoryPill
+                key={c.id}
+                label={c.name}
+                active={categoryId === c.id}
+                onClick={() => setCategoryId(c.id)}
+              />
+            ))}
+          </div>
+        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="shrink-0 rounded-full">
+              <Filter className="mr-1.5 h-3.5 w-3.5" />
+              Show All
+              <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-64 space-y-3 p-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                SKU / Code
+              </label>
+              <Input
+                placeholder="Filter by SKU..."
+                value={skuFilter}
+                onChange={(e) => setSkuFilter(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                Status
+              </label>
+              <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1 text-xs">
+                {(["all", "pending", "approved", "rejected"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={
+                      statusFilter === s
+                        ? "rounded-md bg-primary px-2.5 py-1 font-bold text-primary-foreground capitalize"
+                        : "rounded-md px-2.5 py-1 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
+                    }
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {(skuFilter || statusFilter !== "all") && (
+              <Button
+                variant="ghost" size="sm"
+                onClick={() => { setSkuFilter(""); setStatusFilter("all"); }}
+                className="h-8 w-full"
+              >
+                Clear filters
+              </Button>
+            )}
+          </PopoverContent>
+        </Popover>
+      </div>
 
 
       {/* Content */}
@@ -267,64 +278,6 @@ function ProductsPage() {
 }
 
 
-
-function CategoryTabs({
-  categories, activeId, onChange, filterSlot,
-}: {
-  categories: { id: string; name: string }[];
-  activeId: string | "all";
-  onChange: (id: string | "all") => void;
-  filterSlot?: ReactNode;
-}) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const scrollBy = (dir: "left" | "right") => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir === "left" ? -240 : 240, behavior: "smooth" });
-  };
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2">
-      <button
-        type="button"
-        onClick={() => scrollBy("left")}
-        aria-label="Scroll categories left"
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-background text-foreground/60 hover:bg-foreground/5"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <div
-        ref={scrollerRef}
-        className="scrollbar-none min-w-0 flex-1 overflow-x-auto"
-        style={{ scrollbarWidth: "none" }}
-      >
-        <div className="flex items-center gap-2">
-          <CategoryPill
-            label="All products"
-            active={activeId === "all"}
-            onClick={() => onChange("all")}
-          />
-          {categories.map((c) => (
-            <CategoryPill
-              key={c.id}
-              label={c.name}
-              active={activeId === c.id}
-              onClick={() => onChange(c.id)}
-            />
-          ))}
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={() => scrollBy("right")}
-        aria-label="Scroll categories right"
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-background text-foreground/60 hover:bg-foreground/5"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-      {filterSlot ? <div className="ml-1 shrink-0 border-l border-border pl-2">{filterSlot}</div> : null}
-    </div>
-  );
-}
 
 function CategoryPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
