@@ -41,7 +41,7 @@ export type TemplateSettings = {
 export const DEFAULT_FOOTER: Required<FooterSettings> = {
   showNav: true,
   navLinks: [
-    { label: "Company", enabled: true },
+    { label: "Home", enabled: true },
     { label: "About Us", enabled: true },
     { label: "Team", enabled: true },
     { label: "Products", enabled: true },
