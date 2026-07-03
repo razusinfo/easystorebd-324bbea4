@@ -444,7 +444,11 @@ function PublicProductDetailPage() {
           )}
         </div>
 
+        {/* Ratings & Reviews */}
+        <ReviewsSection productId={product.id} productName={product.name} />
+
         <div className="h-6" />
+
       </section>
 
       {/* Mobile sticky action bar */}
@@ -468,3 +472,195 @@ function PublicProductDetailPage() {
     </main>
   );
 }
+
+type Review = {
+  id: string;
+  name: string;
+  rating: number;
+  date: string;
+  title: string;
+  body: string;
+  verified?: boolean;
+};
+
+const SAMPLE_REVIEWS: Review[] = [
+  { id: "1", name: "Rahim U.", rating: 5, date: "2 weeks ago", title: "Excellent quality!", body: "Product arrived quickly and matches the description perfectly. Highly recommended.", verified: true },
+  { id: "2", name: "Ayesha K.", rating: 4, date: "1 month ago", title: "Good value", body: "Overall happy with the purchase. Packaging could be better but the product itself is great.", verified: true },
+  { id: "3", name: "Sadia R.", rating: 5, date: "1 month ago", title: "Loved it", body: "Exactly as shown in the pictures. Fast delivery and friendly seller.", verified: true },
+  { id: "4", name: "Tanvir H.", rating: 3, date: "2 months ago", title: "Decent", body: "It's okay for the price. Nothing extraordinary but does the job." },
+];
+
+function StarRow({ value, size = "h-4 w-4" }: { value: number; size?: string }) {
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={`${size} ${i < Math.round(value) ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-200"}`}
+        />
+      ))}
+    </span>
+  );
+}
+
+function ReviewsSection({ productId, productName }: { productId: string; productName: string }) {
+  const storageKey = `reviews:${productId}`;
+  const [reviews, setReviews] = useState<Review[]>(() => {
+    if (typeof window === "undefined") return SAMPLE_REVIEWS;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (raw) return JSON.parse(raw) as Review[];
+    } catch {}
+    return SAMPLE_REVIEWS;
+  });
+  const [name, setName] = useState("");
+  const [rating, setRating] = useState(5);
+  const [hover, setHover] = useState(0);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [showForm, setShowForm] = useState(false);
+
+  const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+  const dist = [5, 4, 3, 2, 1].map((s) => ({
+    stars: s,
+    count: reviews.filter((r) => r.rating === s).length,
+  }));
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !body.trim()) {
+      toast.error("Please add your name and review");
+      return;
+    }
+    const next: Review = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      rating,
+      date: "Just now",
+      title: title.trim() || "Review",
+      body: body.trim(),
+    };
+    const updated = [next, ...reviews];
+    setReviews(updated);
+    try { window.localStorage.setItem(storageKey, JSON.stringify(updated)); } catch {}
+    setName(""); setTitle(""); setBody(""); setRating(5); setShowForm(false);
+    toast.success("Thanks for your review!");
+  }
+
+  return (
+    <div className="mt-4 rounded-lg bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-neutral-800">Ratings &amp; Reviews of {productName}</h2>
+        <Button
+          onClick={() => setShowForm((v) => !v)}
+          variant="outline"
+          className="h-9 rounded-md text-xs font-semibold"
+        >
+          {showForm ? "Cancel" : "Write a review"}
+        </Button>
+      </div>
+
+      <div className="mt-4 grid gap-6 border-b border-neutral-200 pb-5 sm:grid-cols-[auto_1fr]">
+        <div className="text-center sm:border-r sm:border-neutral-200 sm:pr-6">
+          <div className="font-display text-4xl font-bold text-neutral-900">{avg.toFixed(1)}</div>
+          <StarRow value={avg} />
+          <p className="mt-1 text-xs text-neutral-500">{reviews.length} rating{reviews.length !== 1 ? "s" : ""}</p>
+        </div>
+        <div className="space-y-1.5">
+          {dist.map((d) => {
+            const pct = reviews.length ? (d.count / reviews.length) * 100 : 0;
+            return (
+              <div key={d.stars} className="flex items-center gap-2 text-xs">
+                <span className="w-3 text-neutral-600">{d.stars}</span>
+                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
+                  <div className="h-full bg-amber-400" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="w-8 text-right text-neutral-500">{d.count}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {showForm && (
+        <form onSubmit={submit} className="mt-4 space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+          <div>
+            <label className="text-xs font-medium text-neutral-700">Your rating</label>
+            <div className="mt-1 flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => {
+                const n = i + 1;
+                const active = (hover || rating) >= n;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onMouseEnter={() => setHover(n)}
+                    onMouseLeave={() => setHover(0)}
+                    onClick={() => setRating(n)}
+                    aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                  >
+                    <Star className={`h-6 w-6 ${active ? "fill-amber-400 text-amber-400" : "fill-neutral-200 text-neutral-300"}`} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none focus:border-primary"
+            />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Review title (optional)"
+              className="h-9 rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none focus:border-primary"
+            />
+          </div>
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Share your experience with this product…"
+            rows={3}
+            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <div className="flex justify-end">
+            <Button type="submit" className="h-9 rounded-md bg-orange-500 text-xs font-bold text-white hover:bg-orange-600">
+              Submit review
+            </Button>
+          </div>
+        </form>
+      )}
+
+      <ul className="mt-4 divide-y divide-neutral-200">
+        {reviews.map((r) => (
+          <li key={r.id} className="py-4">
+            <div className="flex items-start gap-3">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                {r.name.slice(0, 1).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-neutral-900">{r.name}</span>
+                  {r.verified && (
+                    <span className="rounded-sm bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      Verified
+                    </span>
+                  )}
+                  <span className="text-xs text-neutral-400">· {r.date}</span>
+                </div>
+                <div className="mt-1"><StarRow value={r.rating} size="h-3.5 w-3.5" /></div>
+                {r.title && <p className="mt-1 text-sm font-semibold text-neutral-800">{r.title}</p>}
+                <p className="mt-1 text-sm leading-relaxed text-neutral-700">{r.body}</p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
