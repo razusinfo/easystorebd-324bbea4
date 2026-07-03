@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Smartphone, Monitor, Apple, Chrome, Share, MoreVertical, Download, Home } from "lucide-react";
 import { PwaInstallButton } from "@/components/pwa-install-button";
+import logoAsset from "@/assets/eazystore-logo.png.asset.json";
 
 export const Route = createFileRoute("/install")({
   head: () => ({
@@ -76,9 +77,11 @@ function InstallPage() {
 
       <main className="mx-auto max-w-4xl px-5 py-10 space-y-10">
         <section className="text-center space-y-3">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-            <Download className="h-8 w-8" />
-          </div>
+          <img
+            src={logoAsset.url}
+            alt="EazyStore"
+            className="mx-auto h-20 sm:h-24 w-auto object-contain drop-shadow-md"
+          />
           <h1 className="text-3xl sm:text-4xl font-black text-emerald-900">
             EazyStore অ্যাপ ইনস্টল করুন
           </h1>
