@@ -565,7 +565,14 @@ export function useRevokeRole() {
 export function useCreateStore() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; category: Category; template: TemplateId }) => {
+    mutationFn: async (input: {
+      name: string;
+      category: Category;
+      template: TemplateId;
+      phone?: string;
+      address?: string;
+      contact_email?: string;
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not signed in");
       const { data, error } = await supabase
@@ -575,6 +582,9 @@ export function useCreateStore() {
           name: input.name,
           category: input.category,
           template: input.template as never,
+          phone: input.phone?.trim() || null,
+          address: input.address?.trim() || null,
+          contact_email: input.contact_email?.trim() || null,
         })
         .select()
         .single();
