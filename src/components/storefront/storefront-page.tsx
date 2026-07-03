@@ -114,9 +114,12 @@ export function StorefrontPage({ slug, title, children }: Props) {
       </main>
 
       <footer className="mt-10 border-t border-neutral-200 bg-white">
-        <p className="mx-auto max-w-7xl px-4 py-6 text-center text-sm font-medium text-neutral-700 sm:text-base">
-          Copyright © {new Date().getFullYear()} {name}
-        </p>
+        <div className="mx-auto max-w-7xl px-4 py-6">
+          <p className="text-center text-sm font-medium text-neutral-700 sm:text-base">
+            Copyright © {new Date().getFullYear()} {name}
+          </p>
+          {showDevBadge && <DevelopedByBadge className="mt-1" />}
+        </div>
       </footer>
     </div>
   );
