@@ -97,7 +97,7 @@ function ProductsPage() {
     }
   }
 
-  const hasFilters = !!debouncedSearch || !!debouncedSku || statusFilter !== "all";
+  const hasFilters = !!debouncedSearch || !!debouncedSku || statusFilter !== "all" || categoryFilter !== "all";
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
