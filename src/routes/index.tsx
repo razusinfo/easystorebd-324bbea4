@@ -151,7 +151,7 @@ function TopBand() {
           </h1>
 
           <p className="mt-5 max-w-lg text-base text-slate-700 sm:text-lg">
-            EazyStore gives every merchant a beautiful storefront, powerful dashboard and local
+            <EazyStoreWordmark className="text-base sm:text-lg align-baseline" /> gives every merchant a beautiful storefront, powerful dashboard and local
             payments — no code, no hassle. Just sell.
           </p>
 
