@@ -138,33 +138,32 @@ function Onboarding() {
           {step === 2 && (
             <div className="animate-fade-up">
               <h1 className="font-display text-2xl font-bold">Business Type</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Pick what best describes your store.</p>
-              <div className="relative mt-5">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
-                  <div className="grid h-8 w-8 place-items-center rounded-lg gradient-primary text-white">
-                    <Briefcase className="h-4 w-4" />
-                  </div>
+              <p className="mt-1 text-sm text-muted-foreground">Scroll and pick what best describes your store.</p>
+              <div className="mt-5 max-h-[360px] overflow-y-auto rounded-2xl border-2 border-border p-2">
+                <div className="grid gap-2">
+                  {BUSINESS_TYPES.map((c) => {
+                    const active = category === c;
+                    return (
+                      <button
+                        key={c}
+                        onClick={() => setCategory(c)}
+                        className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition ${
+                          active ? "border-primary bg-primary/5" : "border-transparent hover:border-primary/40 hover:bg-muted/50"
+                        }`}
+                      >
+                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg gradient-primary text-white">
+                          <Briefcase className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 font-semibold">{c}</div>
+                        {active && <Check className="h-5 w-5 text-primary" />}
+                      </button>
+                    );
+                  })}
                 </div>
-                <select
-                  value={category ?? ""}
-                  onChange={(e) => setCategory((e.target.value || null) as Category | null)}
-                  className="w-full appearance-none rounded-2xl border-2 border-border bg-background py-3.5 pl-14 pr-10 text-base font-medium outline-none focus:border-primary"
-                >
-                  <option value="">Not Selected</option>
-                  {BUSINESS_TYPES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                <ArrowRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-muted-foreground" />
               </div>
-              {category && (
-                <div className="mt-3 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{category}</span>
-                </div>
-              )}
             </div>
           )}
+
 
 
           {step === 3 && (
