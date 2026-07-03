@@ -17,9 +17,34 @@ export const Route = createFileRoute("/account")({
   component: AccountLayout,
 });
 
-const NAV: ReadonlyArray<{ to: string; label: string; icon: typeof UserCog; exact?: boolean }> = [
-  { to: "/account", label: "Manage My Account", icon: UserCog, exact: true },
-  { to: "/account/orders", label: "My Orders", icon: Package },
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof UserCog;
+  exact?: boolean;
+  children?: ReadonlyArray<{ to: string; label: string; hash?: string }>;
+};
+
+const NAV: ReadonlyArray<NavItem> = [
+  {
+    to: "/account",
+    label: "Manage My Account",
+    icon: UserCog,
+    exact: true,
+    children: [
+      { to: "/account", label: "My Profile", hash: "profile" },
+      { to: "/account", label: "Address Book", hash: "address" },
+    ],
+  },
+  {
+    to: "/account/orders",
+    label: "My Orders",
+    icon: Package,
+    children: [
+      { to: "/account/returns", label: "My Returns" },
+      { to: "/account/returns", label: "My Cancellations" },
+    ],
+  },
   { to: "/account/wishlist", label: "Wishlist & Followed Stores", icon: Heart },
   { to: "/account/reviews", label: "My Reviews", icon: Star },
   { to: "/account/returns", label: "Returns & Cancellations", icon: RotateCcw },
@@ -70,18 +95,33 @@ function AccountLayout() {
               {NAV.map((item) => {
                 const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
                 return (
-                  <Link
-                    key={item.to}
-                    to={item.to as "/account"}
-                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
+                  <div key={item.to}>
+                    <Link
+                      to={item.to as "/account"}
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                    {active && item.children && (
+                      <div className="ml-9 mt-1 flex flex-col gap-1">
+                        {item.children.map((c) => (
+                          <Link
+                            key={`${c.to}-${c.label}`}
+                            to={c.to as "/account"}
+                            hash={c.hash}
+                            className="rounded px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            {c.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
               <Button
