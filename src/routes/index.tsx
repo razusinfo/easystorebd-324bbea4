@@ -96,6 +96,7 @@ function TopBand() {
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             to="/auth"
+            search={{ mode: "signin" }}
             className="hidden text-sm font-semibold text-slate-800 hover:text-landing-accent sm:inline"
           >
             Sign in
@@ -130,7 +131,7 @@ function TopBand() {
                 <a onClick={() => setOpen(false)} href="#how" className="rounded-lg px-3 py-3 hover:bg-emerald-50">How it works</a>
               </nav>
               <div className="mt-auto space-y-2 border-t border-emerald-100 p-4">
-                <Link to="/auth" onClick={() => setOpen(false)} className="block rounded-full border border-slate-300 py-3 text-center text-sm font-semibold text-slate-800">Sign in</Link>
+                <Link to="/auth" search={{ mode: "signin" }} onClick={() => setOpen(false)} className="block rounded-full border border-slate-300 py-3 text-center text-sm font-semibold text-slate-800">Sign in</Link>
                 <Link to="/auth" onClick={() => setOpen(false)} className="bg-landing-accent hover:bg-landing-accent-hover block rounded-full py-3 text-center text-sm font-semibold text-white">Create your store</Link>
               </div>
             </SheetContent>
