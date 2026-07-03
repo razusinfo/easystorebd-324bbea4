@@ -1151,3 +1151,36 @@ export function usePublicStoreBySlug(slug: string | undefined) {
   });
 }
 
+
+/** Fetch a single approved product on a published store, plus signed image URLs. */
+export function usePublicProductDetail(slug: string | undefined, productId: string | undefined) {
+  return useQuery({
+    queryKey: ["public-product", slug, productId],
+    enabled: !!slug && !!productId,
+    queryFn: async (): Promise<{ store: StoreRow; product: ProductRow; imageUrls: string[] } | null> => {
+      const { data: store, error: sErr } = await supabase
+        .from("stores").select("*")
+        .eq("slug", slug!).eq("published", true).maybeSingle();
+      if (sErr) throw sErr;
+      if (!store) return null;
+
+      const { data: product, error: pErr } = await supabase
+        .from("products").select("*")
+        .eq("id", productId!).eq("store_id", store.id).eq("status", "approved").maybeSingle();
+      if (pErr) throw pErr;
+      if (!product) return null;
+
+      const rawUrls: (string | null | undefined)[] = [product.image_url, ...(product.gallery_urls ?? [])];
+      const imageUrls: string[] = [];
+      for (const raw of rawUrls) {
+        if (!raw) continue;
+        const path = extractProductImagePath(raw);
+        if (!path) { imageUrls.push(raw); continue; }
+        const { data: sig } = await supabase.storage
+          .from("product-images").createSignedUrl(path, 60 * 60 * 24 * 7);
+        if (sig?.signedUrl) imageUrls.push(sig.signedUrl);
+      }
+      return { store: store as StoreRow, product: product as ProductRow, imageUrls };
+    },
+  });
+}
