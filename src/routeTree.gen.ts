@@ -21,6 +21,7 @@ import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
 import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as AccountReviewsRouteImport } from './routes/account.reviews'
+import { Route as AccountReturnsRouteImport } from './routes/account.returns'
 import { Route as AccountOrdersRouteImport } from './routes/account.orders'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
@@ -106,6 +107,11 @@ const AccountWishlistRoute = AccountWishlistRouteImport.update({
 const AccountReviewsRoute = AccountReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountReturnsRoute = AccountReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
   getParentRoute: () => AccountRoute,
 } as any)
 const AccountOrdersRoute = AccountOrdersRouteImport.update({
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
@@ -314,6 +321,7 @@ export interface FileRoutesByTo {
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
@@ -356,6 +364,7 @@ export interface FileRoutesById {
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
@@ -398,6 +407,7 @@ export interface FileRouteTypes {
     | '/themes'
     | '/upgrade'
     | '/account/orders'
+    | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
     | '/demo/bdlove'
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/themes'
     | '/upgrade'
     | '/account/orders'
+    | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
     | '/demo/bdlove'
@@ -478,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated/themes'
     | '/_authenticated/upgrade'
     | '/account/orders'
+    | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
     | '/demo/bdlove'
@@ -590,6 +602,13 @@ declare module '@tanstack/react-router' {
       path: '/reviews'
       fullPath: '/account/reviews'
       preLoaderRoute: typeof AccountReviewsRouteImport
+      parentRoute: typeof AccountRoute
+    }
+    '/account/returns': {
+      id: '/account/returns'
+      path: '/returns'
+      fullPath: '/account/returns'
+      preLoaderRoute: typeof AccountReturnsRouteImport
       parentRoute: typeof AccountRoute
     }
     '/account/orders': {
@@ -836,6 +855,7 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface AccountRouteChildren {
   AccountOrdersRoute: typeof AccountOrdersRoute
+  AccountReturnsRoute: typeof AccountReturnsRoute
   AccountReviewsRoute: typeof AccountReviewsRoute
   AccountWishlistRoute: typeof AccountWishlistRoute
   AccountIndexRoute: typeof AccountIndexRoute
@@ -843,6 +863,7 @@ interface AccountRouteChildren {
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountOrdersRoute: AccountOrdersRoute,
+  AccountReturnsRoute: AccountReturnsRoute,
   AccountReviewsRoute: AccountReviewsRoute,
   AccountWishlistRoute: AccountWishlistRoute,
   AccountIndexRoute: AccountIndexRoute,
