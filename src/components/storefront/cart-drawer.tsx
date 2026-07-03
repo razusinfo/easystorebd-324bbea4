@@ -50,7 +50,10 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
   const [placed, setPlaced] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [city, setCity] = useState("");
+  const [region, setRegion] = useState("");
+  const [postal, setPostal] = useState("");
   const [notes, setNotes] = useState("");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedAddrId, setSelectedAddrId] = useState<string>(MANUAL_ADDR);
@@ -58,6 +61,15 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
 
   const total = cartTotal(items);
   const count = cartCount(items);
+
+  function applyAddress(a: SavedAddress) {
+    setName(a.full_name);
+    setPhone(a.phone);
+    setAddressLine(a.address_line);
+    setCity(a.city ?? "");
+    setRegion(a.region ?? "");
+    setPostal(a.postal_code ?? "");
+  }
 
   // Load saved addresses when drawer opens for a logged-in user; auto-select default shipping.
   useEffect(() => {
@@ -82,9 +94,7 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
       const preferred = list.find((a) => a.is_default_shipping) ?? list[0];
       if (preferred) {
         setSelectedAddrId(preferred.id);
-        setName((v) => v || preferred.full_name);
-        setPhone((v) => v || preferred.phone);
-        setAddress((v) => v || composeAddress(preferred));
+        applyAddress(preferred);
       }
       setLoadedAddresses(true);
     })();
@@ -94,15 +104,14 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
   function handleSelectAddress(id: string) {
     setSelectedAddrId(id);
     if (id === MANUAL_ADDR) {
-      setName(""); setPhone(""); setAddress("");
+      setName(""); setPhone("");
+      setAddressLine(""); setCity(""); setRegion(""); setPostal("");
       return;
     }
     const a = savedAddresses.find((x) => x.id === id);
-    if (!a) return;
-    setName(a.full_name);
-    setPhone(a.phone);
-    setAddress(composeAddress(a));
+    if (a) applyAddress(a);
   }
+
 
 
 
@@ -132,7 +141,7 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
           customer_user_id: customerUserId,
           customer_name: name.trim(),
           customer_phone: phone.trim(),
-          customer_address: address.trim() || null,
+          customer_address: [addressLine, city, region, postal].map((s) => s.trim()).filter(Boolean).join(", ") || null,
           notes: notes.trim() || null,
           subtotal: total,
           delivery_charge: 0,
@@ -157,7 +166,7 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
 
       clear(storeId);
       setPlaced(orderNumber);
-      setName(""); setPhone(""); setAddress(""); setNotes("");
+      setName(""); setPhone(""); setAddressLine(""); setCity(""); setRegion(""); setPostal(""); setNotes("");
       toast.success(`Order ${orderNumber} placed!`);
     } catch (e: any) {
       toast.error(e?.message ?? "Could not place order");
@@ -280,8 +289,23 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
                 </div>
                 <div>
                   <Label htmlFor="cart-address" className="text-xs">Address</Label>
-                  <Input id="cart-address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                  <Input id="cart-address" value={addressLine} onChange={(e) => setAddressLine(e.target.value)} />
                 </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label htmlFor="cart-city" className="text-xs">City</Label>
+                    <Input id="cart-city" value={city} onChange={(e) => setCity(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="cart-region" className="text-xs">Region</Label>
+                    <Input id="cart-region" value={region} onChange={(e) => setRegion(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="cart-postal" className="text-xs">Postal</Label>
+                    <Input id="cart-postal" value={postal} onChange={(e) => setPostal(e.target.value)} />
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="cart-notes" className="text-xs">Notes</Label>
                   <Textarea id="cart-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
