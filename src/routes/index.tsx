@@ -548,7 +548,7 @@ function Footer() {
 
         {/* Divider + copyright */}
         <div className="mt-8 border-t border-emerald-100 pt-6 text-center text-sm text-slate-500">
-          Copyright © 2022–{new Date().getFullYear()} EazyStore. All rights reserved.
+          Copyright © 2022–{new Date().getFullYear()} <EazyStoreWordmark className="text-sm align-baseline" />. All rights reserved.
         </div>
       </div>
     </footer>
