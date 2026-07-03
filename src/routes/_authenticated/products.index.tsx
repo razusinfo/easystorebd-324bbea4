@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 import {
@@ -210,61 +211,158 @@ function StatCard({ label, value, tone }: { label: string; value: string; tone?:
 function ProductTable({
   rows, onEdit, onDelete, onChangeStatus,
 }: { rows: ProductRow[]; onEdit: (p: ProductRow) => void; onDelete: (p: ProductRow) => void; onChangeStatus: (p: ProductRow) => void }) {
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * perPage;
+  const pageRows = rows.slice(start, start + perPage);
+
+  const toggle = (id: string) => {
+    setSelected((s) => {
+      const n = new Set(s);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+  const toggleAll = () => {
+    setSelected((s) => {
+      if (pageRows.every((r) => s.has(r.id))) {
+        const n = new Set(s);
+        pageRows.forEach((r) => n.delete(r.id));
+        return n;
+      }
+      const n = new Set(s);
+      pageRows.forEach((r) => n.add(r.id));
+      return n;
+    });
+  };
+  const allChecked = pageRows.length > 0 && pageRows.every((r) => selected.has(r.id));
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       {/* Desktop table */}
       <div className="hidden sm:block">
-        <table className="w-full text-sm">
-          <thead className="bg-foreground/[0.03] text-left text-xs uppercase tracking-wide text-foreground/50">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Product</th>
-              <th className="px-4 py-3 font-semibold">Price</th>
-              <th className="px-4 py-3 font-semibold">Stock</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {rows.map((p) => (
-              <tr key={p.id} className="hover:bg-foreground/[0.02]">
-                <td className="px-4 py-3 font-medium">{p.name}</td>
-                <td className="px-4 py-3 font-bold text-primary">৳ {p.price.toLocaleString()}</td>
-                <td className="px-4 py-3">
-                  <span className={p.stock === 0 ? "font-semibold text-amber-600 dark:text-amber-400" : ""}>
-                    {p.stock === 0 ? "Out of stock" : p.stock.toLocaleString()}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => onChangeStatus(p)}
-                    className="inline-flex items-center gap-1 rounded-full hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    aria-label="Change status"
-                    title="Click to change status"
-                  >
-                    <StatusBadge status={p.status} />
-                  </button>
-                </td>
-
-                <td className="px-4 py-3 text-right">
-                  <div className="inline-flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(p)} aria-label="Edit">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+        <div className="relative w-full overflow-x-auto">
+          <table className="w-full min-w-[900px] text-sm">
+            <thead className="border-b border-border bg-foreground/[0.02] text-left text-xs font-semibold text-foreground/60">
+              <tr>
+                <th className="w-10 px-3 py-3">
+                  <Checkbox checked={allChecked} onCheckedChange={toggleAll} aria-label="Select all" />
+                </th>
+                <th className="w-8 px-1 py-3" />
+                <th className="px-3 py-3">Product</th>
+                <th className="w-20 px-3 py-3">Type</th>
+                <th className="px-3 py-3">SKU</th>
+                <th className="w-28 px-3 py-3 text-right">Price</th>
+                <th className="w-28 px-3 py-3 text-right">
+                  <span className="inline-flex items-center gap-1">Qty <ChevronDown className="h-3 w-3" /></span>
+                </th>
+                <th className="w-10 px-2 py-3" />
+                <th className="w-10 px-2 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {pageRows.map((p) => (
+                <tr key={p.id} className="hover:bg-foreground/[0.02]">
+                  <td className="px-3 py-3 align-middle">
+                    <Checkbox
+                      checked={selected.has(p.id)}
+                      onCheckedChange={() => toggle(p.id)}
+                      aria-label={`Select ${p.name}`}
+                    />
+                  </td>
+                  <td className="px-1 py-3 align-middle text-foreground/40">
+                    <ChevronRight className="h-4 w-4" />
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-md border border-border bg-muted/40">
+                        {p.image_url ? (
+                          <img src={p.image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                        ) : (
+                          <ImageIcon className="h-4 w-4 text-foreground/30" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-medium leading-tight text-foreground">
+                          {p.name}
+                          {p.sku ? ` (Code: ${p.sku})` : ""}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-foreground/50">
+                          <button
+                            type="button"
+                            onClick={() => onChangeStatus(p)}
+                            className="hover:opacity-80"
+                          >
+                            <StatusBadge status={p.status} />
+                          </button>
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 align-middle text-[13px] text-foreground/70">Own</td>
+                  <td className="px-3 py-3 align-middle">
+                    <span className="block max-w-[280px] truncate text-[12px] text-foreground/60">
+                      {p.sku ?? "—"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-right align-middle font-semibold text-primary">
+                    ৳{p.price.toLocaleString()}
+                  </td>
+                  <td className="px-3 py-3 align-middle">
+                    <div className="ml-auto flex h-8 w-24 items-center justify-between rounded-md border border-border px-2 text-[13px]">
+                      <span className={p.stock === 0 ? "font-semibold text-amber-600 dark:text-amber-400" : "font-medium"}>
+                        {p.stock}
+                      </span>
+                      <ChevronDown className="h-3.5 w-3.5 text-foreground/40" />
+                    </div>
+                  </td>
+                  <td className="px-2 py-3 align-middle">
                     <Button
                       variant="ghost" size="icon" onClick={() => onDelete(p)} aria-label="Delete"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                  <td className="px-2 py-3 align-middle">
+                    <Button
+                      variant="ghost" size="icon" onClick={() => onEdit(p)} aria-label="Edit"
+                      className="h-8 w-8 text-foreground/70 hover:text-foreground"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination footer */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-4 py-3 text-xs text-foreground/60">
+          <div className="flex items-center gap-3">
+            <span>
+              Showing {total === 0 ? 0 : start + 1}–{Math.min(start + perPage, total)} of {total}
+            </span>
+            <select
+              value={perPage}
+              onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+              className="h-7 rounded-md border border-border bg-background px-2 text-[12px]"
+              aria-label="Rows per page"
+            >
+              {[10, 20, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <span>per page</span>
+          </div>
+          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+        </div>
       </div>
+
 
       {/* Mobile cards */}
       <ul className="divide-y divide-border sm:hidden">
@@ -318,6 +416,48 @@ function StatusBadge({ status }: { status: ProductStatus }) {
     <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${cls}`}>
       {status}
     </span>
+  );
+}
+
+function Pagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (p: number) => void }) {
+  const pages: (number | "…")[] = [];
+  const push = (n: number | "…") => pages.push(n);
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) push(i);
+  } else {
+    push(1);
+    if (page > 3) push("…");
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) push(i);
+    if (page < totalPages - 2) push("…");
+    push(totalPages);
+  }
+  const btn = "grid h-7 min-w-7 place-items-center rounded-md border border-transparent px-2 text-[12px] hover:border-border";
+  return (
+    <div className="flex items-center gap-1">
+      <button className={btn} onClick={() => onChange(Math.max(1, page - 1))} disabled={page === 1} aria-label="Previous">
+        <ChevronLeft className="h-3.5 w-3.5" /> Previous
+      </button>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`e${i}`} className="px-1 text-foreground/40">…</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className={
+              p === page
+                ? "grid h-7 min-w-7 place-items-center rounded-md bg-primary px-2 text-[12px] font-semibold text-primary-foreground"
+                : btn
+            }
+          >
+            {p}
+          </button>
+        )
+      )}
+      <button className={btn} onClick={() => onChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} aria-label="Next">
+        Next <ChevronRight className="h-3.5 w-3.5" />
+      </button>
+    </div>
   );
 }
 
