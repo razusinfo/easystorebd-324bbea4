@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { useSiteSettings, useSignedSiteAsset } from "@/lib/site-settings";
+import { registerPwa } from "@/lib/pwa-register";
 
 function NotFoundComponent() {
   return (
@@ -89,7 +90,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/pwa-icon-192.png" },
-      { rel: "icon", type: "image/png", href: "/pwa-icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/pwa-icon-512.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/pwa-icon-192.png" },
+      { rel: "shortcut icon", href: "/pwa-icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -120,6 +123,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    registerPwa();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
