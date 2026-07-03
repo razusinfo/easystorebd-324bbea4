@@ -93,7 +93,7 @@ export function EazyStoreBasicTemplate({
   const enabledLinks = f.navLinks.filter((l) => l.enabled && l.label !== "Blogs" && l.label !== "Pricing");
   const enabledSocials = f.socials.filter((s) => s.enabled);
   const socialIconMap = { twitter: Twitter, youtube: Youtube, instagram: Instagram, facebook: Facebook } as const;
-  const showDevBadge = useShowDevelopedBadge(store as any);
+  const showDevBadge = useShowDevelopedBadge(demo ? null : (store as any));
   const hasFooter =
     (f.showNav && enabledLinks.length > 0) ||
     (f.showSocials && enabledSocials.length > 0) ||
