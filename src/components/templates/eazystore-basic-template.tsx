@@ -89,7 +89,7 @@ export function EazyStoreBasicTemplate({
     socials: footer?.socials ?? DEFAULT_FOOTER.socials,
     showCopyright: footer?.showCopyright ?? DEFAULT_FOOTER.showCopyright,
   };
-  const enabledLinks = f.navLinks.filter((l) => l.enabled);
+  const enabledLinks = f.navLinks.filter((l) => l.enabled && l.label !== "Blogs" && l.label !== "Pricing");
   const enabledSocials = f.socials.filter((s) => s.enabled);
   const socialIconMap = { twitter: Twitter, youtube: Youtube, instagram: Instagram, facebook: Facebook } as const;
   const hasFooter =
