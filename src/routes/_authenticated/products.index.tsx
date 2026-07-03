@@ -387,12 +387,13 @@ function ProductTable({
         {/* Pagination footer */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-4 py-3 text-xs text-foreground/60">
           <div className="flex items-center gap-3">
-            <span>
-              Showing {total === 0 ? 0 : start + 1}–{Math.min(start + perPage, total)} of {total}
+            <span className="inline-flex items-center gap-2">
+              {isFetching && <Loader2 className="h-3 w-3 animate-spin text-foreground/40" />}
+              Showing {total === 0 ? 0 : start + 1}–{Math.min(start + pageRows.length, total)} of {total}
             </span>
             <select
               value={perPage}
-              onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => onPerPageChange(Number(e.target.value))}
               className="h-7 rounded-md border border-border bg-background px-2 text-[12px]"
               aria-label="Rows per page"
             >
@@ -400,8 +401,9 @@ function ProductTable({
             </select>
             <span>per page</span>
           </div>
-          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+          <Pagination page={currentPage} totalPages={totalPages} onChange={onPageChange} />
         </div>
+
       </div>
 
 
