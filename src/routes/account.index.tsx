@@ -231,20 +231,32 @@ function ProfileDialog({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [bDay, setBDay] = useState("");
+  const [bMonth, setBMonth] = useState("");
+  const [bYear, setBYear] = useState("");
+  const [gender, setGender] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const md = (user?.user_metadata ?? {}) as Record<string, unknown>;
     setName((md.full_name as string) || (md.name as string) || "");
     setPhone((md.phone as string) || "");
+    const birthday = (md.birthday as string) || "";
+    const [y = "", m = "", d = ""] = birthday.split("-");
+    setBYear(y); setBMonth(m); setBDay(d);
+    setGender((md.gender as string) || "");
   }, [user, open]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     try {
+      const birthday = bYear && bMonth && bDay ? `${bYear}-${bMonth.padStart(2, "0")}-${bDay.padStart(2, "0")}` : "";
       const { data, error } = await supabase.auth.updateUser({
-        data: { name: name.trim(), full_name: name.trim(), phone: phone.trim() },
+        data: {
+          name: name.trim(), full_name: name.trim(), phone: phone.trim(),
+          birthday, gender,
+        },
       });
       if (error) throw error;
       toast.success("Profile updated");
@@ -254,6 +266,9 @@ function ProfileDialog({
       toast.error(err instanceof Error ? err.message : "Could not update profile");
     } finally { setSaving(false); }
   }
+
+  const maskedEmail = user?.email ? maskEmail(user.email) : "";
+  const maskedPhone = phone ? maskPhone(phone) : "";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -267,33 +282,81 @@ function ProfileDialog({
         </button>
       </DialogTrigger>
 
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit personal profile</DialogTitle>
+      <DialogContent className="max-w-3xl gap-0 overflow-hidden p-0">
+        <DialogHeader className="border-b bg-muted/60 px-6 py-4">
+          <DialogTitle className="text-lg font-medium">Edit Profile</DialogTitle>
         </DialogHeader>
-        <form id="profile-form" onSubmit={save} className="space-y-3">
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input value={user?.email ?? ""} disabled />
+        <form id="profile-form" onSubmit={save} className="space-y-6 bg-background px-6 py-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Full Name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Email Address <span className="text-muted-foreground/60">|</span>{" "}
+                <span className="text-primary">Change</span>
+              </Label>
+              <p className="pt-2 text-sm">{maskedEmail || "—"}</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Mobile <span className="text-muted-foreground/60">|</span>{" "}
+                <span className="text-primary">Change</span>
+              </Label>
+              <Input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                maxLength={32}
+                placeholder={maskedPhone}
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Full name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} />
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Birthday</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <Input placeholder="DD" value={bDay} onChange={(e) => setBDay(e.target.value)} maxLength={2} />
+                <Input placeholder="MM" value={bMonth} onChange={(e) => setBMonth(e.target.value)} maxLength={2} />
+                <Input placeholder="YYYY" value={bYear} onChange={(e) => setBYear(e.target.value)} maxLength={4} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Gender</Label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">—</option>
+                <option value="male">male</option>
+                <option value="female">female</option>
+                <option value="other">other</option>
+              </select>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Mobile number</Label>
-            <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={32} />
+
+          <div className="pt-4">
+            <Button
+              type="submit"
+              disabled={saving}
+              className="h-11 rounded-sm bg-[#f57224] px-10 text-sm font-semibold uppercase tracking-wide text-white hover:bg-[#e5641b]"
+            >
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes
+            </Button>
           </div>
         </form>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button type="submit" form="profile-form" disabled={saving}>
-            {saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />} Save
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+function maskPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 4) return phone;
+  return `${digits.slice(0, 5)}${"*".repeat(Math.max(3, digits.length - 7))}${digits.slice(-2)}`;
 }
 
 function AddressDialog({
