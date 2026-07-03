@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy, FolderTree, Layers } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useCategories } from "@/lib/categories-data";
 
 import {
   useMyStore, useMyProductsPaged, useMyProductsStats, useDeleteProduct,
