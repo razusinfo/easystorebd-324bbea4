@@ -64,7 +64,8 @@ function hexToRgb(hex?: string): string | null {
 
 // Map default footer labels to canonical storefront routes.
 const LABEL_TO_SUBPATH: Record<string, string> = {
-  "Company": "about",
+  "Home": "",
+  "Company": "",
   "About Us": "about",
   "Team": "team",
   "Products": "products",
@@ -175,7 +176,7 @@ export function EazyStoreBasicTemplate({
   function footerLinkFor(label: string, href?: string) {
     if (href && href.trim()) return { external: true, to: href };
     const sub = LABEL_TO_SUBPATH[label];
-    if (sub && slug) return { external: false, to: `/s/${slug}/${sub}` };
+    if (sub !== undefined && slug) return { external: false, to: sub ? `/s/${slug}/${sub}` : `/s/${slug}` };
     return null;
   }
 
@@ -411,21 +412,22 @@ export function EazyStoreBasicTemplate({
                 className="grid grid-cols-2 gap-x-4 gap-y-2 text-center sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-12 sm:gap-y-3"
               >
                 {enabledLinks.map((l) => {
+                  const displayLabel = l.label === "Company" ? "Home" : l.label;
                   const resolved = footerLinkFor(l.label, l.href);
                   const cls = "font-display text-sm font-bold text-neutral-900 transition hover:acc-text sm:text-lg";
                   if (!resolved) {
-                    return <span key={l.label} className={cls}>{l.label}</span>;
+                    return <span key={l.label} className={cls}>{displayLabel}</span>;
                   }
                   if (resolved.external) {
                     return (
                       <a key={l.label} href={resolved.to} className={cls} target="_blank" rel="noreferrer">
-                        {l.label}
+                        {displayLabel}
                       </a>
                     );
                   }
                   return (
                     <Link key={l.label} to={resolved.to} className={cls}>
-                      {l.label}
+                      {displayLabel}
                     </Link>
                   );
                 })}
