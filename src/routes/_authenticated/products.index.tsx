@@ -279,6 +279,22 @@ function ProductsPage() {
 
 
 
+function CategoryPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? "shrink-0 whitespace-nowrap rounded-full border border-primary bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary"
+          : "shrink-0 whitespace-nowrap rounded-full border border-border bg-background px-4 py-1.5 text-sm font-medium text-foreground/70 hover:bg-foreground/5"
+      }
+    >
+      {label}
+    </button>
+  );
+}
+
 function StatCard({ label, value, tone }: { label: string; value: string; tone?: "warn" | "muted" }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
