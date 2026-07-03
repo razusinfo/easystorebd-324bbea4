@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, MapPin, Package } from "lucide-react";
 import type { User as SupaUser } from "@supabase/supabase-js";
