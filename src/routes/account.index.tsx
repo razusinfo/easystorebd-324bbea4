@@ -258,10 +258,15 @@ function ProfileDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" disabled={!user}>
-          <Pencil className="mr-1 h-4 w-4" /> Edit
-        </Button>
+        <button
+          type="button"
+          disabled={!user}
+          className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline disabled:opacity-50"
+        >
+          Edit
+        </button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit personal profile</DialogTitle>
