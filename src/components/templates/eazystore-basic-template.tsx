@@ -64,7 +64,8 @@ function hexToRgb(hex?: string): string | null {
 
 // Map default footer labels to canonical storefront routes.
 const LABEL_TO_SUBPATH: Record<string, string> = {
-  "Company": "about",
+  "Home": "",
+  "Company": "",
   "About Us": "about",
   "Team": "team",
   "Products": "products",
