@@ -240,8 +240,7 @@ function LoginPage() {
             <Sparkles className="h-5 w-5" />
           </div>
           <span className="font-display text-xl font-bold tracking-tight text-slate-900">
-            eazy<span className="text-purple-700">store</span>
-          </span>
+          <EazyStoreWordmark className="text-xl" />
         </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
