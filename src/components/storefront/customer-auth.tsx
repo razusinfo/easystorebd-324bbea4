@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { User, LogOut, Loader2 } from "lucide-react";
+import { User, LogOut, Loader2, UserCog, Package, Heart, Star, RotateCcw } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { User as SupaUser } from "@supabase/supabase-js";
 
@@ -134,11 +135,37 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
             <span className="font-display text-base font-black sm:text-lg">{initial}</span>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-60">
           <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/account" className="flex items-center">
+              <UserCog className="mr-2 h-4 w-4" /> Manage My Account
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/account/orders" className="flex items-center">
+              <Package className="mr-2 h-4 w-4" /> My Orders
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/account/wishlist" className="flex items-center">
+              <Heart className="mr-2 h-4 w-4" /> My Wishlist &amp; Followed Stores
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/account/reviews" className="flex items-center">
+              <Star className="mr-2 h-4 w-4" /> My Reviews
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/account/returns" className="flex items-center">
+              <RotateCcw className="mr-2 h-4 w-4" /> My Returns &amp; Cancellations
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
+            <LogOut className="mr-2 h-4 w-4" /> Logout
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
