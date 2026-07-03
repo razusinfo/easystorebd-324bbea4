@@ -9,9 +9,11 @@ export type CategoryRow = {
   name: string;
   slug: string | null;
   sort_order: number;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 };
+
 
 export type CategoryNode = CategoryRow & { children: CategoryNode[] };
 
