@@ -50,7 +50,10 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
   const [placed, setPlaced] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [city, setCity] = useState("");
+  const [region, setRegion] = useState("");
+  const [postal, setPostal] = useState("");
   const [notes, setNotes] = useState("");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedAddrId, setSelectedAddrId] = useState<string>(MANUAL_ADDR);
@@ -58,6 +61,15 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
 
   const total = cartTotal(items);
   const count = cartCount(items);
+
+  function applyAddress(a: SavedAddress) {
+    setName(a.full_name);
+    setPhone(a.phone);
+    setAddressLine(a.address_line);
+    setCity(a.city ?? "");
+    setRegion(a.region ?? "");
+    setPostal(a.postal_code ?? "");
+  }
 
   // Load saved addresses when drawer opens for a logged-in user; auto-select default shipping.
   useEffect(() => {
@@ -82,9 +94,7 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
       const preferred = list.find((a) => a.is_default_shipping) ?? list[0];
       if (preferred) {
         setSelectedAddrId(preferred.id);
-        setName((v) => v || preferred.full_name);
-        setPhone((v) => v || preferred.phone);
-        setAddress((v) => v || composeAddress(preferred));
+        applyAddress(preferred);
       }
       setLoadedAddresses(true);
     })();
@@ -94,15 +104,14 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
   function handleSelectAddress(id: string) {
     setSelectedAddrId(id);
     if (id === MANUAL_ADDR) {
-      setName(""); setPhone(""); setAddress("");
+      setName(""); setPhone("");
+      setAddressLine(""); setCity(""); setRegion(""); setPostal("");
       return;
     }
     const a = savedAddresses.find((x) => x.id === id);
-    if (!a) return;
-    setName(a.full_name);
-    setPhone(a.phone);
-    setAddress(composeAddress(a));
+    if (a) applyAddress(a);
   }
+
 
 
 
