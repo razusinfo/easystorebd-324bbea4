@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Minus, Plus, Trash2, ShoppingBag, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,9 +31,51 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [autofilled, setAutofilled] = useState(false);
 
   const total = cartTotal(items);
   const count = cartCount(items);
+
+  // Auto-fill customer info from profile/address when drawer opens for a logged-in user.
+  useEffect(() => {
+    if (!open || autofilled) return;
+    let cancelled = false;
+    (async () => {
+      const { data: userRes } = await supabase.auth.getUser();
+      const user = userRes.user;
+      if (!user || cancelled) return;
+
+      const { data: addr } = await supabase
+        .from("customer_addresses")
+        .select("full_name, phone, address_line, city, region, postal_code")
+        .eq("user_id", user.id)
+        .order("is_default_shipping", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (addr) {
+        setName((v) => v || addr.full_name || "");
+        setPhone((v) => v || addr.phone || "");
+        const composed = [addr.address_line, addr.city, addr.region, addr.postal_code]
+          .filter(Boolean).join(", ");
+        setAddress((v) => v || composed);
+      } else {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (!cancelled && profile?.name) setName((v) => v || profile.name);
+        if (!cancelled && user.phone) setPhone((v) => v || user.phone!);
+      }
+      if (!cancelled) setAutofilled(true);
+    })();
+    return () => { cancelled = true; };
+  }, [open, autofilled]);
+
 
   async function placeOrder() {
     if (!items.length) return;
