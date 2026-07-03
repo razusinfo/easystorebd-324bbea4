@@ -3,6 +3,7 @@ import {
   Star, Plus, Zap, Wrench, Gauge, Battery, Lightbulb, Cog, Shield, Car,
 } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
