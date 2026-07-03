@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, MapPin, Package } from "lucide-react";
+import { Loader2, MapPin, Package } from "lucide-react";
 import type { User as SupaUser } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -78,24 +78,32 @@ function ManageAccountPage() {
   const maskedEmail = user?.email ? maskEmail(user.email) : "";
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Manage My Account</h1>
+    <div className="space-y-5">
+      {/* Grey header band */}
+      <div className="-mx-4 border-y bg-muted/60 px-4 py-4 sm:-mx-6 sm:px-6">
+        <h1 className="text-xl font-semibold">Manage My Account</h1>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Personal Profile */}
         <section className="rounded-lg border bg-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Personal Profile</h2>
-            <ProfileDialog
-              user={user}
-              onSaved={(u) => setUser(u)}
-            />
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-base font-semibold">Personal Profile</h2>
+            <span className="text-muted-foreground/60">|</span>
+            <ProfileDialog user={user} onSaved={(u) => setUser(u)} />
           </div>
           {user ? (
             <div className="space-y-2 text-sm">
-              {displayName && <p className="font-medium">{displayName}</p>}
-              {displayPhone && <p className="text-muted-foreground">{displayPhone}</p>}
-              <p className="text-muted-foreground">{maskedEmail}</p>
+              {displayPhone && <p>{displayPhone}</p>}
+              <p>{maskedEmail}</p>
+              <label className="mt-3 flex items-center gap-2 text-sm">
+                <Checkbox defaultChecked />
+                <span>Receive marketing SMS</span>
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox />
+                <span>Receive marketing emails</span>
+              </label>
             </div>
           ) : (
             <div className="grid place-items-center py-6">
@@ -106,13 +114,17 @@ function ManageAccountPage() {
 
         {/* Address Book */}
         <section className="rounded-lg border bg-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Address Book</h2>
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-base font-semibold">Address Book</h2>
+            <span className="text-muted-foreground/60">|</span>
             <AddressDialog
               trigger={
-                <Button variant="ghost" size="sm">
-                  <Plus className="mr-1 h-4 w-4" /> Add
-                </Button>
+                <button
+                  type="button"
+                  className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline"
+                >
+                  Edit
+                </button>
               }
               onSaved={() => qc.invalidateQueries({ queryKey: ["account", "addresses"] })}
             />
@@ -128,13 +140,14 @@ function ManageAccountPage() {
               <p>No addresses saved yet.</p>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <AddressBlock label="Default Shipping" address={shipping} />
-              <AddressBlock label="Default Billing" address={billing} />
+            <div className="grid gap-6 sm:grid-cols-2">
+              <AddressBlock label="DEFAULT SHIPPING ADDRESS" address={shipping} />
+              <AddressBlock label="DEFAULT BILLING ADDRESS" address={billing} />
             </div>
           )}
         </section>
       </div>
+
 
       {/* Recent Orders */}
       <section className="rounded-lg border bg-card p-5">
@@ -245,10 +258,15 @@ function ProfileDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" disabled={!user}>
-          <Pencil className="mr-1 h-4 w-4" /> Edit
-        </Button>
+        <button
+          type="button"
+          disabled={!user}
+          className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline disabled:opacity-50"
+        >
+          Edit
+        </button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit personal profile</DialogTitle>
