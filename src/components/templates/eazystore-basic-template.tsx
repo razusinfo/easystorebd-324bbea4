@@ -388,8 +388,8 @@ export function EazyStoreBasicTemplate({
                       onClick={() => selectCategory(c)}
                       className={
                         active
-                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-sm font-bold text-white"
-                          : "block w-full text-left rounded-xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-base font-bold text-white"
+                          : "block w-full text-left rounded-xl px-4 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-100"
                       }
                     >
                       {c}
