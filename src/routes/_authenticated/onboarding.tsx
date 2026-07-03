@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowRight, Check, Shirt, Cpu, Dumbbell, Sparkles, Loader2, Mail, Languages,
+  ArrowLeft, ArrowRight, Check, Sparkles, Loader2, Mail, Languages, Briefcase,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, type Lang } from "@/lib/i18n";
 import {
-  useMyStore, useCreateStore, TEMPLATES, type Category, type TemplateId,
+  useMyStore, useCreateStore, TEMPLATES, BUSINESS_TYPES, type Category, type TemplateId,
 } from "@/lib/eazystore-data";
 
 
