@@ -727,3 +727,112 @@ function statusLabel(s: ProductStatus): string {
   if (s === "pending") return "Pending review";
   return "Inactive (Rejected)";
 }
+
+function CategoryStrip({
+  categories, isLoading, selected, onSelect,
+}: {
+  categories: { id: string; name: string; parent_id: string | null }[];
+  isLoading: boolean;
+  selected: string | "all";
+  onSelect: (id: string | "all") => void;
+}) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  const updateArrows = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 4);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    updateArrows();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    const ro = new ResizeObserver(updateArrows);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", updateArrows); ro.disconnect(); };
+  }, [categories.length]);
+
+  const scrollBy = (dx: number) => {
+    scrollerRef.current?.scrollBy({ left: dx, behavior: "smooth" });
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-2">
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => scrollBy(-240)}
+          disabled={!canLeft}
+          aria-label="Scroll categories left"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-foreground/60 hover:bg-foreground/5 disabled:opacity-30"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+
+        <div
+          ref={scrollerRef}
+          className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <button
+            type="button"
+            onClick={() => onSelect("all")}
+            className={
+              (selected === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10") +
+              " inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold"
+            }
+          >
+            <Layers className="h-3.5 w-3.5" /> All
+          </button>
+
+          {isLoading ? (
+            <span className="inline-flex items-center gap-1.5 px-2 text-xs text-foreground/50">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading categories…
+            </span>
+          ) : categories.length === 0 ? (
+            <Link
+              to="/categories"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-semibold text-foreground/60 hover:text-primary"
+            >
+              <FolderTree className="h-3.5 w-3.5" /> Add categories
+            </Link>
+          ) : (
+            categories.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => onSelect(c.id)}
+                title={c.name}
+                className={
+                  (selected === c.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10") +
+                  " inline-flex max-w-[180px] shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+                }
+              >
+                <FolderTree className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                <span className="truncate">{c.name}</span>
+              </button>
+            ))
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => scrollBy(240)}
+          disabled={!canRight}
+          aria-label="Scroll categories right"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-foreground/60 hover:bg-foreground/5 disabled:opacity-30"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
