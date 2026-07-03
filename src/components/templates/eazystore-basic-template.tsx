@@ -176,7 +176,7 @@ export function EazyStoreBasicTemplate({
   function footerLinkFor(label: string, href?: string) {
     if (href && href.trim()) return { external: true, to: href };
     const sub = LABEL_TO_SUBPATH[label];
-    if (sub && slug) return { external: false, to: `/s/${slug}/${sub}` };
+    if (sub !== undefined && slug) return { external: false, to: sub ? `/s/${slug}/${sub}` : `/s/${slug}` };
     return null;
   }
 
