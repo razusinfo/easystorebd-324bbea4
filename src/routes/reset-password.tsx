@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
