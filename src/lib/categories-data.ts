@@ -60,7 +60,7 @@ function slugify(s: string) {
 export function useCreateCategory(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; parent_id: string | null }) => {
+    mutationFn: async (input: { name: string; parent_id: string | null; image_url?: string | null }) => {
       if (!storeId) throw new Error("No store");
       const name = input.name.trim();
       if (name.length < 1) throw new Error("Name is required.");
@@ -69,6 +69,7 @@ export function useCreateCategory(storeId: string | undefined) {
         parent_id: input.parent_id,
         name,
         slug: slugify(name) || null,
+        image_url: input.image_url ?? null,
       });
       if (error) {
         if (error.code === "23505") throw new Error("A category with this name already exists here.");
@@ -98,6 +99,29 @@ export function useRenameCategory(storeId: string | undefined) {
   });
 }
 
+export function useUpdateCategory(storeId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { id: string; name?: string; image_url?: string | null }) => {
+      const patch: Record<string, unknown> = {};
+      if (typeof input.name === "string") {
+        const name = input.name.trim();
+        if (!name) throw new Error("Name is required.");
+        patch.name = name;
+        patch.slug = slugify(name) || null;
+      }
+      if (input.image_url !== undefined) patch.image_url = input.image_url;
+      if (Object.keys(patch).length === 0) return;
+      const { error } = await supabase.from("product_categories").update(patch).eq("id", input.id);
+      if (error) {
+        if (error.code === "23505") throw new Error("A sibling category already uses this name.");
+        throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories", "by-store", storeId] }),
+  });
+}
+
 export function useDeleteCategory(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
@@ -108,6 +132,23 @@ export function useDeleteCategory(storeId: string | undefined) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories", "by-store", storeId] }),
   });
 }
+
+export async function uploadCategoryImage(file: File): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `${user.id}/cat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error: upErr } = await supabase.storage
+    .from("category-images")
+    .upload(path, file, { upsert: false, contentType: file.type });
+  if (upErr) throw upErr;
+  const { data: signed, error: signErr } = await supabase.storage
+    .from("category-images")
+    .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+  if (signErr || !signed?.signedUrl) throw signErr ?? new Error("Failed to sign image URL");
+  return signed.signedUrl;
+}
+
 
 export function useReorderCategory(storeId: string | undefined) {
   const qc = useQueryClient();
