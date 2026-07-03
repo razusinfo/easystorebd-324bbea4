@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyStore, useMyProducts, buildStorefrontUrl } from "@/lib/eazystore-data";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — EazyStore" }] }),
