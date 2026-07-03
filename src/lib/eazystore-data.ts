@@ -527,7 +527,7 @@ export function useUpdateStore() {
       const { id, ...patch } = input;
       const { data, error } = await supabase
         .from("stores")
-        .update(patch)
+        .update(patch as never)
         .eq("id", id)
         .select()
         .single();
