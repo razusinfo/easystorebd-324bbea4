@@ -173,10 +173,25 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-3 pt-2">
+                <Tabs value={loginMode} onValueChange={(v) => { setLoginMode(v as "email" | "phone"); setLoginId(""); }}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="email">Email</TabsTrigger>
+                    <TabsTrigger value="phone">Mobile Number</TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 <div>
-                  <Label htmlFor="li-email">Email</Label>
-                  <Input id="li-email" type="email" required
-                    value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Label htmlFor="li-id">
+                    {loginMode === "email" ? "Email" : "Mobile Number"}
+                  </Label>
+                  <Input
+                    id="li-id"
+                    type={loginMode === "email" ? "email" : "tel"}
+                    inputMode={loginMode === "email" ? "email" : "tel"}
+                    autoComplete={loginMode === "email" ? "email" : "tel"}
+                    required
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="li-pass">Password</Label>
