@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy, Filter } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 import {
-  useMyStore, useMyProductsPaged, useMyProductsStats, useDeleteProduct,
+  useMyStore, useMyProductsPaged, useMyProductsStats, useMyCategories, useDeleteProduct,
   useUpdateProductStatus, useProductAuditLogs,
   type ProductRow, type ProductStatus,
 } from "@/lib/eazystore-data";
