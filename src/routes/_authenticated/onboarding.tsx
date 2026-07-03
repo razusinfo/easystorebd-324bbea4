@@ -196,7 +196,76 @@ function Onboarding() {
               </div>
             </div>
           )}
+
+          {step === 4 && (
+            <div className="animate-fade-up">
+              <h1 className="font-display text-2xl font-bold">Basic info</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Optional — you can fill this in later.</p>
+              <div className="mt-5 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone</label>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+880 1XXX-XXXXXX"
+                    className="mt-1 w-full rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contact email</label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="shop@example.com"
+                    className="mt-1 w-full rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Address</label>
+                  <textarea
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Shop address"
+                    rows={2}
+                    className="mt-1 w-full rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="animate-fade-up">
+              <h1 className="font-display text-2xl font-bold">Choose your language</h1>
+              <p className="mt-1 text-sm text-muted-foreground">You can change this anytime in settings.</p>
+              <div className="mt-5 grid gap-3">
+                {([
+                  { id: "bn" as Lang, name: "বাংলা", desc: "Bangla — default" },
+                  { id: "en" as Lang, name: "English", desc: "English interface" },
+                ]).map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => setChosenLang(l.id)}
+                    className={`flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition ${
+                      chosenLang === l.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="grid h-11 w-11 place-items-center rounded-xl gradient-primary text-white">
+                      <Languages className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold">{l.name}</div>
+                      <div className="text-xs text-muted-foreground">{l.desc}</div>
+                    </div>
+                    {chosenLang === l.id && <Check className="h-5 w-5 text-primary" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
 
         <button
           disabled={!canNext || createStore.isPending}
