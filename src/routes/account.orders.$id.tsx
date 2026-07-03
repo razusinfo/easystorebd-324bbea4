@@ -122,7 +122,7 @@ function OrderDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3 print:hidden">
         <div>
           <Button asChild variant="ghost" size="sm" className="-ml-2">
             <Link to="/account/orders"><ArrowLeft className="mr-1 h-4 w-4" /> Back</Link>
@@ -132,11 +132,24 @@ function OrderDetailsPage() {
             Placed on {new Date(data.created_at).toLocaleString()}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <Badge variant="secondary">{data.status}</Badge>
-          <Badge variant="outline">{data.payment_status}</Badge>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex gap-1">
+            <Badge variant="secondary">{data.status}</Badge>
+            <Badge variant="outline">{data.payment_status}</Badge>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => window.print()}>
+              <Printer className="mr-1 h-4 w-4" /> Invoice
+            </Button>
+            <RequestDialog
+              orderId={data.id}
+              storeId={data.store_id}
+              disabled={isCancelled || data.status === "delivered" && false}
+            />
+          </div>
         </div>
       </div>
+
 
       {/* Status history */}
       <div className="rounded-lg border p-4">
