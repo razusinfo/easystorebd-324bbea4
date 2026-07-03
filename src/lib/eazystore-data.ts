@@ -509,7 +509,7 @@ export function useCreateStore() {
           owner_user_id: user.id,
           name: input.name,
           category: input.category,
-          template: input.template,
+          template: input.template as never,
         })
         .select()
         .single();
