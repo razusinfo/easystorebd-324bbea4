@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Smartphone, Monitor, Apple, Chrome, Share, MoreVertical, Download, Home } from "lucide-react";
 import { PwaInstallButton } from "@/components/pwa-install-button";
 import logoAsset from "@/assets/eazystore-logo.png.asset.json";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export const Route = createFileRoute("/install")({
   head: () => ({
