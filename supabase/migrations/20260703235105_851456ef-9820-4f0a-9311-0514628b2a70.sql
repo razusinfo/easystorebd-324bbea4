@@ -1,0 +1,17 @@
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Clothing & Apparel';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Shoes & Footwear';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Accessories & Jewelry';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Beauty & Cosmetics';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Electronics & Gadgets';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Home & Furniture';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Books & Media';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Toys & Games';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Sports & Outdoors';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Health & Wellness';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Food & Beverage';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Pet Supplies';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Grocery';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Telecommunication';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Pharmaceuticals';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Utilities';
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'Others';

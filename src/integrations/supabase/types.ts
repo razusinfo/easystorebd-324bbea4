@@ -861,7 +861,27 @@ export type Database = {
         | "cancelled"
       payment_status: "unpaid" | "paid" | "refunded"
       product_status: "pending" | "approved" | "rejected"
-      store_category: "Clothes" | "Electronics" | "Sports"
+      store_category:
+        | "Clothes"
+        | "Electronics"
+        | "Sports"
+        | "Clothing & Apparel"
+        | "Shoes & Footwear"
+        | "Accessories & Jewelry"
+        | "Beauty & Cosmetics"
+        | "Electronics & Gadgets"
+        | "Home & Furniture"
+        | "Books & Media"
+        | "Toys & Games"
+        | "Sports & Outdoors"
+        | "Health & Wellness"
+        | "Food & Beverage"
+        | "Pet Supplies"
+        | "Grocery"
+        | "Telecommunication"
+        | "Pharmaceuticals"
+        | "Utilities"
+        | "Others"
       store_template:
         | "minimal"
         | "boutique"
@@ -1020,7 +1040,28 @@ export const Constants = {
       ],
       payment_status: ["unpaid", "paid", "refunded"],
       product_status: ["pending", "approved", "rejected"],
-      store_category: ["Clothes", "Electronics", "Sports"],
+      store_category: [
+        "Clothes",
+        "Electronics",
+        "Sports",
+        "Clothing & Apparel",
+        "Shoes & Footwear",
+        "Accessories & Jewelry",
+        "Beauty & Cosmetics",
+        "Electronics & Gadgets",
+        "Home & Furniture",
+        "Books & Media",
+        "Toys & Games",
+        "Sports & Outdoors",
+        "Health & Wellness",
+        "Food & Beverage",
+        "Pet Supplies",
+        "Grocery",
+        "Telecommunication",
+        "Pharmaceuticals",
+        "Utilities",
+        "Others",
+      ],
       store_template: [
         "minimal",
         "boutique",

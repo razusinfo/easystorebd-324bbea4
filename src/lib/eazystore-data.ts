@@ -12,7 +12,23 @@ import {
 } from "@/lib/admin.functions";
 
 
-export type Category = "Clothes" | "Electronics" | "Sports";
+export type Category =
+  | "Clothes" | "Electronics" | "Sports"
+  | "Clothing & Apparel" | "Shoes & Footwear" | "Accessories & Jewelry"
+  | "Beauty & Cosmetics" | "Electronics & Gadgets" | "Home & Furniture"
+  | "Books & Media" | "Toys & Games" | "Sports & Outdoors"
+  | "Health & Wellness" | "Food & Beverage" | "Pet Supplies"
+  | "Grocery" | "Telecommunication" | "Pharmaceuticals"
+  | "Utilities" | "Others";
+
+export const BUSINESS_TYPES: Category[] = [
+  "Clothing & Apparel", "Shoes & Footwear", "Accessories & Jewelry",
+  "Beauty & Cosmetics", "Electronics & Gadgets", "Home & Furniture",
+  "Books & Media", "Toys & Games", "Sports & Outdoors",
+  "Health & Wellness", "Food & Beverage", "Pet Supplies",
+  "Grocery", "Telecommunication", "Pharmaceuticals",
+  "Utilities", "Others",
+];
 export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic" | "prestige";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
