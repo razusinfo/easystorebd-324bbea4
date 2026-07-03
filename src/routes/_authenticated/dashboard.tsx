@@ -94,7 +94,7 @@ function Dashboard() {
   }
 
   return (
-    <main className="relative mx-auto min-h-screen w-full max-w-2xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28">
+    <main className="relative mx-auto min-h-screen w-full max-w-2xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28 lg:max-w-7xl lg:bg-none lg:pb-8">
       {/* Greeting */}
       <section className="px-5 pt-5">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
