@@ -173,6 +173,13 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…</> : "Sign in"}
                 </Button>
+                <button
+                  type="button"
+                  className="w-full text-center text-xs font-medium text-muted-foreground underline hover:text-foreground"
+                  onClick={() => { setForgotEmail(email); setForgotOpen(true); }}
+                >
+                  Forgot password?
+                </button>
               </form>
             </TabsContent>
 
