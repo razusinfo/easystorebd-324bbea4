@@ -222,15 +222,16 @@ function StorefrontChrome({ slug, children }: { slug: string; children: React.Re
             {f.showNav && enabledLinks.length > 0 && (
               <nav className="grid grid-cols-2 gap-x-4 gap-y-2 text-center sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-12 sm:gap-y-3">
                 {enabledLinks.map((l) => {
+                  const displayLabel = l.label === "Company" ? "Home" : l.label;
                   const cls = "font-display text-sm font-bold text-neutral-900 transition hover:acc-text sm:text-lg";
                   if (l.href && l.href.trim()) {
-                    return <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className={cls}>{l.label}</a>;
+                    return <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className={cls}>{displayLabel}</a>;
                   }
                   const sub = FOOTER_LABEL_SUB[l.label];
                   if (sub !== undefined) {
-                    return <Link key={l.label} to={sub ? `/s/${slug}/${sub}` : `/s/${slug}`} className={cls}>{l.label}</Link>;
+                    return <Link key={l.label} to={sub ? `/s/${slug}/${sub}` : `/s/${slug}`} className={cls}>{displayLabel}</Link>;
                   }
-                  return <span key={l.label} className={cls}>{l.label}</span>;
+                  return <span key={l.label} className={cls}>{displayLabel}</span>;
                 })}
               </nav>
             )}
