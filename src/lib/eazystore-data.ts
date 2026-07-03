@@ -856,10 +856,73 @@ export function useProductAuditLogs(productId: string | null | undefined) {
 
 // ---------- Product image storage ----------
 
-export async function uploadProductImage(file: File): Promise<{ path: string; publicUrl: string }> {
+const MAX_IMAGE_BYTES = 1.5 * 1024 * 1024; // 1.5 MB
+const MAX_IMAGE_DIMENSION = 2000; // px — longest side
+
+/**
+ * Client-side compress + resize a product image to stay under ~1.5 MB while
+ * preserving aspect ratio and visual quality. Skips SVG/GIF (animation) and
+ * already-small files. Falls back to the original file on any failure.
+ */
+export async function processProductImage(file: File): Promise<File> {
+  if (typeof window === "undefined") return file;
+  if (file.type === "image/gif" || file.type === "image/svg+xml") return file;
+  if (!file.type.startsWith("image/")) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const { width: w0, height: h0 } = bitmap;
+    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(w0, h0));
+    const w = Math.round(w0 * scale);
+    const h = Math.round(h0 * scale);
+
+    // If already small enough AND no resize needed, keep original bytes.
+    if (scale === 1 && file.size <= MAX_IMAGE_BYTES) {
+      bitmap.close?.();
+      return file;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { bitmap.close?.(); return file; }
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+
+    // Iteratively drop JPEG quality until <=1.5 MB (min quality 0.5).
+    const toBlob = (q: number) =>
+      new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", q));
+
+    let quality = 0.9;
+    let blob = await toBlob(quality);
+    while (blob && blob.size > MAX_IMAGE_BYTES && quality > 0.5) {
+      quality = Math.max(0.5, quality - 0.1);
+      blob = await toBlob(quality);
+    }
+    if (!blob) return file;
+
+    const base = file.name.replace(/\.[^.]+$/, "") || "product";
+    const out = new File([blob], `${base}.jpg`, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+    console.log(
+      `[processProductImage] ${w0}x${h0} ${(file.size / 1024).toFixed(0)}KB → ` +
+      `${w}x${h} ${(out.size / 1024).toFixed(0)}KB (q=${quality.toFixed(2)})`,
+    );
+    return out;
+  } catch (e) {
+    console.warn("[processProductImage] failed, using original:", e);
+    return file;
+  }
+}
+
+export async function uploadProductImage(rawFile: File): Promise<{ path: string; publicUrl: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not signed in");
-  const ext = (file.name.split(".").pop() || "png").toLowerCase();
+  const file = await processProductImage(rawFile);
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
   const path = `${user.id}/product-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
   const { error: upErr } = await supabase.storage
@@ -867,6 +930,7 @@ export async function uploadProductImage(file: File): Promise<{ path: string; pu
     .upload(path, file, { upsert: false, contentType: file.type });
   if (upErr) throw upErr;
   console.log("[uploadProductImage] uploaded to path:", path);
+
 
   // Validate the object actually exists in the bucket.
   const dir = path.slice(0, path.lastIndexOf("/"));
