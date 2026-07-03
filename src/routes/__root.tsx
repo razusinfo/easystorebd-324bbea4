@@ -120,8 +120,22 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="bn">
       <head>
         <HeadContent />
+        <style
+          // Full-screen page-load splash. Fades out once the app hydrates.
+          dangerouslySetInnerHTML={{
+            __html: `
+              #app-splash{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#1E1B4B;transition:opacity .35s ease;}
+              #app-splash img{width:min(60vw,60vh);height:auto;object-fit:contain;filter:drop-shadow(0 8px 32px rgba(0,0,0,.35));animation:app-splash-pulse 1.4s ease-in-out infinite;}
+              #app-splash.hide{opacity:0;pointer-events:none;}
+              @keyframes app-splash-pulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.04);opacity:1}}
+            `,
+          }}
+        />
       </head>
       <body>
+        <div id="app-splash" aria-hidden="true">
+          <img src="/__l5e/assets-v1/b2fc381c-becb-478c-a47f-100eee076c9c/eazystore-logo.png" alt="" />
+        </div>
         {children}
         <Scripts />
       </body>
@@ -129,12 +143,23 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
     registerPwa();
+    // Fade out the initial full-screen splash after the app is mounted.
+    const el = document.getElementById("app-splash");
+    if (el) {
+      const t = window.setTimeout(() => {
+        el.classList.add("hide");
+        window.setTimeout(() => el.remove(), 400);
+      }, 300);
+      return () => window.clearTimeout(t);
+    }
   }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>

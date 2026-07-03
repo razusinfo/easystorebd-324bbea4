@@ -21,12 +21,18 @@ const config: CapacitorConfig = {
       launchShowDuration: 1500,
       backgroundColor: '#1E1B4B',
       showSpinner: false,
+      // Full-screen splash matching the mobile screen dimensions.
+      androidScaleType: 'CENTER_CROP',
+      splashFullScreen: true,
+      splashImmersive: true,
+      androidSplashResourceName: 'splash',
     },
     StatusBar: {
       backgroundColor: '#1E1B4B',
       style: 'DARK',
     },
   },
+
 };
 
 export default config;
