@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 
 const searchSchema = z.object({ redirect: z.string().optional() });
@@ -358,9 +359,7 @@ function AuthPage() {
       <div className="mx-auto max-w-md">
         <Link to="/" className="mb-6 inline-flex items-center gap-2">
           <img src={eazystoreLogo.url} alt="EazyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
-          <span className="font-display text-xl font-bold tracking-tight text-slate-900">
-            eazy<span className="text-purple-700">store</span>
-          </span>
+          <EazyStoreWordmark className="text-xl" />
         </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">

@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -77,9 +78,7 @@ export function AppSidebar() {
             className="h-8 w-8 shrink-0 rounded-lg object-contain"
           />
           {!collapsed && (
-            <span className="font-display text-lg font-black tracking-tight">
-              EazyStore
-            </span>
+            <EazyStoreWordmark className="text-lg" />
           )}
         </Link>
       </SidebarHeader>

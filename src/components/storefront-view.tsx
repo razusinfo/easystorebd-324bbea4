@@ -6,6 +6,7 @@ import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-t
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export function StorefrontView({ slug }: { slug: string }) {
   const q = usePublicStoreBySlug(slug);
@@ -178,7 +179,7 @@ export function StorefrontView({ slug }: { slug: string }) {
       )}
 
       <footer className="border-t border-neutral-200 bg-white py-6 text-center text-xs text-neutral-500">
-        Powered by <a href="/" className="font-bold text-primary hover:underline">EazyStore</a>
+        Powered by <a href="/" className="hover:underline"><EazyStoreWordmark className="text-sm align-middle" /></a>
       </footer>
     </main>
   );
