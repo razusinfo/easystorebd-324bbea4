@@ -25,6 +25,7 @@ import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
 import { StorefrontView } from "@/components/storefront-view";
 import heroAsset from "@/assets/hero-storefront.jpg.asset.json";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
