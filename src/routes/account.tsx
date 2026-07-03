@@ -56,9 +56,11 @@ const NAV: ReadonlyArray<NavItem> = [
 function AccountLayout() {
   const navigate = useNavigate();
   const [user, setUser] = useState<SupaUser | null | undefined>(undefined);
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
+    try { setStoreSlug(window.localStorage.getItem("last_store_slug")); } catch { /* ignore */ }
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setUser(s?.user ?? null);
