@@ -146,6 +146,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   useEffect(() => {
     registerPwa();
@@ -159,6 +160,28 @@ function RootComponent() {
       return () => window.clearTimeout(t);
     }
   }, []);
+
+  // Reset per-user cache/state on identity changes so a new user never sees
+  // the previous user's data. Filter to real identity transitions to avoid
+  // thrashing on TOKEN_REFRESHED / INITIAL_SESSION.
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      queryClient.cancelQueries();
+      queryClient.clear();
+      try {
+        // Drop non-auth per-user browser state; keep Supabase's own auth keys.
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith("sb-") || key === "bongo.lang") continue;
+          localStorage.removeItem(key);
+        }
+        sessionStorage.clear();
+      } catch { /* ignore */ }
+      router.invalidate();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [queryClient, router]);
+
 
 
   return (
