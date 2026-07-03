@@ -86,7 +86,7 @@ function OrderDetailsPage() {
     queryFn: async () => {
       const { data: rows, error } = await supabase
         .from("order_requests")
-        .select("id, type, reason, status, resolution_notes, created_at")
+        .select("id, type, reason, status, resolution_notes, created_at, updated_at")
         .eq("order_id", id)
         .order("created_at", { ascending: false });
       if (error) throw error;
