@@ -227,8 +227,8 @@ function StorefrontChrome({ slug, children }: { slug: string; children: React.Re
                     return <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className={cls}>{l.label}</a>;
                   }
                   const sub = FOOTER_LABEL_SUB[l.label];
-                  if (sub) {
-                    return <Link key={l.label} to={`/s/${slug}/${sub}`} className={cls}>{l.label}</Link>;
+                  if (sub !== undefined) {
+                    return <Link key={l.label} to={sub ? `/s/${slug}/${sub}` : `/s/${slug}`} className={cls}>{l.label}</Link>;
                   }
                   return <span key={l.label} className={cls}>{l.label}</span>;
                 })}
