@@ -69,11 +69,19 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
     e.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      let signInEmail = loginId.trim();
+      if (loginMode === "phone") {
+        const { email: found } = await resolveEmailForPhone({ data: { phone: signInEmail } });
+        signInEmail = found;
+      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email: signInEmail,
+        password,
+      });
       if (error) throw error;
       toast.success("Signed in");
       setOpen(false);
-      setEmail(""); setPassword("");
+      setLoginId(""); setPassword("");
     } catch (err: any) {
       toast.error(err?.message ?? "Login failed");
     } finally { setBusy(false); }
