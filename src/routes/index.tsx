@@ -24,6 +24,7 @@ import {
 import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
 import { StorefrontView } from "@/components/storefront-view";
 import heroAsset from "@/assets/hero-storefront.jpg.asset.json";
+import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
@@ -77,9 +78,11 @@ function TopBand() {
       {/* Nav */}
       <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
         <Link to="/" className="flex min-w-0 items-center gap-2">
-          <div className="gradient-landing-brand grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-md">
-            <Store className="h-5 w-5" />
-          </div>
+          <img
+            src={eazystoreLogo.url}
+            alt="EazyStore"
+            className="h-9 w-9 shrink-0 rounded-xl object-contain"
+          />
           <span className="font-hero truncate text-lg tracking-tight text-slate-900 sm:text-xl">EazyStore</span>
         </Link>
 
