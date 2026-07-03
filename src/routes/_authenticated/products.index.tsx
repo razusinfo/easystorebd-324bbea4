@@ -121,6 +121,66 @@ function ProductsPage() {
         <StatCard label="Out of Stock" value={stats.outOfStock.toString()} tone={stats.outOfStock ? "warn" : "muted"} />
       </div>
 
+      {/* Category tabs + Show All filter */}
+      <CategoryTabs
+        categories={categories}
+        activeId={categoryId}
+        onChange={setCategoryId}
+        filterSlot={
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="shrink-0 rounded-full">
+                <Filter className="mr-1.5 h-3.5 w-3.5" />
+                Show All
+                <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-64 space-y-3 p-3">
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                  SKU / Code
+                </label>
+                <Input
+                  placeholder="Filter by SKU..."
+                  value={skuFilter}
+                  onChange={(e) => setSkuFilter(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                  Status
+                </label>
+                <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1 text-xs">
+                  {(["all", "pending", "approved", "rejected"] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setStatusFilter(s)}
+                      className={
+                        statusFilter === s
+                          ? "rounded-md bg-primary px-2.5 py-1 font-bold text-primary-foreground capitalize"
+                          : "rounded-md px-2.5 py-1 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
+                      }
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {(skuFilter || statusFilter !== "all") && (
+                <Button
+                  variant="ghost" size="sm"
+                  onClick={() => { setSkuFilter(""); setStatusFilter("all"); }}
+                  className="h-8 w-full"
+                >
+                  Clear filters
+                </Button>
+              )}
+            </PopoverContent>
+          </Popover>
+        }
+      />
+
       {/* Search */}
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
@@ -132,77 +192,6 @@ function ProductsPage() {
         />
       </div>
 
-      {/* Category tabs + Show All filter */}
-      <div className="flex items-center gap-2">
-        <div className="min-w-0 flex-1 overflow-x-auto">
-          <div className="flex items-center gap-2 pb-1">
-            <CategoryPill
-              label="All products"
-              active={categoryId === "all"}
-              onClick={() => setCategoryId("all")}
-            />
-            {categories.map((c) => (
-              <CategoryPill
-                key={c.id}
-                label={c.name}
-                active={categoryId === c.id}
-                onClick={() => setCategoryId(c.id)}
-              />
-            ))}
-          </div>
-        </div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="shrink-0 rounded-full">
-              <Filter className="mr-1.5 h-3.5 w-3.5" />
-              Show All
-              <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-64 space-y-3 p-3">
-            <div>
-              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                SKU / Code
-              </label>
-              <Input
-                placeholder="Filter by SKU..."
-                value={skuFilter}
-                onChange={(e) => setSkuFilter(e.target.value)}
-                className="h-8 text-sm"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                Status
-              </label>
-              <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1 text-xs">
-                {(["all", "pending", "approved", "rejected"] as const).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
-                    className={
-                      statusFilter === s
-                        ? "rounded-md bg-primary px-2.5 py-1 font-bold text-primary-foreground capitalize"
-                        : "rounded-md px-2.5 py-1 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
-                    }
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {(skuFilter || statusFilter !== "all") && (
-              <Button
-                variant="ghost" size="sm"
-                onClick={() => { setSkuFilter(""); setStatusFilter("all"); }}
-                className="h-8 w-full"
-              >
-                Clear filters
-              </Button>
-            )}
-          </PopoverContent>
-        </Popover>
-      </div>
 
 
       {/* Content */}
