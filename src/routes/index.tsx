@@ -463,7 +463,7 @@ function Footer() {
       {/* Tagline */}
       <p className="mx-auto max-w-4xl text-center font-hero text-2xl leading-snug tracking-tight text-slate-900 sm:text-4xl">
         Easily take your business online with{" "}
-        <span className="font-hero italic text-landing-accent">EazyStore</span> in just one click.
+        <EazyStoreWordmark italic className="text-2xl sm:text-4xl align-baseline" /> in just one click.
       </p>
 
       {/* Main card */}
