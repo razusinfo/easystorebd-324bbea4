@@ -239,7 +239,113 @@ function OrderDetailsPage() {
           )}
         </div>
       </div>
+
+      {/* Return / cancellation requests */}
+      {(requests ?? []).length > 0 && (
+        <div className="rounded-lg border p-4 print:hidden">
+          <h2 className="mb-3 text-sm font-semibold">Your requests</h2>
+          <ul className="space-y-3">
+            {(requests ?? []).map((r) => (
+              <li key={r.id} className="rounded border p-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium capitalize">{r.type}</span>
+                  <Badge variant="secondary" className="capitalize">{r.status}</Badge>
+                </div>
+                <p className="mt-1 text-muted-foreground">{r.reason}</p>
+                {r.resolution_notes && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">Response:</span> {r.resolution_notes}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {new Date(r.created_at).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
+  );
+}
+
+function RequestDialog({
+  orderId, storeId, disabled,
+}: { orderId: string; storeId: string; disabled?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState<"cancellation" | "return">("cancellation");
+  const [reason, setReason] = useState("");
+  const qc = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const trimmed = reason.trim();
+      if (trimmed.length < 5) throw new Error("Please provide a brief reason (min 5 characters).");
+      if (trimmed.length > 1000) throw new Error("Reason must be under 1000 characters.");
+      const { data: userRes } = await supabase.auth.getUser();
+      const uid = userRes.user?.id;
+      if (!uid) throw new Error("You must be signed in.");
+      const { error } = await supabase.from("order_requests").insert({
+        order_id: orderId,
+        store_id: storeId,
+        customer_user_id: uid,
+        type,
+        reason: trimmed,
+        status: "pending",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Request submitted");
+      setReason("");
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["account", "order", orderId, "requests"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" disabled={disabled}>
+          <RotateCcw className="mr-1 h-4 w-4" /> Return / Cancel
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Request return or cancellation</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Request type</Label>
+            <Select value={type} onValueChange={(v) => setType(v as "cancellation" | "return")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cancellation">Cancellation</SelectItem>
+                <SelectItem value="return">Return</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Reason</Label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Tell the seller why..."
+              maxLength={1000}
+              rows={4}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+            {mutation.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+            Submit request
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -250,4 +356,5 @@ function Row({ label, value }: { label: string; value: number }) {
       <span>{Number(value).toLocaleString()} ৳</span>
     </div>
   );
+
 }
