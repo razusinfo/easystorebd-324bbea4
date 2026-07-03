@@ -78,9 +78,7 @@ export function AppSidebar() {
             className="h-8 w-8 shrink-0 rounded-lg object-contain"
           />
           {!collapsed && (
-            <span className="font-display text-lg font-black tracking-tight">
-              EazyStore
-            </span>
+            <EazyStoreWordmark className="text-lg" />
           )}
         </Link>
       </SidebarHeader>
