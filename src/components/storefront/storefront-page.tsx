@@ -4,6 +4,7 @@ import { ShoppingCart, Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { usePublicStoreBySlug, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
 import { useStoreCart, cartCount } from "@/lib/cart-store";
 import { CustomerAuth } from "@/components/storefront/customer-auth";
+import { DevelopedByBadge, useShowDevelopedBadge } from "@/lib/branding";
 
 type Props = {
   slug: string;
@@ -27,6 +28,7 @@ export function StorefrontPage({ slug, title, children }: Props) {
   const storeId = store?.id;
   const items = useStoreCart(storeId);
   const count = cartCount(items);
+  const showDevBadge = useShowDevelopedBadge(store);
 
   useEffect(() => {
     try { window.localStorage.setItem("last_store_slug", slug); } catch { /* ignore */ }
@@ -114,9 +116,12 @@ export function StorefrontPage({ slug, title, children }: Props) {
       </main>
 
       <footer className="mt-10 border-t border-neutral-200 bg-white">
-        <p className="mx-auto max-w-7xl px-4 py-6 text-center text-sm font-medium text-neutral-700 sm:text-base">
-          Copyright © {new Date().getFullYear()} {name}
-        </p>
+        <div className="mx-auto max-w-7xl px-4 py-6">
+          <p className="text-center text-sm font-medium text-neutral-700 sm:text-base">
+            Copyright © {new Date().getFullYear()} {name}
+          </p>
+          {showDevBadge && <DevelopedByBadge className="mt-1" />}
+        </div>
       </footer>
     </div>
   );

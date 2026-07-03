@@ -9,6 +9,7 @@ import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass } from "@/l
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CustomerAuth } from "@/components/storefront/customer-auth";
+import { DevelopedByBadge, useShowDevelopedBadge } from "@/lib/branding";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
@@ -92,10 +93,12 @@ export function EazyStoreBasicTemplate({
   const enabledLinks = f.navLinks.filter((l) => l.enabled && l.label !== "Blogs" && l.label !== "Pricing");
   const enabledSocials = f.socials.filter((s) => s.enabled);
   const socialIconMap = { twitter: Twitter, youtube: Youtube, instagram: Instagram, facebook: Facebook } as const;
+  const showDevBadge = useShowDevelopedBadge(demo ? null : (store as any));
   const hasFooter =
     (f.showNav && enabledLinks.length > 0) ||
     (f.showSocials && enabledSocials.length > 0) ||
-    f.showCopyright;
+    f.showCopyright ||
+    showDevBadge;
 
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<string>(defaultCategoryName || "All Products");
@@ -461,6 +464,7 @@ export function EazyStoreBasicTemplate({
                 Copyright © {new Date().getFullYear()} {name}
               </p>
             )}
+            {showDevBadge && <DevelopedByBadge className={f.showCopyright ? "mt-1" : "mt-6"} />}
           </div>
         </footer>
       )}
