@@ -537,13 +537,16 @@ function OrdersTable({
                       </Button>
                       <Button
                         variant="ghost" size="icon" className="h-8 w-8"
-                        onClick={() => onView(o)} aria-label="Open"
+                        onClick={() => window.open(`/orders/${o.id}`, "_blank", "noopener,noreferrer")}
+                        aria-label="Open in new tab"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Button>
                       <Select
                         onValueChange={(v) => {
-                          if (v === "view") onView(o);
+                          if (v === "view") {
+                            window.open(`/orders/${o.id}`, "_blank", "noopener,noreferrer");
+                          }
                           else if (v === "payment") {
                             const next: PaymentStatus = o.payment_status === "paid" ? "unpaid" : "paid";
                             updPayment.mutate({ id: o.id, payment_status: next });
@@ -562,6 +565,7 @@ function OrdersTable({
                           <SelectItem value="delete">Delete order</SelectItem>
                         </SelectContent>
                       </Select>
+
                     </div>
                   </td>
                 </tr>

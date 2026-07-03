@@ -52,6 +52,7 @@ import { Route as SSlugBlogsRouteImport } from './routes/s.$slug.blogs'
 import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
 import { Route as AccountOrdersIdRouteImport } from './routes/account.orders.$id'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
+import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -273,6 +274,11 @@ const AuthenticatedProductsNewRoute =
     path: '/products/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
+  id: '/orders_/$id',
+  path: '/orders/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProductsProductIdEditRoute =
   AuthenticatedProductsProductIdEditRouteImport.update({
     id: '/products/$productId/edit',
@@ -314,6 +320,7 @@ export interface FileRoutesByFullPath {
   '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
+  '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
   '/s/$slug/about': typeof SSlugAboutRoute
@@ -358,6 +365,7 @@ export interface FileRoutesByTo {
   '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account': typeof AccountIndexRoute
+  '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
   '/s/$slug/about': typeof SSlugAboutRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
+  '/_authenticated/orders_/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
   '/s/$slug/about': typeof SSlugAboutRoute
@@ -452,6 +461,7 @@ export interface FileRouteTypes {
     | '/demo/prestige'
     | '/s/$slug'
     | '/account/'
+    | '/orders/$id'
     | '/products/new'
     | '/account/orders/$id'
     | '/s/$slug/about'
@@ -496,6 +506,7 @@ export interface FileRouteTypes {
     | '/demo/prestige'
     | '/s/$slug'
     | '/account'
+    | '/orders/$id'
     | '/products/new'
     | '/account/orders/$id'
     | '/s/$slug/about'
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/demo/prestige'
     | '/s/$slug'
     | '/account/'
+    | '/_authenticated/orders_/$id'
     | '/_authenticated/products/new'
     | '/account/orders/$id'
     | '/s/$slug/about'
@@ -872,6 +884,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/orders_/$id': {
+      id: '/_authenticated/orders_/$id'
+      path: '/orders/$id'
+      fullPath: '/orders/$id'
+      preLoaderRoute: typeof AuthenticatedOrdersIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/products/$productId/edit': {
       id: '/_authenticated/products/$productId/edit'
       path: '/products/$productId/edit'
@@ -900,6 +919,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
+  AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
   AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
   AuthenticatedProductsProductIdEditRoute: typeof AuthenticatedProductsProductIdEditRoute
@@ -923,6 +943,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
+  AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
   AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
   AuthenticatedProductsProductIdEditRoute:
