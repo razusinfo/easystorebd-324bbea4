@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy, Filter } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 import {
-  useMyStore, useMyProductsPaged, useMyProductsStats, useDeleteProduct,
+  useMyStore, useMyProductsPaged, useMyProductsStats, useMyCategories, useDeleteProduct,
   useUpdateProductStatus, useProductAuditLogs,
   type ProductRow, type ProductStatus,
 } from "@/lib/eazystore-data";
@@ -44,6 +45,7 @@ function ProductsPage() {
   const [skuFilter, setSkuFilter] = useState("");
   const [debouncedSku, setDebouncedSku] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
+  const [categoryId, setCategoryId] = useState<string | "all">("all");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
@@ -60,7 +62,7 @@ function ProductsPage() {
   }, [skuFilter]);
 
   // Reset to page 1 whenever filters change
-  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, perPage]);
+  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, categoryId, perPage]);
 
   const productsQ = useMyProductsPaged({
     storeId: store?.id,
@@ -69,8 +71,11 @@ function ProductsPage() {
     search: debouncedSearch,
     sku: debouncedSku,
     status: statusFilter,
+    categoryId,
   });
   const statsQ = useMyProductsStats(store?.id);
+  const categoriesQ = useMyCategories(store?.id);
+  const categories = categoriesQ.data ?? [];
 
   const del = useDeleteProduct(store?.id);
 
@@ -116,40 +121,89 @@ function ProductsPage() {
         <StatCard label="Out of Stock" value={stats.outOfStock.toString()} tone={stats.outOfStock ? "warn" : "muted"} />
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
-          <Input
-            placeholder="Search by product name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <div className="relative w-full lg:w-64">
-          <Input
-            placeholder="Filter by SKU / Code..."
-            value={skuFilter}
-            onChange={(e) => setSkuFilter(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-1 rounded-lg border border-border p-1 text-xs">
-          {(["all", "pending", "approved", "rejected"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={
-                statusFilter === s
-                  ? "rounded-md bg-primary px-3 py-1.5 font-bold text-primary-foreground capitalize"
-                  : "rounded-md px-3 py-1.5 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
-              }
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+      {/* Search */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
+        <Input
+          placeholder="Search by product name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
       </div>
+
+      {/* Category tabs + Show All filter */}
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1 overflow-x-auto">
+          <div className="flex items-center gap-2 pb-1">
+            <CategoryPill
+              label="All products"
+              active={categoryId === "all"}
+              onClick={() => setCategoryId("all")}
+            />
+            {categories.map((c) => (
+              <CategoryPill
+                key={c.id}
+                label={c.name}
+                active={categoryId === c.id}
+                onClick={() => setCategoryId(c.id)}
+              />
+            ))}
+          </div>
+        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="shrink-0 rounded-full">
+              <Filter className="mr-1.5 h-3.5 w-3.5" />
+              Show All
+              <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-60" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-64 space-y-3 p-3">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                SKU / Code
+              </label>
+              <Input
+                placeholder="Filter by SKU..."
+                value={skuFilter}
+                onChange={(e) => setSkuFilter(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                Status
+              </label>
+              <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1 text-xs">
+                {(["all", "pending", "approved", "rejected"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={
+                      statusFilter === s
+                        ? "rounded-md bg-primary px-2.5 py-1 font-bold text-primary-foreground capitalize"
+                        : "rounded-md px-2.5 py-1 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
+                    }
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {(skuFilter || statusFilter !== "all") && (
+              <Button
+                variant="ghost" size="sm"
+                onClick={() => { setSkuFilter(""); setStatusFilter("all"); }}
+                className="h-8 w-full"
+              >
+                Clear filters
+              </Button>
+            )}
+          </PopoverContent>
+        </Popover>
+      </div>
+
 
       {/* Content */}
       {storeQ.isLoading || (productsQ.isLoading && !productsQ.data) ? (
@@ -224,6 +278,22 @@ function ProductsPage() {
 }
 
 
+
+function CategoryPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? "shrink-0 whitespace-nowrap rounded-full border border-primary bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary"
+          : "shrink-0 whitespace-nowrap rounded-full border border-border bg-background px-4 py-1.5 text-sm font-medium text-foreground/70 hover:bg-foreground/5"
+      }
+    >
+      {label}
+    </button>
+  );
+}
 
 function StatCard({ label, value, tone }: { label: string; value: string; tone?: "warn" | "muted" }) {
   return (
