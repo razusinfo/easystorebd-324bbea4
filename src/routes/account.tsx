@@ -154,6 +154,12 @@ function AccountLayout() {
   return <main className="min-h-screen bg-muted/30">{inner}</main>;
 }
 
+const SOCIAL_ICONS = { twitter: Twitter, youtube: Youtube, instagram: Instagram, facebook: Facebook } as const;
+const FOOTER_LABEL_SUB: Record<string, string> = {
+  "Company": "about", "About Us": "about", "Team": "team",
+  "Products": "products", "Blogs": "blogs", "Pricing": "pricing", "Contact": "contact",
+};
+
 function StorefrontChrome({ slug, children }: { slug: string; children: React.ReactNode }) {
   const q = usePublicStoreBySlug(slug);
   const store = q.data?.store;
@@ -162,9 +168,21 @@ function StorefrontChrome({ slug, children }: { slug: string; children: React.Re
   const name = (store?.name ?? "EAZYSTORE").toUpperCase();
   const logo = q.data?.logoUrl ?? null;
 
+  const tpl = getTemplateSettings(store, store?.template ?? "eazystore-basic");
+  const f: Required<FooterSettings> = {
+    showNav: tpl.footer?.showNav ?? DEFAULT_FOOTER.showNav,
+    navLinks: tpl.footer?.navLinks ?? DEFAULT_FOOTER.navLinks,
+    showSocials: tpl.footer?.showSocials ?? DEFAULT_FOOTER.showSocials,
+    socials: tpl.footer?.socials ?? DEFAULT_FOOTER.socials,
+    showCopyright: tpl.footer?.showCopyright ?? DEFAULT_FOOTER.showCopyright,
+  };
+  const enabledLinks = f.navLinks.filter((l) => l.enabled);
+  const enabledSocials = f.socials.filter((s) => s.enabled);
+  const hasFooter = (f.showNav && enabledLinks.length > 0) || (f.showSocials && enabledSocials.length > 0) || f.showCopyright;
+
   return (
     <div className="eazystore-basic-scope min-h-screen bg-neutral-100 font-sans text-neutral-900">
-      <style dangerouslySetInnerHTML={{ __html: `.eazystore-basic-scope { --acc: #5B21B6; --acc-rgb: 91,33,182; } .eazystore-basic-scope .acc-bg { background-color: var(--acc); }` }} />
+      <style dangerouslySetInnerHTML={{ __html: `.eazystore-basic-scope { --acc: #5B21B6; --acc-rgb: 91,33,182; } .eazystore-basic-scope .acc-bg { background-color: var(--acc); } .eazystore-basic-scope .acc-text { color: var(--acc); } .eazystore-basic-scope .acc-soft { background-color: rgba(var(--acc-rgb), 0.10); color: var(--acc); } .eazystore-basic-scope .hover\\:acc-text:hover { color: var(--acc); } .eazystore-basic-scope .hover\\:acc-soft:hover { background-color: rgba(var(--acc-rgb), 0.18); }` }} />
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <Link to="/s/$slug" params={{ slug }} className={`flex min-w-0 flex-1 items-center gap-2 sm:gap-3 ${logoAlignClass(store?.shop_settings)}`}>
