@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
 });
 
-const STEPS = ["Account", "Store name", "Category", "Template"] as const;
+const STEPS = ["Account", "Store name", "Category", "Template", "Basic info", "Language"] as const;
 
 function Onboarding() {
   const navigate = useNavigate();
