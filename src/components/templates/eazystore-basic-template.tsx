@@ -350,7 +350,7 @@ export function EazyStoreBasicTemplate({
                   <ProductCard
                     key={p.id ?? i}
                     {...p}
-                    storeSlug={store?.slug}
+                    storeSlug={store?.slug ?? undefined}
                     onAdd={p.id ? () => handleAdd(p) : undefined}
                   />
                 ))}
