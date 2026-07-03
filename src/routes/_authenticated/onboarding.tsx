@@ -1,32 +1,43 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowRight, Check, Shirt, Cpu, Dumbbell, Sparkles, Loader2, Mail,
+  ArrowLeft, ArrowRight, Check, Shirt, Cpu, Dumbbell, Sparkles, Loader2, Mail, Languages,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n, type Lang } from "@/lib/i18n";
 import {
   useMyStore, useCreateStore, TEMPLATES, type Category, type TemplateId,
 } from "@/lib/eazystore-data";
+
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({ meta: [{ title: "Onboarding — EazyStore" }] }),
   component: Onboarding,
 });
 
-const STEPS = ["Account", "Store name", "Category", "Template"] as const;
+const STEPS = ["Account", "Store name", "Category", "Template", "Basic info", "Language"] as const;
 
 function Onboarding() {
   const navigate = useNavigate();
   const myStore = useMyStore();
   const createStore = useCreateStore();
+  const { lang, setLang } = useI18n();
   const [step, setStep] = useState(0);
   const [storeName, setStoreName] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
   const [template, setTemplate] = useState<TemplateId | null>(null);
   const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [chosenLang, setChosenLang] = useState<Lang>(lang);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+    supabase.auth.getUser().then(({ data }) => {
+      const e = data.user?.email ?? "";
+      setEmail(e);
+      setContactEmail((prev) => prev || e);
+    });
   }, []);
 
   // If a store already exists for this user, go to dashboard.
@@ -38,12 +49,22 @@ function Onboarding() {
     (step === 0) ||
     (step === 1 && storeName.trim().length >= 2) ||
     (step === 2 && !!category) ||
-    (step === 3 && !!template);
+    (step === 3 && !!template) ||
+    (step === 4) ||
+    (step === 5);
 
   async function finish() {
     if (!category || !template || !storeName.trim()) return;
     try {
-      await createStore.mutateAsync({ name: storeName.trim(), category, template });
+      setLang(chosenLang);
+      await createStore.mutateAsync({
+        name: storeName.trim(),
+        category,
+        template,
+        phone,
+        address,
+        contact_email: contactEmail,
+      });
       navigate({ to: "/dashboard" });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Could not create store");
@@ -73,7 +94,7 @@ function Onboarding() {
             <span>Step {step + 1} of {STEPS.length}</span>
             <span>{STEPS[step]}</span>
           </div>
-          <div className="mt-2 grid grid-cols-4 gap-1.5">
+          <div className="mt-2 grid grid-cols-6 gap-1.5">
             {STEPS.map((_, i) => (
               <div key={i} className={`h-1.5 rounded-full transition ${i <= step ? "gradient-primary" : "bg-muted"}`} />
             ))}
@@ -175,7 +196,76 @@ function Onboarding() {
               </div>
             </div>
           )}
+
+          {step === 4 && (
+            <div className="animate-fade-up">
+              <h1 className="font-display text-2xl font-bold">Basic info</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Optional — you can fill this in later.</p>
+              <div className="mt-5 space-y-3">
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone</label>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+880 1XXX-XXXXXX"
+                    className="mt-1 w-full rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contact email</label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="shop@example.com"
+                    className="mt-1 w-full rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Address</label>
+                  <textarea
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Shop address"
+                    rows={2}
+                    className="mt-1 w-full rounded-2xl border-2 border-border bg-background px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="animate-fade-up">
+              <h1 className="font-display text-2xl font-bold">Choose your language</h1>
+              <p className="mt-1 text-sm text-muted-foreground">You can change this anytime in settings.</p>
+              <div className="mt-5 grid gap-3">
+                {([
+                  { id: "bn" as Lang, name: "বাংলা", desc: "Bangla — default" },
+                  { id: "en" as Lang, name: "English", desc: "English interface" },
+                ]).map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => setChosenLang(l.id)}
+                    className={`flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition ${
+                      chosenLang === l.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="grid h-11 w-11 place-items-center rounded-xl gradient-primary text-white">
+                      <Languages className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold">{l.name}</div>
+                      <div className="text-xs text-muted-foreground">{l.desc}</div>
+                    </div>
+                    {chosenLang === l.id && <Check className="h-5 w-5 text-primary" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
 
         <button
           disabled={!canNext || createStore.isPending}
