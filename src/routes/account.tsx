@@ -156,7 +156,7 @@ function AccountLayout() {
 
 const SOCIAL_ICONS = { twitter: Twitter, youtube: Youtube, instagram: Instagram, facebook: Facebook } as const;
 const FOOTER_LABEL_SUB: Record<string, string> = {
-  "Company": "about", "About Us": "about", "Team": "team",
+  "Home": "", "Company": "", "About Us": "about", "Team": "team",
   "Products": "products", "Blogs": "blogs", "Pricing": "pricing", "Contact": "contact",
 };
 
