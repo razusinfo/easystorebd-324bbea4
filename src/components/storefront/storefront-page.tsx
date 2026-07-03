@@ -28,6 +28,10 @@ export function StorefrontPage({ slug, title, children }: Props) {
   const items = useStoreCart(storeId);
   const count = cartCount(items);
 
+  useEffect(() => {
+    try { window.localStorage.setItem("last_store_slug", slug); } catch { /* ignore */ }
+  }, [slug]);
+
   const accent = "#5B21B6";
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
   const style = useMemo(() => `
