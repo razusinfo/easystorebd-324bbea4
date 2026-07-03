@@ -121,7 +121,7 @@ function TopBand() {
               <SheetHeader className="border-b border-emerald-100 p-5">
                 <SheetTitle className="flex items-center gap-2">
                   <img src={eazystoreLogo.url} alt="EazyStore" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
-                  <span className="font-hero text-slate-900">EazyStore</span>
+                  <EazyStoreWordmark className="text-lg" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col p-4 text-base font-medium text-slate-800">
