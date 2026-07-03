@@ -310,7 +310,7 @@ export type ProductAuditLog = {
 
 
 export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradient: string; accent: string; category: string; premium?: boolean }[] = [
-  { id: "bdlove", name: "Basic Theme", tagline: "Gadget bazaar layout — sidebar categories, purple accents, green save badges, rounded search pill", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
+  
   { id: "eazystore-basic", name: "EazyStore Basic", tagline: "EazyStore's own basic storefront — sidebar categories, product grid, mobile-friendly", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
   { id: "prestige", name: "Prestige Bento", tagline: "Premium mobile commerce — emerald + gold, bento grid, flash-sale countdown, sticky search with voice + bell", gradient: "from-emerald-900 to-emerald-700", accent: "#064e3b", category: "General", premium: true },
   { id: "autoparts", name: "AutoParts Pro", tagline: "Multi-vendor auto parts marketplace with hero deals, category rail, and stock-progress cards", gradient: "from-red-600 to-rose-700", accent: "#DC2626", category: "Automotive", premium: true },
