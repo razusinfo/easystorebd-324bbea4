@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, MapPin, Package } from "lucide-react";
 import type { User as SupaUser } from "@supabase/supabase-js";
@@ -237,6 +237,12 @@ function ProfileDialog({
   const [gender, setGender] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Change modes
+  const [editEmail, setEditEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [editPhone, setEditPhone] = useState(false);
+  const phoneInputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     const md = (user?.user_metadata ?? {}) as Record<string, unknown>;
     setName((md.full_name as string) || (md.name as string) || "");
@@ -245,6 +251,8 @@ function ProfileDialog({
     const [y = "", m = "", d = ""] = birthday.split("-");
     setBYear(y); setBMonth(m); setBDay(d);
     setGender((md.gender as string) || "");
+    setEditEmail(false); setEditPhone(false);
+    setNewEmail(user?.email ?? "");
   }, [user, open]);
 
   async function save(e: React.FormEvent) {
@@ -264,6 +272,24 @@ function ProfileDialog({
       setOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not update profile");
+    } finally { setSaving(false); }
+  }
+
+  async function updateEmail() {
+    const email = newEmail.trim();
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    if (email === user?.email) { setEditEmail(false); return; }
+    setSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email });
+      if (error) throw error;
+      toast.success("Confirmation link sent to the new email.");
+      setEditEmail(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not change email");
     } finally { setSaving(false); }
   }
 
@@ -295,21 +321,53 @@ function ProfileDialog({
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
                 Email Address <span className="text-muted-foreground/60">|</span>{" "}
-                <span className="text-primary">Change</span>
+                <button
+                  type="button"
+                  onClick={() => setEditEmail((v) => !v)}
+                  className="text-primary hover:underline"
+                >
+                  {editEmail ? "Cancel" : "Change"}
+                </button>
               </Label>
-              <p className="pt-2 text-sm">{maskedEmail || "—"}</p>
+              {editEmail ? (
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="new@email.com"
+                  />
+                  <Button type="button" size="sm" onClick={updateEmail} disabled={saving}>
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update"}
+                  </Button>
+                </div>
+              ) : (
+                <p className="pt-2 text-sm">{maskedEmail || "—"}</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
                 Mobile <span className="text-muted-foreground/60">|</span>{" "}
-                <span className="text-primary">Change</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditPhone(true);
+                    setTimeout(() => phoneInputRef.current?.focus(), 0);
+                  }}
+                  className="text-primary hover:underline"
+                >
+                  Change
+                </button>
               </Label>
               <Input
+                ref={phoneInputRef}
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 maxLength={32}
                 placeholder={maskedPhone}
+                readOnly={!editPhone && !!phone}
+                className={!editPhone && !!phone ? "bg-muted/40" : ""}
               />
             </div>
           </div>
