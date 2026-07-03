@@ -43,6 +43,8 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
     }
     setCheckingOut(true);
     try {
+      const { data: userRes } = await supabase.auth.getUser();
+      const customerUserId = userRes.user?.id ?? null;
       const orderId =
         (typeof crypto !== "undefined" && "randomUUID" in crypto
           ? crypto.randomUUID()
@@ -56,6 +58,7 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
           id: orderId,
           store_id: storeId,
           order_number: orderNumber,
+          customer_user_id: customerUserId,
           customer_name: name.trim(),
           customer_phone: phone.trim(),
           customer_address: address.trim() || null,
