@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 import {
@@ -363,13 +364,36 @@ function ProductTable({
                     </div>
                   </td>
                   <td className="px-2 py-3 align-middle">
-                    <Button
-                      variant="ghost" size="icon" onClick={() => onDelete(p)} aria-label="Delete"
-                      className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost" size="icon" aria-label="Actions"
+                          className="h-8 w-8 text-foreground/70 hover:text-foreground"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-36">
+                        <DropdownMenuItem onClick={() => onEdit(p)}>
+                          <Eye className="mr-2 h-4 w-4" /> View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(p)}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info("Clone product coming soon")}>
+                          <Copy className="mr-2 h-4 w-4" /> Clone product
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => onDelete(p)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
+
                   <td className="px-2 py-3 align-middle">
                     <Button
                       variant="ghost" size="icon" onClick={() => onEdit(p)} aria-label="Edit"
