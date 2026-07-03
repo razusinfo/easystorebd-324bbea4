@@ -141,7 +141,7 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
           customer_user_id: customerUserId,
           customer_name: name.trim(),
           customer_phone: phone.trim(),
-          customer_address: address.trim() || null,
+          customer_address: [addressLine, city, region, postal].map((s) => s.trim()).filter(Boolean).join(", ") || null,
           notes: notes.trim() || null,
           subtotal: total,
           delivery_charge: 0,
