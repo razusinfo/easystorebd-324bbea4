@@ -440,7 +440,7 @@ function CtaBanner() {
             Ready to open your store?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-emerald-50">
-            Join merchants selling smarter with EazyStore. Set up your store today — it's free.
+            Join merchants selling smarter with <EazyStoreWordmark className="text-base align-baseline" />. Set up your store today — it's free.
           </p>
           <Link
             to="/auth"
