@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { User, LogOut, Loader2 } from "lucide-react";
+import { User, LogOut, Loader2, UserCog, Package, Heart, Star, RotateCcw } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { User as SupaUser } from "@supabase/supabase-js";
 
