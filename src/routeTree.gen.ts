@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -61,6 +62,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfflineRoute = OfflineRouteImport.update({
+  id: '/offline',
+  path: '/offline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
+  '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -323,6 +330,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
+  '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -369,6 +377,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
+  '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -415,6 +424,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/install'
     | '/login'
+    | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
@@ -458,6 +468,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/install'
     | '/login'
+    | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
@@ -503,6 +514,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/install'
     | '/login'
+    | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
@@ -549,6 +561,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   InstallRoute: typeof InstallRoute
   LoginRoute: typeof LoginRoute
+  OfflineRoute: typeof OfflineRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DemoBdloveRoute: typeof DemoBdloveRoute
@@ -570,6 +583,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offline': {
+      id: '/offline'
+      path: '/offline'
+      fullPath: '/offline'
+      preLoaderRoute: typeof OfflineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -970,6 +990,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   InstallRoute: InstallRoute,
   LoginRoute: LoginRoute,
+  OfflineRoute: OfflineRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   DemoBdloveRoute: DemoBdloveRoute,
