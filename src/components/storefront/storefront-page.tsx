@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ShoppingCart, Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { usePublicStoreBySlug, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
@@ -27,6 +27,10 @@ export function StorefrontPage({ slug, title, children }: Props) {
   const storeId = store?.id;
   const items = useStoreCart(storeId);
   const count = cartCount(items);
+
+  useEffect(() => {
+    try { window.localStorage.setItem("last_store_slug", slug); } catch { /* ignore */ }
+  }, [slug]);
 
   const accent = "#5B21B6";
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
