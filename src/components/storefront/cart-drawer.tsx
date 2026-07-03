@@ -43,10 +43,17 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
     }
     setCheckingOut(true);
     try {
+      const orderId =
+        (typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
       const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
-      const { data: order, error: oErr } = await supabase
+      // RLS on `orders` blocks SELECT for the inserter (guest or shopper),
+      // so we don't use RETURNING. Generate id + order_number client-side.
+      const { error: oErr } = await supabase
         .from("orders")
         .insert({
+          id: orderId,
           store_id: storeId,
           order_number: orderNumber,
           customer_name: name.trim(),
@@ -59,14 +66,12 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
           total,
           status: "pending",
           payment_status: "unpaid",
-        })
-        .select("id, order_number")
-        .maybeSingle();
-      if (oErr || !order) throw oErr ?? new Error("Could not create order");
+        });
+      if (oErr) throw oErr;
 
       const { error: iErr } = await supabase.from("order_items").insert(
         items.map((it) => ({
-          order_id: order.id,
+          order_id: orderId,
           product_id: it.productId,
           name: it.name,
           price: it.price,
@@ -77,9 +82,9 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
       if (iErr) throw iErr;
 
       clear(storeId);
-      setPlaced(order.order_number);
+      setPlaced(orderNumber);
       setName(""); setPhone(""); setAddress(""); setNotes("");
-      toast.success(`Order ${order.order_number} placed!`);
+      toast.success(`Order ${orderNumber} placed!`);
     } catch (e: any) {
       toast.error(e?.message ?? "Could not place order");
     } finally {
