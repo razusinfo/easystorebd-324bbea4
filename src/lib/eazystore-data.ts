@@ -13,7 +13,7 @@ import {
 
 
 export type Category = "Clothes" | "Electronics" | "Sports";
-export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic";
+export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic" | "prestige";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
 export type FooterLink = { label: string; href?: string; enabled: boolean };
