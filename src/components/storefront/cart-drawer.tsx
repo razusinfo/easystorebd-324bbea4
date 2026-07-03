@@ -52,50 +52,58 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [autofilled, setAutofilled] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedAddrId, setSelectedAddrId] = useState<string>(MANUAL_ADDR);
+  const [loadedAddresses, setLoadedAddresses] = useState(false);
 
   const total = cartTotal(items);
   const count = cartCount(items);
 
-  // Auto-fill customer info from profile/address when drawer opens for a logged-in user.
+  // Load saved addresses when drawer opens for a logged-in user; auto-select default shipping.
   useEffect(() => {
-    if (!open || autofilled) return;
+    if (!open || loadedAddresses) return;
     let cancelled = false;
     (async () => {
       const { data: userRes } = await supabase.auth.getUser();
       const user = userRes.user;
       if (!user || cancelled) return;
 
-      const { data: addr } = await supabase
+      const { data: rows } = await supabase
         .from("customer_addresses")
-        .select("full_name, phone, address_line, city, region, postal_code")
+        .select("id, full_name, phone, address_line, city, region, postal_code, is_default_shipping")
         .eq("user_id", user.id)
         .order("is_default_shipping", { ascending: false })
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order("updated_at", { ascending: false });
 
       if (cancelled) return;
 
-      if (addr) {
-        setName((v) => v || addr.full_name || "");
-        setPhone((v) => v || addr.phone || "");
-        const composed = [addr.address_line, addr.city, addr.region, addr.postal_code]
-          .filter(Boolean).join(", ");
-        setAddress((v) => v || composed);
-      } else {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("name")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (!cancelled && profile?.name) setName((v) => v || profile.name);
-        if (!cancelled && user.phone) setPhone((v) => v || user.phone!);
+      const list = (rows ?? []) as SavedAddress[];
+      setSavedAddresses(list);
+      const preferred = list.find((a) => a.is_default_shipping) ?? list[0];
+      if (preferred) {
+        setSelectedAddrId(preferred.id);
+        setName((v) => v || preferred.full_name);
+        setPhone((v) => v || preferred.phone);
+        setAddress((v) => v || composeAddress(preferred));
       }
-      if (!cancelled) setAutofilled(true);
+      setLoadedAddresses(true);
     })();
     return () => { cancelled = true; };
-  }, [open, autofilled]);
+  }, [open, loadedAddresses]);
+
+  function handleSelectAddress(id: string) {
+    setSelectedAddrId(id);
+    if (id === MANUAL_ADDR) {
+      setName(""); setPhone(""); setAddress("");
+      return;
+    }
+    const a = savedAddresses.find((x) => x.id === id);
+    if (!a) return;
+    setName(a.full_name);
+    setPhone(a.phone);
+    setAddress(composeAddress(a));
+  }
+
 
 
   async function placeOrder() {
