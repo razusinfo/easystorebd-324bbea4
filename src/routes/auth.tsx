@@ -10,7 +10,10 @@ import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 
-const searchSchema = z.object({ redirect: z.string().optional() });
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+  mode: z.enum(["signin", "signup"]).optional(),
+});
 
 const signupSchema = z.object({
   fullName: z.string().trim().min(2, "Full name must be at least 2 characters").max(80, "Full name is too long"),
