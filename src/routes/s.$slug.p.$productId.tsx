@@ -444,7 +444,11 @@ function PublicProductDetailPage() {
           )}
         </div>
 
+        {/* Ratings & Reviews */}
+        <ReviewsSection productId={product.id} productName={product.name} />
+
         <div className="h-6" />
+
       </section>
 
       {/* Mobile sticky action bar */}
