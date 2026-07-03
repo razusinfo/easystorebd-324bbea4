@@ -45,6 +45,7 @@ function ProductsPage() {
   const [skuFilter, setSkuFilter] = useState("");
   const [debouncedSku, setDebouncedSku] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
+  const [categoryId, setCategoryId] = useState<string | "all">("all");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
@@ -61,7 +62,7 @@ function ProductsPage() {
   }, [skuFilter]);
 
   // Reset to page 1 whenever filters change
-  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, perPage]);
+  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, categoryId, perPage]);
 
   const productsQ = useMyProductsPaged({
     storeId: store?.id,
@@ -70,8 +71,11 @@ function ProductsPage() {
     search: debouncedSearch,
     sku: debouncedSku,
     status: statusFilter,
+    categoryId,
   });
   const statsQ = useMyProductsStats(store?.id);
+  const categoriesQ = useMyCategories(store?.id);
+  const categories = categoriesQ.data ?? [];
 
   const del = useDeleteProduct(store?.id);
 
