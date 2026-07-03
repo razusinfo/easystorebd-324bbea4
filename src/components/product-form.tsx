@@ -832,28 +832,6 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
         {/* RIGHT column */}
         <aside className="space-y-5">
-          <Section title="Category">
-            {catTree.length === 0 ? (
-              <div className="space-y-3 text-center">
-                <p className="text-sm text-foreground/60">No assigned category found</p>
-                <Button className="w-full" variant="default"
-                  onClick={() => toast.info("Create categories from the Categories page.")}>
-                  Assign category
-                </Button>
-              </div>
-            ) : (
-              <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
-                <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
-                <SelectContent>
-                  {flattenCategories(catTree).map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {"— ".repeat(c.depth)}{c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Section>
 
           <Section title="Product Weight & Dimensions">
             <div className="space-y-4">
