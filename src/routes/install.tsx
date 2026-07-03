@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Smartphone, Monitor, Apple, Chrome, Share, MoreVertical, Download, Home } from "lucide-react";
+import { PwaInstallButton } from "@/components/pwa-install-button";
 
 export const Route = createFileRoute("/install")({
   head: () => ({
@@ -85,6 +86,7 @@ function InstallPage() {
             কোনো Play Store বা App Store লাগবে না। সরাসরি ব্রাউজার থেকেই আপনার ফোন ও কম্পিউটারে
             অ্যাপের মতো ইনস্টল করে ব্যবহার করতে পারবেন — দ্রুত, ফুলস্ক্রিন এবং হোম স্ক্রিনে আইকনসহ।
           </p>
+          <div className="pt-2"><PwaInstallButton /></div>
         </section>
 
         <section className="grid gap-6 md:grid-cols-3">
