@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { User as SupaUser } from "@supabase/supabase-js";
-import { UserCog, Package, Heart, Star, RotateCcw, LogOut, Loader2, BadgeCheck } from "lucide-react";
+import { UserCog, Package, Heart, Star, RotateCcw, LogOut, Loader2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -83,59 +83,65 @@ function AccountLayout() {
     "Customer";
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-6">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row">
-        <aside className="md:w-60 shrink-0">
-          <div className="mb-4">
-            <p className="text-sm text-foreground">Hello, <span className="font-medium">{displayName}</span></p>
-            <span className="mt-2 inline-flex items-center gap-1 rounded border border-primary/30 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary">
-              <BadgeCheck className="h-3.5 w-3.5" /> Verified Account
-            </span>
+    <main className="min-h-screen bg-muted/30 px-4 py-8">
+      <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row">
+        <aside className="md:w-64">
+          <div className="rounded-2xl border bg-background p-4 shadow-sm">
+            <div className="mb-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Signed in as</p>
+              <p className="truncate font-semibold">{displayName}</p>
+            </div>
+            <nav className="flex flex-col gap-1">
+              {NAV.map((item) => {
+                const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+                return (
+                  <div key={item.to}>
+                    <Link
+                      to={item.to as "/account"}
+                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                    {active && item.children && (
+                      <div className="ml-9 mt-1 flex flex-col gap-1">
+                        {item.children.map((c) => (
+                          <Link
+                            key={`${c.to}-${c.label}`}
+                            to={c.to as "/account"}
+                            hash={c.hash}
+                            className="rounded px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            {c.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <Button
+                variant="ghost"
+                className="mt-2 justify-start text-sm text-destructive hover:text-destructive"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate({ to: "/", replace: true });
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Logout
+              </Button>
+            </nav>
           </div>
-          <nav className="flex flex-col gap-3 text-sm">
-            {NAV.map((item) => {
-              const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
-              return (
-                <div key={item.to} className="flex flex-col">
-                  <Link
-                    to={item.to as "/account"}
-                    className={`font-semibold ${active ? "text-primary" : "text-foreground hover:text-primary"}`}
-                  >
-                    {item.label}
-                  </Link>
-                  {item.children && (
-                    <div className="mt-2 flex flex-col gap-2 pl-4">
-                      {item.children.map((c) => (
-                        <Link
-                          key={`${c.to}-${c.label}`}
-                          to={c.to as "/account"}
-                          hash={c.hash}
-                          className="text-muted-foreground hover:text-primary"
-                        >
-                          {c.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mt-2 h-auto justify-start p-0 text-sm font-normal text-muted-foreground hover:bg-transparent hover:text-destructive"
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate({ to: "/", replace: true });
-              }}
-            >
-              <LogOut className="mr-2 h-4 w-4" /> Logout
-            </Button>
-          </nav>
         </aside>
 
-        <section className="flex-1 min-w-0">
-          <Outlet />
+        <section className="flex-1">
+          <div className="rounded-2xl border bg-background p-6 shadow-sm">
+            <Outlet />
+          </div>
         </section>
       </div>
     </main>
