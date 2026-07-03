@@ -268,6 +268,64 @@ function ProductsPage() {
 
 
 
+function CategoryTabs({
+  categories, activeId, onChange, filterSlot,
+}: {
+  categories: { id: string; name: string }[];
+  activeId: string | "all";
+  onChange: (id: string | "all") => void;
+  filterSlot?: ReactNode;
+}) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollBy = (dir: "left" | "right") => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -240 : 240, behavior: "smooth" });
+  };
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2">
+      <button
+        type="button"
+        onClick={() => scrollBy("left")}
+        aria-label="Scroll categories left"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-background text-foreground/60 hover:bg-foreground/5"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <div
+        ref={scrollerRef}
+        className="scrollbar-none min-w-0 flex-1 overflow-x-auto"
+        style={{ scrollbarWidth: "none" }}
+      >
+        <div className="flex items-center gap-2">
+          <CategoryPill
+            label="All products"
+            active={activeId === "all"}
+            onClick={() => onChange("all")}
+          />
+          {categories.map((c) => (
+            <CategoryPill
+              key={c.id}
+              label={c.name}
+              active={activeId === c.id}
+              onClick={() => onChange(c.id)}
+            />
+          ))}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => scrollBy("right")}
+        aria-label="Scroll categories right"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-background text-foreground/60 hover:bg-foreground/5"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+      {filterSlot ? <div className="ml-1 shrink-0 border-l border-border pl-2">{filterSlot}</div> : null}
+    </div>
+  );
+}
+
 function CategoryPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
