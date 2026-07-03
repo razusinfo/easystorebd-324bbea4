@@ -142,6 +142,61 @@ function InstallPage() {
             <li>ইনস্টলের পর অ্যাপ আইকন থেকেই সরাসরি লগইন ও অর্ডার ম্যানেজ করতে পারবেন।</li>
           </ul>
         </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/70">
+              Offline Test
+            </p>
+            <h2 className="text-xl font-black text-slate-900 mt-1">
+              অফলাইন ক্যাশিং যাচাই করার গাইড
+            </h2>
+            <p className="text-sm text-slate-600 mt-1">
+              নিচের ধাপগুলো অনুসরণ করে যাচাই করুন Service Worker ও অফলাইন মোড ঠিকমতো কাজ করছে কিনা।
+              <span className="font-semibold text-rose-600"> মনে রাখুন:</span> অফলাইন মোড শুধুমাত্র
+              <span className="font-semibold"> Published সাইটে</span> কাজ করে — Lovable preview-তে নয়।
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="rounded-2xl bg-emerald-50/60 border border-emerald-100 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Smartphone className="h-5 w-5 text-emerald-700" />
+                <h3 className="font-bold text-emerald-900">Android (Chrome)</h3>
+              </div>
+              <ol className="list-decimal pl-5 space-y-1.5 text-sm text-slate-700">
+                <li>Published সাইটে যান (`.lovable.app` URL), সাইটটি একবার সম্পূর্ণ লোড হতে দিন।</li>
+                <li>কিছু পেজ ব্রাউজ করুন — হোম, প্রোডাক্ট, /install ইত্যাদি।</li>
+                <li>ফোনের Settings থেকে <b>Airplane Mode চালু</b> করুন (বা WiFi + Mobile Data বন্ধ)।</li>
+                <li>Chrome-এ ফিরে গিয়ে পেজ <b>Refresh</b> করুন।</li>
+                <li>ক্যাশ থেকে পেজ লোড হবে; নতুন পেজে গেলে <code className="rounded bg-white px-1">/offline</code> পেজ দেখাবে।</li>
+                <li>ইন্টারনেট ফিরিয়ে দিলে সব স্বাভাবিকভাবে কাজ করবে।</li>
+              </ol>
+            </div>
+
+            <div className="rounded-2xl bg-indigo-50/60 border border-indigo-100 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Monitor className="h-5 w-5 text-indigo-700" />
+                <h3 className="font-bold text-indigo-900">Desktop (Chrome / Edge)</h3>
+              </div>
+              <ol className="list-decimal pl-5 space-y-1.5 text-sm text-slate-700">
+                <li>Published সাইট খুলে <b>F12</b> চেপে DevTools ওপেন করুন।</li>
+                <li><b>Application</b> ট্যাব → <b>Service Workers</b> — <code className="rounded bg-white px-1">sw.js</code> "activated and running" দেখাবে।</li>
+                <li>বাম পাশে <b>Cache Storage</b> → <code className="rounded bg-white px-1">eazystore-pages</code>, <code className="rounded bg-white px-1">eazystore-assets</code>, <code className="rounded bg-white px-1">eazystore-images</code> ক্যাশে ফাইল দেখতে পাবেন।</li>
+                <li><b>Network</b> ট্যাবে গিয়ে উপরে <b>"Offline"</b> সিলেক্ট করুন।</li>
+                <li>পেজ Refresh করুন — সাইট ক্যাশ থেকে লোড হবে, নতুন রুটে গেলে <code className="rounded bg-white px-1">/offline</code> ফলব্যাক দেখাবে।</li>
+                <li>"Offline" টগল বন্ধ করে আবার Refresh — সব normal।</li>
+              </ol>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
+            <b>সমস্যা হলে:</b> DevTools → Application → Service Workers → <b>Unregister</b> চেপে
+            আবার সাইট রিফ্রেশ করুন। অথবা URL-এ <code className="rounded bg-white px-1">?sw=off</code> যোগ করলে
+            Service Worker বন্ধ হয়ে যাবে।
+          </div>
+        </section>
+
       </main>
     </div>
   );
