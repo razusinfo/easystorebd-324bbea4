@@ -10,7 +10,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { useCartStore, useStoreCart, cartTotal, cartCount, type CartItem } from "@/lib/cart-store";
+
+type SavedAddress = {
+  id: string;
+  full_name: string;
+  phone: string;
+  address_line: string;
+  city: string | null;
+  region: string | null;
+  postal_code: string | null;
+  is_default_shipping: boolean;
+};
+
+const MANUAL_ADDR = "__manual__";
+
+function composeAddress(a: SavedAddress): string {
+  return [a.address_line, a.city, a.region, a.postal_code].filter(Boolean).join(", ");
+}
+
 
 type Props = {
   storeId: string;
