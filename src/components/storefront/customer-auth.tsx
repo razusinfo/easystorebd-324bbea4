@@ -159,16 +159,22 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-3 pt-2">
                 <div>
-                  <Label htmlFor="re-name">Name</Label>
-                  <Input id="re-name" value={name} onChange={(e) => setName(e.target.value)} />
+                  <Label htmlFor="re-name">Full Name *</Label>
+                  <Input id="re-name" required
+                    value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="re-email">Email</Label>
+                  <Label htmlFor="re-email">Email *</Label>
                   <Input id="re-email" type="email" required
                     value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="re-pass">Password</Label>
+                  <Label htmlFor="re-phone">Mobile Number *</Label>
+                  <Input id="re-phone" type="tel" required inputMode="tel"
+                    value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="re-pass">Password *</Label>
                   <Input id="re-pass" type="password" required minLength={6}
                     value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
