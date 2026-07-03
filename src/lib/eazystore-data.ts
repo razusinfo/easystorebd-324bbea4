@@ -376,6 +376,25 @@ export function useMyProductsPaged(params: ProductsQueryParams) {
   });
 }
 
+export function useMyProductsStats(storeId: string | undefined) {
+  return useQuery({
+    queryKey: ["products", "stats", storeId],
+    enabled: !!storeId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("stock, price")
+        .eq("store_id", storeId!);
+      if (error) throw error;
+      const rows = data ?? [];
+      const totalStock = rows.reduce((s, r) => s + (r.stock ?? 0), 0);
+      const totalValue = rows.reduce((s, r) => s + (r.stock ?? 0) * Number(r.price ?? 0), 0);
+      const outOfStock = rows.filter((r) => (r.stock ?? 0) === 0).length;
+      return { count: rows.length, totalStock, totalValue, outOfStock };
+    },
+  });
+}
+
 export function useProductVariants(productId: string | undefined) {
   return useQuery({
     queryKey: ["product-variants", productId],
