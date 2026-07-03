@@ -17,8 +17,8 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  // Onboarding has its own full-screen flow — skip the sidebar shell there.
-  if (pathname.startsWith("/onboarding")) return <Outlet />;
+  // Onboarding & mobile-app have their own full-screen flow — skip the sidebar shell there.
+  if (pathname.startsWith("/onboarding") || pathname.startsWith("/mobile-app")) return <Outlet />;
 
   return (
     <SidebarProvider>
