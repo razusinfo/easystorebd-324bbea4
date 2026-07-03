@@ -17,13 +17,13 @@ export const Route = createFileRoute("/account")({
   component: AccountLayout,
 });
 
-const NAV = [
+const NAV: ReadonlyArray<{ to: string; label: string; icon: typeof UserCog; exact?: boolean }> = [
   { to: "/account", label: "Manage My Account", icon: UserCog, exact: true },
   { to: "/account/orders", label: "My Orders", icon: Package },
   { to: "/account/wishlist", label: "Wishlist & Followed Stores", icon: Heart },
   { to: "/account/reviews", label: "My Reviews", icon: Star },
   { to: "/account/returns", label: "Returns & Cancellations", icon: RotateCcw },
-] as const;
+];
 
 function AccountLayout() {
   const navigate = useNavigate();
