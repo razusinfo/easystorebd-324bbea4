@@ -289,8 +289,23 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
                 </div>
                 <div>
                   <Label htmlFor="cart-address" className="text-xs">Address</Label>
-                  <Input id="cart-address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                  <Input id="cart-address" value={addressLine} onChange={(e) => setAddressLine(e.target.value)} />
                 </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label htmlFor="cart-city" className="text-xs">City</Label>
+                    <Input id="cart-city" value={city} onChange={(e) => setCity(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="cart-region" className="text-xs">Region</Label>
+                    <Input id="cart-region" value={region} onChange={(e) => setRegion(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="cart-postal" className="text-xs">Postal</Label>
+                    <Input id="cart-postal" value={postal} onChange={(e) => setPostal(e.target.value)} />
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="cart-notes" className="text-xs">Notes</Label>
                   <Textarea id="cart-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
