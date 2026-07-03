@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/rea
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { useIsMobileMode } from "@/hooks/use-device-mode";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -17,8 +18,20 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const isMobile = useIsMobileMode();
+
   // Onboarding has its own full-screen flow — skip the sidebar shell there.
   if (pathname.startsWith("/onboarding")) return <Outlet />;
+
+  // Mobile devices / installed PWA: no sidebar chrome — pages render their
+  // own mobile shell (bottom nav, etc.).
+  if (isMobile) {
+    return (
+      <div className="min-h-screen w-full bg-background">
+        <Outlet />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -29,10 +42,13 @@ function AuthenticatedLayout() {
             <SidebarTrigger />
           </header>
           <main className="min-w-0 flex-1 overflow-x-hidden">
-            <Outlet />
+            <div className="mx-auto w-full max-w-7xl">
+              <Outlet />
+            </div>
           </main>
         </SidebarInset>
       </div>
     </SidebarProvider>
   );
 }
+
