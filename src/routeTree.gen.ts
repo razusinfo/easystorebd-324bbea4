@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
+import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as AccountOrdersRouteImport } from './routes/account.orders'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
@@ -95,6 +96,11 @@ const DemoBdloveRoute = DemoBdloveRouteImport.update({
   id: '/demo/bdlove',
   path: '/demo/bdlove',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AccountWishlistRoute = AccountWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => AccountRoute,
 } as any)
 const AccountOrdersRoute = AccountOrdersRouteImport.update({
   id: '/orders',
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account': typeof AccountIndexRoute
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
   '/account/orders': typeof AccountOrdersRoute
+  '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/themes'
     | '/upgrade'
     | '/account/orders'
+    | '/account/wishlist'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/account/'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/themes'
     | '/upgrade'
     | '/account/orders'
+    | '/account/wishlist'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/account'
@@ -456,6 +467,7 @@ export interface FileRouteTypes {
     | '/_authenticated/themes'
     | '/_authenticated/upgrade'
     | '/account/orders'
+    | '/account/wishlist'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/account/'
@@ -553,6 +565,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/bdlove'
       preLoaderRoute: typeof DemoBdloveRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/account/wishlist': {
+      id: '/account/wishlist'
+      path: '/wishlist'
+      fullPath: '/account/wishlist'
+      preLoaderRoute: typeof AccountWishlistRouteImport
+      parentRoute: typeof AccountRoute
     }
     '/account/orders': {
       id: '/account/orders'
@@ -798,11 +817,13 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface AccountRouteChildren {
   AccountOrdersRoute: typeof AccountOrdersRoute
+  AccountWishlistRoute: typeof AccountWishlistRoute
   AccountIndexRoute: typeof AccountIndexRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
   AccountOrdersRoute: AccountOrdersRoute,
+  AccountWishlistRoute: AccountWishlistRoute,
   AccountIndexRoute: AccountIndexRoute,
 }
 
