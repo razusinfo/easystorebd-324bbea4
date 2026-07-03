@@ -15,6 +15,8 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useServerFn } from "@tanstack/react-start";
+import { emailForPhone } from "@/lib/phone-login.functions";
 
 type Props = {
   /** Optional; when set, the button is styled to match the storefront accent. */
@@ -34,6 +36,9 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotBusy, setForgotBusy] = useState(false);
+  const [loginMode, setLoginMode] = useState<"email" | "phone">("email");
+  const [loginId, setLoginId] = useState("");
+  const resolveEmailForPhone = useServerFn(emailForPhone);
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault();
@@ -64,11 +69,19 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
     e.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      let signInEmail = loginId.trim();
+      if (loginMode === "phone") {
+        const { email: found } = await resolveEmailForPhone({ data: { phone: signInEmail } });
+        signInEmail = found;
+      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email: signInEmail,
+        password,
+      });
       if (error) throw error;
       toast.success("Signed in");
       setOpen(false);
-      setEmail(""); setPassword("");
+      setLoginId(""); setPassword("");
     } catch (err: any) {
       toast.error(err?.message ?? "Login failed");
     } finally { setBusy(false); }
@@ -160,10 +173,25 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-3 pt-2">
+                <Tabs value={loginMode} onValueChange={(v) => { setLoginMode(v as "email" | "phone"); setLoginId(""); }}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="email">Email</TabsTrigger>
+                    <TabsTrigger value="phone">Mobile Number</TabsTrigger>
+                  </TabsList>
+                </Tabs>
                 <div>
-                  <Label htmlFor="li-email">Email</Label>
-                  <Input id="li-email" type="email" required
-                    value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Label htmlFor="li-id">
+                    {loginMode === "email" ? "Email" : "Mobile Number"}
+                  </Label>
+                  <Input
+                    id="li-id"
+                    type={loginMode === "email" ? "email" : "tel"}
+                    inputMode={loginMode === "email" ? "email" : "tel"}
+                    autoComplete={loginMode === "email" ? "email" : "tel"}
+                    required
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="li-pass">Password</Label>
@@ -176,7 +204,7 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
                 <button
                   type="button"
                   className="w-full text-center text-xs font-medium text-muted-foreground underline hover:text-foreground"
-                  onClick={() => { setForgotEmail(email); setForgotOpen(true); }}
+                  onClick={() => { setForgotEmail(loginMode === "email" ? loginId : ""); setForgotOpen(true); }}
                 >
                   Forgot password?
                 </button>
