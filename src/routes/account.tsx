@@ -248,7 +248,7 @@ function StorefrontChrome({ slug, children }: { slug: string; children: React.Re
               </div>
             )}
             {f.showCopyright && (
-              <p className={`${(f.showNav && enabledLinks.length > 0) || (f.showSocials && enabledSocials.length > 0) ? "mt-6 sm:mt-8" : ""} text-center text-xs text-neutral-600 sm:text-sm`}>
+              <p className={`${(f.showNav && enabledLinks.length > 0) || (f.showSocials && enabledSocials.length > 0) ? "mt-6 sm:mt-8" : ""} text-center text-sm font-medium text-neutral-700 sm:text-base`}>
                 Copyright © {new Date().getFullYear()} {name}
               </p>
             )}
