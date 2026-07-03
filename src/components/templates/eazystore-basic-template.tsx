@@ -350,9 +350,11 @@ export function EazyStoreBasicTemplate({
                   <ProductCard
                     key={p.id ?? i}
                     {...p}
+                    storeSlug={store?.slug ?? undefined}
                     onAdd={p.id ? () => handleAdd(p) : undefined}
                   />
                 ))}
+
               </div>
             )}
           </div>
@@ -492,35 +494,54 @@ export function EazyStoreBasicTemplate({
 }
 
 function ProductCard({
-  name, price, save, hue, imageUrl, onAdd,
-}: { name: string; price: number; save: number | null; hue: string; imageUrl?: string | null; onAdd?: () => void }) {
+  id, name, price, save, hue, imageUrl, onAdd, storeSlug,
+}: {
+  id?: string | null;
+  name: string;
+  price: number;
+  save: number | null;
+  hue: string;
+  imageUrl?: string | null;
+  onAdd?: () => void;
+  storeSlug?: string;
+}) {
+  const linkable = !!id && !!storeSlug;
+  const Wrapper: any = linkable ? Link : "div";
+  const wrapperProps = linkable
+    ? { to: "/s/$slug/p/$productId", params: { slug: storeSlug!, productId: id! } }
+    : {};
   return (
     <article className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200 transition hover:shadow-md">
-      <div className={`relative aspect-square bg-gradient-to-br ${hue}`}>
-        {save != null && (
-          <span className="absolute left-3 top-3 z-10 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow">
-            Save {save} ৳
-          </span>
-        )}
-        {imageUrl ? (
-          <img src={imageUrl} alt={name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-        ) : (
-          <div className="absolute inset-0 grid place-items-center opacity-40">
-            <div className="h-24 w-24 rounded-2xl bg-white/60" />
-          </div>
-        )}
-      </div>
-      <div className="px-3 pb-2 pt-3 sm:px-4">
-        <h3 className="line-clamp-2 min-h-[2.6em] text-sm font-medium leading-snug text-neutral-800 sm:text-[15px]">
-          {name}
-        </h3>
-        <div className="mt-2 acc-text font-display text-lg font-black sm:text-xl">
-          {price.toLocaleString()} ৳
+      <Wrapper
+        {...wrapperProps}
+        className={linkable ? "block cursor-pointer" : "block"}
+      >
+        <div className={`relative aspect-square bg-gradient-to-br ${hue}`}>
+          {save != null && (
+            <span className="absolute left-3 top-3 z-10 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow">
+              Save {save} ৳
+            </span>
+          )}
+          {imageUrl ? (
+            <img src={imageUrl} alt={name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center opacity-40">
+              <div className="h-24 w-24 rounded-2xl bg-white/60" />
+            </div>
+          )}
         </div>
-      </div>
+        <div className="px-3 pb-2 pt-3 sm:px-4">
+          <h3 className="line-clamp-2 min-h-[2.6em] text-sm font-medium leading-snug text-neutral-800 sm:text-[15px]">
+            {name}
+          </h3>
+          <div className="mt-2 acc-text font-display text-lg font-black sm:text-xl">
+            {price.toLocaleString()} ৳
+          </div>
+        </div>
+      </Wrapper>
       <button
         type="button"
-        onClick={onAdd}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAdd?.(); }}
         disabled={!onAdd}
         className="acc-soft flex w-full items-center justify-center gap-2 border-t border-neutral-100 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
       >
@@ -529,3 +550,4 @@ function ProductCard({
     </article>
   );
 }
+

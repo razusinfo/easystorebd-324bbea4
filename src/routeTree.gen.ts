@@ -53,6 +53,7 @@ import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
 import { Route as AccountOrdersIdRouteImport } from './routes/account.orders.$id'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
+import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$productId'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -279,6 +280,11 @@ const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
   path: '/orders/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const SSlugPProductIdRoute = SSlugPProductIdRouteImport.update({
+  id: '/p/$productId',
+  path: '/p/$productId',
+  getParentRoute: () => SSlugRoute,
+} as any)
 const AuthenticatedProductsProductIdEditRoute =
   AuthenticatedProductsProductIdEditRouteImport.update({
     id: '/products/$productId/edit',
@@ -331,6 +337,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/team': typeof SSlugTeamRoute
   '/products/': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -376,6 +383,7 @@ export interface FileRoutesByTo {
   '/s/$slug/team': typeof SSlugTeamRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -424,6 +432,7 @@ export interface FileRoutesById {
   '/s/$slug/team': typeof SSlugTeamRoute
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/s/$slug/team'
     | '/products/'
     | '/products/$productId/edit'
+    | '/s/$slug/p/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/s/$slug/team'
     | '/products'
     | '/products/$productId/edit'
+    | '/s/$slug/p/$productId'
   id:
     | '__root__'
     | '/'
@@ -564,6 +575,7 @@ export interface FileRouteTypes {
     | '/s/$slug/team'
     | '/_authenticated/products/'
     | '/_authenticated/products/$productId/edit'
+    | '/s/$slug/p/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -891,6 +903,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/s/$slug/p/$productId': {
+      id: '/s/$slug/p/$productId'
+      path: '/p/$productId'
+      fullPath: '/s/$slug/p/$productId'
+      preLoaderRoute: typeof SSlugPProductIdRouteImport
+      parentRoute: typeof SSlugRoute
+    }
     '/_authenticated/products/$productId/edit': {
       id: '/_authenticated/products/$productId/edit'
       path: '/products/$productId/edit'
@@ -991,6 +1010,7 @@ interface SSlugRouteChildren {
   SSlugPricingRoute: typeof SSlugPricingRoute
   SSlugProductsRoute: typeof SSlugProductsRoute
   SSlugTeamRoute: typeof SSlugTeamRoute
+  SSlugPProductIdRoute: typeof SSlugPProductIdRoute
 }
 
 const SSlugRouteChildren: SSlugRouteChildren = {
@@ -1000,6 +1020,7 @@ const SSlugRouteChildren: SSlugRouteChildren = {
   SSlugPricingRoute: SSlugPricingRoute,
   SSlugProductsRoute: SSlugProductsRoute,
   SSlugTeamRoute: SSlugTeamRoute,
+  SSlugPProductIdRoute: SSlugPProductIdRoute,
 }
 
 const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
