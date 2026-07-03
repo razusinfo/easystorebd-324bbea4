@@ -103,7 +103,7 @@ export function useUpdateCategory(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { id: string; name?: string; image_url?: string | null }) => {
-      const patch: Record<string, unknown> = {};
+      const patch: { name?: string; slug?: string | null; image_url?: string | null } = {};
       if (typeof input.name === "string") {
         const name = input.name.trim();
         if (!name) throw new Error("Name is required.");
