@@ -473,9 +473,7 @@ function Footer() {
           <div>
             <div className="flex items-center gap-2">
               <img src={eazystoreLogo.url} alt="EazyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
-              <span className="font-hero text-lg text-slate-900">
-                eazy<span className="text-landing-accent">store</span>
-              </span>
+              <EazyStoreWordmark className="text-lg" />
             </div>
             <p className="mt-4 text-sm leading-relaxed text-slate-600">
               Launch and manage your online store with a beautiful storefront, powerful dashboard
