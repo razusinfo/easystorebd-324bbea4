@@ -94,7 +94,7 @@ function Dashboard() {
   }
 
   return (
-    <main className="relative mx-auto min-h-screen w-full max-w-2xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28">
+    <main className="relative mx-auto min-h-screen w-full max-w-2xl bg-gradient-to-b from-[#eee6fb] via-[#efe9fc] to-[#f4eefd] pb-28 lg:max-w-7xl lg:bg-none lg:pb-8">
       {/* Greeting */}
       <section className="px-5 pt-5">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
@@ -250,7 +250,7 @@ function Dashboard() {
       </section>
 
       {/* Bottom nav (mobile-friendly; visible on all sizes within this max-w pane) */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-2xl">
+      <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-2xl lg:hidden">
         <div className="relative mx-3 mb-3 grid grid-cols-3 items-end rounded-3xl border border-white/60 bg-white/90 px-4 py-2 shadow-[0_10px_30px_-10px_rgba(79,70,229,0.35)] backdrop-blur">
           <Link to="/products" className="flex flex-col items-center gap-0.5 py-2 text-foreground/70">
             <StoreIcon className="h-5 w-5" />
