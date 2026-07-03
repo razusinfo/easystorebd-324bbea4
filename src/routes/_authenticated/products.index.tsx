@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 import {
-  useMyStore, useMyProducts, useDeleteProduct,
+  useMyStore, useMyProductsPaged, useMyProductsStats, useDeleteProduct,
   useUpdateProductStatus, useProductAuditLogs,
   type ProductRow, type ProductStatus,
 } from "@/lib/eazystore-data";
