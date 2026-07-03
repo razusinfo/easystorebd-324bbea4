@@ -14,6 +14,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { useSiteSettings, useSignedSiteAsset } from "@/lib/site-settings";
 import { registerPwa } from "@/lib/pwa-register";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
