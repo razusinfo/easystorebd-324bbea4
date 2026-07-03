@@ -28,6 +28,7 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"login" | "register">("login");
 
@@ -55,19 +56,27 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim() || !phone.trim()) {
+      toast.error("Full name and mobile number are required");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signUp({
         email, password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { name: name.trim() || undefined },
+          data: {
+            name: name.trim(),
+            full_name: name.trim(),
+            phone: phone.trim(),
+          },
         },
       });
       if (error) throw error;
-      toast.success("Account created — check your email to confirm.");
+      toast.success("Account created — you're signed in.");
       setOpen(false);
-      setEmail(""); setPassword(""); setName("");
+      setEmail(""); setPassword(""); setName(""); setPhone("");
     } catch (err: any) {
       toast.error(err?.message ?? "Registration failed");
     } finally { setBusy(false); }
@@ -150,16 +159,22 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-3 pt-2">
                 <div>
-                  <Label htmlFor="re-name">Name</Label>
-                  <Input id="re-name" value={name} onChange={(e) => setName(e.target.value)} />
+                  <Label htmlFor="re-name">Full Name *</Label>
+                  <Input id="re-name" required
+                    value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="re-email">Email</Label>
+                  <Label htmlFor="re-email">Email *</Label>
                   <Input id="re-email" type="email" required
                     value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="re-pass">Password</Label>
+                  <Label htmlFor="re-phone">Mobile Number *</Label>
+                  <Input id="re-phone" type="tel" required inputMode="tel"
+                    value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="re-pass">Password *</Label>
                   <Input id="re-pass" type="password" required minLength={6}
                     value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
