@@ -776,7 +776,12 @@ function CategoryStrip({
 
         <div
           ref={scrollerRef}
-          className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          onWheel={(e) => {
+            if (e.deltaY !== 0 && scrollerRef.current) {
+              scrollerRef.current.scrollLeft += e.deltaY;
+            }
+          }}
+          className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto overflow-y-hidden scroll-smooth pb-1.5 [scrollbar-color:hsl(var(--border))_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
         >
           <button
             type="button"
