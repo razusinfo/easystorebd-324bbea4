@@ -12,6 +12,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
