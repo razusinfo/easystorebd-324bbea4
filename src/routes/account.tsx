@@ -176,7 +176,7 @@ function StorefrontChrome({ slug, children }: { slug: string; children: React.Re
     socials: tpl.footer?.socials ?? DEFAULT_FOOTER.socials,
     showCopyright: tpl.footer?.showCopyright ?? DEFAULT_FOOTER.showCopyright,
   };
-  const enabledLinks = f.navLinks.filter((l) => l.enabled);
+  const enabledLinks = f.navLinks.filter((l) => l.enabled && l.label !== "Blogs" && l.label !== "Pricing");
   const enabledSocials = f.socials.filter((s) => s.enabled);
   const hasFooter = (f.showNav && enabledLinks.length > 0) || (f.showSocials && enabledSocials.length > 0) || f.showCopyright;
 
