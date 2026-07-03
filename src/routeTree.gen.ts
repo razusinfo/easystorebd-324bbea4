@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
+import { Route as AccountOrdersRouteImport } from './routes/account.orders'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
@@ -94,6 +95,11 @@ const DemoBdloveRoute = DemoBdloveRouteImport.update({
   id: '/demo/bdlove',
   path: '/demo/bdlove',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AccountOrdersRoute = AccountOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AccountRoute,
 } as any)
 const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
   id: '/upgrade',
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
+  '/account/orders': typeof AccountOrdersRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
@@ -292,6 +299,7 @@ export interface FileRoutesByTo {
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
+  '/account/orders': typeof AccountOrdersRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account': typeof AccountIndexRoute
@@ -331,6 +339,7 @@ export interface FileRoutesById {
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
+  '/account/orders': typeof AccountOrdersRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/theme-builder'
     | '/themes'
     | '/upgrade'
+    | '/account/orders'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/account/'
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/theme-builder'
     | '/themes'
     | '/upgrade'
+    | '/account/orders'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/account'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/theme-builder'
     | '/_authenticated/themes'
     | '/_authenticated/upgrade'
+    | '/account/orders'
     | '/demo/bdlove'
     | '/s/$slug'
     | '/account/'
@@ -541,6 +553,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/bdlove'
       preLoaderRoute: typeof DemoBdloveRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/account/orders': {
+      id: '/account/orders'
+      path: '/orders'
+      fullPath: '/account/orders'
+      preLoaderRoute: typeof AccountOrdersRouteImport
+      parentRoute: typeof AccountRoute
     }
     '/_authenticated/upgrade': {
       id: '/_authenticated/upgrade'
@@ -778,10 +797,12 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface AccountRouteChildren {
+  AccountOrdersRoute: typeof AccountOrdersRoute
   AccountIndexRoute: typeof AccountIndexRoute
 }
 
 const AccountRouteChildren: AccountRouteChildren = {
+  AccountOrdersRoute: AccountOrdersRoute,
   AccountIndexRoute: AccountIndexRoute,
 }
 
