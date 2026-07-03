@@ -216,11 +216,44 @@ function StorefrontChrome({ slug, children }: { slug: string; children: React.Re
 
       {children}
 
-      <footer className="mt-10 border-t border-neutral-200 bg-white">
-        <p className="mx-auto max-w-7xl px-4 py-6 text-center text-xs text-neutral-600 sm:text-sm">
-          Copyright © {new Date().getFullYear()} {name}
-        </p>
-      </footer>
+      {hasFooter && (
+        <footer className="mt-10 border-t border-neutral-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-14">
+            {f.showNav && enabledLinks.length > 0 && (
+              <nav className="grid grid-cols-2 gap-x-4 gap-y-2 text-center sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-12 sm:gap-y-3">
+                {enabledLinks.map((l) => {
+                  const cls = "font-display text-sm font-bold text-neutral-900 transition hover:acc-text sm:text-lg";
+                  if (l.href && l.href.trim()) {
+                    return <a key={l.label} href={l.href} target="_blank" rel="noreferrer" className={cls}>{l.label}</a>;
+                  }
+                  const sub = FOOTER_LABEL_SUB[l.label];
+                  if (sub) {
+                    return <Link key={l.label} to={`/s/${slug}/${sub}`} className={cls}>{l.label}</Link>;
+                  }
+                  return <span key={l.label} className={cls}>{l.label}</span>;
+                })}
+              </nav>
+            )}
+            {f.showSocials && enabledSocials.length > 0 && (
+              <div className={`${f.showNav && enabledLinks.length > 0 ? "mt-6 sm:mt-8" : ""} flex items-center justify-center gap-3 sm:gap-6`}>
+                {enabledSocials.map((s) => {
+                  const Icon = SOCIAL_ICONS[s.key];
+                  return (
+                    <a key={s.key} href={s.url || "#"} target={s.url ? "_blank" : undefined} rel={s.url ? "noreferrer" : undefined} aria-label={s.key} className="grid h-9 w-9 place-items-center rounded-full text-neutral-700 transition hover:acc-soft sm:h-10 sm:w-10">
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+            {f.showCopyright && (
+              <p className={`${(f.showNav && enabledLinks.length > 0) || (f.showSocials && enabledSocials.length > 0) ? "mt-6 sm:mt-8" : ""} text-center text-xs text-neutral-600 sm:text-sm`}>
+                Copyright © {new Date().getFullYear()} {name}
+              </p>
+            )}
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
