@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import {
   Loader2, Plus, Search, ShoppingCart, Trash2, Eye, Pencil, X, Check,
   Package, AlertTriangle, RefreshCw, Phone, MapPin,
+  Calendar, Tag, Users, Download, Filter, ArrowUpDown, Columns3,
+  Copy, ExternalLink, MoreHorizontal, Box,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -39,7 +42,42 @@ export const Route = createFileRoute("/_authenticated/orders")({
   component: OrdersPage,
 });
 
-type FilterStatus = OrderStatus | "all";
+type TabKey =
+  | "all" | "pending" | "on_hold" | "confirmed" | "shipped"
+  | "delivered" | "completed" | "cancelled" | "returned"
+  | "payment_process" | "payment_failed";
+
+const TABS: { key: TabKey; label: string; color: string }[] = [
+  { key: "all",             label: "All Orders",         color: "text-foreground" },
+  { key: "pending",         label: "Placed",             color: "text-fuchsia-600" },
+  { key: "on_hold",         label: "On Hold",            color: "text-orange-500" },
+  { key: "confirmed",       label: "Confirmed",          color: "text-sky-600" },
+  { key: "shipped",         label: "Shipped",            color: "text-violet-600" },
+  { key: "delivered",       label: "Delivered",          color: "text-emerald-600" },
+  { key: "completed",       label: "Completed",          color: "text-green-600" },
+  { key: "cancelled",       label: "Cancelled",          color: "text-rose-600" },
+  { key: "returned",        label: "Returned",           color: "text-amber-600" },
+  { key: "payment_process", label: "Payment OnProcess",  color: "text-indigo-600" },
+  { key: "payment_failed",  label: "Payment Failed",     color: "text-red-600" },
+];
+
+function matchTab(o: OrderRow, tab: TabKey): boolean {
+  const s = o.status;
+  const p = o.payment_status;
+  switch (tab) {
+    case "all":              return true;
+    case "pending":          return s === "pending";
+    case "on_hold":          return s === "processing";
+    case "confirmed":        return s === "confirmed";
+    case "shipped":          return s === "shipped";
+    case "delivered":        return s === "delivered";
+    case "completed":        return s === "delivered" && p === "paid";
+    case "cancelled":        return s === "cancelled";
+    case "returned":         return p === "refunded";
+    case "payment_process":  return p === "unpaid" && (s === "confirmed" || s === "processing");
+    case "payment_failed":   return p === "unpaid" && s === "cancelled";
+  }
+}
 
 function OrdersPage() {
   const storeQ = useMyStore();
@@ -48,20 +86,20 @@ function OrdersPage() {
   const productsQ = useMyProducts(store?.id);
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
+  const [tab, setTab] = useState<TabKey>("all");
   const [viewing, setViewing] = useState<OrderRow | null>(null);
   const [editing, setEditing] = useState<OrderRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<OrderRow | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const del = useDeleteOrder(store?.id);
-
   const orders = ordersQ.data ?? [];
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return orders.filter((o) => {
-      if (statusFilter !== "all" && o.status !== statusFilter) return false;
+      if (!matchTab(o, tab)) return false;
       if (!q) return true;
       return (
         o.order_number.toLowerCase().includes(q) ||
@@ -69,14 +107,28 @@ function OrdersPage() {
         o.customer_phone.toLowerCase().includes(q)
       );
     });
-  }, [orders, search, statusFilter]);
+  }, [orders, search, tab]);
 
   const stats = useMemo(() => {
-    const total = orders.reduce((s, o) => s + Number(o.total), 0);
-    const pending = orders.filter((o) => o.status === "pending").length;
-    const delivered = orders.filter((o) => o.status === "delivered").length;
-    return { count: orders.length, total, pending, delivered };
+    const confirmed = orders.filter((o) => o.status === "confirmed" || o.status === "delivered");
+    const total = confirmed.reduce((s, o) => s + Number(o.total), 0);
+    const uniqueCustomers = new Set(orders.map((o) => o.customer_phone)).size;
+    return {
+      count: orders.length,
+      confirmedCount: confirmed.length,
+      total,
+      customers: uniqueCustomers,
+    };
   }, [orders]);
+
+  const today = useMemo(() => {
+    const d = new Date();
+    const day = d.getDate();
+    const suffix = day % 10 === 1 && day !== 11 ? "st"
+      : day % 10 === 2 && day !== 12 ? "nd"
+      : day % 10 === 3 && day !== 13 ? "rd" : "th";
+    return `${day}${suffix} ${d.toLocaleString("en-US", { month: "long" })}`;
+  }, []);
 
   async function handleDelete() {
     if (!deleting) return;
@@ -90,48 +142,92 @@ function OrdersPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+    <main className="mx-auto max-w-7xl space-y-5 p-4 sm:p-6">
+      {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-2">
           <h1 className="font-display text-2xl font-black sm:text-3xl">Orders</h1>
-          <p className="text-sm text-foreground/60">View and manage customer orders.</p>
+          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-primary">
+            {stats.count}
+          </span>
         </div>
         <Button onClick={() => setCreating(true)} disabled={!store}>
-          <Plus className="mr-1 h-4 w-4" /> New Order
+          <Plus className="mr-1 h-4 w-4" /> Create Order
         </Button>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Orders" value={stats.count.toString()} />
-        <StatCard label="Pending" value={stats.pending.toString()} tone={stats.pending ? "warn" : "muted"} />
-        <StatCard label="Delivered" value={stats.delivered.toString()} />
-        <StatCard label="Revenue" value={`৳ ${stats.total.toLocaleString()}`} />
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard icon={<Calendar className="h-5 w-5" />} label="Today's date" value={today} tint="violet" />
+        <StatCard icon={<Tag className="h-5 w-5" />} label="Total Orders (Confirmed)" value={stats.confirmedCount.toLocaleString()} tint="violet" />
+        <StatCard icon={<span className="text-lg font-bold">৳</span>} label="Total Amount" value={stats.total.toLocaleString()} tint="violet" />
+        <StatCard icon={<Users className="h-5 w-5" />} label="Total Customer Served" value={stats.customers.toLocaleString()} tint="violet" />
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
-          <Input
-            placeholder="Search order #, customer, phone..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+      {/* Search row */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-1 items-stretch overflow-hidden rounded-lg border border-border bg-card">
+          <Select defaultValue="all">
+            <SelectTrigger className="h-10 w-[120px] rounded-none border-0 border-r border-border bg-transparent focus:ring-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Fields</SelectItem>
+              <SelectItem value="order">Order ID</SelectItem>
+              <SelectItem value="phone">Phone</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
+            <Input
+              placeholder="Search with order ID or Phone number..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 border-0 pl-9 focus-visible:ring-0"
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1 text-xs">
-          {(["all", ...ORDER_STATUSES] as FilterStatus[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={
-                statusFilter === s
-                  ? "rounded-md bg-primary px-3 py-1.5 font-bold text-primary-foreground capitalize"
-                  : "rounded-md px-3 py-1.5 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
-              }
-            >
-              {s}
-            </button>
-          ))}
+        <Button variant="outline" size="sm" className="h-10">
+          <Download className="mr-1 h-4 w-4" /> Export
+        </Button>
+      </div>
+
+      {/* Tabs + tools row */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
+          {TABS.map((t) => {
+            const active = t.key === tab;
+            const count = orders.filter((o) => matchTab(o, t.key)).length;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setTab(t.key)}
+                className={`-mb-px border-b-2 pb-2 pt-1 font-medium transition ${
+                  active
+                    ? "border-primary text-foreground"
+                    : `border-transparent ${t.color} hover:opacity-80`
+                }`}
+              >
+                {t.label}
+                {t.key !== "all" && count > 0 && (
+                  <span className="ml-1 text-foreground/50">({count})</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-2 pb-1">
+          <Button variant="outline" size="sm" className="h-8">
+            <Filter className="mr-1 h-3.5 w-3.5" /> Filters
+          </Button>
+          <Button variant="outline" size="sm" className="h-8 px-2">
+            <ArrowUpDown className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="outline" size="sm" className="h-8">
+            <Columns3 className="mr-1 h-3.5 w-3.5" /> Columns
+          </Button>
         </div>
       </div>
 
@@ -159,13 +255,15 @@ function OrdersPage() {
             ? "Create your first order manually or wait for customers to place one."
             : "Try a different search or filter."}
           action={orders.length === 0
-            ? <Button onClick={() => setCreating(true)}><Plus className="mr-1 h-4 w-4" /> New Order</Button>
+            ? <Button onClick={() => setCreating(true)}><Plus className="mr-1 h-4 w-4" /> Create Order</Button>
             : undefined}
         />
       ) : (
         <OrdersTable
           rows={filtered}
           storeId={store.id}
+          selected={selected}
+          setSelected={setSelected}
           onView={setViewing}
           onEdit={setEditing}
           onDelete={setDeleting}
@@ -219,15 +317,27 @@ function OrdersPage() {
 
 // ---------- Sub-components ----------
 
-function StatCard({ label, value, tone }: { label: string; value: string; tone?: "warn" | "muted" }) {
+function StatCard({
+  icon, label, value, tint = "violet",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  tint?: "violet" | "amber" | "emerald";
+}) {
+  const tintClasses =
+    tint === "amber"   ? "bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400" :
+    tint === "emerald" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400" :
+                         "bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400";
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-foreground/50">{label}</p>
-      <p className={
-        tone === "warn"
-          ? "mt-1 font-display text-2xl font-black text-amber-600 dark:text-amber-400"
-          : "mt-1 font-display text-2xl font-black"
-      }>{value}</p>
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+      <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${tintClasses}`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-medium text-foreground/60">{label}</p>
+        <p className="mt-0.5 font-display text-lg font-black">{value}</p>
+      </div>
     </div>
   );
 }
@@ -246,9 +356,10 @@ function EmptyState({ title, desc, action }: { title: string; desc: string; acti
 }
 
 function StatusPill({ status }: { status: OrderStatus }) {
+  const label = status === "pending" ? "Placed" : status;
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${statusBadgeClass(status)}`}>
-      {status}
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${statusBadgeClass(status)}`}>
+      {label}
     </span>
   );
 }
@@ -260,108 +371,219 @@ function PaymentPill({ status }: { status: PaymentStatus }) {
   );
 }
 
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  const a = parts[0]?.[0] ?? "";
+  const b = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
+  return (a + b).toUpperCase() || "?";
+}
+
+function shortHash(id: string): string {
+  const digits = id.replace(/\D/g, "").slice(0, 7);
+  if (digits.length >= 6) return digits;
+  let n = 0;
+  for (const ch of id) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
+  return String(n % 9000000 + 1000000);
+}
+
 function OrdersTable({
-  rows, storeId, onView, onEdit, onDelete,
+  rows, storeId, selected, setSelected, onView, onEdit, onDelete,
 }: {
   rows: OrderRow[]; storeId: string;
+  selected: Set<string>;
+  setSelected: (s: Set<string>) => void;
   onView: (o: OrderRow) => void;
   onEdit: (o: OrderRow) => void;
   onDelete: (o: OrderRow) => void;
 }) {
   const updStatus = useUpdateOrderStatus(storeId);
   const updPayment = useUpdatePaymentStatus(storeId);
+  const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
+
+  function toggleAll(v: boolean) {
+    const next = new Set(selected);
+    if (v) rows.forEach((r) => next.add(r.id));
+    else rows.forEach((r) => next.delete(r.id));
+    setSelected(next);
+  }
+  function toggleOne(id: string, v: boolean) {
+    const next = new Set(selected);
+    if (v) next.add(id); else next.delete(id);
+    setSelected(next);
+  }
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="hidden overflow-x-auto sm:block">
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
-          <thead className="bg-foreground/[0.03] text-left text-xs uppercase tracking-wide text-foreground/50">
+          <thead className="bg-foreground/[0.03] text-left text-xs font-semibold text-foreground/60">
             <tr>
-              <th className="px-4 py-3 font-semibold">Order</th>
-              <th className="px-4 py-3 font-semibold">Customer</th>
-              <th className="px-4 py-3 font-semibold">Total</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Payment</th>
-              <th className="px-4 py-3 font-semibold text-right">Actions</th>
+              <th className="px-3 py-3">
+                <Checkbox checked={allChecked} onCheckedChange={(v) => toggleAll(!!v)} />
+              </th>
+              <th className="px-3 py-3">Order</th>
+              <th className="px-3 py-3">Customer</th>
+              <th className="px-3 py-3">Date</th>
+              <th className="px-3 py-3">Status</th>
+              <th className="px-3 py-3">Type</th>
+              <th className="px-3 py-3">Amount</th>
+              <th className="px-3 py-3">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {rows.map((o) => (
-              <tr key={o.id} className="hover:bg-foreground/[0.02]">
-                <td className="px-4 py-3">
-                  <div className="font-mono text-xs font-semibold">{o.order_number}</div>
-                  <div className="text-xs text-foreground/50">
-                    {new Date(o.created_at).toLocaleDateString()}
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="font-medium">{o.customer_name}</div>
-                  <div className="text-xs text-foreground/60">{o.customer_phone}</div>
-                </td>
-                <td className="px-4 py-3 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</td>
-                <td className="px-4 py-3">
-                  <Select
-                    value={o.status}
-                    onValueChange={async (v) => {
-                      try {
-                        await updStatus.mutateAsync({ id: o.id, status: v as OrderStatus });
-                        toast.success(`Status → ${v}`);
-                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-[140px] border-0 bg-transparent p-0 focus:ring-0">
-                      <StatusPill status={o.status} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ORDER_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </td>
-                <td className="px-4 py-3">
-                  <Select
-                    value={o.payment_status}
-                    onValueChange={async (v) => {
-                      try {
-                        await updPayment.mutateAsync({ id: o.id, payment_status: v as PaymentStatus });
-                        toast.success(`Payment → ${v}`);
-                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-[120px] border-0 bg-transparent p-0 focus:ring-0">
-                      <PaymentPill status={o.payment_status} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAYMENT_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="inline-flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => onView(o)} aria-label="View"><Eye className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(o)} aria-label="Edit"><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(o)} aria-label="Delete"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {rows.map((o) => {
+              const date = new Date(o.created_at);
+              return (
+                <tr key={o.id} className="hover:bg-foreground/[0.02]">
+                  <td className="px-3 py-3">
+                    <Checkbox
+                      checked={selected.has(o.id)}
+                      onCheckedChange={(v) => toggleOne(o.id, !!v)}
+                    />
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex items-start gap-2">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-foreground/5 text-foreground/60">
+                        <Box className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold">#{shortHash(o.id)}</span>
+                          <span className="rounded-full border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-600 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-400">
+                            Online
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onView(o)}
+                            className="text-foreground/40 hover:text-foreground"
+                            aria-label="View"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-2 text-xs text-foreground/50">
+                          <span className="font-mono">{o.order_number}</span>
+                          <span className="inline-flex items-center gap-0.5">
+                            <ShoppingCart className="h-3 w-3" /> 1 items
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {initialsOf(o.customer_name)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{o.customer_name}</div>
+                        <div className="text-xs text-foreground/60">{o.customer_phone}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 text-xs">
+                    <div>{date.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</div>
+                    <div className="text-foreground/50">{date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <Select
+                      value={o.status}
+                      onValueChange={async (v) => {
+                        try {
+                          await updStatus.mutateAsync({ id: o.id, status: v as OrderStatus });
+                          toast.success(`Status → ${v}`);
+                        } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-[110px] border-0 bg-transparent p-0 focus:ring-0">
+                        <StatusPill status={o.status} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ORDER_STATUSES.map((s) => (
+                          <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </td>
+                  <td className="px-3 py-3">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-foreground/5 px-2 py-1 text-xs font-medium">
+                      <ShoppingCart className="h-3 w-3" /> Own
+                    </span>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="font-semibold">৳{Number(o.total).toLocaleString()}</div>
+                    <div className="text-xs text-foreground/50">
+                      +৳{Number(o.delivery_charge).toLocaleString()} delivery
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="inline-flex items-center gap-0.5">
+                      <Button
+                        variant="ghost" size="icon" className="h-8 w-8"
+                        onClick={() => onEdit(o)} aria-label="Edit"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="icon" className="h-8 w-8"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(o.order_number).catch(() => {});
+                          toast.success("Order number copied");
+                        }}
+                        aria-label="Copy order number"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="icon" className="h-8 w-8"
+                        onClick={() => onView(o)} aria-label="Open"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                      <Select
+                        onValueChange={(v) => {
+                          if (v === "view") onView(o);
+                          else if (v === "payment") {
+                            const next: PaymentStatus = o.payment_status === "paid" ? "unpaid" : "paid";
+                            updPayment.mutate({ id: o.id, payment_status: next });
+                          }
+                          else if (v === "delete") onDelete(o);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-8 border-0 bg-transparent p-0 focus:ring-0 [&>svg]:hidden">
+                          <MoreHorizontal className="h-4 w-4 text-foreground/60" />
+                        </SelectTrigger>
+                        <SelectContent align="end">
+                          <SelectItem value="view">View details</SelectItem>
+                          <SelectItem value="payment">
+                            Mark {o.payment_status === "paid" ? "unpaid" : "paid"}
+                          </SelectItem>
+                          <SelectItem value="delete">Delete order</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       {/* Mobile */}
-      <ul className="divide-y divide-border sm:hidden">
+      <ul className="divide-y divide-border md:hidden">
         {rows.map((o) => (
           <li key={o.id} className="p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="font-mono text-xs font-semibold">{o.order_number}</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-semibold">#{shortHash(o.id)}</span>
+                  <span className="rounded-full border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-600">
+                    Online
+                  </span>
+                </div>
+                <p className="mt-1 font-mono text-xs text-foreground/50">{o.order_number}</p>
                 <p className="mt-1 truncate font-semibold">{o.customer_name}</p>
                 <p className="text-xs text-foreground/60">{o.customer_phone}</p>
                 <p className="mt-1 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
