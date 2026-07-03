@@ -58,8 +58,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { redirect } = Route.useSearch();
-  const [mode, setMode] = useState<"signin" | "signup">("signup");
+  const { redirect, mode: modeParam } = Route.useSearch();
+  const [mode, setMode] = useState<"signin" | "signup">(modeParam ?? "signup");
   const [method, setMethod] = useState<"email" | "phone">("email");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
