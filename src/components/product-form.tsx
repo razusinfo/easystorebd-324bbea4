@@ -412,6 +412,30 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 />
               </Field>
 
+              <Field label="Category">
+                {catTree.length === 0 ? (
+                  <div className="flex items-center justify-between gap-3 rounded-md border border-dashed border-border px-3 py-2">
+                    <span className="text-sm text-foreground/60">No categories yet</span>
+                    <Button size="sm" variant="outline" type="button"
+                      onClick={() => toast.info("Create categories from the Categories page.")}>
+                      Assign category
+                    </Button>
+                  </div>
+                ) : (
+                  <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
+                    <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
+                    <SelectContent>
+                      {flattenCategories(catTree).map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {"— ".repeat(c.depth)}{c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
+
+
               <Field
                 label="Short Description (SEO & Data Feed)"
                 hint={`${form.shortDescription.length}/255`}
@@ -808,28 +832,6 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
         {/* RIGHT column */}
         <aside className="space-y-5">
-          <Section title="Category">
-            {catTree.length === 0 ? (
-              <div className="space-y-3 text-center">
-                <p className="text-sm text-foreground/60">No assigned category found</p>
-                <Button className="w-full" variant="default"
-                  onClick={() => toast.info("Create categories from the Categories page.")}>
-                  Assign category
-                </Button>
-              </div>
-            ) : (
-              <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
-                <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
-                <SelectContent>
-                  {flattenCategories(catTree).map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {"— ".repeat(c.depth)}{c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Section>
 
           <Section title="Product Weight & Dimensions">
             <div className="space-y-4">
