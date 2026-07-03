@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { StorefrontView } from "@/components/storefront-view";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/s/$slug")({
   head: ({ params }) => ({
@@ -11,13 +10,5 @@ export const Route = createFileRoute("/s/$slug")({
       { property: "og:type", content: "website" },
     ],
   }),
-  component: PublicStorefrontRoute,
+  component: () => <Outlet />,
 });
-
-function PublicStorefrontRoute() {
-  const { slug } = Route.useParams();
-  if (typeof window !== "undefined") {
-    try { window.localStorage.setItem("last_store_slug", slug); } catch { /* ignore */ }
-  }
-  return <StorefrontView slug={slug} />;
-}
