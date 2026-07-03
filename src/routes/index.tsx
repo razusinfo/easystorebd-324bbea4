@@ -24,6 +24,7 @@ import {
 import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
 import { StorefrontView } from "@/components/storefront-view";
 import heroAsset from "@/assets/hero-storefront.jpg.asset.json";
+import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
@@ -77,9 +78,11 @@ function TopBand() {
       {/* Nav */}
       <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-5">
         <Link to="/" className="flex min-w-0 items-center gap-2">
-          <div className="gradient-landing-brand grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-md">
-            <Store className="h-5 w-5" />
-          </div>
+          <img
+            src={eazystoreLogo.url}
+            alt="EazyStore"
+            className="h-9 w-9 shrink-0 rounded-xl object-contain"
+          />
           <span className="font-hero truncate text-lg tracking-tight text-slate-900 sm:text-xl">EazyStore</span>
         </Link>
 
@@ -116,9 +119,7 @@ function TopBand() {
             <SheetContent side="right" className="w-80 max-w-[85vw] p-0">
               <SheetHeader className="border-b border-emerald-100 p-5">
                 <SheetTitle className="flex items-center gap-2">
-                  <div className="gradient-landing-brand grid h-8 w-8 place-items-center rounded-lg text-white">
-                    <Store className="h-4 w-4" />
-                  </div>
+                  <img src={eazystoreLogo.url} alt="EazyStore" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
                   <span className="font-hero text-slate-900">EazyStore</span>
                 </SheetTitle>
               </SheetHeader>
@@ -466,9 +467,7 @@ function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2">
-              <div className="gradient-landing-brand grid h-9 w-9 place-items-center rounded-xl text-white shadow-md">
-                <Store className="h-5 w-5" />
-              </div>
+              <img src={eazystoreLogo.url} alt="EazyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
               <span className="font-hero text-lg text-slate-900">
                 eazy<span className="text-landing-accent">store</span>
               </span>

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
+import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -70,9 +71,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg gradient-primary text-primary-foreground">
-            <span className="font-display text-sm font-black">E</span>
-          </div>
+          <img
+            src={eazystoreLogo.url}
+            alt="EazyStore"
+            className="h-8 w-8 shrink-0 rounded-lg object-contain"
+          />
           {!collapsed && (
             <span className="font-display text-lg font-black tracking-tight">
               EazyStore
