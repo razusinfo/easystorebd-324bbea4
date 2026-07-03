@@ -1,11 +1,11 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { User as SupaUser } from "@supabase/supabase-js";
-import { UserCog, Package, Heart, Star, RotateCcw, LogOut, Loader2, ShoppingCart, Store as StoreIcon } from "lucide-react";
+import { UserCog, Package, Heart, Star, RotateCcw, LogOut, Loader2, ShoppingCart, Store as StoreIcon, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { usePublicStoreBySlug, logoAlignClass, logoStyle } from "@/lib/eazystore-data";
+import { usePublicStoreBySlug, logoAlignClass, logoStyle, getTemplateSettings, DEFAULT_FOOTER, type FooterSettings } from "@/lib/eazystore-data";
 import { useStoreCart, cartCount } from "@/lib/cart-store";
 import { CustomerAuth } from "@/components/storefront/customer-auth";
 
