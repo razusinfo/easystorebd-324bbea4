@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_addresses: {
+        Row: {
+          address_line: string
+          city: string | null
+          country: string
+          created_at: string
+          full_name: string
+          id: string
+          is_default_billing: boolean
+          is_default_shipping: boolean
+          phone: string
+          postal_code: string | null
+          region: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_line: string
+          city?: string | null
+          country?: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_default_billing?: boolean
+          is_default_shipping?: boolean
+          phone: string
+          postal_code?: string | null
+          region?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_line?: string
+          city?: string | null
+          country?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_default_billing?: boolean
+          is_default_shipping?: boolean
+          phone?: string
+          postal_code?: string | null
+          region?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
