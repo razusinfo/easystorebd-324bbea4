@@ -31,6 +31,26 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"login" | "register">("login");
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotBusy, setForgotBusy] = useState(false);
+
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent — check your email.");
+      setForgotOpen(false);
+      setForgotEmail("");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not send reset email");
+    } finally { setForgotBusy(false); }
+  }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
@@ -153,6 +173,13 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…</> : "Sign in"}
                 </Button>
+                <button
+                  type="button"
+                  className="w-full text-center text-xs font-medium text-muted-foreground underline hover:text-foreground"
+                  onClick={() => { setForgotEmail(email); setForgotOpen(true); }}
+                >
+                  Forgot password?
+                </button>
               </form>
             </TabsContent>
 
@@ -188,6 +215,27 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
           <p className="text-center text-xs text-muted-foreground">
             Prefer not to sign in? Just add items to your cart and checkout as a guest.
           </p>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset your password</DialogTitle>
+            <DialogDescription>
+              Enter your account email. We'll send you a link to set a new password.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgot} className="space-y-3 pt-2">
+            <div>
+              <Label htmlFor="fp-email">Email</Label>
+              <Input id="fp-email" type="email" required
+                value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} />
+            </div>
+            <Button type="submit" className="w-full" disabled={forgotBusy}>
+              {forgotBusy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending…</> : "Send reset link"}
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </>
