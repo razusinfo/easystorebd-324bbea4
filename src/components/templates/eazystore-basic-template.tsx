@@ -9,6 +9,7 @@ import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass } from "@/l
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CustomerAuth } from "@/components/storefront/customer-auth";
+import { DevelopedByBadge, useShowDevelopedBadge } from "@/lib/branding";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
