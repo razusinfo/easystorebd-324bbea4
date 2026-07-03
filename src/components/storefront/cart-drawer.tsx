@@ -166,7 +166,7 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
 
       clear(storeId);
       setPlaced(orderNumber);
-      setName(""); setPhone(""); setAddress(""); setNotes("");
+      setName(""); setPhone(""); setAddressLine(""); setCity(""); setRegion(""); setPostal(""); setNotes("");
       toast.success(`Order ${orderNumber} placed!`);
     } catch (e: any) {
       toast.error(e?.message ?? "Could not place order");
