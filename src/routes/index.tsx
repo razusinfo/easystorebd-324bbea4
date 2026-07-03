@@ -96,6 +96,7 @@ function TopBand() {
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             to="/auth"
+            search={{ mode: "signin" }}
             className="hidden text-sm font-semibold text-slate-800 hover:text-landing-accent sm:inline"
           >
             Sign in
