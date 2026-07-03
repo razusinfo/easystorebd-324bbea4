@@ -464,6 +464,7 @@ export function EazyStoreBasicTemplate({
                 Copyright © {new Date().getFullYear()} {name}
               </p>
             )}
+            {showDevBadge && <DevelopedByBadge className={f.showCopyright ? "mt-1" : "mt-6"} />}
           </div>
         </footer>
       )}
