@@ -21,14 +21,23 @@ function Onboarding() {
   const navigate = useNavigate();
   const myStore = useMyStore();
   const createStore = useCreateStore();
+  const { lang, setLang } = useI18n();
   const [step, setStep] = useState(0);
   const [storeName, setStoreName] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
   const [template, setTemplate] = useState<TemplateId | null>(null);
   const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [chosenLang, setChosenLang] = useState<Lang>(lang);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+    supabase.auth.getUser().then(({ data }) => {
+      const e = data.user?.email ?? "";
+      setEmail(e);
+      setContactEmail((prev) => prev || e);
+    });
   }, []);
 
   // If a store already exists for this user, go to dashboard.
@@ -40,12 +49,22 @@ function Onboarding() {
     (step === 0) ||
     (step === 1 && storeName.trim().length >= 2) ||
     (step === 2 && !!category) ||
-    (step === 3 && !!template);
+    (step === 3 && !!template) ||
+    (step === 4) ||
+    (step === 5);
 
   async function finish() {
     if (!category || !template || !storeName.trim()) return;
     try {
-      await createStore.mutateAsync({ name: storeName.trim(), category, template });
+      setLang(chosenLang);
+      await createStore.mutateAsync({
+        name: storeName.trim(),
+        category,
+        template,
+        phone,
+        address,
+        contact_email: contactEmail,
+      });
       navigate({ to: "/dashboard" });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Could not create store");
