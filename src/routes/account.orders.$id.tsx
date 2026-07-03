@@ -63,7 +63,7 @@ function OrderDetailsPage() {
 
       const { data: order, error: oErr } = await supabase
         .from("orders")
-        .select("id, order_number, status, payment_status, payment_method, customer_name, customer_phone, customer_address, notes, subtotal, delivery_charge, discount, total, created_at, updated_at")
+        .select("id, store_id, order_number, status, payment_status, payment_method, customer_name, customer_phone, customer_address, notes, subtotal, delivery_charge, discount, total, created_at, updated_at")
         .eq("id", id)
         .eq("customer_user_id", uid)
         .maybeSingle();
@@ -79,6 +79,20 @@ function OrderDetailsPage() {
       return { ...order, items: items ?? [] } as OrderDetails;
     },
   });
+
+  const { data: requests } = useQuery({
+    queryKey: ["account", "order", id, "requests"],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("order_requests")
+        .select("id, type, reason, status, resolution_notes, created_at")
+        .eq("order_id", id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return rows ?? [];
+    },
+  });
+
 
   if (isLoading) {
     return (
