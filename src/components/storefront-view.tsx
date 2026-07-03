@@ -6,6 +6,7 @@ import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-t
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export function StorefrontView({ slug }: { slug: string }) {
   const q = usePublicStoreBySlug(slug);
