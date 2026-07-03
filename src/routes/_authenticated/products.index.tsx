@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 import {
-  useMyStore, useMyProducts, useDeleteProduct,
+  useMyStore, useMyProductsPaged, useMyProductsStats, useDeleteProduct,
   useUpdateProductStatus, useProductAuditLogs,
   type ProductRow, type ProductStatus,
 } from "@/lib/eazystore-data";
@@ -37,33 +37,45 @@ function ProductsPage() {
   const navigate = useNavigate();
   const storeQ = useMyStore();
   const store = storeQ.data;
-  const productsQ = useMyProducts(store?.id);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [skuFilter, setSkuFilter] = useState("");
+  const [debouncedSku, setDebouncedSku] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
   const [statusTarget, setStatusTarget] = useState<ProductRow | null>(null);
 
+  // Debounce search + sku to avoid spamming API
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSku(skuFilter), 300);
+    return () => clearTimeout(t);
+  }, [skuFilter]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, perPage]);
+
+  const productsQ = useMyProductsPaged({
+    storeId: store?.id,
+    page,
+    perPage,
+    search: debouncedSearch,
+    sku: debouncedSku,
+    status: statusFilter,
+  });
+  const statsQ = useMyProductsStats(store?.id);
+
   const del = useDeleteProduct(store?.id);
 
-
-  const products = productsQ.data ?? [];
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return products.filter((p) => {
-      if (statusFilter !== "all" && p.status !== statusFilter) return false;
-      if (q && !p.name.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [products, search, statusFilter]);
-
-  const stats = useMemo(() => {
-    const totalStock = products.reduce((s, p) => s + p.stock, 0);
-    const totalValue = products.reduce((s, p) => s + p.stock * p.price, 0);
-    const outOfStock = products.filter((p) => p.stock === 0).length;
-    return { count: products.length, totalStock, totalValue, outOfStock };
-  }, [products]);
+  const rows = productsQ.data?.rows ?? [];
+  const total = productsQ.data?.total ?? 0;
+  const stats = statsQ.data ?? { count: 0, totalStock: 0, totalValue: 0, outOfStock: 0 };
 
   const openNew = () => navigate({ to: "/products/new" });
   const openEdit = (p: ProductRow) =>
@@ -79,6 +91,8 @@ function ProductsPage() {
       toast.error(e?.message ?? "Failed to delete");
     }
   }
+
+  const hasFilters = !!debouncedSearch || !!debouncedSku || statusFilter !== "all";
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
@@ -102,14 +116,21 @@ function ProductsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
           <Input
-            placeholder="Search products..."
+            placeholder="Search by product name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+          />
+        </div>
+        <div className="relative w-full lg:w-64">
+          <Input
+            placeholder="Filter by SKU / Code..."
+            value={skuFilter}
+            onChange={(e) => setSkuFilter(e.target.value)}
           />
         </div>
         <div className="flex gap-1 rounded-lg border border-border p-1 text-xs">
@@ -130,7 +151,7 @@ function ProductsPage() {
       </div>
 
       {/* Content */}
-      {storeQ.isLoading || productsQ.isLoading ? (
+      {storeQ.isLoading || (productsQ.isLoading && !productsQ.data) ? (
         <div className="grid place-items-center rounded-xl border border-dashed border-border p-16">
           <Loader2 className="h-6 w-6 animate-spin text-foreground/40" />
         </div>
@@ -142,20 +163,30 @@ function ProductsPage() {
           title="No store yet"
           desc="Complete onboarding to create your store before adding products."
         />
-      ) : filtered.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           icon={Package}
-          title={products.length === 0 ? "No products yet" : "No matching products"}
-          desc={products.length === 0
-            ? "Add your first product to start selling."
-            : "Try a different search or filter."}
-          action={products.length === 0
+          title={hasFilters ? "No matching products" : "No products yet"}
+          desc={hasFilters ? "Try a different search or filter." : "Add your first product to start selling."}
+          action={!hasFilters
             ? <Button onClick={openNew}><Plus className="mr-1 h-4 w-4" /> Add Product</Button>
             : undefined}
         />
       ) : (
-        <ProductTable rows={filtered} onEdit={openEdit} onDelete={setDeleting} onChangeStatus={setStatusTarget} />
+        <ProductTable
+          rows={rows}
+          total={total}
+          page={page}
+          perPage={perPage}
+          isFetching={productsQ.isFetching}
+          onPageChange={setPage}
+          onPerPageChange={setPerPage}
+          onEdit={openEdit}
+          onDelete={setDeleting}
+          onChangeStatus={setStatusTarget}
+        />
       )}
+
 
       {/* Delete confirm */}
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
@@ -209,17 +240,27 @@ function StatCard({ label, value, tone }: { label: string; value: string; tone?:
 }
 
 function ProductTable({
-  rows, onEdit, onDelete, onChangeStatus,
-}: { rows: ProductRow[]; onEdit: (p: ProductRow) => void; onDelete: (p: ProductRow) => void; onChangeStatus: (p: ProductRow) => void }) {
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(20);
+  rows, total, page, perPage, isFetching, onPageChange, onPerPageChange,
+  onEdit, onDelete, onChangeStatus,
+}: {
+  rows: ProductRow[];
+  total: number;
+  page: number;
+  perPage: number;
+  isFetching: boolean;
+  onPageChange: (p: number) => void;
+  onPerPageChange: (n: number) => void;
+  onEdit: (p: ProductRow) => void;
+  onDelete: (p: ProductRow) => void;
+  onChangeStatus: (p: ProductRow) => void;
+}) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const total = rows.length;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * perPage;
-  const pageRows = rows.slice(start, start + perPage);
+  const pageRows = rows;
+
 
   const toggle = (id: string) => {
     setSelected((s) => {
@@ -346,12 +387,13 @@ function ProductTable({
         {/* Pagination footer */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-4 py-3 text-xs text-foreground/60">
           <div className="flex items-center gap-3">
-            <span>
-              Showing {total === 0 ? 0 : start + 1}–{Math.min(start + perPage, total)} of {total}
+            <span className="inline-flex items-center gap-2">
+              {isFetching && <Loader2 className="h-3 w-3 animate-spin text-foreground/40" />}
+              Showing {total === 0 ? 0 : start + 1}–{Math.min(start + pageRows.length, total)} of {total}
             </span>
             <select
               value={perPage}
-              onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => onPerPageChange(Number(e.target.value))}
               className="h-7 rounded-md border border-border bg-background px-2 text-[12px]"
               aria-label="Rows per page"
             >
@@ -359,8 +401,9 @@ function ProductTable({
             </select>
             <span>per page</span>
           </div>
-          <Pagination page={currentPage} totalPages={totalPages} onChange={setPage} />
+          <Pagination page={currentPage} totalPages={totalPages} onChange={onPageChange} />
         </div>
+
       </div>
 
 
