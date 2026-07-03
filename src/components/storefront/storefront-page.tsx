@@ -28,6 +28,7 @@ export function StorefrontPage({ slug, title, children }: Props) {
   const storeId = store?.id;
   const items = useStoreCart(storeId);
   const count = cartCount(items);
+  const showDevBadge = useShowDevelopedBadge(store);
 
   useEffect(() => {
     try { window.localStorage.setItem("last_store_slug", slug); } catch { /* ignore */ }
