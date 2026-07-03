@@ -94,7 +94,7 @@ function Onboarding() {
             <span>Step {step + 1} of {STEPS.length}</span>
             <span>{STEPS[step]}</span>
           </div>
-          <div className="mt-2 grid grid-cols-4 gap-1.5">
+          <div className="mt-2 grid grid-cols-6 gap-1.5">
             {STEPS.map((_, i) => (
               <div key={i} className={`h-1.5 rounded-full transition ${i <= step ? "gradient-primary" : "bg-muted"}`} />
             ))}
