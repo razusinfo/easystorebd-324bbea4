@@ -239,7 +239,7 @@ function Features() {
           Everything you need to sell online
         </h2>
         <p className="mt-4 text-slate-600">
-          From your first product to your thousandth order, EazyStore has the tools to grow.
+          From your first product to your thousandth order, <EazyStoreWordmark className="text-base align-baseline" /> has the tools to grow.
         </p>
       </div>
 
