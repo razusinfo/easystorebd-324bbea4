@@ -137,32 +137,35 @@ function Onboarding() {
 
           {step === 2 && (
             <div className="animate-fade-up">
-              <h1 className="font-display text-2xl font-bold">Pick a category</h1>
-              <p className="mt-1 text-sm text-muted-foreground">You can change this later.</p>
-              <div className="mt-5 grid gap-3">
-                {([
-                  { id: "Clothes", icon: <Shirt className="h-5 w-5" />, desc: "Apparel, fashion, accessories" },
-                  { id: "Electronics", icon: <Cpu className="h-5 w-5" />, desc: "Gadgets, mobiles, audio" },
-                  { id: "Sports", icon: <Dumbbell className="h-5 w-5" />, desc: "Fitness, outdoor, gear" },
-                ] as const).map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setCategory(c.id)}
-                    className={`flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition ${
-                      category === c.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="grid h-11 w-11 place-items-center rounded-xl gradient-primary text-white">{c.icon}</div>
-                    <div className="flex-1">
-                      <div className="font-semibold">{c.id}</div>
-                      <div className="text-xs text-muted-foreground">{c.desc}</div>
-                    </div>
-                    {category === c.id && <Check className="h-5 w-5 text-primary" />}
-                  </button>
-                ))}
+              <h1 className="font-display text-2xl font-bold">Business Type</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Pick what best describes your store.</p>
+              <div className="relative mt-5">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+                  <div className="grid h-8 w-8 place-items-center rounded-lg gradient-primary text-white">
+                    <Briefcase className="h-4 w-4" />
+                  </div>
+                </div>
+                <select
+                  value={category ?? ""}
+                  onChange={(e) => setCategory((e.target.value || null) as Category | null)}
+                  className="w-full appearance-none rounded-2xl border-2 border-border bg-background py-3.5 pl-14 pr-10 text-base font-medium outline-none focus:border-primary"
+                >
+                  <option value="">Not Selected</option>
+                  {BUSINESS_TYPES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <ArrowRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-muted-foreground" />
               </div>
+              {category && (
+                <div className="mt-3 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span className="font-medium">{category}</span>
+                </div>
+              )}
             </div>
           )}
+
 
           {step === 3 && (
             <div className="animate-fade-up">
