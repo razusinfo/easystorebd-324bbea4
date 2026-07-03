@@ -114,7 +114,7 @@ export function StorefrontPage({ slug, title, children }: Props) {
       </main>
 
       <footer className="mt-10 border-t border-neutral-200 bg-white">
-        <p className="mx-auto max-w-7xl px-4 py-6 text-center text-xs text-neutral-600 sm:text-sm">
+        <p className="mx-auto max-w-7xl px-4 py-6 text-center text-sm font-medium text-neutral-700 sm:text-base">
           Copyright © {new Date().getFullYear()} {name}
         </p>
       </footer>
