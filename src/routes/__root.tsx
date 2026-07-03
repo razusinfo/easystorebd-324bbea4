@@ -149,7 +149,17 @@ function RootComponent() {
 
   useEffect(() => {
     registerPwa();
+    // Fade out the initial full-screen splash after the app is mounted.
+    const el = document.getElementById("app-splash");
+    if (el) {
+      const t = window.setTimeout(() => {
+        el.classList.add("hide");
+        window.setTimeout(() => el.remove(), 400);
+      }, 300);
+      return () => window.clearTimeout(t);
+    }
   }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
