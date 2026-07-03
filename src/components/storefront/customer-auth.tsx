@@ -28,6 +28,7 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"login" | "register">("login");
 
@@ -55,19 +56,27 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim() || !phone.trim()) {
+      toast.error("Full name and mobile number are required");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signUp({
         email, password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { name: name.trim() || undefined },
+          data: {
+            name: name.trim(),
+            full_name: name.trim(),
+            phone: phone.trim(),
+          },
         },
       });
       if (error) throw error;
-      toast.success("Account created — check your email to confirm.");
+      toast.success("Account created — you're signed in.");
       setOpen(false);
-      setEmail(""); setPassword(""); setName("");
+      setEmail(""); setPassword(""); setName(""); setPhone("");
     } catch (err: any) {
       toast.error(err?.message ?? "Registration failed");
     } finally { setBusy(false); }
