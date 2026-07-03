@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ShoppingCart, Store as StoreIcon, ArrowLeft } from "lucide-react";
 import { usePublicStoreBySlug, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
