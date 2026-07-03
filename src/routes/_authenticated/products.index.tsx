@@ -140,28 +140,6 @@ function ProductsPage() {
             className="pl-9"
           />
         </div>
-        <div className="relative w-full lg:w-64">
-          <Input
-            placeholder="Filter by SKU / Code..."
-            value={skuFilter}
-            onChange={(e) => setSkuFilter(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-1 rounded-lg border border-border p-1 text-xs">
-          {(["all", "pending", "approved", "rejected"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={
-                statusFilter === s
-                  ? "rounded-md bg-primary px-3 py-1.5 font-bold text-primary-foreground capitalize"
-                  : "rounded-md px-3 py-1.5 font-medium text-foreground/60 capitalize hover:bg-foreground/5"
-              }
-            >
-              {s}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Content */}
