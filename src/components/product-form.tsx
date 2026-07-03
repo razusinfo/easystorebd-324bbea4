@@ -880,6 +880,29 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           </Section>
         </aside>
       </div>
+
+      {/* Bottom action bar (mirrors sticky header) */}
+      <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-5">
+          <Button
+            variant="ghost"
+            onClick={onCancel}
+            disabled={upsert.isPending}
+            className="bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
+          >
+            <X className="mr-1 h-4 w-4" /> Discard
+          </Button>
+          {mode === "edit" && onDuplicate && (
+            <Button variant="outline" onClick={onDuplicate} disabled={upsert.isPending || loading}>
+              <Copy className="mr-1 h-4 w-4" /> Duplicate
+            </Button>
+          )}
+          <Button onClick={handleSave} disabled={upsert.isPending || loading}>
+            {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
+            Save
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
