@@ -169,8 +169,8 @@ function Dashboard() {
           <div className="grid grid-cols-[1fr_auto] items-center gap-3">
             <div className="min-w-0">
               <p className="text-xs font-medium text-foreground/60">Introducing</p>
-              <p className="font-display text-xl font-black text-primary">
-                EazyStore Experts
+              <p className="text-xl">
+                <EazyStoreWordmark className="text-xl align-baseline" /> <span className="font-display font-black text-primary">Experts</span>
               </p>
               <p className="mt-0.5 text-xs text-foreground/70">
                 From confusion to clarity — structured guidance for your business.
