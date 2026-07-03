@@ -13,7 +13,7 @@ import {
 
 
 export type Category = "Clothes" | "Electronics" | "Sports";
-export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic";
+export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic" | "prestige";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
 export type FooterLink = { label: string; href?: string; enabled: boolean };
@@ -296,6 +296,7 @@ export type ProductAuditLog = {
 export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradient: string; accent: string; category: string; premium?: boolean }[] = [
   { id: "bdlove", name: "Basic Theme", tagline: "Gadget bazaar layout — sidebar categories, purple accents, green save badges, rounded search pill", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
   { id: "eazystore-basic", name: "EazyStore Basic", tagline: "EazyStore's own basic storefront — sidebar categories, product grid, mobile-friendly", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
+  { id: "prestige", name: "Prestige Bento", tagline: "Premium mobile commerce — emerald + gold, bento grid, flash-sale countdown, sticky search with voice + bell", gradient: "from-emerald-900 to-emerald-700", accent: "#064e3b", category: "General", premium: true },
   { id: "autoparts", name: "AutoParts Pro", tagline: "Multi-vendor auto parts marketplace with hero deals, category rail, and stock-progress cards", gradient: "from-red-600 to-rose-700", accent: "#DC2626", category: "Automotive", premium: true },
 
   { id: "minimal", name: "Minimal Mono", tagline: "Clean, editorial, type-led", gradient: "from-slate-900 to-slate-600", accent: "#0F172A", category: "Editorial" },
@@ -509,7 +510,7 @@ export function useCreateStore() {
           owner_user_id: user.id,
           name: input.name,
           category: input.category,
-          template: input.template,
+          template: input.template as never,
         })
         .select()
         .single();
@@ -527,7 +528,7 @@ export function useUpdateStore() {
       const { id, ...patch } = input;
       const { data, error } = await supabase
         .from("stores")
-        .update(patch)
+        .update(patch as never)
         .eq("id", id)
         .select()
         .single();
