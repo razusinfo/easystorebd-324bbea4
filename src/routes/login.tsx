@@ -239,7 +239,6 @@ function LoginPage() {
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-purple-600 to-violet-600 text-white shadow-md">
             <Sparkles className="h-5 w-5" />
           </div>
-          <span className="font-display text-xl font-bold tracking-tight text-slate-900">
           <EazyStoreWordmark className="text-xl" />
         </Link>
 
