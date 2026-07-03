@@ -15,6 +15,8 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useServerFn } from "@tanstack/react-start";
+import { emailForPhone } from "@/lib/phone-login.functions";
 
 type Props = {
   /** Optional; when set, the button is styled to match the storefront accent. */
