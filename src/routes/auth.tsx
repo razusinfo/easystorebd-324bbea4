@@ -6,6 +6,7 @@ import { Eye, EyeOff, Loader2, Mail, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
+import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 
 
 const searchSchema = z.object({ redirect: z.string().optional() });
@@ -356,9 +357,7 @@ function AuthPage() {
     <main className="min-h-screen bg-[linear-gradient(180deg,#f5eefe_0%,#e4d6fb_55%,#f1e8fe_100%)] px-4 py-8 text-slate-900">
       <div className="mx-auto max-w-md">
         <Link to="/" className="mb-6 inline-flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-purple-600 to-violet-600 text-white shadow-md">
-            <Sparkles className="h-5 w-5" />
-          </div>
+          <img src={eazystoreLogo.url} alt="EazyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
           <span className="font-display text-xl font-bold tracking-tight text-slate-900">
             eazy<span className="text-purple-700">store</span>
           </span>
