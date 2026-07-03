@@ -419,6 +419,48 @@ function StatusBadge({ status }: { status: ProductStatus }) {
   );
 }
 
+function Pagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (p: number) => void }) {
+  const pages: (number | "…")[] = [];
+  const push = (n: number | "…") => pages.push(n);
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) push(i);
+  } else {
+    push(1);
+    if (page > 3) push("…");
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) push(i);
+    if (page < totalPages - 2) push("…");
+    push(totalPages);
+  }
+  const btn = "grid h-7 min-w-7 place-items-center rounded-md border border-transparent px-2 text-[12px] hover:border-border";
+  return (
+    <div className="flex items-center gap-1">
+      <button className={btn} onClick={() => onChange(Math.max(1, page - 1))} disabled={page === 1} aria-label="Previous">
+        <ChevronLeft className="h-3.5 w-3.5" /> Previous
+      </button>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`e${i}`} className="px-1 text-foreground/40">…</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className={
+              p === page
+                ? "grid h-7 min-w-7 place-items-center rounded-md bg-primary px-2 text-[12px] font-semibold text-primary-foreground"
+                : btn
+            }
+          >
+            {p}
+          </button>
+        )
+      )}
+      <button className={btn} onClick={() => onChange(Math.min(totalPages, page + 1))} disabled={page === totalPages} aria-label="Next">
+        Next <ChevronRight className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 function EmptyState({
   icon: Icon, title, desc, action,
 }: { icon: any; title: string; desc: string; action?: React.ReactNode }) {
