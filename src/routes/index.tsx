@@ -119,9 +119,7 @@ function TopBand() {
             <SheetContent side="right" className="w-80 max-w-[85vw] p-0">
               <SheetHeader className="border-b border-emerald-100 p-5">
                 <SheetTitle className="flex items-center gap-2">
-                  <div className="gradient-landing-brand grid h-8 w-8 place-items-center rounded-lg text-white">
-                    <Store className="h-4 w-4" />
-                  </div>
+                  <img src={eazystoreLogo.url} alt="EazyStore" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
                   <span className="font-hero text-slate-900">EazyStore</span>
                 </SheetTitle>
               </SheetHeader>
