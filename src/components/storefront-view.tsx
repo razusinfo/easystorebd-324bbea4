@@ -5,6 +5,7 @@ import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
+import { FlipmartTemplate } from "@/components/templates/flipmart-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
@@ -154,6 +155,20 @@ export function StorefrontView({ slug }: { slug: string }) {
         store={s}
         products={orderedProducts}
         logoUrl={effectiveLogo}
+        categories={categories}
+      />
+    );
+  }
+
+  if (s.template === "flipmart") {
+    return (
+      <FlipmartTemplate
+        store={s}
+        products={orderedProducts}
+        logoUrl={effectiveLogo}
+        accentColor={settings.accentColor}
+        defaultCategoryName={settings.defaultCategoryName}
+        footer={settings.footer}
         categories={categories}
       />
     );
