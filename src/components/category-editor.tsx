@@ -11,6 +11,8 @@ import {
   Package,
   Pencil,
   Trash2,
+  Check,
+  X,
 } from "lucide-react";
 import {
   type CategoryRow,
