@@ -67,6 +67,9 @@ type FormState = {
   warranty: string;
   initialSoldCount: string;
   useDefaultDelivery: boolean;
+  defaultDeliveryCharge: string;
+  specificDeliveryCharges: { id: string; zone: string; charge: string }[];
+
   variants: { id: string; name: string; value: string }[];
   details: { id: string; key: string; value: string }[];
   imageUrl: string;
