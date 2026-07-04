@@ -164,45 +164,55 @@ function CategoryRow({
           <GripVertical className="h-4 w-4" />
         </button>
 
-        <button
-          type="button"
-          onClick={() => hasChildren && onToggle(node.id)}
-          className="flex min-w-0 items-center gap-3 text-left"
-          style={{ paddingLeft: depth * 20 }}
-        >
-          {hasChildren ? (
-            isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-foreground/50" />
-                   : <ChevronRight className="h-4 w-4 shrink-0 text-foreground/50" />
-          ) : (
-            <span className="h-4 w-4 shrink-0" />
-          )}
-          <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
-            {node.image_url ? (
-              <img src={node.image_url} alt="" className="h-full w-full object-cover" />
+        <div className="flex min-w-0 items-center gap-3" style={{ paddingLeft: depth * 20 }}>
+          <button
+            type="button"
+            onClick={() => hasChildren && onToggle(node.id)}
+            className="grid h-6 w-6 shrink-0 place-items-center rounded text-foreground/50 hover:bg-foreground/5 disabled:opacity-30"
+            disabled={!hasChildren}
+            aria-label={isOpen ? "Collapse" : "Expand"}
+          >
+            {hasChildren ? (
+              isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
             ) : (
-              <ImageIcon className="h-4 w-4 text-foreground/40" />
+              <span className="h-4 w-4" />
             )}
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className="truncate text-sm font-semibold text-foreground">{node.name}</span>
-              <Link
-                to="/s/$slug"
-                params={{ slug: storeSlug }}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-primary/70 hover:text-primary"
-                title="Open storefront"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
+          </button>
+          <Link
+            to="/categories/$id/edit"
+            params={{ id: node.id }}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left"
+            title="Edit category"
+          >
+            <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
+              {node.image_url ? (
+                <img src={node.image_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-4 w-4 text-foreground/40" />
+              )}
             </div>
-            <div className="text-xs text-foreground/60">
-              {node.children.length} subcategor{node.children.length === 1 ? "y" : "ies"}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-sm font-semibold text-foreground hover:text-primary">{node.name}</span>
+                <Link
+                  to="/s/$slug"
+                  params={{ slug: storeSlug }}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-primary/70 hover:text-primary"
+                  title="Open storefront"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="text-xs text-foreground/60">
+                {node.children.length} subcategor{node.children.length === 1 ? "y" : "ies"}
+              </div>
             </div>
-          </div>
-        </button>
+          </Link>
+        </div>
+
 
         <div className="hidden text-center text-sm font-medium text-foreground/80 sm:block">
           {node.children.length}
