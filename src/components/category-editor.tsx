@@ -392,84 +392,223 @@ export function CategoryEditor(props: Props) {
                 Save the category first
               </p>
               <p className="max-w-xs text-xs text-foreground/60">
-                Create this category, then add sub-categories from the header.
+                Create this category, then add sub-categories inline here.
               </p>
-            </div>
-          ) : subCategories.length === 0 ? (
-            <div className="grid place-items-center gap-3 py-10 text-center">
-              <div className="grid h-14 w-14 place-items-center rounded-full bg-muted text-foreground/40">
-                <Package className="h-6 w-6" />
-              </div>
-              <p className="text-sm font-semibold text-foreground/80">
-                Your sub categories list is currently empty
-              </p>
-              <p className="max-w-xs text-xs text-foreground/60">
-                Lets get started by adding your first sub category now
-              </p>
-              <Link
-                to="/categories/new"
-                search={{ parent: node!.id }}
-                className="mt-1 inline-flex items-center gap-1.5 rounded-xl gradient-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90"
-              >
-                <Plus className="h-4 w-4" /> Add Sub Category
-              </Link>
             </div>
           ) : (
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="mr-auto font-display text-sm font-black uppercase tracking-wide text-foreground/70">
-                  Sub Categories ({subCategories.length})
-                </h3>
-              </div>
-              <div className="relative mt-3">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
-                <input
-                  value={subQuery}
-                  onChange={(e) => setSubQuery(e.target.value)}
-                  placeholder="Search sub categories"
-                  className="h-9 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none ring-primary/30 focus:ring-2"
-                />
-              </div>
-              <ul className="mt-3 space-y-2">
-                {subCategories.map((c) => (
-                  <li
-                    key={c.id}
-                    className="flex items-center gap-3 rounded-xl border border-border p-2 hover:bg-muted/40"
-                  >
-                    <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
-                      {c.image_url ? (
-                        <img src={c.image_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <ImageIcon className="h-4 w-4 text-foreground/40" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold">{c.name}</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => navigate({ to: "/categories/$id/edit", params: { id: c.id } })}
-                      className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-primary/10 hover:text-primary"
-                      aria-label="Edit"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteSub(c.id, c.name)}
-                      disabled={remove.isPending}
-                      className="grid h-8 w-8 place-items-center rounded-md text-red-500 hover:bg-red-50 disabled:opacity-50"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <SubCategoriesPanel
+              parentId={node!.id}
+              storeId={storeId}
+              items={subCategories}
+              query={subQuery}
+              onQuery={setSubQuery}
+              onOpenFull={(id) => navigate({ to: "/categories/$id/edit", params: { id } })}
+              onDelete={deleteSub}
+              removePending={remove.isPending}
+            />
           )}
         </aside>
       </div>
     </main>
   );
 }
+
+function SubCategoriesPanel({
+  parentId, storeId, items, query, onQuery, onOpenFull, onDelete, removePending,
+}: {
+  parentId: string;
+  storeId: string;
+  items: CategoryRow[];
+  query: string;
+  onQuery: (v: string) => void;
+  onOpenFull: (id: string) => void;
+  onDelete: (id: string, name: string) => void;
+  removePending: boolean;
+}) {
+  const create = useCreateCategory(storeId);
+  const update = useUpdateCategory(storeId);
+  const [newName, setNewName] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  async function addInline() {
+    const n = newName.trim();
+    if (!n) return;
+    setErr(null);
+    try {
+      await create.mutateAsync({ name: n, parent_id: parentId });
+      setNewName("");
+    } catch (e) {
+      setErr((e as Error)?.message ?? "Could not add.");
+    }
+  }
+
+  function startEdit(c: CategoryRow) {
+    setEditingId(c.id);
+    setEditingName(c.name);
+    setErr(null);
+  }
+
+  async function saveEdit() {
+    if (!editingId) return;
+    const n = editingName.trim();
+    if (!n) return;
+    try {
+      await update.mutateAsync({ id: editingId, name: n });
+      setEditingId(null);
+    } catch (e) {
+      setErr((e as Error)?.message ?? "Could not save.");
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <h3 className="mr-auto font-display text-sm font-black uppercase tracking-wide text-foreground/70">
+          Sub Categories ({items.length})
+        </h3>
+      </div>
+
+      {/* Inline add row */}
+      <div className="mt-3 flex items-center gap-2">
+        <input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value.slice(0, 50))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); void addInline(); }
+          }}
+          placeholder="New sub category name"
+          className="h-10 flex-1 rounded-xl border border-border bg-background px-3 text-sm outline-none ring-primary/30 focus:ring-2"
+        />
+        <button
+          type="button"
+          onClick={addInline}
+          disabled={!newName.trim() || create.isPending}
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl gradient-primary px-3 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50"
+        >
+          {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          Add
+        </button>
+      </div>
+
+      {items.length > 0 && (
+        <div className="relative mt-3">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
+          <input
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Search sub categories"
+            className="h-9 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none ring-primary/30 focus:ring-2"
+          />
+        </div>
+      )}
+
+      {err && (
+        <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-red-600">
+          <AlertCircle className="h-3.5 w-3.5" /> {err}
+        </p>
+      )}
+
+      {items.length === 0 ? (
+        <div className="mt-6 grid place-items-center gap-2 rounded-xl border border-dashed border-border py-8 text-center">
+          <div className="grid h-12 w-12 place-items-center rounded-full bg-muted text-foreground/40">
+            <Package className="h-5 w-5" />
+          </div>
+          <p className="text-sm font-semibold text-foreground/80">
+            Your sub categories list is currently empty
+          </p>
+          <p className="max-w-xs text-xs text-foreground/60">
+            Type a name above and click Add to create your first one.
+          </p>
+        </div>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {items.map((c) => {
+            const isEditing = editingId === c.id;
+            return (
+              <li
+                key={c.id}
+                className="flex items-center gap-3 rounded-xl border border-border p-2 hover:bg-muted/40"
+              >
+                <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
+                  {c.image_url ? (
+                    <img src={c.image_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4 text-foreground/40" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  {isEditing ? (
+                    <input
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value.slice(0, 50))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); void saveEdit(); }
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                      autoFocus
+                      className="h-9 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none ring-primary/30 focus:ring-2"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onOpenFull(c.id)}
+                      className="block w-full truncate text-left text-sm font-semibold hover:text-primary"
+                      title="Open full editor"
+                    >
+                      {c.name}
+                    </button>
+                  )}
+                </div>
+                {isEditing ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={saveEdit}
+                      disabled={update.isPending || !editingName.trim()}
+                      className="grid h-8 w-8 place-items-center rounded-md text-emerald-600 hover:bg-emerald-50 disabled:opacity-50"
+                      aria-label="Save"
+                    >
+                      {update.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-foreground/5"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => startEdit(c)}
+                      className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-primary/10 hover:text-primary"
+                      aria-label="Rename"
+                      title="Rename inline"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(c.id, c.name)}
+                      disabled={removePending}
+                      className="grid h-8 w-8 place-items-center rounded-md text-red-500 hover:bg-red-50 disabled:opacity-50"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
