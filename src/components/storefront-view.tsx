@@ -175,6 +175,20 @@ export function StorefrontView({ slug }: { slug: string }) {
     );
   }
 
+  if (s.template === "freshmart") {
+    return (
+      <FreshmartTemplate
+        store={s}
+        products={orderedProducts}
+        logoUrl={effectiveLogo}
+        accentColor={settings.accentColor}
+        defaultCategoryName={settings.defaultCategoryName}
+        footer={settings.footer}
+        categories={categories}
+      />
+    );
+  }
+
 
 
   const t = TEMPLATES.find((x) => x.id === s.template) ?? TEMPLATES[0];
