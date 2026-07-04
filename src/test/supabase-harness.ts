@@ -1,0 +1,75 @@
+// Minimal Supabase test harness.
+// Builds a chainable stub client whose `.from(table)` returns queued responses.
+// Enough surface for our server-fn core logic: select().eq().eq().limit().maybeSingle(),
+// select().eq().maybeSingle(), select().eq() (awaited), insert(...).select().single().
+//
+// Usage:
+//   const admin = createSupabaseHarness({
+//     reseller_products: { maybeSingle: { data: {...}, error: null } },
+//     stores:             { maybeSingle: { data: { id: "store-1" }, error: null } },
+//     product_categories: { maybeSingle: { data: { id: "cat-1" }, error: null } },
+//     products: [
+//       { maybeSingle: { data: null, error: null } },   // dedup check
+//       { single:      { data: { id: "new-id" }, error: null } }, // insert
+//     ],
+//   });
+//
+// A per-table config can be a single response object or an array (consumed in order).
+
+import { vi } from "vitest";
+
+export type Response<T = any> = { data: T; error: any };
+
+export type TableConfig = {
+  maybeSingle?: Response;
+  single?: Response;
+  await?: Response; // for `await supabase.from(t).select().eq(...)` shape
+  insertOk?: boolean;
+};
+
+export type HarnessConfig = Record<string, TableConfig | TableConfig[]>;
+
+export function createSupabaseHarness(config: HarnessConfig) {
+  const cursors: Record<string, number> = {};
+  const inserts: Array<{ table: string; payload: any }> = [];
+  const audits: any[] = [];
+
+  function nextFor(table: string): TableConfig {
+    const entry = config[table];
+    if (!entry) throw new Error(`[harness] unmocked table: ${table}`);
+    if (Array.isArray(entry)) {
+      const idx = cursors[table] ?? 0;
+      cursors[table] = idx + 1;
+      return entry[Math.min(idx, entry.length - 1)];
+    }
+    return entry;
+  }
+
+  function makeChain(table: string) {
+    const chain: any = {};
+    chain.select = () => chain;
+    chain.eq = () => chain;
+    chain.limit = () => chain;
+    chain.maybeSingle = async () => nextFor(table).maybeSingle ?? { data: null, error: null };
+    chain.single = async () => nextFor(table).single ?? { data: null, error: null };
+    chain.insert = (payload: any) => {
+      inserts.push({ table, payload });
+      if (table === "reseller_marketplace_audit_logs") audits.push(payload);
+      return chain;
+    };
+    // Awaitable directly (e.g. select().eq() with no maybeSingle)
+    chain.then = (r: any, j: any) =>
+      Promise.resolve(nextFor(table).await ?? { data: [], error: null }).then(r, j);
+    return chain;
+  }
+
+  const client = { from: vi.fn((table: string) => makeChain(table)) };
+  return { client, inserts, audits };
+}
+
+/** Convenience: a user-scoped supabase stub that returns a single role. */
+export function userClientWithRole(role: string | null) {
+  return createSupabaseHarness({
+    user_roles: { await: { data: role ? [{ role }] : [], error: null } },
+  }).client;
+}
