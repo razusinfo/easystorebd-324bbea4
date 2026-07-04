@@ -299,6 +299,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           .filter((s) => s.zone && Number.isFinite(s.charge)),
 
         videoUrl: form.videoUrl.trim() || null,
+        addToReseller: form.addToReseller,
+        resellerPrice: form.addToReseller && form.resellerPrice !== ""
+          ? Number(form.resellerPrice)
+          : null,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
@@ -309,7 +313,31 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       // Invalidate storefront caches so the new product/image shows up right away.
       queryClient.invalidateQueries({ queryKey: ["public-store"] });
       queryClient.invalidateQueries({ queryKey: ["products", store?.id] });
+
+      // Sync to reseller marketplace if enabled.
+      if (form.addToReseller) {
+        try {
+          const res = await syncResellerProduct({
+            data: {
+              id: (upsert.data as { id: string } | undefined)?.id ?? editing?.id ?? "",
+              name: form.name.trim(),
+              description: form.description.trim() || null,
+              image: form.imageUrl || null,
+              price: Number(form.sellPrice),
+              reseller_price: form.resellerPrice !== "" ? Number(form.resellerPrice) : null,
+            },
+          });
+          if ((res as { skipped?: boolean }).skipped) {
+            toast.message("Reseller sync skipped: RESELLER_SYNC_URL not configured");
+          } else {
+            toast.success("Synced to reseller marketplace");
+          }
+        } catch (err: any) {
+          toast.error(err?.message ?? "Reseller sync failed");
+        }
+      }
       onDone();
+
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save product");
     }
