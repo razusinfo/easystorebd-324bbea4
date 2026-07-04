@@ -560,11 +560,12 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                         <Button
                           type="button" size="sm" variant="outline"
                           onClick={() => fileInputRef.current?.click()}
-                          disabled={uploading}
+                          disabled={uploading || ((form.imageUrl ? 1 : 0) + form.galleryUrls.length) >= MAX_IMAGES}
                         >
                           {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
-                          Replace
+                          Add more
                         </Button>
+
                         <Button
                           type="button" size="sm" variant="outline"
                           onClick={handleRemoveImage}
