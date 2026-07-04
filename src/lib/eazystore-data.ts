@@ -1122,13 +1122,13 @@ export function usePublicStoreBySlug(slug: string | undefined) {
   return useQuery({
     queryKey: ["public-store", slug],
     enabled: !!slug,
-    queryFn: async (): Promise<{ store: StoreRow; products: ProductRow[]; logoUrl: string | null; categories: { id: string; name: string }[] } | null> => {
+    queryFn: async (): Promise<{ store: StoreRow; products: ProductRow[]; logoUrl: string | null; categories: { id: string; name: string; parent_id: string | null }[] } | null> => {
       const { getPublishedStorefront } = await import("./storefront.functions");
       const result = await getPublishedStorefront({ data: { slug: slug! } });
       if (!result) return null;
       const store = result.store as StoreRow;
       const products = (result.products ?? []) as ProductRow[];
-      const categories = (result.categories ?? []).map((c: any) => ({ id: c.id as string, name: c.name as string }));
+      const categories = (result.categories ?? []).map((c: any) => ({ id: c.id as string, name: c.name as string, parent_id: (c.parent_id ?? null) as string | null }));
 
 
 

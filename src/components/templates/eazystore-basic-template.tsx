@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
@@ -19,7 +20,7 @@ type Props = {
   accentColor?: string;
   defaultCategoryName?: string | null;
   footer?: FooterSettings;
-  categories?: { id: string; name: string }[];
+  categories?: { id: string; name: string; parent_id?: string | null }[];
 };
 
 
@@ -78,10 +79,25 @@ const LABEL_TO_SUBPATH: Record<string, string> = {
 export function EazyStoreBasicTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
-  // Only use demo categories in preview mode.
-  const catList: string[] = demo
-    ? DEMO_CATEGORIES
-    : ["All Products", ...(categories ?? []).map((c) => c.name)];
+  // Build a top-level list + children map. Demo mode stays flat.
+  const topCats: { name: string; children: { id: string; name: string }[] }[] = useMemo(() => {
+    if (demo) return [{ name: "All Products", children: [] }, ...DEMO_CATEGORIES.slice(1).map((n) => ({ name: n, children: [] }))];
+    const cats = categories ?? [];
+    const childrenByParent = new Map<string, { id: string; name: string }[]>();
+    cats.forEach((c) => {
+      if (c.parent_id) {
+        const arr = childrenByParent.get(c.parent_id) ?? [];
+        arr.push({ id: c.id, name: c.name });
+        childrenByParent.set(c.parent_id, arr);
+      }
+    });
+    const roots = cats.filter((c) => !c.parent_id).map((c) => ({
+      name: c.name,
+      children: childrenByParent.get(c.id) ?? [],
+    }));
+    return [{ name: "All Products", children: [] }, ...roots];
+  }, [demo, categories]);
+  const catList: string[] = topCats.map((c) => c.name);
 
   const f: Required<FooterSettings> = {
     showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
@@ -101,6 +117,7 @@ export function EazyStoreBasicTemplate({
     showDevBadge;
 
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>(defaultCategoryName || "All Products");
   const [search, setSearch] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
@@ -112,10 +129,28 @@ export function EazyStoreBasicTemplate({
   const storeId = store?.id;
   const useDemo = demo;
 
-  // Filter real products by category + search text.
-  const catIdByName = useMemo(() => {
-    const m: Record<string, string> = {};
-    (categories ?? []).forEach((c) => { m[c.name] = c.id; });
+  // Filter real products by category + search text. When a parent is selected,
+  // include every descendant category so top-level filters aren't empty.
+  const matchIdsByName = useMemo(() => {
+    const cats = categories ?? [];
+    const byParent = new Map<string, string[]>();
+    cats.forEach((c) => {
+      if (c.parent_id) {
+        const arr = byParent.get(c.parent_id) ?? [];
+        arr.push(c.id);
+        byParent.set(c.parent_id, arr);
+      }
+    });
+    const collect = (id: string, acc: Set<string>) => {
+      acc.add(id);
+      (byParent.get(id) ?? []).forEach((cid) => collect(cid, acc));
+    };
+    const m: Record<string, string[]> = {};
+    cats.forEach((c) => {
+      const s = new Set<string>();
+      collect(c.id, s);
+      m[c.name] = Array.from(s);
+    });
     return m;
   }, [categories]);
 
@@ -124,13 +159,13 @@ export function EazyStoreBasicTemplate({
     const q = search.trim().toLowerCase();
     return (products ?? []).filter((p) => {
       if (activeCat !== "All Products") {
-        const wantId = catIdByName[activeCat];
-        if (!wantId || p.category_id !== wantId) return false;
+        const wantIds = matchIdsByName[activeCat];
+        if (!wantIds || !p.category_id || !wantIds.includes(p.category_id)) return false;
       }
       if (q && !p.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [products, activeCat, search, catIdByName, useDemo]);
+  }, [products, activeCat, search, matchIdsByName, useDemo]);
 
   const gridProducts = useDemo
     ? DEMO_PRODUCTS.map((p) => ({ id: null as string | null, ...p, imageUrl: null as string | null }))
@@ -298,29 +333,60 @@ export function EazyStoreBasicTemplate({
       <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
           {/* Sidebar categories (desktop) */}
-          <aside className="hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
+          <aside className="relative hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
             <h2 className="mb-3 font-display text-xl font-black text-neutral-900">Categories</h2>
-            <ul className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
-              {catList.map((c) => {
-                const active = c === activeCat;
+            <ul className="max-h-[70vh] space-y-1 overflow-visible pr-1">
+              {topCats.map((tc) => {
+                const active = tc.name === activeCat;
+                const hasChildren = tc.children.length > 0;
                 return (
-                  <li key={c}>
+                  <li key={tc.name} className="group relative">
                     <button
                       type="button"
-                      onClick={() => selectCategory(c)}
+                      onClick={() => selectCategory(tc.name)}
                       className={
-                        active
-                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-base font-bold text-white sm:text-[17px]"
-                          : "block w-full text-left rounded-xl px-4 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-100 sm:text-[17px]"
+                        (active
+                          ? "acc-bg text-white "
+                          : "text-neutral-700 hover:bg-neutral-100 ") +
+                        "flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-base font-medium sm:text-[17px]"
                       }
                     >
-                      {c}
+                      <span className="truncate">{tc.name}</span>
+                      {hasChildren && (
+                        <ChevronRight className={"ml-2 h-4 w-4 shrink-0 " + (active ? "text-white" : "text-neutral-400")} />
+                      )}
                     </button>
+                    {hasChildren && (
+                      <div className="invisible absolute left-full top-0 z-30 -ml-1 hidden min-w-[220px] pl-2 group-hover:visible group-hover:block group-focus-within:visible group-focus-within:block">
+                        <ul className="rounded-2xl border border-neutral-200 bg-white p-2 shadow-lg">
+                          {tc.children.map((child) => {
+                            const childActive = child.name === activeCat;
+                            return (
+                              <li key={child.id}>
+                                <button
+                                  type="button"
+                                  onClick={() => selectCategory(child.name)}
+                                  className={
+                                    (childActive
+                                      ? "acc-bg text-white "
+                                      : "text-neutral-700 hover:bg-neutral-100 ") +
+                                    "block w-full rounded-lg px-3 py-2 text-left text-sm font-medium"
+                                  }
+                                >
+                                  {child.name}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
                   </li>
                 );
               })}
             </ul>
           </aside>
+
 
 
           {/* Main product area */}
@@ -384,25 +450,64 @@ export function EazyStoreBasicTemplate({
               </button>
             </div>
             <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-              {catList.map((c) => {
-                const active = c === activeCat;
+              {topCats.map((tc) => {
+                const active = tc.name === activeCat;
+                const hasChildren = tc.children.length > 0;
+                const expanded = mobileExpanded === tc.name || tc.children.some((ch) => ch.name === activeCat);
                 return (
-                  <li key={c}>
-                    <button
-                      type="button"
-                      onClick={() => selectCategory(c)}
-                      className={
-                        active
-                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-base font-bold text-white"
-                          : "block w-full text-left rounded-xl px-4 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-100"
-                      }
-                    >
-                      {c}
-                    </button>
+                  <li key={tc.name}>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => selectCategory(tc.name)}
+                        className={
+                          (active
+                            ? "acc-bg text-white "
+                            : "text-neutral-700 hover:bg-neutral-100 ") +
+                          "flex-1 truncate rounded-xl px-4 py-3 text-left text-base font-medium"
+                        }
+                      >
+                        {tc.name}
+                      </button>
+                      {hasChildren && (
+                        <button
+                          type="button"
+                          onClick={() => setMobileExpanded(expanded ? null : tc.name)}
+                          aria-label={expanded ? "Collapse" : "Expand"}
+                          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-neutral-500 hover:bg-neutral-100"
+                        >
+                          <ChevronRight className={"h-4 w-4 transition-transform " + (expanded ? "rotate-90" : "")} />
+                        </button>
+                      )}
+                    </div>
+                    {hasChildren && expanded && (
+                      <ul className="mt-1 space-y-1 pl-4">
+                        {tc.children.map((child) => {
+                          const childActive = child.name === activeCat;
+                          return (
+                            <li key={child.id}>
+                              <button
+                                type="button"
+                                onClick={() => selectCategory(child.name)}
+                                className={
+                                  (childActive
+                                    ? "acc-bg text-white "
+                                    : "text-neutral-700 hover:bg-neutral-100 ") +
+                                  "block w-full rounded-lg px-3 py-2 text-left text-sm font-medium"
+                                }
+                              >
+                                {child.name}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </li>
                 );
               })}
             </ul>
+
           </aside>
         </div>
       )}
