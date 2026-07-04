@@ -338,7 +338,9 @@ export type Database = {
       }
       product_categories: {
         Row: {
+          banner_url: string | null
           created_at: string
+          description: string | null
           id: string
           image_url: string | null
           name: string
@@ -349,7 +351,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          banner_url?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image_url?: string | null
           name: string
@@ -360,7 +364,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          banner_url?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image_url?: string | null
           name?: string
