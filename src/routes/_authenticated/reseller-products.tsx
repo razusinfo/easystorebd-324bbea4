@@ -70,6 +70,8 @@ function ResellerProductsPage() {
     },
   });
   const userId = userQ.data?.id ?? null;
+  const myStoreQ = useMyStore();
+  const storeId = myStoreQ.data?.id ?? null;
 
   // LEFT JOIN reseller_products ← user_reseller_settings (only current user's row).
   // PostgREST embeds are LEFT JOINs by default; the .eq filter on the embedded
