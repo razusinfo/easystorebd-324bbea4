@@ -98,6 +98,14 @@ const dict = {
   madeBy: { bn: "এই সফটওয়্যার প্রস্তুতকারক:", en: "Software developed by:" },
   makerName: { bn: "নুসরাত টেলিকম", en: "Nusrat Telecom" },
   hotline: { bn: "হটলাইন", en: "Hotline" },
+
+  // inventory
+  outOfStock: { bn: "স্টক শেষ", en: "Out of Stock" },
+  outOfStockFromSupplier: {
+    bn: "সরবরাহকারীর কাছে স্টক শেষ",
+    en: "Out of stock from supplier",
+  },
+  addToMyShop: { bn: "আমার শপে যোগ করুন", en: "Add to My Shop" },
 };
 
 type Key = keyof typeof dict;
