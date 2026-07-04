@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/rea
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { SupportChatWidget } from "@/components/support-chat-widget";
 
 // Routes reachable BEFORE a store exists (avoid a redirect loop).
 const NO_STORE_ALLOWED = ["/onboarding", "/upgrade"];
@@ -55,6 +56,7 @@ function AuthenticatedLayout() {
           </main>
         </SidebarInset>
       </div>
+      <SupportChatWidget />
     </SidebarProvider>
   );
 }
