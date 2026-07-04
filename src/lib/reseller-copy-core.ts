@@ -196,7 +196,18 @@ export async function runCopyResellerProduct(
       .single();
     if (insErr) throw new Error(insErr.message);
 
-    await logAttempt(true, source.id);
+    const importedMedia = [
+      ...(finalPrimary ? [finalPrimary] : []),
+      ...finalGallery,
+      ...(finalVideo ? [finalVideo] : []),
+    ];
+    await logAttempt(true, source.id, undefined, {
+      requested_media: input.selected_media ?? null,
+      imported_media: importedMedia,
+      category_id: chosenCategoryId,
+      selling_price: sellingPrice,
+    });
+
     return { ok: true, product_id: inserted.id, skipped: false };
   } catch (err) {
     if (err instanceof Response) throw err;
