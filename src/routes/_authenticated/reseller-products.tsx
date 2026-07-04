@@ -50,7 +50,7 @@ function ResellerProductsPage() {
     queryFn: async (): Promise<ResellerRow[]> => {
       const { data, error } = await supabase
         .from("reseller_products")
-        .select("id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at")
+        .select("id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden")
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResellerRow[];
