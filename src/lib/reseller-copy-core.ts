@@ -39,7 +39,12 @@ export async function runCopyResellerProduct(
   const heldRoles = (roles ?? []).map((r: { role: string }) => r.role);
   const actorRole = heldRoles[0] ?? "unknown";
 
-  const logAttempt = async (success: boolean, productId: string, error?: string) => {
+  const logAttempt = async (
+    success: boolean,
+    productId: string,
+    error?: string,
+    metadata?: Record<string, unknown>,
+  ) => {
     await adminSupabase.from("reseller_marketplace_audit_logs").insert({
       actor_id: userId,
       actor_role: actorRole,
@@ -47,8 +52,10 @@ export async function runCopyResellerProduct(
       product_id: productId,
       success,
       error: error ?? null,
+      metadata: metadata ?? {},
     });
   };
+
 
   try {
     const { data: source, error: srcErr } = await adminSupabase
