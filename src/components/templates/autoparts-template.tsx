@@ -55,7 +55,7 @@ export function AutoPartsTemplate({
 }: Props) {
   const name = store?.name ?? "Partdo";
   const tagline = store?.tagline ?? "Auto Parts Marketplace";
-  const useDemo = demo || !products || products.length === 0;
+  const useDemo = demo;
   const gridProducts = useDemo
     ? DEMO_PRODUCTS
     : products!.slice(0, 5).map((p) => ({
