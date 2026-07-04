@@ -8,6 +8,13 @@ import { useI18n, type Lang } from "@/lib/i18n";
 import {
   useMyStore, useCreateStore, TEMPLATES, BUSINESS_TYPES, type Category, type TemplateId,
 } from "@/lib/eazystore-data";
+import {
+  MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview, SportyPulsePreview, LuxeNoirPreview,
+} from "@/components/templates/mini-previews";
+import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
+import { PrestigeTemplate } from "@/components/templates/prestige-template";
+import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.json";
 
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -179,8 +186,14 @@ function Onboarding() {
                       template === t.id ? "border-primary shadow-glow" : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <div className={`relative h-24 bg-gradient-to-br ${t.gradient}`}>
-                      <Sparkles className="absolute right-2 top-2 h-4 w-4 text-white/80" />
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
+                      <TemplatePreview id={t.id} gradient={t.gradient} accent={t.accent} />
+                      {t.premium && (
+                        <span className="absolute left-2 top-2 rounded-md bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow">
+                          Premium
+                        </span>
+                      )}
+                      <Sparkles className="absolute right-2 top-2 h-4 w-4 text-white/90 drop-shadow" />
                       {template === t.id && (
                         <div className="absolute inset-0 grid place-items-center bg-black/30">
                           <div className="grid h-8 w-8 place-items-center rounded-full bg-white text-primary">
@@ -191,7 +204,7 @@ function Onboarding() {
                     </div>
                     <div className="p-3">
                       <div className="text-sm font-semibold">{t.name}</div>
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">{t.tagline}</div>
+                      <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{t.tagline}</div>
                     </div>
                   </button>
                 ))}
@@ -284,5 +297,57 @@ function Onboarding() {
         </p>
       </div>
     </main>
+  );
+}
+
+function TemplatePreview({ id, gradient, accent }: { id: TemplateId; gradient: string; accent: string }) {
+  if (id === "eazystore-basic") {
+    return (
+      <img
+        src={eazystoreBasicPreview.url}
+        alt="EazyStore Basic preview"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
+      />
+    );
+  }
+
+  const FULL_W = 1280;
+  const FULL_H = 1000;
+
+  let inner: React.ReactNode = null;
+  if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
+  else if (id === "prestige") inner = <PrestigeTemplate demo />;
+  else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
+  else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
+  else if (id === "techgrid") inner = <TechGridPreview accent={accent} />;
+  else if (id === "sporty") inner = <SportyPulsePreview accent={accent} />;
+  else if (id === "luxe") inner = <LuxeNoirPreview accent={accent} />;
+
+  if (inner) {
+    return (
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
+        style={{ containerType: "size" } as React.CSSProperties}
+      >
+        <div
+          style={{
+            width: FULL_W,
+            height: FULL_H,
+            transform: "scale(var(--tpl-scale, 0.2))",
+            transformOrigin: "top left",
+          }}
+        >
+          {inner}
+        </div>
+        <style>{`
+          @container (min-width: 180px) { [style*="--tpl-scale"] { --tpl-scale: 0.22; } }
+          @container (min-width: 240px) { [style*="--tpl-scale"] { --tpl-scale: 0.28; } }
+        `}</style>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} style={{ color: accent }} />
   );
 }
