@@ -29,7 +29,7 @@ export const BUSINESS_TYPES: Category[] = [
   "Grocery", "Telecommunication", "Pharmaceuticals",
   "Utilities", "Others",
 ];
-export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic" | "prestige" | "flipmart";
+export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic" | "prestige" | "flipmart" | "freshmart";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
 export type FooterLink = { label: string; href?: string; enabled: boolean };
