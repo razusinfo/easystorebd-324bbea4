@@ -60,7 +60,7 @@ export const submitProductRequest = createServerFn({ method: "POST" })
         product_id: productId,
         success,
         error: error ?? null,
-        metadata,
+        metadata: metadata as never,
       });
     };
 
@@ -125,7 +125,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         product_id: productId,
         success,
         error: error ?? null,
-        metadata,
+        metadata: metadata as never,
       });
     };
 
@@ -218,7 +218,7 @@ export const rejectProductRequest = createServerFn({ method: "POST" })
         product_id: data.request_id,
         success,
         error: error ?? null,
-        metadata,
+        metadata: metadata as never,
       });
     };
 
