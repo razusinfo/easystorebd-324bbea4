@@ -47,6 +47,7 @@ type Row = {
   profit_margin: number;
   status: Status;
   shipping_requested: boolean;
+  notes: string | null;
   created_at: string;
   reseller?: { full_name: string | null; email: string } | null;
 };
