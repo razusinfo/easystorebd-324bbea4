@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Package, Copy, Check } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Package, Copy, Check, Pencil } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 
 export const Route = createFileRoute("/_authenticated/reseller-products")({
@@ -27,6 +30,8 @@ type ResellerRow = {
   category: string | null;
   source: string | null;
   updated_at: string;
+  price_overridden: boolean | null;
+  image_overridden: boolean | null;
 };
 
 const ALL = "__all__";
@@ -45,7 +50,7 @@ function ResellerProductsPage() {
     queryFn: async (): Promise<ResellerRow[]> => {
       const { data, error } = await supabase
         .from("reseller_products")
-        .select("id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at")
+        .select("id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden")
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResellerRow[];
@@ -148,7 +153,13 @@ function ResellerProductsPage() {
                       <Badge variant="outline" className="text-[10px]">{p.source}</Badge>
                     )}
                   </div>
-                  <CopyLinkButton url={shareUrl} />
+                  {(p.price_overridden || p.image_overridden) && (
+                    <p className="text-[10px] text-muted-foreground">Manually overridden</p>
+                  )}
+                  <div className="flex gap-2">
+                    <CopyLinkButton url={shareUrl} />
+                    <EditResellerButton row={p} />
+                  </div>
                 </div>
               </Card>
             );
@@ -184,4 +195,133 @@ function CopyLinkButton({ url }: { url: string }) {
     </Button>
   );
 }
+
+function EditResellerButton({ row }: { row: ResellerRow }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [price, setPrice] = useState<string>(row.reseller_price != null ? String(row.reseller_price) : "");
+  const [image, setImage] = useState<string>(row.image_url ?? row.image ?? "");
+
+  useEffect(() => {
+    if (open) {
+      setPrice(row.reseller_price != null ? String(row.reseller_price) : "");
+      setImage(row.image_url ?? row.image ?? "");
+    }
+  }, [open, row]);
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      const trimmedImg = image.trim();
+      const parsedPrice = price.trim() === "" ? null : Number(price);
+      if (parsedPrice != null && !Number.isFinite(parsedPrice)) throw new Error("Invalid price");
+
+      const origPrice = row.reseller_price ?? null;
+      const origImg = row.image_url ?? row.image ?? "";
+      const priceChanged = parsedPrice !== origPrice;
+      const imageChanged = trimmedImg !== origImg;
+
+      const payload = {
+        reseller_price: parsedPrice,
+        image: trimmedImg || null,
+        image_url: trimmedImg || null,
+        updated_at: new Date().toISOString(),
+        ...(priceChanged ? { price_overridden: true } : {}),
+        ...(imageChanged ? { image_overridden: true } : {}),
+      };
+
+      const { error } = await supabase.from("reseller_products").update(payload).eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Reseller product updated");
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resetOverrides = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("reseller_products")
+        .update({ price_overridden: false, image_overridden: false })
+        .eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Overrides cleared — will re-sync from main product");
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-1 w-full gap-1.5"
+        onClick={() => setOpen(true)}
+      >
+        <Pencil className="h-3.5 w-3.5" /> Edit
+      </Button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit reseller product</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="rp-price">Reseller Price</Label>
+            <Input
+              id="rp-price"
+              type="number"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Original: ৳{Number(row.price).toLocaleString()} — manual edits won't be overwritten by sync.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="rp-image">Product Image URL</Label>
+            <Input
+              id="rp-image"
+              type="url"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+              placeholder="https://..."
+            />
+            {image && (
+              <img src={image} alt="preview" className="mt-2 h-24 w-24 rounded-md object-cover" />
+            )}
+          </div>
+        </div>
+        <DialogFooter className="gap-2 sm:justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={resetOverrides.isPending || (!row.price_overridden && !row.image_overridden)}
+            onClick={() => resetOverrides.mutate()}
+          >
+            Reset to synced values
+          </Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={() => mut.mutate()} disabled={mut.isPending}>
+              {mut.isPending ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
