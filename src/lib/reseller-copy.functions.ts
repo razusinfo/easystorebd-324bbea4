@@ -70,7 +70,7 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
       // 3. Load original product (if any) to inherit category / warranty / IMEI / serial
       const originalId = (source as { original_product_id: string | null })
         .original_product_id;
-      let original: {
+      type OriginalFields = {
         category_id: string | null;
         warranty: string | null;
         product_serial: string | null;
@@ -79,7 +79,8 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
         condition: string | null;
         weight_kg: number | null;
         short_description: string | null;
-      } | null = null;
+      };
+      let original: OriginalFields | null = null;
       if (originalId) {
         const { data: orig, error: origErr } = await supabaseAdmin
           .from("products")
@@ -89,7 +90,7 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
           .eq("id", originalId)
           .maybeSingle();
         if (origErr) throw new Error(origErr.message);
-        original = (orig as unknown as typeof original) ?? null;
+        original = (orig as unknown as OriginalFields | null) ?? null;
       }
 
       // 4. Server-side validation of required fields
