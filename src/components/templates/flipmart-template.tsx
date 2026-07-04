@@ -21,6 +21,10 @@ type Props = {
   defaultCategoryName?: string | null;
   footer?: FooterSettings;
   categories?: { id: string; name: string; parent_id?: string | null }[];
+  /** When true, product rows render as horizontal sliders instead of grids. */
+  sliderRows?: boolean;
+  /** Optional override for the first two section titles (Suggested/Trending). */
+  sectionTitles?: { suggested?: string; trending?: string };
 };
 
 const DEMO_CATEGORY_ICONS = [
