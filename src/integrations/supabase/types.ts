@@ -640,6 +640,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reseller_products: {
+        Row: {
+          created_at: string
+          description: string | null
+          external_id: string
+          id: string
+          image: string | null
+          name: string
+          payload: Json | null
+          price: number
+          reseller_price: number | null
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          external_id: string
+          id?: string
+          image?: string | null
+          name: string
+          payload?: Json | null
+          price?: number
+          reseller_price?: number | null
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          external_id?: string
+          id?: string
+          image?: string | null
+          name?: string
+          payload?: Json | null
+          price?: number
+          reseller_price?: number | null
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           contact_email: string | null
