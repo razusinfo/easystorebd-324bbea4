@@ -511,6 +511,7 @@ export type Database = {
           id: string
           image_url: string | null
           initial_sold_count: number
+          is_resellable: boolean | null
           length_cm: number | null
           name: string
           price: number
@@ -545,6 +546,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           initial_sold_count?: number
+          is_resellable?: boolean | null
           length_cm?: number | null
           name: string
           price: number
@@ -579,6 +581,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           initial_sold_count?: number
+          is_resellable?: boolean | null
           length_cm?: number | null
           name?: string
           price?: number
@@ -647,7 +650,9 @@ export type Database = {
           external_id: string
           id: string
           image: string | null
+          image_url: string | null
           name: string
+          original_product_id: string | null
           payload: Json | null
           price: number
           reseller_price: number | null
@@ -660,7 +665,9 @@ export type Database = {
           external_id: string
           id?: string
           image?: string | null
+          image_url?: string | null
           name: string
+          original_product_id?: string | null
           payload?: Json | null
           price?: number
           reseller_price?: number | null
@@ -673,14 +680,24 @@ export type Database = {
           external_id?: string
           id?: string
           image?: string | null
+          image_url?: string | null
           name?: string
+          original_product_id?: string | null
           payload?: Json | null
           price?: number
           reseller_price?: number | null
           source?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reseller_products_original_product_id_fkey"
+            columns: ["original_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
