@@ -15,6 +15,7 @@ import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-t
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { FlipmartTemplate } from "@/components/templates/flipmart-template";
+import { FreshmartTemplate } from "@/components/templates/freshmart-template";
 import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.json";
 
 
