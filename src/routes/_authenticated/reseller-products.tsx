@@ -123,11 +123,10 @@ function ResellerProductsPage() {
   }, [merged]);
 
   const filtered = useMemo(() => {
-    const rows = q.data ?? [];
-    if (tab === ALL) return rows;
-    if (tab === UNCAT) return rows.filter((r) => !r.category || !r.category.trim());
-    return rows.filter((r) => r.category === tab);
-  }, [q.data, tab]);
+    if (tab === ALL) return merged;
+    if (tab === UNCAT) return merged.filter((r) => !r.category || !r.category.trim());
+    return merged.filter((r) => r.category === tab);
+  }, [merged, tab]);
 
   return (
     <div className="p-4 sm:p-6">
@@ -136,6 +135,7 @@ function ResellerProductsPage() {
           <h1 className="text-2xl font-bold">Reseller Products</h1>
           <p className="text-sm text-muted-foreground">
             Products marked "Add to Reseller Marketplace" or synced from your Product Sales site.
+            Your edits stay in your shop only.
           </p>
         </div>
         {q.data && <Badge variant="secondary">{q.data.length} items</Badge>}
@@ -165,14 +165,11 @@ function ResellerProductsPage() {
         <Card className="flex flex-col items-center justify-center gap-2 p-10 text-center">
           <Package className="h-8 w-8 text-muted-foreground" />
           <p className="font-medium">No reseller products in this category</p>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Enable "Add to Reseller Marketplace" on a product, or push one to <code>/api/public/reseller-sync</code>.
-          </p>
         </Card>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => {
-            const img = p.image_url ?? p.image;
+            const img = p.displayImage;
             const shareUrl =
               typeof window !== "undefined"
                 ? `${window.location.origin}/r/${p.external_id}`
@@ -190,30 +187,32 @@ function ResellerProductsPage() {
                 </div>
                 <div className="space-y-2 p-3">
                   <h3 className="line-clamp-2 text-sm font-semibold">{p.name}</h3>
+                  {p.displayDescription && (
+                    <p className="line-clamp-2 text-[11px] text-muted-foreground">{p.displayDescription}</p>
+                  )}
                   <div className="flex items-baseline justify-between gap-2">
                     <div>
                       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Original</p>
                       <p className="text-sm font-medium line-through opacity-70">{fmt(p.price)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Reseller</p>
-                      <p className="text-base font-bold text-primary">{fmt(p.reseller_price)}</p>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {p.isCustom ? "Your price" : "Reseller"}
+                      </p>
+                      <p className="text-base font-bold text-primary">{fmt(p.displayPrice)}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {p.category && (
                       <Badge variant="secondary" className="text-[10px]">{p.category}</Badge>
                     )}
-                    {p.source && (
-                      <Badge variant="outline" className="text-[10px]">{p.source}</Badge>
+                    {p.isCustom && (
+                      <Badge className="text-[10px]">My shop</Badge>
                     )}
                   </div>
-                  {(p.price_overridden || p.image_overridden) && (
-                    <p className="text-[10px] text-muted-foreground">Manually overridden</p>
-                  )}
                   <div className="flex gap-2">
                     <CopyLinkButton url={shareUrl} />
-                    <EditResellerButton row={p} />
+                    {userId && <EditResellerButton row={p} userId={userId} />}
                   </div>
                 </div>
               </Card>
