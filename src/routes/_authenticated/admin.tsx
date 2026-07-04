@@ -148,6 +148,10 @@ function Admin() {
               {pending.length}
             </span>
           </TabBtn>
+          <TabBtn active={tab === "requests"} onClick={() => setTab("requests")}>
+            <PackagePlus className="h-4 w-4" />
+            Requests
+          </TabBtn>
           <TabBtn active={tab === "stores"} onClick={() => setTab("stores")}>
             <Users className="h-4 w-4" />
             Stores
