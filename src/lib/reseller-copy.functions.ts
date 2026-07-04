@@ -89,7 +89,7 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
           .eq("id", originalId)
           .maybeSingle();
         if (origErr) throw new Error(origErr.message);
-        original = (orig as typeof original) ?? null;
+        original = (orig as unknown as typeof original) ?? null;
       }
 
       // 4. Server-side validation of required fields
