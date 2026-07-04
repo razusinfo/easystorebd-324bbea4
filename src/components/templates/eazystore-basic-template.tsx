@@ -117,6 +117,7 @@ export function EazyStoreBasicTemplate({
     showDevBadge;
 
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>(defaultCategoryName || "All Products");
   const [search, setSearch] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
