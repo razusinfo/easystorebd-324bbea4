@@ -1339,6 +1339,10 @@ export type Database = {
             }
             Returns: undefined
           }
+      apply_order_stock_decrement: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
