@@ -42,8 +42,33 @@ function fmt(n: number | null | undefined) {
   return `৳${Number(n).toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
 }
 
+type UserSetting = {
+  id: string;
+  reseller_product_id: string;
+  custom_price: number | null;
+  custom_description: string | null;
+  custom_image: string | null;
+};
+
+type DisplayRow = ResellerRow & {
+  displayPrice: number | null;
+  displayImage: string | null;
+  displayDescription: string | null;
+  isCustom: boolean;
+  customSettingId: string | null;
+};
+
 function ResellerProductsPage() {
   const [tab, setTab] = useState<string>(ALL);
+
+  const userQ = useQuery({
+    queryKey: ["auth-user"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user;
+    },
+  });
+  const userId = userQ.data?.id ?? null;
 
   const q = useQuery({
     queryKey: ["reseller_products"],
@@ -57,15 +82,45 @@ function ResellerProductsPage() {
     },
   });
 
+  const settingsQ = useQuery({
+    enabled: !!userId,
+    queryKey: ["user_reseller_settings", userId],
+    queryFn: async (): Promise<UserSetting[]> => {
+      const { data, error } = await supabase
+        .from("user_reseller_settings")
+        .select("id, reseller_product_id, custom_price, custom_description, custom_image")
+        .eq("user_id", userId as string);
+      if (error) throw error;
+      return (data ?? []) as UserSetting[];
+    },
+  });
+
+  const merged = useMemo<DisplayRow[]>(() => {
+    const map = new Map<string, UserSetting>();
+    for (const s of settingsQ.data ?? []) map.set(s.reseller_product_id, s);
+    return (q.data ?? []).map((r) => {
+      const s = map.get(r.id);
+      const baseImg = r.image_url ?? r.image;
+      return {
+        ...r,
+        displayPrice: s?.custom_price ?? r.reseller_price,
+        displayImage: s?.custom_image ?? baseImg,
+        displayDescription: s?.custom_description ?? r.description,
+        isCustom: !!s,
+        customSettingId: s?.id ?? null,
+      };
+    });
+  }, [q.data, settingsQ.data]);
+
   const categories = useMemo(() => {
     const set = new Set<string>();
     let hasUncat = false;
-    for (const r of q.data ?? []) {
+    for (const r of merged) {
       if (r.category && r.category.trim()) set.add(r.category.trim());
       else hasUncat = true;
     }
     return { list: Array.from(set).sort((a, b) => a.localeCompare(b)), hasUncat };
-  }, [q.data]);
+  }, [merged]);
 
   const filtered = useMemo(() => {
     const rows = q.data ?? [];
