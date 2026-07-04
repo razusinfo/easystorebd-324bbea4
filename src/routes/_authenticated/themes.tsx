@@ -672,6 +672,24 @@ function LivePreviewModal({
             footer={settings.footer}
           />
 
+        ) : id === "flipmart" ? (
+          <FlipmartTemplate
+            demo={orderedProducts.length === 0}
+            products={orderedProducts.length ? orderedProducts : undefined}
+            logoUrl={logoSigned}
+            accentColor={accent}
+            defaultCategoryName={settings.defaultCategoryName}
+            footer={settings.footer}
+          />
+        ) : id === "freshmart" ? (
+          <FreshmartTemplate
+            demo={orderedProducts.length === 0}
+            products={orderedProducts.length ? orderedProducts : undefined}
+            logoUrl={logoSigned}
+            accentColor={accent}
+            defaultCategoryName={settings.defaultCategoryName}
+            footer={settings.footer}
+          />
         ) : (
           <PlaceholderPreview id={id} accent={accent} />
         )}
