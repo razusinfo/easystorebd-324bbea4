@@ -31,6 +31,7 @@ import {
   useProductVariants, useProductDetails,
   useProductCategoryAssignments,
   uploadProductImage, deleteProductImage,
+  useIsSuperAdmin,
   type ProductRow,
 } from "@/lib/eazystore-data";
 import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categories-data";
