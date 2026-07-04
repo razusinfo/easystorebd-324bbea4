@@ -234,6 +234,8 @@ function Admin() {
               })
             )}
           </div>
+        ) : tab === "requests" ? (
+          <ProductRequestsPanel />
         ) : tab === "stores" ? (
           <div className="space-y-3">
             <div className="flex items-stretch overflow-hidden rounded-2xl border-2 border-border focus-within:border-primary">
