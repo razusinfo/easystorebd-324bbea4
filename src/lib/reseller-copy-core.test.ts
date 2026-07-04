@@ -77,4 +77,78 @@ describe("runCopyResellerProduct (role-based)", () => {
       }),
     ).rejects.toThrow(/does not belong to your store/);
   });
+
+  it("only checked media URLs are copied, and audit metadata records the selection", async () => {
+    const ORIGINAL_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+    const IMG_A = "https://cdn.example.com/a.jpg";
+    const IMG_B = "https://cdn.example.com/b.jpg";
+    const IMG_C = "https://cdn.example.com/c.jpg";
+    const VIDEO = "https://cdn.example.com/demo.mp4";
+
+    const sourceWithOriginal = { ...sourceRow, original_product_id: ORIGINAL_ID };
+    const originalProduct = {
+      category_id: null,
+      warranty: null,
+      product_serial: null,
+      sku: null,
+      brand: null,
+      condition: "new",
+      short_description: null,
+      image_url: IMG_A,
+      video_url: VIDEO,
+      gallery_urls: [IMG_B, IMG_C],
+    };
+
+    const { client: admin, audits, inserts } = createSupabaseHarness({
+      reseller_products: { maybeSingle: { data: sourceWithOriginal, error: null } },
+      stores: { maybeSingle: { data: { id: "store-1" }, error: null } },
+      product_categories: { maybeSingle: { data: { id: INPUT.category_id }, error: null } },
+      products: [
+        { maybeSingle: { data: originalProduct, error: null } }, // fetch original media
+        { maybeSingle: { data: null, error: null } }, // dedup lookup
+        { single: { data: { id: "new-product-id" }, error: null } }, // insert
+      ],
+      reseller_marketplace_audit_logs: {},
+    });
+
+    // Reseller unchecks IMG_B and the VIDEO; keeps IMG_A + IMG_C.
+    const selected = [IMG_A, IMG_C];
+
+    const res = await runCopyResellerProduct(
+      { ...INPUT, selected_media: selected },
+      {
+        userSupabase: userClientWithRole("reseller") as never,
+        adminSupabase: admin as never,
+        userId: "reseller-user",
+      },
+    );
+
+    expect(res).toEqual({ ok: true, product_id: "new-product-id", skipped: false });
+
+    // The products insert must only contain the checked URLs.
+    const productInsert = inserts.find((i) => i.table === "products")!;
+    expect(productInsert.payload.image_url).toBe(IMG_A);
+    expect(productInsert.payload.gallery_urls).toEqual([IMG_C]);
+    expect(productInsert.payload.video_url).toBeNull();
+
+    // Unchecked URLs must NOT appear anywhere in the payload's media fields.
+    const mediaBlob = JSON.stringify([
+      productInsert.payload.image_url,
+      productInsert.payload.gallery_urls,
+      productInsert.payload.video_url,
+    ]);
+    expect(mediaBlob).not.toContain(IMG_B);
+    expect(mediaBlob).not.toContain(VIDEO);
+
+    // Audit metadata records exactly what the reseller requested and what got imported.
+    const successAudit = audits.at(-1)!;
+    expect(successAudit).toMatchObject({
+      success: true,
+      metadata: {
+        requested_media: selected,
+        imported_media: [IMG_A, IMG_C],
+      },
+    });
+  });
 });
+
