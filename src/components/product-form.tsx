@@ -122,6 +122,8 @@ const initialState: FormState = {
 
 export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel, onDuplicate }: Props) {
   const storeQ = useMyStore();
+  const isSuperAdminQ = useIsSuperAdmin();
+  const isSuperAdmin = !!isSuperAdminQ.data;
   const store = storeQ.data;
   const productsQ = useMyProducts(store?.id);
   const categoriesQ = useCategories(store?.id);
