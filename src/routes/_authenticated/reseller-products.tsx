@@ -30,6 +30,8 @@ type ResellerRow = {
   category: string | null;
   source: string | null;
   updated_at: string;
+  price_overridden: boolean | null;
+  image_overridden: boolean | null;
 };
 
 const ALL = "__all__";
