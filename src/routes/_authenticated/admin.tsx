@@ -108,6 +108,7 @@ function Admin() {
               <ArrowLeft className="h-3.5 w-3.5" /> Home
             </Link>
             <div className="flex items-center gap-2">
+              <NotificationBell onOpenRequests={() => setTab("requests")} />
               <Link
                 to="/sms-settings"
                 className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/20"
