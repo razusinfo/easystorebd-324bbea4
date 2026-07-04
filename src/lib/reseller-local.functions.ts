@@ -19,7 +19,11 @@ export const upsertLocalResellerProduct = createServerFn({ method: "POST" })
       category: z.string().nullable().optional(),
     }),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase
+      .rpc("has_role", { _user_id: context.userId, _role: "super_admin" });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Response("Forbidden", { status: 403 });
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("reseller_products")
