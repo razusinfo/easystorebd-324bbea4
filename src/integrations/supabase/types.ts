@@ -938,6 +938,7 @@ export type Database = {
         | "eazystore-basic"
         | "flipmart"
         | "freshmart"
+        | "megamart"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1120,6 +1121,7 @@ export const Constants = {
         "eazystore-basic",
         "flipmart",
         "freshmart",
+        "megamart",
       ],
     },
   },
