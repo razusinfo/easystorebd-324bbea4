@@ -8,8 +8,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 export type PublishedStorefront = {
-  store: Record<string, unknown>;
-  products: Array<Record<string, unknown>>;
+  store: any;
+  products: any[];
   categories: Array<{ id: string; name: string; slug: string | null; parent_id: string | null; sort_order: number | null }>;
 } | null;
 
@@ -19,7 +19,7 @@ export const getPublishedStorefront = createServerFn({ method: "GET" })
     if (!slug || !/^[a-z0-9-]+$/.test(slug)) throw new Error("Invalid slug");
     return { slug, preview: Boolean(data?.preview) };
   })
-  .handler(async ({ data }): Promise<PublishedStorefront> => {
+  .handler(async ({ data }) => {
     const supabase = createClient<Database>(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_PUBLISHABLE_KEY!,
@@ -55,9 +55,6 @@ export const getPublishedStorefront = createServerFn({ method: "GET" })
     if (pErr) throw pErr;
     if (cErr) throw cErr;
 
-    return {
-      store: store as unknown as Record<string, unknown>,
-      products: (products ?? []) as unknown as Array<Record<string, unknown>>,
-      categories: (cats ?? []) as PublishedStorefront extends null ? never : NonNullable<PublishedStorefront>["categories"],
-    };
+    return { store, products: products ?? [], categories: cats ?? [] };
   });
+
