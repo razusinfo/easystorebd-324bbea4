@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import basicThemePreview from "@/assets/basic-theme-preview.png.asset.json";
+import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.json";
 
 
 
