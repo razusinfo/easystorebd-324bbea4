@@ -651,11 +651,13 @@ export type Database = {
           external_id: string
           id: string
           image: string | null
+          image_overridden: boolean
           image_url: string | null
           name: string
           original_product_id: string | null
           payload: Json | null
           price: number
+          price_overridden: boolean
           reseller_price: number | null
           source: string | null
           updated_at: string
@@ -667,11 +669,13 @@ export type Database = {
           external_id: string
           id?: string
           image?: string | null
+          image_overridden?: boolean
           image_url?: string | null
           name: string
           original_product_id?: string | null
           payload?: Json | null
           price?: number
+          price_overridden?: boolean
           reseller_price?: number | null
           source?: string | null
           updated_at?: string
@@ -683,11 +687,13 @@ export type Database = {
           external_id?: string
           id?: string
           image?: string | null
+          image_overridden?: boolean
           image_url?: string | null
           name?: string
           original_product_id?: string | null
           payload?: Json | null
           price?: number
+          price_overridden?: boolean
           reseller_price?: number | null
           source?: string | null
           updated_at?: string
