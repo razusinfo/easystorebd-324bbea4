@@ -572,11 +572,14 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{form.imageUrl}</p>
+                      <p className="truncate text-sm font-medium">
+                        Primary image · {totalImages} of {MAX_IMAGES}
+                      </p>
                       <p className="mt-0.5 text-xs text-foreground/60">
                         {form.imageUrl.includes("/product-images/")
-                          ? "Uploaded to storage"
+                          ? "Saved to storage"
                           : "External URL"}
+                        {uploadProgress ? ` · Uploading ${uploadProgress.done}/${uploadProgress.total}…` : ""}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button
