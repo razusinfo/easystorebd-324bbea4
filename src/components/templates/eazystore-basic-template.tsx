@@ -128,10 +128,28 @@ export function EazyStoreBasicTemplate({
   const storeId = store?.id;
   const useDemo = demo;
 
-  // Filter real products by category + search text.
-  const catIdByName = useMemo(() => {
-    const m: Record<string, string> = {};
-    (categories ?? []).forEach((c) => { m[c.name] = c.id; });
+  // Filter real products by category + search text. When a parent is selected,
+  // include every descendant category so top-level filters aren't empty.
+  const matchIdsByName = useMemo(() => {
+    const cats = categories ?? [];
+    const byParent = new Map<string, string[]>();
+    cats.forEach((c) => {
+      if (c.parent_id) {
+        const arr = byParent.get(c.parent_id) ?? [];
+        arr.push(c.id);
+        byParent.set(c.parent_id, arr);
+      }
+    });
+    const collect = (id: string, acc: Set<string>) => {
+      acc.add(id);
+      (byParent.get(id) ?? []).forEach((cid) => collect(cid, acc));
+    };
+    const m: Record<string, string[]> = {};
+    cats.forEach((c) => {
+      const s = new Set<string>();
+      collect(c.id, s);
+      m[c.name] = Array.from(s);
+    });
     return m;
   }, [categories]);
 
@@ -140,13 +158,13 @@ export function EazyStoreBasicTemplate({
     const q = search.trim().toLowerCase();
     return (products ?? []).filter((p) => {
       if (activeCat !== "All Products") {
-        const wantId = catIdByName[activeCat];
-        if (!wantId || p.category_id !== wantId) return false;
+        const wantIds = matchIdsByName[activeCat];
+        if (!wantIds || !p.category_id || !wantIds.includes(p.category_id)) return false;
       }
       if (q && !p.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [products, activeCat, search, catIdByName, useDemo]);
+  }, [products, activeCat, search, matchIdsByName, useDemo]);
 
   const gridProducts = useDemo
     ? DEMO_PRODUCTS.map((p) => ({ id: null as string | null, ...p, imageUrl: null as string | null }))
