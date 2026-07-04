@@ -111,7 +111,7 @@ export async function runCopyResellerProduct(
     if (price == null || !Number.isFinite(Number(price)) || Number(price) < 0) {
       missing.push("price");
     }
-    const stock = 0;
+    const stock = Number.isInteger(source.stock) ? Number(source.stock) : 0;
     if (!Number.isInteger(stock) || stock < 0) missing.push("quantity");
     const chosenCategoryId = input.category_id ?? original?.category_id ?? null;
     if (!chosenCategoryId && !source.category) missing.push("category");
