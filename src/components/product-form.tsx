@@ -171,6 +171,15 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       warranty: src.warranty ?? "",
       initialSoldCount: src.initial_sold_count != null ? String(src.initial_sold_count) : "0",
       useDefaultDelivery: src.use_default_delivery ?? true,
+      defaultDeliveryCharge: src.default_delivery_charge != null ? String(src.default_delivery_charge) : "0",
+      specificDeliveryCharges: Array.isArray(src.specific_delivery_charges)
+        ? src.specific_delivery_charges.map((s) => ({
+            id: crypto.randomUUID(),
+            zone: s.zone ?? "",
+            charge: s.charge != null ? String(s.charge) : "",
+          }))
+        : [],
+
       variants: (variantsQ.data ?? []).map((v) => ({ id: v.id, name: v.name, value: v.value })),
       details: (detailsQ.data ?? []).map((d) => ({ id: d.id, key: d.key, value: d.value })),
       imageUrl: src.image_url ?? "",
