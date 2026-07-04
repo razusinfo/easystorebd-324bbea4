@@ -633,7 +633,7 @@ function ProductRow({
 }: {
   items: Item[];
   onAdd: (p: Item) => void;
-  slug?: string;
+  slug?: string | null;
   search: string;
   activeCat: string;
 }) {
@@ -665,7 +665,7 @@ function MiniGroup({
   title: string;
   items: Item[];
   onAdd: (p: Item) => void;
-  slug?: string;
+  slug?: string | null;
 }) {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
