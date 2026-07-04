@@ -381,6 +381,23 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
   const loading = storeQ.isLoading || (mode === "edit" && productsQ.isLoading);
 
+  // Category picker modal
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const flatCategories = useMemo(() => flattenCategories(catTree), [catTree]);
+  const categoryLookup = useMemo(() => {
+    const m = new Map<string, { name: string; depth: number }>();
+    flatCategories.forEach((c) => m.set(c.id, { name: c.name, depth: c.depth }));
+    return m;
+  }, [flatCategories]);
+  const toggleCategoryId = (id: string) =>
+    set(
+      "categoryIds",
+      form.categoryIds.includes(id)
+        ? form.categoryIds.filter((x) => x !== id)
+        : [...form.categoryIds, id],
+    );
+
+
 
   return (
     <div className="min-h-screen bg-muted/30">
