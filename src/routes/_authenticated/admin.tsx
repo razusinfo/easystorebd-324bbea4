@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog, ScrollText, Plus, Trash2, Palette,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog, ScrollText, Plus, Trash2, Palette, PackagePlus,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct, useAdminUsers,
@@ -10,6 +12,7 @@ import {
   type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
 import { UICustomizer } from "@/components/admin/ui-customizer";
+import { approveProductRequest } from "@/lib/product-requests.functions";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
