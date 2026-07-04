@@ -178,18 +178,30 @@ function ResellerProductsPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => {
             const img = p.displayImage;
+            const outOfStock = (p.stock ?? 0) <= 0;
             const shareUrl =
               typeof window !== "undefined"
                 ? `${window.location.origin}/r/${p.external_id}`
                 : `/r/${p.external_id}`;
             return (
-              <Card key={p.id} className="overflow-hidden">
-                <div className="aspect-square bg-muted">
+              <Card
+                key={p.id}
+                className={`overflow-hidden ${outOfStock ? "opacity-60 grayscale" : ""}`}
+                aria-disabled={outOfStock || undefined}
+              >
+                <div className="relative aspect-square bg-muted">
                   {img ? (
                     <img src={img} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="grid h-full w-full place-items-center text-muted-foreground">
                       <Package className="h-8 w-8" />
+                    </div>
+                  )}
+                  {outOfStock && (
+                    <div className="pointer-events-none absolute inset-0 flex items-start justify-center bg-black/30 pt-3">
+                      <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
+                        Out of Stock
+                      </span>
                     </div>
                   )}
                 </div>
@@ -217,10 +229,13 @@ function ResellerProductsPage() {
                     {p.isCustom && (
                       <Badge className="text-[10px]">My shop</Badge>
                     )}
+                    {outOfStock && (
+                      <Badge variant="destructive" className="text-[10px]">Out of Stock</Badge>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
-                    {storeId && <AddToMyShopButton row={p} storeId={storeId} />}
+                    {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {userId && <EditResellerButton row={p} userId={userId} />}
                   </div>
 
