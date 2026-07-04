@@ -640,14 +640,50 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
           </div>
 
           <div className="space-y-2">
-            <Label>মিডিয়া নির্বাচন করুন / Select Media to Import</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label>মিডিয়া নির্বাচন করুন / Select Media to Import</Label>
+              {!mediaQ.isLoading && media.length > 0 && (
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setExcluded(new Set())}
+                    disabled={excluded.size === 0}
+                  >
+                    সব নির্বাচন / Select all
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setExcluded(new Set(media.map((m) => m.url)))}
+                    disabled={selectedMedia.length === 0}
+                  >
+                    সব বাদ / Clear
+                  </Button>
+                </div>
+              )}
+            </div>
             {mediaQ.isLoading ? (
-              <p className="text-[11px] text-muted-foreground">লোড হচ্ছে… / Loading…</p>
+              <div className="flex items-center gap-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                মিডিয়া লোড হচ্ছে… / Loading media…
+              </div>
             ) : media.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground">
-                কোনো মিডিয়া পাওয়া যায়নি / No media available for this product
-              </p>
+              <div className="flex flex-col items-center gap-1 rounded-md border border-dashed p-6 text-center">
+                <Package className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-medium">
+                  কোনো ছবি বা ভিডিও নেই / No images or videos available
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  এই পণ্যটির সাথে কোনো মিডিয়া কপি করার জন্য নেই।
+                </p>
+              </div>
             ) : (
+
               <>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {media.map((m) => {

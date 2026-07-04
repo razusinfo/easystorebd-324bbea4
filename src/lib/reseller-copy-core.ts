@@ -39,7 +39,12 @@ export async function runCopyResellerProduct(
   const heldRoles = (roles ?? []).map((r: { role: string }) => r.role);
   const actorRole = heldRoles[0] ?? "unknown";
 
-  const logAttempt = async (success: boolean, productId: string, error?: string) => {
+  const logAttempt = async (
+    success: boolean,
+    productId: string,
+    error?: string,
+    metadata?: Record<string, unknown>,
+  ) => {
     await adminSupabase.from("reseller_marketplace_audit_logs").insert({
       actor_id: userId,
       actor_role: actorRole,
@@ -47,8 +52,10 @@ export async function runCopyResellerProduct(
       product_id: productId,
       success,
       error: error ?? null,
+      metadata: metadata ?? {},
     });
   };
+
 
   try {
     const { data: source, error: srcErr } = await adminSupabase
@@ -189,7 +196,18 @@ export async function runCopyResellerProduct(
       .single();
     if (insErr) throw new Error(insErr.message);
 
-    await logAttempt(true, source.id);
+    const importedMedia = [
+      ...(finalPrimary ? [finalPrimary] : []),
+      ...finalGallery,
+      ...(finalVideo ? [finalVideo] : []),
+    ];
+    await logAttempt(true, source.id, undefined, {
+      requested_media: input.selected_media ?? null,
+      imported_media: importedMedia,
+      category_id: chosenCategoryId,
+      selling_price: sellingPrice,
+    });
+
     return { ok: true, product_id: inserted.id, skipped: false };
   } catch (err) {
     if (err instanceof Response) throw err;
