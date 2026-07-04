@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import basicThemePreview from "@/assets/basic-theme-preview.png.asset.json";
+import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.json";
 
 
 
@@ -706,13 +707,23 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
       </div>
     );
   }
+  if (id === "eazystore-basic") {
+    return (
+      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+        <img
+          src={eazystoreBasicPreview.url}
+          alt="EazyStore Basic preview"
+          className="h-full w-full object-cover object-top"
+        />
+      </div>
+    );
+  }
 
   const FULL_W = 1280;
   const FULL_H = 1000;
 
   let inner: React.ReactNode = null;
   if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
-  else if (id === "eazystore-basic") inner = <EazyStoreBasicTemplate demo accentColor={accent} />;
   else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
   else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
   else if (id === "techgrid") inner = <TechGridPreview accent={accent} />;
