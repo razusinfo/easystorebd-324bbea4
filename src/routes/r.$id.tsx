@@ -78,7 +78,60 @@ function ResellerProductPage() {
           <span className="text-3xl font-black text-primary">{fmt(p.reseller_price)}</span>
           <span className="text-sm text-muted-foreground line-through">{fmt(p.price)}</span>
         </div>
+        <EmbedCodeButton id={p.external_id || p.id} name={p.name} />
       </div>
     </main>
+  );
+}
+
+function EmbedCodeButton({ id, name }: { id: string; name: string }) {
+  const [copied, setCopied] = useState<string | null>(null);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const url = `${origin}/r/${id}`;
+  const iframe = `<iframe src="${url}" width="100%" height="620" style="border:0;max-width:480px" loading="lazy" title="${name.replace(/"/g, "&quot;")}"></iframe>`;
+  const script = `<div data-reseller-product="${id}"></div>\n<script src="${origin}/embed.js" async></script>`;
+
+  const copy = async (kind: string, text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(kind);
+    toast.success("Embed code copied");
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="mt-4 w-fit" variant="outline">
+          <Code2 className="mr-2 h-4 w-4" /> Generate Embed Code
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Embed this product</DialogTitle>
+        </DialogHeader>
+        <Tabs defaultValue="iframe">
+          <TabsList>
+            <TabsTrigger value="iframe">Iframe</TabsTrigger>
+            <TabsTrigger value="script">JavaScript</TabsTrigger>
+          </TabsList>
+          <TabsContent value="iframe" className="space-y-2">
+            <p className="text-xs text-muted-foreground">Paste this into any HTML page.</p>
+            <pre className="max-h-64 overflow-auto rounded-md bg-muted p-3 text-xs">{iframe}</pre>
+            <Button size="sm" onClick={() => copy("iframe", iframe)}>
+              {copied === "iframe" ? <Check className="mr-2 h-4 w-4" /> : <Code2 className="mr-2 h-4 w-4" />}
+              Copy iframe
+            </Button>
+          </TabsContent>
+          <TabsContent value="script" className="space-y-2">
+            <p className="text-xs text-muted-foreground">Drop-in JavaScript snippet.</p>
+            <pre className="max-h-64 overflow-auto rounded-md bg-muted p-3 text-xs">{script}</pre>
+            <Button size="sm" onClick={() => copy("script", script)}>
+              {copied === "script" ? <Check className="mr-2 h-4 w-4" /> : <Code2 className="mr-2 h-4 w-4" />}
+              Copy script
+            </Button>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 }
