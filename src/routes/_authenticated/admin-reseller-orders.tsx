@@ -123,6 +123,7 @@ function AdminResellerOrdersPage() {
           </TableHeader>
           <TableBody>
             {q.data?.length ? q.data.map((r) => (
+              <>
               <TableRow key={r.id}>
                 <TableCell>
                   <div className="font-medium">{r.reseller?.full_name ?? "—"}</div>
@@ -158,6 +159,19 @@ function AdminResellerOrdersPage() {
                   {new Date(r.created_at).toLocaleString()}
                 </TableCell>
               </TableRow>
+              {r.notes && (
+                <TableRow key={`${r.id}-notes`} className="bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-50 dark:hover:bg-amber-950/30">
+                  <TableCell colSpan={8} className="py-2">
+                    <div className="flex items-start gap-2 text-sm">
+                      <span className="rounded bg-amber-200 dark:bg-amber-800 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-900 dark:text-amber-100">
+                        Reseller note
+                      </span>
+                      <p className="whitespace-pre-wrap text-amber-900 dark:text-amber-100">{r.notes}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+              </>
             )) : (
               <TableRow>
                 <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
