@@ -18,7 +18,12 @@ import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.js
 
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => ({ meta: [{ title: "Onboarding — EazyStore" }] }),
+  head: () => ({
+    meta: [{ title: "Onboarding — EazyStore" }],
+    links: [
+      { rel: "preload", as: "image", href: eazystoreBasicPreview.url, fetchpriority: "low" },
+    ],
+  }),
   component: Onboarding,
 });
 

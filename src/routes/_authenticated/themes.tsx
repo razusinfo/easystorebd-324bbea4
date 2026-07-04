@@ -24,9 +24,33 @@ import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.js
 
 
 export const Route = createFileRoute("/_authenticated/themes")({
-  head: () => ({ meta: [{ title: "Themes — EazyStore" }] }),
+  head: () => ({
+    meta: [{ title: "Themes — EazyStore" }],
+    links: [
+      { rel: "preload", as: "image", href: basicThemePreview.url, fetchpriority: "low" },
+      { rel: "preload", as: "image", href: eazystoreBasicPreview.url, fetchpriority: "low" },
+    ],
+  }),
   component: ThemesPage,
 });
+
+const PREVIEW_IMAGE_URLS = [basicThemePreview.url, eazystoreBasicPreview.url];
+const warmedPreviews = new Set<string>();
+function warmPreviewImages() {
+  if (typeof window === "undefined") return;
+  const run = () => {
+    for (const url of PREVIEW_IMAGE_URLS) {
+      if (warmedPreviews.has(url)) continue;
+      warmedPreviews.add(url);
+      const img = new Image();
+      img.decoding = "async";
+      img.src = url;
+    }
+  };
+  const ric = (window as any).requestIdleCallback as ((cb: () => void) => number) | undefined;
+  if (ric) ric(run);
+  else window.setTimeout(run, 200);
+}
 
 function ThemesPage() {
   const storeQ = useMyStore();
@@ -34,6 +58,7 @@ function ThemesPage() {
   const activeId = storeQ.data?.template as TemplateId | undefined;
   const [previewing, setPreviewing] = useState<TemplateId | null>(null);
   const [customizing, setCustomizing] = useState<TemplateId | null>(null);
+  useEffect(() => { warmPreviewImages(); }, []);
 
   const handleActivate = async (id: TemplateId) => {
     if (!storeQ.data) return;
