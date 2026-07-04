@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog, ScrollText, Plus, Trash2, Palette, PackagePlus,
+  ShieldCheck, Users, ClipboardList, Check, X, ArrowLeft, Search, Loader2, LogOut, Ban, MessageSquare, UserCog, ScrollText, Plus, Trash2, Palette, PackagePlus, Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -108,6 +108,7 @@ function Admin() {
               <ArrowLeft className="h-3.5 w-3.5" /> Home
             </Link>
             <div className="flex items-center gap-2">
+              <NotificationBell onOpenRequests={() => setTab("requests")} />
               <Link
                 to="/sms-settings"
                 className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/20"
@@ -696,6 +697,110 @@ function RequestCard({ row, readOnly }: { row: ProductRequest; readOnly?: boolea
       )}
       {readOnly && row.admin_notes && (
         <div className="mt-1 text-xs text-muted-foreground">Note: {row.admin_notes}</div>
+      )}
+    </div>
+  );
+}
+
+// -------- Notification Bell --------
+
+type AdminNotification = {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  related_id: string | null;
+  read_at: string | null;
+  created_at: string;
+};
+
+function NotificationBell({ onOpenRequests }: { onOpenRequests: () => void }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+
+  const q = useQuery({
+    queryKey: ["admin-notifications"],
+    refetchInterval: 30_000,
+    queryFn: async (): Promise<AdminNotification[]> => {
+      const { data, error } = await supabase
+        .from("admin_notifications")
+        .select("id, type, title, body, link, related_id, read_at, created_at")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data ?? []) as AdminNotification[];
+    },
+  });
+
+  const rows = q.data ?? [];
+  const unread = rows.filter((r) => !r.read_at).length;
+
+  async function markAllRead() {
+    const ids = rows.filter((r) => !r.read_at).map((r) => r.id);
+    if (ids.length === 0) return;
+    await supabase
+      .from("admin_notifications")
+      .update({ read_at: new Date().toISOString() })
+      .in("id", ids);
+    qc.invalidateQueries({ queryKey: ["admin-notifications"] });
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="relative inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur hover:bg-white/20"
+        aria-label="Notifications"
+      >
+        <Bell className="h-3.5 w-3.5" />
+        {unread > 0 && (
+          <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xl">
+          <div className="flex items-center justify-between border-b border-border px-3 py-2">
+            <div className="text-sm font-semibold">Notifications</div>
+            {unread > 0 && (
+              <button
+                onClick={markAllRead}
+                className="text-[11px] font-semibold text-primary hover:underline"
+              >
+                Mark all read
+              </button>
+            )}
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {rows.length === 0 ? (
+              <div className="p-4 text-center text-xs text-muted-foreground">No notifications yet.</div>
+            ) : (
+              rows.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => {
+                    if (n.type === "product_request_submitted") onOpenRequests();
+                    setOpen(false);
+                  }}
+                  className={`block w-full border-b border-border/60 px-3 py-2 text-left last:border-b-0 hover:bg-muted ${
+                    !n.read_at ? "bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{n.title}</span>
+                    {!n.read_at && <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />}
+                  </div>
+                  {n.body && <div className="mt-0.5 text-xs text-muted-foreground">{n.body}</div>}
+                  <div className="mt-0.5 text-[10px] text-muted-foreground">
+                    {new Date(n.created_at).toLocaleString()}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -94,6 +94,19 @@ export const submitProductRequest = createServerFn({ method: "POST" })
       image_count: data.images.length,
     });
 
+    // Fire-and-forget: in-app bell + admin emails.
+    try {
+      const { notifyRequestSubmitted } = await import("./product-request-emails.server");
+      await notifyRequestSubmitted(supabaseAdmin as never, {
+        request_id: inserted.id,
+        reseller_id: context.userId,
+        name: data.name,
+        price: data.price,
+      });
+    } catch (e) {
+      console.warn("[product-request notify submitted]", (e as Error).message);
+    }
+
     return { ok: true as const, id: inserted.id };
   });
 
@@ -193,6 +206,19 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       image_count: images.length,
       published_reseller_product_id: inserted.id,
     });
+
+    // Fire-and-forget success email to the reseller.
+    try {
+      const { notifyRequestApproved } = await import("./product-request-emails.server");
+      await notifyRequestApproved(supabaseAdmin as never, {
+        request_id: req.id,
+        reseller_id: req.requested_by,
+        name: req.name,
+        reseller_price: data.reseller_price,
+      });
+    } catch (e) {
+      console.warn("[product-request notify approved]", (e as Error).message);
+    }
 
     return { ok: true as const, reseller_product_id: inserted.id };
   });
