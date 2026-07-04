@@ -12,7 +12,7 @@ import {
   type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
 import { UICustomizer } from "@/components/admin/ui-customizer";
-import { approveProductRequest } from "@/lib/product-requests.functions";
+import { approveProductRequest, rejectProductRequest } from "@/lib/product-requests.functions";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
