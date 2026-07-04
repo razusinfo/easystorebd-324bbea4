@@ -42,8 +42,33 @@ function fmt(n: number | null | undefined) {
   return `৳${Number(n).toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
 }
 
+type UserSetting = {
+  id: string;
+  reseller_product_id: string;
+  custom_price: number | null;
+  custom_description: string | null;
+  custom_image: string | null;
+};
+
+type DisplayRow = ResellerRow & {
+  displayPrice: number | null;
+  displayImage: string | null;
+  displayDescription: string | null;
+  isCustom: boolean;
+  customSettingId: string | null;
+};
+
 function ResellerProductsPage() {
   const [tab, setTab] = useState<string>(ALL);
+
+  const userQ = useQuery({
+    queryKey: ["auth-user"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user;
+    },
+  });
+  const userId = userQ.data?.id ?? null;
 
   const q = useQuery({
     queryKey: ["reseller_products"],
@@ -57,22 +82,51 @@ function ResellerProductsPage() {
     },
   });
 
+  const settingsQ = useQuery({
+    enabled: !!userId,
+    queryKey: ["user_reseller_settings", userId],
+    queryFn: async (): Promise<UserSetting[]> => {
+      const { data, error } = await supabase
+        .from("user_reseller_settings")
+        .select("id, reseller_product_id, custom_price, custom_description, custom_image")
+        .eq("user_id", userId as string);
+      if (error) throw error;
+      return (data ?? []) as UserSetting[];
+    },
+  });
+
+  const merged = useMemo<DisplayRow[]>(() => {
+    const map = new Map<string, UserSetting>();
+    for (const s of settingsQ.data ?? []) map.set(s.reseller_product_id, s);
+    return (q.data ?? []).map((r) => {
+      const s = map.get(r.id);
+      const baseImg = r.image_url ?? r.image;
+      return {
+        ...r,
+        displayPrice: s?.custom_price ?? r.reseller_price,
+        displayImage: s?.custom_image ?? baseImg,
+        displayDescription: s?.custom_description ?? r.description,
+        isCustom: !!s,
+        customSettingId: s?.id ?? null,
+      };
+    });
+  }, [q.data, settingsQ.data]);
+
   const categories = useMemo(() => {
     const set = new Set<string>();
     let hasUncat = false;
-    for (const r of q.data ?? []) {
+    for (const r of merged) {
       if (r.category && r.category.trim()) set.add(r.category.trim());
       else hasUncat = true;
     }
     return { list: Array.from(set).sort((a, b) => a.localeCompare(b)), hasUncat };
-  }, [q.data]);
+  }, [merged]);
 
   const filtered = useMemo(() => {
-    const rows = q.data ?? [];
-    if (tab === ALL) return rows;
-    if (tab === UNCAT) return rows.filter((r) => !r.category || !r.category.trim());
-    return rows.filter((r) => r.category === tab);
-  }, [q.data, tab]);
+    if (tab === ALL) return merged;
+    if (tab === UNCAT) return merged.filter((r) => !r.category || !r.category.trim());
+    return merged.filter((r) => r.category === tab);
+  }, [merged, tab]);
 
   return (
     <div className="p-4 sm:p-6">
@@ -81,6 +135,7 @@ function ResellerProductsPage() {
           <h1 className="text-2xl font-bold">Reseller Products</h1>
           <p className="text-sm text-muted-foreground">
             Products marked "Add to Reseller Marketplace" or synced from your Product Sales site.
+            Your edits stay in your shop only.
           </p>
         </div>
         {q.data && <Badge variant="secondary">{q.data.length} items</Badge>}
@@ -110,14 +165,11 @@ function ResellerProductsPage() {
         <Card className="flex flex-col items-center justify-center gap-2 p-10 text-center">
           <Package className="h-8 w-8 text-muted-foreground" />
           <p className="font-medium">No reseller products in this category</p>
-          <p className="max-w-md text-sm text-muted-foreground">
-            Enable "Add to Reseller Marketplace" on a product, or push one to <code>/api/public/reseller-sync</code>.
-          </p>
         </Card>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => {
-            const img = p.image_url ?? p.image;
+            const img = p.displayImage;
             const shareUrl =
               typeof window !== "undefined"
                 ? `${window.location.origin}/r/${p.external_id}`
@@ -135,30 +187,32 @@ function ResellerProductsPage() {
                 </div>
                 <div className="space-y-2 p-3">
                   <h3 className="line-clamp-2 text-sm font-semibold">{p.name}</h3>
+                  {p.displayDescription && (
+                    <p className="line-clamp-2 text-[11px] text-muted-foreground">{p.displayDescription}</p>
+                  )}
                   <div className="flex items-baseline justify-between gap-2">
                     <div>
                       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Original</p>
                       <p className="text-sm font-medium line-through opacity-70">{fmt(p.price)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Reseller</p>
-                      <p className="text-base font-bold text-primary">{fmt(p.reseller_price)}</p>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {p.isCustom ? "Your price" : "Reseller"}
+                      </p>
+                      <p className="text-base font-bold text-primary">{fmt(p.displayPrice)}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {p.category && (
                       <Badge variant="secondary" className="text-[10px]">{p.category}</Badge>
                     )}
-                    {p.source && (
-                      <Badge variant="outline" className="text-[10px]">{p.source}</Badge>
+                    {p.isCustom && (
+                      <Badge className="text-[10px]">My shop</Badge>
                     )}
                   </div>
-                  {(p.price_overridden || p.image_overridden) && (
-                    <p className="text-[10px] text-muted-foreground">Manually overridden</p>
-                  )}
                   <div className="flex gap-2">
                     <CopyLinkButton url={shareUrl} />
-                    <EditResellerButton row={p} />
+                    {userId && <EditResellerButton row={p} userId={userId} />}
                   </div>
                 </div>
               </Card>
@@ -196,61 +250,68 @@ function CopyLinkButton({ url }: { url: string }) {
   );
 }
 
-function EditResellerButton({ row }: { row: ResellerRow }) {
+function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [price, setPrice] = useState<string>(row.reseller_price != null ? String(row.reseller_price) : "");
-  const [image, setImage] = useState<string>(row.image_url ?? row.image ?? "");
+  const [price, setPrice] = useState<string>(row.displayPrice != null ? String(row.displayPrice) : "");
+  const [image, setImage] = useState<string>(row.displayImage ?? "");
+  const [desc, setDesc] = useState<string>(row.displayDescription ?? "");
 
   useEffect(() => {
     if (open) {
-      setPrice(row.reseller_price != null ? String(row.reseller_price) : "");
-      setImage(row.image_url ?? row.image ?? "");
+      setPrice(row.displayPrice != null ? String(row.displayPrice) : "");
+      setImage(row.displayImage ?? "");
+      setDesc(row.displayDescription ?? "");
     }
   }, [open, row]);
 
-  const mut = useMutation({
+  const settingsKey = ["user_reseller_settings", userId];
+
+  const save = useMutation({
     mutationFn: async () => {
-      const trimmedImg = image.trim();
       const parsedPrice = price.trim() === "" ? null : Number(price);
       if (parsedPrice != null && !Number.isFinite(parsedPrice)) throw new Error("Invalid price");
+      const trimmedImg = image.trim() || null;
+      const trimmedDesc = desc.trim() || null;
 
-      const origPrice = row.reseller_price ?? null;
-      const origImg = row.image_url ?? row.image ?? "";
-      const priceChanged = parsedPrice !== origPrice;
-      const imageChanged = trimmedImg !== origImg;
+      // Only store fields that differ from the base reseller_products row.
+      const basePrice = row.reseller_price ?? null;
+      const baseImg = row.image_url ?? row.image ?? null;
+      const baseDesc = row.description ?? null;
 
       const payload = {
-        reseller_price: parsedPrice,
-        image: trimmedImg || null,
-        image_url: trimmedImg || null,
-        updated_at: new Date().toISOString(),
-        ...(priceChanged ? { price_overridden: true } : {}),
-        ...(imageChanged ? { image_overridden: true } : {}),
+        user_id: userId,
+        reseller_product_id: row.id,
+        custom_price: parsedPrice !== basePrice ? parsedPrice : null,
+        custom_image: trimmedImg !== baseImg ? trimmedImg : null,
+        custom_description: trimmedDesc !== baseDesc ? trimmedDesc : null,
       };
 
-      const { error } = await supabase.from("reseller_products").update(payload).eq("id", row.id);
+      const { error } = await supabase
+        .from("user_reseller_settings")
+        .upsert(payload, { onConflict: "user_id,reseller_product_id" });
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Reseller product updated");
-      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      toast.success("Saved to your shop");
+      qc.invalidateQueries({ queryKey: settingsKey });
       setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const resetOverrides = useMutation({
+  const reset = useMutation({
     mutationFn: async () => {
+      if (!row.customSettingId) return;
       const { error } = await supabase
-        .from("reseller_products")
-        .update({ price_overridden: false, image_overridden: false })
-        .eq("id", row.id);
+        .from("user_reseller_settings")
+        .delete()
+        .eq("id", row.customSettingId);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Overrides cleared — will re-sync from main product");
-      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      toast.success("Reverted to default reseller data");
+      qc.invalidateQueries({ queryKey: settingsKey });
       setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -269,11 +330,11 @@ function EditResellerButton({ row }: { row: ResellerRow }) {
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit reseller product</DialogTitle>
+          <DialogTitle>Customize for your shop</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1">
-            <Label htmlFor="rp-price">Reseller Price</Label>
+            <Label htmlFor="rp-price">Your Price</Label>
             <Input
               id="rp-price"
               type="number"
@@ -283,11 +344,22 @@ function EditResellerButton({ row }: { row: ResellerRow }) {
               placeholder="0.00"
             />
             <p className="text-[11px] text-muted-foreground">
-              Original: ৳{Number(row.price).toLocaleString()} — manual edits won't be overwritten by sync.
+              Default reseller price: ৳{Number(row.reseller_price ?? 0).toLocaleString()}
             </p>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="rp-image">Product Image URL</Label>
+            <Label htmlFor="rp-desc">Your Description</Label>
+            <textarea
+              id="rp-desc"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              rows={3}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              placeholder={row.description ?? "Describe this product for your shop"}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="rp-image">Your Image URL</Label>
             <Input
               id="rp-image"
               type="url"
@@ -299,23 +371,26 @@ function EditResellerButton({ row }: { row: ResellerRow }) {
               <img src={image} alt="preview" className="mt-2 h-24 w-24 rounded-md object-cover" />
             )}
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            Only you see these values. The original product and shared reseller catalog are not modified.
+          </p>
         </div>
         <DialogFooter className="gap-2 sm:justify-between">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            disabled={resetOverrides.isPending || (!row.price_overridden && !row.image_overridden)}
-            onClick={() => resetOverrides.mutate()}
+            disabled={reset.isPending || !row.isCustom}
+            onClick={() => reset.mutate()}
           >
-            Reset to synced values
+            Revert to default
           </Button>
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="button" onClick={() => mut.mutate()} disabled={mut.isPending}>
-              {mut.isPending ? "Saving…" : "Save"}
+            <Button type="button" onClick={() => save.mutate()} disabled={save.isPending}>
+              {save.isPending ? "Saving…" : "Save"}
             </Button>
           </div>
         </DialogFooter>
@@ -323,5 +398,6 @@ function EditResellerButton({ row }: { row: ResellerRow }) {
     </Dialog>
   );
 }
+
 
 
