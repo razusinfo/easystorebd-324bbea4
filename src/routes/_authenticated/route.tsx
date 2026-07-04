@@ -56,6 +56,7 @@ function AuthenticatedLayout() {
           </main>
         </SidebarInset>
       </div>
+      <SupportChatWidget />
     </SidebarProvider>
   );
 }
