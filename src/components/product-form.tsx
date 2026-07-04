@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bold, Check, ChevronDown, ChevronUp, Copy, Eraser, ImageIcon, Italic, Link2,
-  List, ListOrdered, Loader2, Quote, Trash2, Underline, Upload, Video, X,
+  List, ListOrdered, Loader2, Plus, Quote, Trash2, Underline, Upload, Video, X,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
