@@ -70,47 +70,40 @@ function ResellerProductsPage() {
   });
   const userId = userQ.data?.id ?? null;
 
+  // LEFT JOIN reseller_products ← user_reseller_settings (only current user's row).
+  // PostgREST embeds are LEFT JOINs by default; the .eq filter on the embedded
+  // resource limits which child rows attach without dropping parents.
   const q = useQuery({
-    queryKey: ["reseller_products"],
-    queryFn: async (): Promise<ResellerRow[]> => {
+    enabled: !!userId,
+    queryKey: ["reseller_products", userId],
+    queryFn: async (): Promise<DisplayRow[]> => {
       const { data, error } = await supabase
         .from("reseller_products")
-        .select("id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden")
+        .select(
+          "id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden, user_reseller_settings(id, custom_price, custom_description, custom_image, user_id)",
+        )
+        .eq("user_reseller_settings.user_id", userId as string)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as ResellerRow[];
+
+      return ((data ?? []) as unknown as Array<
+        ResellerRow & { user_reseller_settings: UserSetting[] | null }
+      >).map((r) => {
+        const s = r.user_reseller_settings?.[0] ?? null;
+        const baseImg = r.image_url ?? r.image;
+        return {
+          ...r,
+          displayPrice: s?.custom_price ?? r.reseller_price,
+          displayImage: s?.custom_image ?? baseImg,
+          displayDescription: s?.custom_description ?? r.description,
+          isCustom: !!s,
+          customSettingId: s?.id ?? null,
+        };
+      });
     },
   });
 
-  const settingsQ = useQuery({
-    enabled: !!userId,
-    queryKey: ["user_reseller_settings", userId],
-    queryFn: async (): Promise<UserSetting[]> => {
-      const { data, error } = await supabase
-        .from("user_reseller_settings")
-        .select("id, reseller_product_id, custom_price, custom_description, custom_image")
-        .eq("user_id", userId as string);
-      if (error) throw error;
-      return (data ?? []) as UserSetting[];
-    },
-  });
-
-  const merged = useMemo<DisplayRow[]>(() => {
-    const map = new Map<string, UserSetting>();
-    for (const s of settingsQ.data ?? []) map.set(s.reseller_product_id, s);
-    return (q.data ?? []).map((r) => {
-      const s = map.get(r.id);
-      const baseImg = r.image_url ?? r.image;
-      return {
-        ...r,
-        displayPrice: s?.custom_price ?? r.reseller_price,
-        displayImage: s?.custom_image ?? baseImg,
-        displayDescription: s?.custom_description ?? r.description,
-        isCustom: !!s,
-        customSettingId: s?.id ?? null,
-      };
-    });
-  }, [q.data, settingsQ.data]);
+  const merged = q.data ?? [];
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -265,7 +258,7 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
     }
   }, [open, row]);
 
-  const settingsKey = ["user_reseller_settings", userId];
+  const settingsKey = ["reseller_products", userId];
 
   const save = useMutation({
     mutationFn: async () => {
