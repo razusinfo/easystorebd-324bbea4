@@ -32,6 +32,7 @@ export type HarnessConfig = Record<string, TableConfig | TableConfig[]>;
 export function createSupabaseHarness(config: HarnessConfig) {
   const cursors: Record<string, number> = {};
   const inserts: Array<{ table: string; payload: any }> = [];
+  const updates: Array<{ table: string; payload: any }> = [];
   const audits: any[] = [];
 
   function nextFor(table: string): TableConfig {
@@ -57,14 +58,18 @@ export function createSupabaseHarness(config: HarnessConfig) {
       if (table === "reseller_marketplace_audit_logs") audits.push(payload);
       return chain;
     };
-    // Awaitable directly (e.g. select().eq() with no maybeSingle)
+    chain.update = (payload: any) => {
+      updates.push({ table, payload });
+      return chain;
+    };
+    // Awaitable directly (e.g. select().eq() or update().eq() with no terminal method)
     chain.then = (r: any, j: any) =>
       Promise.resolve(nextFor(table).await ?? { data: [], error: null }).then(r, j);
     return chain;
   }
 
   const client = { from: vi.fn((table: string) => makeChain(table)) };
-  return { client, inserts, audits };
+  return { client, inserts, updates, audits };
 }
 
 /** Convenience: a user-scoped supabase stub that returns a single role. */
