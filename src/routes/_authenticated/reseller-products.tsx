@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Package } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/reseller-products")({
   component: ResellerProductsPage,
@@ -15,12 +17,17 @@ type ResellerRow = {
   external_id: string;
   name: string;
   description: string | null;
+  image_url: string | null;
   image: string | null;
   price: number;
   reseller_price: number | null;
+  category: string | null;
   source: string | null;
   updated_at: string;
 };
+
+const ALL = "__all__";
+const UNCAT = "__uncat__";
 
 function fmt(n: number | null | undefined) {
   if (n == null) return "—";
@@ -28,17 +35,36 @@ function fmt(n: number | null | undefined) {
 }
 
 function ResellerProductsPage() {
+  const [tab, setTab] = useState<string>(ALL);
+
   const q = useQuery({
     queryKey: ["reseller_products"],
     queryFn: async (): Promise<ResellerRow[]> => {
       const { data, error } = await supabase
         .from("reseller_products")
-        .select("id, external_id, name, description, image, price, reseller_price, source, updated_at")
+        .select("id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at")
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResellerRow[];
     },
   });
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    let hasUncat = false;
+    for (const r of q.data ?? []) {
+      if (r.category && r.category.trim()) set.add(r.category.trim());
+      else hasUncat = true;
+    }
+    return { list: Array.from(set).sort((a, b) => a.localeCompare(b)), hasUncat };
+  }, [q.data]);
+
+  const filtered = useMemo(() => {
+    const rows = q.data ?? [];
+    if (tab === ALL) return rows;
+    if (tab === UNCAT) return rows.filter((r) => !r.category || !r.category.trim());
+    return rows.filter((r) => r.category === tab);
+  }, [q.data, tab]);
 
   return (
     <div className="p-4 sm:p-6">
@@ -46,11 +72,23 @@ function ResellerProductsPage() {
         <div>
           <h1 className="text-2xl font-bold">Reseller Products</h1>
           <p className="text-sm text-muted-foreground">
-            Products synced from your Product Sales site via the reseller webhook.
+            Products marked "Add to Reseller Marketplace" or synced from your Product Sales site.
           </p>
         </div>
         {q.data && <Badge variant="secondary">{q.data.length} items</Badge>}
       </header>
+
+      {(q.data?.length ?? 0) > 0 && (
+        <Tabs value={tab} onValueChange={setTab} className="mb-4">
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
+            <TabsTrigger value={ALL}>All</TabsTrigger>
+            {categories.list.map((c) => (
+              <TabsTrigger key={c} value={c}>{c}</TabsTrigger>
+            ))}
+            {categories.hasUncat && <TabsTrigger value={UNCAT}>Uncategorized</TabsTrigger>}
+          </TabsList>
+        </Tabs>
+      )}
 
       {q.isLoading ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -60,47 +98,53 @@ function ResellerProductsPage() {
         </div>
       ) : q.error ? (
         <p className="text-sm text-destructive">Failed to load: {(q.error as Error).message}</p>
-      ) : !q.data || q.data.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <Card className="flex flex-col items-center justify-center gap-2 p-10 text-center">
           <Package className="h-8 w-8 text-muted-foreground" />
-          <p className="font-medium">No reseller products yet</p>
+          <p className="font-medium">No reseller products in this category</p>
           <p className="max-w-md text-sm text-muted-foreground">
-            Products pushed from your Product Sales site to <code>/api/public/reseller-sync</code> will appear here.
+            Enable "Add to Reseller Marketplace" on a product, or push one to <code>/api/public/reseller-sync</code>.
           </p>
         </Card>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {q.data.map((p) => (
-            <Card key={p.id} className="overflow-hidden">
-              <div className="aspect-square bg-muted">
-                {p.image ? (
-                  <img src={p.image} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="grid h-full w-full place-items-center text-muted-foreground">
-                    <Package className="h-8 w-8" />
+          {filtered.map((p) => {
+            const img = p.image_url ?? p.image;
+            return (
+              <Card key={p.id} className="overflow-hidden">
+                <div className="aspect-square bg-muted">
+                  {img ? (
+                    <img src={img} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center text-muted-foreground">
+                      <Package className="h-8 w-8" />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2 p-3">
+                  <h3 className="line-clamp-2 text-sm font-semibold">{p.name}</h3>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Original</p>
+                      <p className="text-sm font-medium line-through opacity-70">{fmt(p.price)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Reseller</p>
+                      <p className="text-base font-bold text-primary">{fmt(p.reseller_price)}</p>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="space-y-2 p-3">
-                <h3 className="line-clamp-2 text-sm font-semibold">{p.name}</h3>
-                <div className="flex items-baseline justify-between gap-2">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Original</p>
-                    <p className="text-sm font-medium line-through opacity-70">{fmt(p.price)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Reseller</p>
-                    <p className="text-base font-bold text-primary">{fmt(p.reseller_price)}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {p.category && (
+                      <Badge variant="secondary" className="text-[10px]">{p.category}</Badge>
+                    )}
+                    {p.source && (
+                      <Badge variant="outline" className="text-[10px]">{p.source}</Badge>
+                    )}
                   </div>
                 </div>
-                {p.source && (
-                  <Badge variant="outline" className="text-[10px]">
-                    {p.source}
-                  </Badge>
-                )}
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
