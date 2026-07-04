@@ -593,8 +593,12 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         size="sm"
         className="mt-1 w-full gap-1.5"
         onClick={() => setOpen(true)}
+        disabled={disabled}
+        aria-disabled={disabled || undefined}
+        title={disabled ? "Out of stock from supplier" : undefined}
       >
-        <StoreIcon className="h-3.5 w-3.5" /> আমার শপে যোগ করুন / Add to My Shop
+        <StoreIcon className="h-3.5 w-3.5" />{" "}
+        {disabled ? "Out of Stock" : "আমার শপে যোগ করুন / Add to My Shop"}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
