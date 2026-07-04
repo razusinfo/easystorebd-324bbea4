@@ -144,8 +144,8 @@ export function propagateStockChange(args: {
  */
 export function sortOutOfStockToBottom<T extends { stock?: number | null }>(rows: T[]): T[] {
   return [...rows].sort((a, b) => {
-    const ao = (a.stock ?? 0) <= 0 ? 1 : 0;
-    const bo = (b.stock ?? 0) <= 0 ? 1 : 0;
+    const ao = (a.stock ?? 0) <= LOW_STOCK_THRESHOLD ? 1 : 0;
+    const bo = (b.stock ?? 0) <= LOW_STOCK_THRESHOLD ? 1 : 0;
     return ao - bo;
   });
 }
@@ -175,5 +175,15 @@ export function sortByCategoryWithOutOfStockLast<
 
 /** Derived flag used by DB `is_out_of_stock` generated column. */
 export function computeIsOutOfStock(stock: number | null | undefined): boolean {
-  return (stock ?? 0) <= 0;
+  return (stock ?? 0) <= LOW_STOCK_THRESHOLD;
+}
+
+/**
+ * Marketplace-facing stock display: to prevent overselling, any product
+ * at/below the low-stock threshold is displayed as having 0 units left,
+ * regardless of true stock.
+ */
+export function displayMarketplaceStock(stock: number | null | undefined): number {
+  const s = stock ?? 0;
+  return s <= LOW_STOCK_THRESHOLD ? 0 : s;
 }
