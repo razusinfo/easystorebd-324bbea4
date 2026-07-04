@@ -54,8 +54,10 @@ import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
 import { Route as AccountOrdersIdRouteImport } from './routes/account.orders.$id'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
+import { Route as AuthenticatedCategoriesNewRouteImport } from './routes/_authenticated/categories_.new'
 import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$productId'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
+import { Route as AuthenticatedCategoriesIdEditRouteImport } from './routes/_authenticated/categories_.$id.edit'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -286,6 +288,12 @@ const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
   path: '/orders/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCategoriesNewRoute =
+  AuthenticatedCategoriesNewRouteImport.update({
+    id: '/categories_/new',
+    path: '/categories/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const SSlugPProductIdRoute = SSlugPProductIdRouteImport.update({
   id: '/p/$productId',
   path: '/p/$productId',
@@ -295,6 +303,12 @@ const AuthenticatedProductsProductIdEditRoute =
   AuthenticatedProductsProductIdEditRouteImport.update({
     id: '/products/$productId/edit',
     path: '/products/$productId/edit',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCategoriesIdEditRoute =
+  AuthenticatedCategoriesIdEditRouteImport.update({
+    id: '/categories_/$id/edit',
+    path: '/categories/$id/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -332,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
+  '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
@@ -343,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/team': typeof SSlugTeamRoute
   '/products/': typeof AuthenticatedProductsIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
+  '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
@@ -378,6 +394,7 @@ export interface FileRoutesByTo {
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
   '/account': typeof AccountIndexRoute
+  '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
@@ -389,6 +406,7 @@ export interface FileRoutesByTo {
   '/s/$slug/team': typeof SSlugTeamRoute
   '/products': typeof AuthenticatedProductsIndexRoute
   '/s/$slug': typeof SSlugIndexRoute
+  '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
@@ -428,6 +446,7 @@ export interface FileRoutesById {
   '/demo/prestige': typeof DemoPrestigeRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
+  '/_authenticated/categories_/new': typeof AuthenticatedCategoriesNewRoute
   '/_authenticated/orders_/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
@@ -439,6 +458,7 @@ export interface FileRoutesById {
   '/s/$slug/team': typeof SSlugTeamRoute
   '/_authenticated/products/': typeof AuthenticatedProductsIndexRoute
   '/s/$slug/': typeof SSlugIndexRoute
+  '/_authenticated/categories_/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
@@ -478,6 +498,7 @@ export interface FileRouteTypes {
     | '/demo/prestige'
     | '/s/$slug'
     | '/account/'
+    | '/categories/new'
     | '/orders/$id'
     | '/products/new'
     | '/account/orders/$id'
@@ -489,6 +510,7 @@ export interface FileRouteTypes {
     | '/s/$slug/team'
     | '/products/'
     | '/s/$slug/'
+    | '/categories/$id/edit'
     | '/products/$productId/edit'
     | '/s/$slug/p/$productId'
   fileRoutesByTo: FileRoutesByTo
@@ -524,6 +546,7 @@ export interface FileRouteTypes {
     | '/demo/bdlove'
     | '/demo/prestige'
     | '/account'
+    | '/categories/new'
     | '/orders/$id'
     | '/products/new'
     | '/account/orders/$id'
@@ -535,6 +558,7 @@ export interface FileRouteTypes {
     | '/s/$slug/team'
     | '/products'
     | '/s/$slug'
+    | '/categories/$id/edit'
     | '/products/$productId/edit'
     | '/s/$slug/p/$productId'
   id:
@@ -573,6 +597,7 @@ export interface FileRouteTypes {
     | '/demo/prestige'
     | '/s/$slug'
     | '/account/'
+    | '/_authenticated/categories_/new'
     | '/_authenticated/orders_/$id'
     | '/_authenticated/products/new'
     | '/account/orders/$id'
@@ -584,6 +609,7 @@ export interface FileRouteTypes {
     | '/s/$slug/team'
     | '/_authenticated/products/'
     | '/s/$slug/'
+    | '/_authenticated/categories_/$id/edit'
     | '/_authenticated/products/$productId/edit'
     | '/s/$slug/p/$productId'
   fileRoutesById: FileRoutesById
@@ -920,6 +946,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/categories_/new': {
+      id: '/_authenticated/categories_/new'
+      path: '/categories/new'
+      fullPath: '/categories/new'
+      preLoaderRoute: typeof AuthenticatedCategoriesNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/s/$slug/p/$productId': {
       id: '/s/$slug/p/$productId'
       path: '/p/$productId'
@@ -932,6 +965,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$productId/edit'
       fullPath: '/products/$productId/edit'
       preLoaderRoute: typeof AuthenticatedProductsProductIdEditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/categories_/$id/edit': {
+      id: '/_authenticated/categories_/$id/edit'
+      path: '/categories/$id/edit'
+      fullPath: '/categories/$id/edit'
+      preLoaderRoute: typeof AuthenticatedCategoriesIdEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -955,9 +995,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
+  AuthenticatedCategoriesNewRoute: typeof AuthenticatedCategoriesNewRoute
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
   AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
+  AuthenticatedCategoriesIdEditRoute: typeof AuthenticatedCategoriesIdEditRoute
   AuthenticatedProductsProductIdEditRoute: typeof AuthenticatedProductsProductIdEditRoute
 }
 
@@ -979,9 +1021,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
+  AuthenticatedCategoriesNewRoute: AuthenticatedCategoriesNewRoute,
   AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
   AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
+  AuthenticatedCategoriesIdEditRoute: AuthenticatedCategoriesIdEditRoute,
   AuthenticatedProductsProductIdEditRoute:
     AuthenticatedProductsProductIdEditRoute,
 }

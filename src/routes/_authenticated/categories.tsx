@@ -1,13 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import {
-  ArrowLeft, Plus, Search, Eye, Pencil, Trash2, Loader2, AlertCircle,
-  GripVertical, ImageIcon, Upload, X, ChevronRight, ChevronDown, ExternalLink,
+  ArrowLeft, Plus, Search, Eye, Pencil, Trash2, Loader2,
+  GripVertical, ImageIcon, ChevronRight, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { useMyStore } from "@/lib/eazystore-data";
 import {
-  useCategories, useCreateCategory, useUpdateCategory,
-  useDeleteCategory, useReorderCategory, uploadCategoryImage,
+  useCategories, useDeleteCategory, useReorderCategory,
   buildCategoryTree, type CategoryNode,
 } from "@/lib/categories-data";
 
