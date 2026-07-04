@@ -128,9 +128,19 @@ function ResellerProductsPage() {
   }, [merged]);
 
   const filtered = useMemo(() => {
-    if (tab === ALL) return merged;
-    if (tab === UNCAT) return merged.filter((r) => !r.category || !r.category.trim());
-    return merged.filter((r) => r.category === tab);
+    const base =
+      tab === ALL
+        ? merged
+        : tab === UNCAT
+          ? merged.filter((r) => !r.category || !r.category.trim())
+          : merged.filter((r) => r.category === tab);
+    // Stable sort: in-stock first, out-of-stock pushed to the bottom of the
+    // (already-filtered) category. Preserves original order within each group.
+    return [...base].sort((a, b) => {
+      const ao = (a.stock ?? 0) <= 0 ? 1 : 0;
+      const bo = (b.stock ?? 0) <= 0 ? 1 : 0;
+      return ao - bo;
+    });
   }, [merged, tab]);
 
   return (
