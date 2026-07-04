@@ -5,7 +5,12 @@ export type CopyInput = {
   reseller_product_id: string;
   category_id?: string | null;
   custom_price?: number | null;
+  // Optional whitelist of media URLs the reseller wants to import. When
+  // provided, only these URLs from the original product's media set are
+  // copied. When omitted / null, all original media is copied.
+  selected_media?: string[] | null;
 };
+
 
 export type SupabaseLike = {
   from: (table: string) => any;
