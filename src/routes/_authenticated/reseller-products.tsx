@@ -19,7 +19,7 @@ import { useCategories } from "@/lib/categories-data";
 import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
 import { useI18n } from "@/lib/i18n";
-import { sortOutOfStockToBottom } from "@/lib/stock-sync-core";
+import { sortOutOfStockToBottom, computeIsOutOfStock } from "@/lib/stock-sync-core";
 
 
 
@@ -187,7 +187,7 @@ function ResellerProductsPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => {
             const img = p.displayImage;
-            const outOfStock = (p.stock ?? 0) <= 0;
+            const outOfStock = computeIsOutOfStock(p.stock);
             const shareUrl =
               typeof window !== "undefined"
                 ? `${window.location.origin}/r/${p.external_id}`

@@ -9,16 +9,17 @@ import {
 } from "./stock-sync-core";
 import { createSupabaseHarness } from "@/test/supabase-harness";
 
-describe("stock crossings", () => {
-  it("detects transition to 0", () => {
-    expect(didGoOutOfStock(3, 0)).toBe(true);
-    expect(didGoOutOfStock(0, 0)).toBe(false);
-    expect(didGoOutOfStock(5, 2)).toBe(false);
+describe("stock crossings (low-stock threshold = 3)", () => {
+  it("detects transition to <=3", () => {
+    expect(didGoOutOfStock(10, 3)).toBe(true);
+    expect(didGoOutOfStock(4, 2)).toBe(true);
+    expect(didGoOutOfStock(3, 3)).toBe(false); // stayed at/below threshold
+    expect(didGoOutOfStock(10, 5)).toBe(false);
   });
-  it("detects restore above 0", () => {
-    expect(didRestoreStock(0, 4)).toBe(true);
-    expect(didRestoreStock(2, 5)).toBe(false);
-    expect(didRestoreStock(0, 0)).toBe(false);
+  it("detects restore above 3", () => {
+    expect(didRestoreStock(3, 4)).toBe(true);
+    expect(didRestoreStock(0, 10)).toBe(true);
+    expect(didRestoreStock(5, 8)).toBe(false);
   });
 });
 
@@ -41,44 +42,42 @@ describe("propagateStockChange", () => {
   it("propagates new stock to every reseller copy", () => {
     const r = propagateStockChange({
       resellerProductId: "rp-1", productName: "Widget",
-      oldStock: 5, newStock: 3, affected,
+      oldStock: 10, newStock: 7, affected,
     });
     expect(r.propagated).toEqual([
-      { product_id: "copy-1", stock: 3 },
-      { product_id: "copy-2", stock: 3 },
+      { product_id: "copy-1", stock: 7 },
+      { product_id: "copy-2", stock: 7 },
     ]);
-    // No notification on partial decrement.
+    // No notification on partial decrement that stays above threshold.
     expect(r.notifications).toEqual([]);
   });
 
-  it("creates one out-of-stock notification per affected owner ONLY on 0-crossing", () => {
+  it("creates one alert per affected owner on the low-stock crossing (>3 -> <=3)", () => {
     const r = propagateStockChange({
       resellerProductId: "rp-1", productName: "Widget",
-      oldStock: 2, newStock: 0, affected,
+      oldStock: 10, newStock: 2, affected,
     });
     expect(r.notifications).toHaveLength(2);
     expect(r.notifications[0]).toMatchObject({
       user_id: "owner-a",
-      type: "supplier_out_of_stock",
       link: "/reseller-products",
       related_id: "rp-1",
     });
     expect(r.notifications[0].body).toContain("Widget");
   });
 
-  it("does NOT re-notify when stock stays at 0", () => {
+  it("does NOT re-notify when stock stays at/below the threshold", () => {
     const r = propagateStockChange({
       resellerProductId: "rp-1", productName: "Widget",
-      oldStock: 0, newStock: 0, affected,
+      oldStock: 3, newStock: 1, affected,
     });
     expect(r.notifications).toEqual([]);
-    expect(r.propagated).toEqual([]);
   });
 
   it("dedupes notifications when one reseller owns multiple copies", () => {
     const r = propagateStockChange({
       resellerProductId: "rp-1", productName: "Widget",
-      oldStock: 1, newStock: 0,
+      oldStock: 10, newStock: 0,
       affected: [
         { id: "c-1", store_owner_id: "owner-a" },
         { id: "c-2", store_owner_id: "owner-a" },
@@ -94,34 +93,34 @@ describe("buildStockAuditRow", () => {
     { id: "c-1", store_owner_id: "owner-a" },
     { id: "c-2", store_owner_id: "owner-b" },
   ];
-  it("emits stock_out audit with supplier linkage + affected owners", () => {
+  it("emits stock_out audit at threshold crossing with supplier linkage", () => {
     const row = buildStockAuditRow({
       resellerProductId: "rp-1", originalProductId: "orig-1",
-      oldStock: 3, newStock: 0, affected,
+      oldStock: 10, newStock: 2, affected,
     });
     expect(row).toMatchObject({
       action: "stock_out",
       product_id: "rp-1",
       metadata: {
         original_product_id: "orig-1",
-        old_stock: 3,
-        new_stock: 0,
+        old_stock: 10,
+        new_stock: 2,
         affected_store_owner_ids: ["owner-a", "owner-b"],
       },
     });
   });
-  it("emits stock_restored audit on 0 -> >0", () => {
+  it("emits stock_restored when climbing back above 3", () => {
     const row = buildStockAuditRow({
       resellerProductId: "rp-1", originalProductId: null,
-      oldStock: 0, newStock: 5, affected,
+      oldStock: 0, newStock: 10, affected,
     });
     expect(row?.action).toBe("stock_restored");
   });
-  it("returns null when there is no crossing", () => {
+  it("returns null when the change stays on the same side of the threshold", () => {
     expect(
       buildStockAuditRow({
         resellerProductId: "rp-1", originalProductId: null,
-        oldStock: 5, newStock: 3, affected,
+        oldStock: 10, newStock: 7, affected,
       }),
     ).toBeNull();
   });
