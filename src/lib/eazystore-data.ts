@@ -783,6 +783,9 @@ export function useUpsertProduct(storeId: string | undefined) {
       if (input.warranty !== undefined) payload.warranty = input.warranty;
       if (input.initialSoldCount !== undefined) payload.initial_sold_count = input.initialSoldCount;
       if (input.useDefaultDelivery !== undefined) payload.use_default_delivery = input.useDefaultDelivery;
+      if (input.defaultDeliveryCharge !== undefined) payload.default_delivery_charge = input.defaultDeliveryCharge;
+      if (input.specificDeliveryCharges !== undefined) payload.specific_delivery_charges = input.specificDeliveryCharges;
+
       if (input.videoUrl !== undefined) payload.video_url = input.videoUrl;
       if (input.status !== undefined) payload.status = input.status;
 
