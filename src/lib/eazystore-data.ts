@@ -728,7 +728,24 @@ export type UpsertProductInput = {
   status?: ProductStatus;
   variants?: { name: string; value: string }[];
   details?: { key: string; value: string }[];
+  categoryIds?: string[];
 };
+
+export function useProductCategoryAssignments(productId: string | undefined) {
+  return useQuery({
+    queryKey: ["product-category-assignments", productId],
+    enabled: !!productId,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from("product_category_assignments")
+        .select("category_id")
+        .eq("product_id", productId!);
+      if (error) throw error;
+      return (data ?? []).map((r: { category_id: string }) => r.category_id);
+    },
+  });
+}
+
 
 export function useUpsertProduct(storeId: string | undefined) {
   const qc = useQueryClient();
