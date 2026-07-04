@@ -81,8 +81,8 @@ export function SupportChatWidget() {
   }, [messages, open]);
 
   const unread = useMemo(
-    () => messages.filter((m) => m.receiver_id === uid && !m).length, // placeholder
-    [messages, uid],
+    () => messages.filter((m) => m.receiver_id === uid && !open).length,
+    [messages, uid, open],
   );
 
   async function send() {
