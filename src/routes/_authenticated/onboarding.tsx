@@ -299,3 +299,55 @@ function Onboarding() {
     </main>
   );
 }
+
+function TemplatePreview({ id, gradient, accent }: { id: TemplateId; gradient: string; accent: string }) {
+  if (id === "eazystore-basic") {
+    return (
+      <img
+        src={eazystoreBasicPreview.url}
+        alt="EazyStore Basic preview"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
+      />
+    );
+  }
+
+  const FULL_W = 1280;
+  const FULL_H = 1000;
+
+  let inner: React.ReactNode = null;
+  if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
+  else if (id === "prestige") inner = <PrestigeTemplate demo />;
+  else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
+  else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
+  else if (id === "techgrid") inner = <TechGridPreview accent={accent} />;
+  else if (id === "sporty") inner = <SportyPulsePreview accent={accent} />;
+  else if (id === "luxe") inner = <LuxeNoirPreview accent={accent} />;
+
+  if (inner) {
+    return (
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
+        style={{ containerType: "size" } as React.CSSProperties}
+      >
+        <div
+          style={{
+            width: FULL_W,
+            height: FULL_H,
+            transform: "scale(var(--tpl-scale, 0.2))",
+            transformOrigin: "top left",
+          }}
+        >
+          {inner}
+        </div>
+        <style>{`
+          @container (min-width: 180px) { [style*="--tpl-scale"] { --tpl-scale: 0.22; } }
+          @container (min-width: 240px) { [style*="--tpl-scale"] { --tpl-scale: 0.28; } }
+        `}</style>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} style={{ color: accent }} />
+  );
+}
