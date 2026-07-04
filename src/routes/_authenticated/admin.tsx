@@ -536,3 +536,174 @@ function RoleBadge({ role }: { role: string }) {
     </span>
   );
 }
+
+// -------- Product Requests Panel --------
+
+type ProductRequest = {
+  id: string;
+  requested_by: string;
+  name: string;
+  description: string | null;
+  price: number;
+  images: string[];
+  status: "pending" | "approved" | "rejected";
+  reseller_price: number | null;
+  admin_notes: string | null;
+  created_at: string;
+};
+
+function useAllProductRequests() {
+  return useQuery({
+    queryKey: ["admin-product-requests"],
+    queryFn: async (): Promise<ProductRequest[]> => {
+      const { data, error } = await supabase
+        .from("product_requests")
+        .select("id, requested_by, name, description, price, images, status, reseller_price, admin_notes, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as ProductRequest[];
+    },
+  });
+}
+
+function ProductRequestsPanel() {
+  const rq = useAllProductRequests();
+  const rows = rq.data ?? [];
+  const pending = rows.filter((r) => r.status === "pending");
+  const others = rows.filter((r) => r.status !== "pending");
+
+  if (rq.isLoading) return <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>;
+  if (rq.error) return <Empty title="Couldn't load requests" desc={(rq.error as Error).message} />;
+  if (rows.length === 0) return <Empty title="No requests" desc="Resellers haven't submitted any product requests yet." />;
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold">Pending ({pending.length})</h3>
+        {pending.length === 0 ? (
+          <Empty title="All clear" desc="No pending requests." />
+        ) : (
+          pending.map((r) => <RequestCard key={r.id} row={r} />)
+        )}
+      </div>
+      {others.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">Recent</h3>
+          {others.slice(0, 20).map((r) => <RequestCard key={r.id} row={r} readOnly />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RequestCard({ row, readOnly }: { row: ProductRequest; readOnly?: boolean }) {
+  const qc = useQueryClient();
+  const [resellerPrice, setResellerPrice] = useState<string>(
+    row.reseller_price != null ? String(row.reseller_price) : String(row.price),
+  );
+  const [notes, setNotes] = useState<string>(row.admin_notes ?? "");
+
+  const approve = useMutation({
+    mutationFn: async () => {
+      const price = Number(resellerPrice);
+      if (!Number.isFinite(price) || price < 0) throw new Error("Enter a valid reseller price");
+      await approveProductRequest({
+        data: { request_id: row.id, reseller_price: price, admin_notes: notes.trim() || null },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Approved & published to Reseller Products");
+      qc.invalidateQueries({ queryKey: ["admin-product-requests"] });
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+
+  const reject = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("product_requests")
+        .update({
+          status: "rejected",
+          admin_notes: notes.trim() || null,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Rejected");
+      qc.invalidateQueries({ queryKey: ["admin-product-requests"] });
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="font-semibold">{row.name}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            Requested {new Date(row.created_at).toLocaleString()} · Base ৳{Number(row.price).toLocaleString()}
+          </div>
+        </div>
+        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+          row.status === "approved" ? "bg-emerald-100 text-emerald-800"
+          : row.status === "rejected" ? "bg-rose-100 text-rose-800"
+          : "bg-amber-100 text-amber-800"
+        }`}>{row.status}</span>
+      </div>
+      {row.description && <p className="mt-2 text-sm text-muted-foreground">{row.description}</p>}
+      {row.images.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {row.images.map((u) => (
+            <img key={u} src={u} alt="" className="h-20 w-20 rounded-md object-cover" />
+          ))}
+        </div>
+      )}
+      {!readOnly && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
+          <div>
+            <label className="text-xs font-medium">Reseller price ৳</label>
+            <input
+              type="number"
+              min={0}
+              value={resellerPrice}
+              onChange={(e) => setResellerPrice(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium">Admin note (optional)</label>
+            <input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-sm"
+            />
+          </div>
+          <button
+            onClick={() => reject.mutate()}
+            disabled={reject.isPending || approve.isPending}
+            className="self-end rounded-xl border border-border bg-background px-3 py-2 text-sm font-semibold text-destructive hover:bg-destructive/5 disabled:opacity-50"
+          >
+            <X className="mr-1 inline h-4 w-4" /> Reject
+          </button>
+          <button
+            onClick={() => approve.mutate()}
+            disabled={approve.isPending || reject.isPending}
+            className="self-end rounded-xl gradient-success px-3 py-2 text-sm font-bold text-success-foreground shadow-sm disabled:opacity-50"
+          >
+            <Check className="mr-1 inline h-4 w-4" /> Approve & Publish
+          </button>
+        </div>
+      )}
+      {readOnly && row.reseller_price != null && (
+        <div className="mt-2 text-xs text-muted-foreground">Published at ৳{Number(row.reseller_price).toLocaleString()}</div>
+      )}
+      {readOnly && row.admin_notes && (
+        <div className="mt-1 text-xs text-muted-foreground">Note: {row.admin_notes}</div>
+      )}
+    </div>
+  );
+}
+
