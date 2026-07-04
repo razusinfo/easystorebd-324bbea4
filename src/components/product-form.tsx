@@ -56,7 +56,7 @@ type FormState = {
   status: "active" | "inactive";
   brand: string;
   condition: "new" | "used" | "refurbished";
-  categoryId: string;
+  categoryIds: string[];
   sellPrice: string;
   regularPrice: string;
   buyingPrice: string;
