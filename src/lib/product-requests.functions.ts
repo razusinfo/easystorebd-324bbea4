@@ -18,9 +18,9 @@ export const productRequestInputSchema = z.object({
     .transform((v) => (v && v.length > 0 ? v : null)),
   price: z
     .number()
-    .refine((n) => Number.isFinite(n), "Price must be a number")
     .nonnegative("Price cannot be negative")
-    .max(10_000_000, "Price too large"),
+    .max(10_000_000, "Price too large")
+    .refine((n) => Number.isFinite(n), "Price must be a number"),
   images: z
     .array(z.string().regex(IMAGE_URL_RE, "Invalid image URL"))
     .max(MAX_IMAGES, `At most ${MAX_IMAGES} images`)
