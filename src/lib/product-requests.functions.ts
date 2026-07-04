@@ -94,6 +94,19 @@ export const submitProductRequest = createServerFn({ method: "POST" })
       image_count: data.images.length,
     });
 
+    // Fire-and-forget: in-app bell + admin emails.
+    try {
+      const { notifyRequestSubmitted } = await import("./product-request-emails.server");
+      await notifyRequestSubmitted(supabaseAdmin as never, {
+        request_id: inserted.id,
+        reseller_id: context.userId,
+        name: data.name,
+        price: data.price,
+      });
+    } catch (e) {
+      console.warn("[product-request notify submitted]", (e as Error).message);
+    }
+
     return { ok: true as const, id: inserted.id };
   });
 
