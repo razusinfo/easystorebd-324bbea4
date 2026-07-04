@@ -18,6 +18,7 @@ import { useMyStore, uploadProductImage } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
+import { useI18n } from "@/lib/i18n";
 
 
 
