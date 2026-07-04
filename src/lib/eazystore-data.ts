@@ -737,11 +737,15 @@ export type UpsertProductInput = {
   specificDeliveryCharges?: { zone: string; charge: number }[];
   videoUrl?: string | null;
 
+  addToReseller?: boolean;
+  resellerPrice?: number | null;
+
   status?: ProductStatus;
   variants?: { name: string; value: string }[];
   details?: { key: string; value: string }[];
   categoryIds?: string[];
 };
+
 
 export function useProductCategoryAssignments(productId: string | undefined) {
   return useQuery({
@@ -794,6 +798,9 @@ export function useUpsertProduct(storeId: string | undefined) {
 
       if (input.videoUrl !== undefined) payload.video_url = input.videoUrl;
       if (input.status !== undefined) payload.status = input.status;
+      if (input.addToReseller !== undefined) payload.add_to_reseller = input.addToReseller;
+      if (input.resellerPrice !== undefined) payload.reseller_price = input.resellerPrice;
+
 
       let productId: string;
       if (input.id) {

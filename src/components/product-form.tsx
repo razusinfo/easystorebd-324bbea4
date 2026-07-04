@@ -21,6 +21,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
+import { Checkbox } from "@/components/ui/checkbox";
+import { syncResellerProduct } from "@/lib/reseller-sync.functions";
+
 
 import {
   useMyStore, useMyProducts, useUpsertProduct,
@@ -75,7 +78,10 @@ type FormState = {
   imageUrl: string;
   galleryUrls: string[];
   videoUrl: string;
+  addToReseller: boolean;
+  resellerPrice: string;
 };
+
 
 const initialState: FormState = {
   name: "",
@@ -107,7 +113,10 @@ const initialState: FormState = {
   imageUrl: "",
   galleryUrls: [],
   videoUrl: "",
+  addToReseller: false,
+  resellerPrice: "",
 };
+
 
 export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel, onDuplicate }: Props) {
   const storeQ = useMyStore();
@@ -185,7 +194,12 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       imageUrl: src.image_url ?? "",
       galleryUrls: Array.isArray(src.gallery_urls) ? src.gallery_urls : [],
       videoUrl: src.video_url ?? "",
+      addToReseller: (src as { add_to_reseller?: boolean }).add_to_reseller ?? false,
+      resellerPrice: (src as { reseller_price?: number | null }).reseller_price != null
+        ? String((src as { reseller_price?: number | null }).reseller_price)
+        : "",
     }));
+
     if (mode === "new" && sourceForDuplicate) {
       toast.success("Duplicated as a new draft — review and save");
     }
@@ -285,6 +299,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           .filter((s) => s.zone && Number.isFinite(s.charge)),
 
         videoUrl: form.videoUrl.trim() || null,
+        addToReseller: form.addToReseller,
+        resellerPrice: form.addToReseller && form.resellerPrice !== ""
+          ? Number(form.resellerPrice)
+          : null,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
@@ -295,7 +313,31 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       // Invalidate storefront caches so the new product/image shows up right away.
       queryClient.invalidateQueries({ queryKey: ["public-store"] });
       queryClient.invalidateQueries({ queryKey: ["products", store?.id] });
+
+      // Sync to reseller marketplace if enabled.
+      if (form.addToReseller) {
+        try {
+          const res = await syncResellerProduct({
+            data: {
+              id: (upsert.data as { id: string } | undefined)?.id ?? editing?.id ?? "",
+              name: form.name.trim(),
+              description: form.description.trim() || null,
+              image: form.imageUrl || null,
+              price: Number(form.sellPrice),
+              reseller_price: form.resellerPrice !== "" ? Number(form.resellerPrice) : null,
+            },
+          });
+          if ((res as { skipped?: boolean }).skipped) {
+            toast.message("Reseller sync skipped: RESELLER_SYNC_URL not configured");
+          } else {
+            toast.success("Synced to reseller marketplace");
+          }
+        } catch (err: any) {
+          toast.error(err?.message ?? "Reseller sync failed");
+        }
+      }
       onDone();
+
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save product");
     }
@@ -760,7 +802,31 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
               </Field>
 
             </div>
+
+            <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <Checkbox
+                  checked={form.addToReseller}
+                  onCheckedChange={(v) => set("addToReseller", v === true)}
+                />
+                Add to Reseller Marketplace
+              </label>
+              {form.addToReseller && (
+                <Field label="Reseller Price">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="Reseller Price"
+                    value={form.resellerPrice}
+                    onChange={(e) => set("resellerPrice", e.target.value)}
+                  />
+                </Field>
+              )}
+            </div>
           </Section>
+
 
           <Section title="Inventory">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

@@ -498,6 +498,7 @@ export type Database = {
       }
       products: {
         Row: {
+          add_to_reseller: boolean
           brand: string | null
           buying_price: number | null
           category_id: string | null
@@ -515,6 +516,7 @@ export type Database = {
           price: number
           product_serial: string | null
           regular_price: number | null
+          reseller_price: number | null
           short_description: string | null
           sku: string | null
           specific_delivery_charges: Json
@@ -530,6 +532,7 @@ export type Database = {
           width_cm: number | null
         }
         Insert: {
+          add_to_reseller?: boolean
           brand?: string | null
           buying_price?: number | null
           category_id?: string | null
@@ -547,6 +550,7 @@ export type Database = {
           price: number
           product_serial?: string | null
           regular_price?: number | null
+          reseller_price?: number | null
           short_description?: string | null
           sku?: string | null
           specific_delivery_charges?: Json
@@ -562,6 +566,7 @@ export type Database = {
           width_cm?: number | null
         }
         Update: {
+          add_to_reseller?: boolean
           brand?: string | null
           buying_price?: number | null
           category_id?: string | null
@@ -579,6 +584,7 @@ export type Database = {
           price?: number
           product_serial?: string | null
           regular_price?: number | null
+          reseller_price?: number | null
           short_description?: string | null
           sku?: string | null
           specific_delivery_charges?: Json
