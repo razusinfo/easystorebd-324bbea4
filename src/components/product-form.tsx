@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { Checkbox } from "@/components/ui/checkbox";
 import { syncResellerProduct } from "@/lib/reseller-sync.functions";
+import { upsertLocalResellerProduct } from "@/lib/reseller-local.functions";
 
 
 import {
@@ -316,24 +317,49 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
       // Sync to reseller marketplace if enabled.
       if (form.addToReseller) {
+        const productId = (upsert.data as { id: string } | undefined)?.id ?? editing?.id ?? "";
+        // Resolve primary category name from the selected category ids.
+        const primaryCatId = form.categoryIds[0];
+        const categoryName =
+          (categoriesQ.data ?? []).find((c) => c.id === primaryCatId)?.name ?? null;
+        const resellerPriceNum =
+          form.resellerPrice !== "" ? Number(form.resellerPrice) : null;
+
+        // Local upsert into reseller_products so the in-app page reflects the change.
+        try {
+          await upsertLocalResellerProduct({
+            data: {
+              id: productId,
+              name: form.name.trim(),
+              description: form.description.trim() || null,
+              image_url: form.imageUrl || null,
+              price: Number(form.sellPrice),
+              reseller_price: resellerPriceNum,
+              category: categoryName,
+            },
+          });
+          queryClient.invalidateQueries({ queryKey: ["reseller_products"] });
+        } catch (err: any) {
+          toast.error(err?.message ?? "Reseller marketplace update failed");
+        }
+
+        // Optional external SaaS sync (no-op if RESELLER_SYNC_URL isn't set).
         try {
           const res = await syncResellerProduct({
             data: {
-              id: (upsert.data as { id: string } | undefined)?.id ?? editing?.id ?? "",
+              id: productId,
               name: form.name.trim(),
               description: form.description.trim() || null,
               image: form.imageUrl || null,
               price: Number(form.sellPrice),
-              reseller_price: form.resellerPrice !== "" ? Number(form.resellerPrice) : null,
+              reseller_price: resellerPriceNum,
             },
           });
-          if ((res as { skipped?: boolean }).skipped) {
-            toast.message("Reseller sync skipped: RESELLER_SYNC_URL not configured");
-          } else {
+          if (!(res as { skipped?: boolean }).skipped) {
             toast.success("Synced to reseller marketplace");
           }
         } catch (err: any) {
-          toast.error(err?.message ?? "Reseller sync failed");
+          toast.error(err?.message ?? "External reseller sync failed");
         }
       }
       onDone();
