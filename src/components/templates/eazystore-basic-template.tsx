@@ -110,7 +110,7 @@ export function EazyStoreBasicTemplate({
   const name = (store?.name ?? "EAZYSTORE").toUpperCase();
   const slug = store?.slug;
   const storeId = store?.id;
-  const useDemo = demo || !products || products.length === 0;
+  const useDemo = demo;
 
   // Filter real products by category + search text.
   const catIdByName = useMemo(() => {

@@ -59,7 +59,7 @@ export function BdLoveTemplate({
   const siteSettings = useSiteSettings().data;
   const whatsappHref = siteSettings?.whatsapp_url || "#";
   const name = (store?.name ?? "BD LOVE SHOP").toUpperCase();
-  const useDemo = demo || !products || products.length === 0;
+  const useDemo = demo;
   const gridProducts = useDemo
     ? DEMO_PRODUCTS
     : products!.slice(0, 12).map((p, i) => ({

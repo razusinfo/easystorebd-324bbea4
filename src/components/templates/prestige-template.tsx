@@ -42,7 +42,7 @@ export function PrestigeTemplate({ store, products, logoUrl, categories, demo = 
   const name = (store?.name ?? "EazyStore").toUpperCase();
   const slug = store?.slug;
   const storeId = store?.id;
-  const useDemo = demo || !products || products.length === 0;
+  const useDemo = demo;
 
   const [activeCat, setActiveCat] = useState<string>("all");
   const [search, setSearch] = useState("");
