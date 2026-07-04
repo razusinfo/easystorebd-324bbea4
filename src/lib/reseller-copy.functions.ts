@@ -68,7 +68,11 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
         .limit(1)
         .maybeSingle();
       if (storeErr) throw new Error(storeErr.message);
-      if (!store) throw new Error("No store found for this user");
+      if (!store) {
+        await logAttempt(false, data.reseller_product_id, "no_store_forbidden");
+        throw new Response("Forbidden: you must own a store to add products", { status: 403 });
+      }
+
 
       // 3. Load original product (if any) to inherit category / warranty / IMEI / serial
       const originalId = (source as { original_product_id: string | null })
