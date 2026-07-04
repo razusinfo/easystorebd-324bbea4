@@ -2,185 +2,36 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { runCopyResellerProduct } from "./reseller-copy-core";
 
 // Copies a reseller marketplace product into the caller's own store's products.
-// - Validates required fields server-side (name, price ≥ 0, quantity/stock ≥ 0,
-//   category, warranty/IMEI/serial identifiers when present).
-// - Dedupes by (store_id, name) so repeat clicks don't create duplicates.
-// - Writes an audit-log entry (actor_id, actor_role, source product id,
-//   success/failure) for every attempt.
+// - Validates required fields server-side (name, price ≥ 0, quantity ≥ 0, category).
+// - Dedupes by (store_id, name).
+// - Writes an audit-log entry for every attempt.
+// - Returns HTTP 403 when the caller has no store (reseller w/o shop) or is otherwise
+//   not permitted to insert into a store they don't own.
 export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
       reseller_product_id: z.string().uuid(),
-      // Optional user-chosen category from the reseller's own list.
       category_id: z.string().uuid().optional().nullable(),
-      // Optional custom selling price for the reseller's own shop.
       custom_price: z.number().nonnegative().optional().nullable(),
       note: z.string().max(500).optional().nullable(),
     }),
   )
-
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    // Resolve role for audit trail
-    const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    const heldRoles = (roles ?? []).map((r: { role: string }) => r.role);
-    const actorRole = heldRoles[0] ?? "unknown";
-
-    const logAttempt = async (
-      success: boolean,
-      productId: string,
-      error?: string,
-    ) => {
-      await supabaseAdmin.from("reseller_marketplace_audit_logs").insert({
-        actor_id: context.userId,
-        actor_role: actorRole,
-        action: "copy_link_to_my_products",
-        product_id: productId,
-        success,
-        error: error ?? null,
-      });
-    };
-
-    try {
-      // 1. Load source reseller product
-      const { data: source, error: srcErr } = await supabaseAdmin
-        .from("reseller_products")
-        .select(
-          "id, external_id, original_product_id, name, description, image, image_url, price, reseller_price, category",
-        )
-        .eq("id", data.reseller_product_id)
-        .maybeSingle();
-      if (srcErr) throw new Error(srcErr.message);
-      if (!source) throw new Error("Source reseller product not found");
-
-      // 2. Locate caller's store
-      const { data: store, error: storeErr } = await supabaseAdmin
-        .from("stores")
-        .select("id")
-        .eq("owner_user_id", context.userId)
-        .limit(1)
-        .maybeSingle();
-      if (storeErr) throw new Error(storeErr.message);
-      if (!store) {
-        await logAttempt(false, data.reseller_product_id, "no_store_forbidden");
-        throw new Response("Forbidden: you must own a store to add products", { status: 403 });
-      }
-
-
-      // 3. Load original product (if any) to inherit category / warranty / IMEI / serial
-      const originalId = (source as { original_product_id: string | null })
-        .original_product_id;
-      type OriginalFields = {
-        category_id: string | null;
-        warranty: string | null;
-        product_serial: string | null;
-        sku: string | null;
-        brand: string | null;
-        condition: string | null;
-        weight_kg: number | null;
-        short_description: string | null;
-      };
-      let original: OriginalFields | null = null;
-      if (originalId) {
-        const { data: orig, error: origErr } = await supabaseAdmin
-          .from("products")
-          .select(
-            "category_id, warranty, product_serial, sku, brand, condition, weight_kg, short_description",
-          )
-          .eq("id", originalId)
-          .maybeSingle();
-        if (origErr) throw new Error(origErr.message);
-        original = (orig as unknown as OriginalFields | null) ?? null;
-      }
-
-      // 4. Server-side validation of required fields
-      const price = source.reseller_price ?? source.price;
-      const missing: string[] = [];
-      if (!source.name || !source.name.trim()) missing.push("name");
-      if (price == null || !Number.isFinite(Number(price)) || Number(price) < 0) {
-        missing.push("price");
-      }
-      const stock = 0; // reseller copies start unstocked; validate it's a non-negative integer
-      if (!Number.isInteger(stock) || stock < 0) missing.push("quantity");
-      // Category: prefer user-selected category_id, then original product's, then source.category text
-      const chosenCategoryId = data.category_id ?? original?.category_id ?? null;
-      if (!chosenCategoryId && !source.category) missing.push("category");
-
-      if (missing.length) {
-        const msg = `Missing required product fields: ${missing.join(", ")}`;
-        await logAttempt(false, source.id, msg);
-        throw new Error(msg);
-      }
-
-      // If a user-supplied category_id was provided, verify it belongs to this store.
-      if (data.category_id) {
-        const { data: cat, error: catErr } = await supabaseAdmin
-          .from("product_categories")
-          .select("id")
-          .eq("id", data.category_id)
-          .eq("store_id", store.id)
-          .maybeSingle();
-        if (catErr) throw new Error(catErr.message);
-        if (!cat) throw new Error("Selected category does not belong to your store");
-      }
-
-      // 5. Dedup by (store_id, name)
-      const { data: existing, error: existingErr } = await supabaseAdmin
-        .from("products")
-        .select("id")
-        .eq("store_id", store.id)
-        .eq("name", source.name)
-        .limit(1)
-        .maybeSingle();
-      if (existingErr) throw new Error(existingErr.message);
-      if (existing) {
-        await logAttempt(true, source.id, "already_exists");
-        return { ok: true as const, product_id: (existing as { id: string }).id, skipped: true as const };
-      }
-
-      // 6. Insert into caller's products
-      const sellingPrice = data.custom_price != null ? Number(data.custom_price) : Number(price);
-      const insertPayload = {
-        store_id: store.id,
-        name: source.name,
-        description: source.description ?? null,
-        short_description: original?.short_description ?? null,
-        image_url: source.image_url ?? source.image ?? null,
-        price: sellingPrice,
-        regular_price: source.price,
-        reseller_price: source.reseller_price,
-        stock,
-        status: "approved" as const,
-        category_id: chosenCategoryId,
-        warranty: original?.warranty ?? null,
-        product_serial: original?.product_serial ?? null,
-        sku: original?.sku ?? null,
-        brand: original?.brand ?? null,
-        condition: original?.condition ?? "new",
-      };
-
-
-      const { data: inserted, error: insErr } = await supabaseAdmin
-        .from("products")
-        .insert(insertPayload as never)
-        .select("id")
-        .single();
-      if (insErr) throw new Error(insErr.message);
-
-      const productId = (inserted as { id: string }).id;
-      await logAttempt(true, source.id);
-      return { ok: true as const, product_id: productId, skipped: false as const };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      // Best-effort log with whatever id we have
-      await logAttempt(false, data.reseller_product_id, message);
-      throw err;
-    }
+    return runCopyResellerProduct(
+      {
+        reseller_product_id: data.reseller_product_id,
+        category_id: data.category_id ?? null,
+        custom_price: data.custom_price ?? null,
+      },
+      {
+        userSupabase: context.supabase as never,
+        adminSupabase: supabaseAdmin as never,
+        userId: context.userId,
+      },
+    );
   });
