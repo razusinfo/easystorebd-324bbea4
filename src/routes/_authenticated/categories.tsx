@@ -220,14 +220,15 @@ function CategoryRow({
 
         <div className="flex items-center justify-end gap-1">
           <Link
-            to="/categories/new"
-            search={{ parent: node.id }}
+            to="/categories/$id/edit"
+            params={{ id: node.id }}
             className="hidden h-8 w-8 place-items-center rounded-md text-foreground/50 hover:bg-primary/10 hover:text-primary sm:grid"
             title="Add sub-category"
             aria-label="Add sub-category"
           >
             <Plus className="h-4 w-4" />
           </Link>
+
           <button
             type="button"
             onClick={() => hasChildren ? onToggle(node.id) : undefined}
