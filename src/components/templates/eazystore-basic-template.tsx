@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
