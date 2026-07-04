@@ -392,6 +392,7 @@ export function useMyProductsPaged(params: ProductsQueryParams) {
         .from("products")
         .select("*", { count: "exact" })
         .eq("store_id", storeId!)
+        .order("is_out_of_stock", { ascending: true })
         .order("created_at", { ascending: false });
 
       const s = (search ?? "").trim();

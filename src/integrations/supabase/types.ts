@@ -654,6 +654,7 @@ export type Database = {
           id: string
           image_url: string | null
           initial_sold_count: number
+          is_out_of_stock: boolean | null
           is_resellable: boolean | null
           length_cm: number | null
           name: string
@@ -690,6 +691,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           initial_sold_count?: number
+          is_out_of_stock?: boolean | null
           is_resellable?: boolean | null
           length_cm?: number | null
           name: string
@@ -726,6 +728,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           initial_sold_count?: number
+          is_out_of_stock?: boolean | null
           is_resellable?: boolean | null
           length_cm?: number | null
           name?: string
@@ -916,6 +919,7 @@ export type Database = {
           image: string | null
           image_overridden: boolean
           image_url: string | null
+          is_out_of_stock: boolean | null
           name: string
           original_product_id: string | null
           payload: Json | null
@@ -935,6 +939,7 @@ export type Database = {
           image?: string | null
           image_overridden?: boolean
           image_url?: string | null
+          is_out_of_stock?: boolean | null
           name: string
           original_product_id?: string | null
           payload?: Json | null
@@ -954,6 +959,7 @@ export type Database = {
           image?: string | null
           image_overridden?: boolean
           image_url?: string | null
+          is_out_of_stock?: boolean | null
           name?: string
           original_product_id?: string | null
           payload?: Json | null

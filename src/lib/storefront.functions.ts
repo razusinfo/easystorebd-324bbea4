@@ -44,6 +44,7 @@ export const getPublishedStorefront = createServerFn({ method: "GET" })
         .select("id, store_id, name, price, stock, status, image_url, category_id, created_at")
         .eq("store_id", store.id)
         .eq("status", "approved")
+        .order("is_out_of_stock", { ascending: true })
         .order("created_at", { ascending: false }),
       supabase
         .from("product_categories")
