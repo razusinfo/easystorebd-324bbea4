@@ -343,7 +343,13 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           });
           queryClient.invalidateQueries({ queryKey: ["reseller_products"] });
         } catch (err: any) {
-          toast.error(err?.message ?? "Reseller marketplace update failed");
+          const status = err?.response?.status ?? err?.status;
+          const msg = String(err?.message ?? "");
+          if (status === 403 || /forbidden/i.test(msg)) {
+            toast.error("Only super admins can add products to the reseller marketplace.");
+          } else {
+            toast.error(msg || "Reseller marketplace update failed");
+          }
         }
 
         // Optional external SaaS sync (no-op if RESELLER_SYNC_URL isn't set).
@@ -362,7 +368,13 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
             toast.success("Synced to reseller marketplace");
           }
         } catch (err: any) {
-          toast.error(err?.message ?? "External reseller sync failed");
+          const status = err?.response?.status ?? err?.status;
+          const msg = String(err?.message ?? "");
+          if (status === 403 || /forbidden/i.test(msg)) {
+            toast.error("Only super admins can sync to the external reseller marketplace.");
+          } else {
+            toast.error(msg || "External reseller sync failed");
+          }
         }
       }
       onDone();
