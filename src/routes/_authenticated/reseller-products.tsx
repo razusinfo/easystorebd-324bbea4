@@ -450,5 +450,125 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
   );
 }
 
+function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [categoryId, setCategoryId] = useState<string>("");
+  const [price, setPrice] = useState<string>(
+    row.displayPrice != null ? String(row.displayPrice) : row.reseller_price != null ? String(row.reseller_price) : "",
+  );
+
+  const catsQ = useCategories(storeId);
+  const categories = catsQ.data ?? [];
+
+  useEffect(() => {
+    if (open) {
+      setCategoryId("");
+      setPrice(
+        row.displayPrice != null
+          ? String(row.displayPrice)
+          : row.reseller_price != null
+            ? String(row.reseller_price)
+            : "",
+      );
+    }
+  }, [open, row]);
+
+  const add = useMutation({
+    mutationFn: async () => {
+      const parsed = Number(price);
+      if (!Number.isFinite(parsed) || parsed < 0) throw new Error("Enter a valid price");
+      if (!categoryId) throw new Error("Please select a category");
+      return copyResellerProductToMyStore({
+        data: {
+          reseller_product_id: row.id,
+          category_id: categoryId,
+          custom_price: parsed,
+        },
+      });
+    },
+    onSuccess: (res) => {
+      if (res.skipped) {
+        toast.success("Already in your products");
+      } else {
+        toast.success("Added to your shop");
+        qc.invalidateQueries({ queryKey: ["products"] });
+      }
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message || "Failed to add"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        type="button"
+        size="sm"
+        className="mt-1 w-full gap-1.5"
+        onClick={() => setOpen(true)}
+      >
+        <StoreIcon className="h-3.5 w-3.5" /> Add to My Shop
+      </Button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add to My Shop</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <Label>Product</Label>
+            <p className="text-sm text-muted-foreground">{row.name}</p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ams-category">Select Category</Label>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger id="ams-category">
+                <SelectValue placeholder={catsQ.isLoading ? "Loading…" : "Choose a category"} />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    No categories yet. Create one in your Categories page.
+                  </div>
+                ) : (
+                  categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="ams-price">Your Selling Price</Label>
+            <Input
+              id="ams-price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Reseller price: ৳{Number(row.reseller_price ?? 0).toLocaleString()} · Original: ৳
+              {Number(row.price ?? 0).toLocaleString()}
+            </p>
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={() => add.mutate()} disabled={add.isPending}>
+            {add.isPending ? "Adding…" : "Confirm"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 
 
