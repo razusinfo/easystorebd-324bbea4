@@ -82,17 +82,21 @@ export async function runCopyResellerProduct(
       brand: string | null;
       condition: string | null;
       short_description: string | null;
+      image_url: string | null;
+      video_url: string | null;
+      gallery_urls: string[] | null;
     } | null = null;
     if (originalId) {
       const { data: orig } = await adminSupabase
         .from("products")
         .select(
-          "category_id, warranty, product_serial, sku, brand, condition, weight_kg, short_description",
+          "category_id, warranty, product_serial, sku, brand, condition, weight_kg, short_description, image_url, video_url, gallery_urls",
         )
         .eq("id", originalId)
         .maybeSingle();
       original = orig ?? null;
     }
+
 
     const price = source.reseller_price ?? source.price;
     const missing: string[] = [];
