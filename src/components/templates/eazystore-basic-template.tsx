@@ -20,7 +20,7 @@ type Props = {
   accentColor?: string;
   defaultCategoryName?: string | null;
   footer?: FooterSettings;
-  categories?: { id: string; name: string }[];
+  categories?: { id: string; name: string; parent_id?: string | null }[];
 };
 
 
