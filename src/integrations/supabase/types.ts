@@ -694,6 +694,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reseller_marketplace_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string | null
+          created_at: string
+          error: string | null
+          id: string
+          product_id: string | null
+          success: boolean
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          product_id?: string | null
+          success?: boolean
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          product_id?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       reseller_orders: {
         Row: {
           created_at: string
