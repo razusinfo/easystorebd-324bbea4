@@ -135,11 +135,36 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         <div id="app-splash" aria-hidden="true">
-          <img src="/__l5e/assets-v1/b2fc381c-becb-478c-a47f-100eee076c9c/eazystore-logo.png" alt="" />
+          <img id="app-splash-img" src="/__l5e/assets-v1/b2fc381c-becb-478c-a47f-100eee076c9c/eazystore-logo.png" alt="" />
         </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                try {
+                  var m = location.pathname.match(/^\\/s\\/([a-z0-9-]+)/i);
+                  if (!m) return;
+                  var slug = m[1].toLowerCase();
+                  var logo = localStorage.getItem("storefront_logo_cache:" + slug);
+                  var img = document.getElementById("app-splash-img");
+                  var splash = document.getElementById("app-splash");
+                  if (logo && img) {
+                    img.src = logo;
+                    img.style.width = "min(40vw,40vh)";
+                    img.style.borderRadius = "24px";
+                    if (splash) splash.style.background = "#ffffff";
+                  } else if (splash) {
+                    splash.style.display = "none";
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
         {children}
         <Scripts />
       </body>
+
     </html>
   );
 }
