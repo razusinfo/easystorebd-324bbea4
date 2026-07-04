@@ -382,6 +382,7 @@ function TemplatePreview({ id, gradient, accent }: { id: TemplateId; gradient: s
   let inner: React.ReactNode = null;
   if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
   else if (id === "flipmart") inner = <FlipmartTemplate demo accentColor={accent} />;
+  else if (id === "freshmart") inner = <FreshmartTemplate demo accentColor={accent} />;
   else if (id === "prestige") inner = <PrestigeTemplate demo />;
   else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
   else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
