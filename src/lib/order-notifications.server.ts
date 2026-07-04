@@ -27,6 +27,7 @@ type Settings = {
   statuses_email: string[];
   statuses_sms: string[];
   delivery_eta: string;
+  whatsapp_webhook_url: string | null;
 };
 
 const DEFAULTS: Settings = {
