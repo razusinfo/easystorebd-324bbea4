@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMyStore } from "@/lib/eazystore-data";
+import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
 
 
 export const Route = createFileRoute("/_authenticated/reseller-products")({
