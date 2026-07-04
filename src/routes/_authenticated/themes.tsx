@@ -672,7 +672,7 @@ function LivePreviewModal({
             footer={settings.footer}
           />
 
-        ) : id === "flipmart" || id === "megamart" || id === "trendmart" ? (
+        ) : id === "flipmart" || id === "megamart" || id === "trendmart" || id === "shopii" ? (
           <FlipmartTemplate
             demo={orderedProducts.length === 0}
             products={orderedProducts.length ? orderedProducts : undefined}
@@ -680,8 +680,14 @@ function LivePreviewModal({
             accentColor={accent}
             defaultCategoryName={settings.defaultCategoryName}
             footer={settings.footer}
-            sliderRows={id === "trendmart"}
-            sectionTitles={id === "trendmart" ? { suggested: "Newly Added", trending: "Trendy Styles" } : undefined}
+            sliderRows={id === "trendmart" || id === "shopii"}
+            sectionTitles={
+              id === "trendmart"
+                ? { suggested: "Newly Added", trending: "Trendy Styles" }
+                : id === "shopii"
+                ? { suggested: "Top Products", trending: "Daily Discover" }
+                : undefined
+            }
           />
         ) : id === "freshmart" ? (
           <FreshmartTemplate
