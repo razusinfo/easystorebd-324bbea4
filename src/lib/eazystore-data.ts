@@ -820,6 +820,16 @@ export function useUpsertProduct(storeId: string | undefined) {
         }
       }
 
+      if (input.categoryIds !== undefined) {
+        await supabase.from("product_category_assignments").delete().eq("product_id", productId);
+        const uniq = Array.from(new Set(input.categoryIds.filter(Boolean)));
+        if (uniq.length) {
+          const rows = uniq.map((cid) => ({ product_id: productId, category_id: cid }));
+          const { error } = await supabase.from("product_category_assignments").insert(rows);
+          if (error) throw error;
+        }
+      }
+
       return { id: productId };
     },
     onSuccess: (_res, vars) => {
@@ -827,10 +837,12 @@ export function useUpsertProduct(storeId: string | undefined) {
       if (vars.id) {
         qc.invalidateQueries({ queryKey: ["product-variants", vars.id] });
         qc.invalidateQueries({ queryKey: ["product-details", vars.id] });
+        qc.invalidateQueries({ queryKey: ["product-category-assignments", vars.id] });
       }
     },
   });
 }
+
 
 export function useDeleteProduct(storeId: string | undefined) {
   const qc = useQueryClient();
