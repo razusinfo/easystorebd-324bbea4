@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Package } from "lucide-react";
+import { Package, Copy, Check } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 export const Route = createFileRoute("/_authenticated/reseller-products")({
   component: ResellerProductsPage,
@@ -110,6 +113,10 @@ function ResellerProductsPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => {
             const img = p.image_url ?? p.image;
+            const shareUrl =
+              typeof window !== "undefined"
+                ? `${window.location.origin}/r/${p.external_id}`
+                : `/r/${p.external_id}`;
             return (
               <Card key={p.id} className="overflow-hidden">
                 <div className="aspect-square bg-muted">
@@ -141,6 +148,7 @@ function ResellerProductsPage() {
                       <Badge variant="outline" className="text-[10px]">{p.source}</Badge>
                     )}
                   </div>
+                  <CopyLinkButton url={shareUrl} />
                 </div>
               </Card>
             );
@@ -150,3 +158,30 @@ function ResellerProductsPage() {
     </div>
   );
 }
+
+function CopyLinkButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  async function onCopy() {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Link copied");
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Copy failed");
+    }
+  }
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="mt-1 w-full gap-1.5"
+      onClick={onCopy}
+    >
+      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? "Copied" : "Copy Link"}
+    </Button>
+  );
+}
+
