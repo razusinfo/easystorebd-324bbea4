@@ -727,7 +727,10 @@ export type UpsertProductInput = {
   warranty?: string | null;
   initialSoldCount?: number;
   useDefaultDelivery?: boolean;
+  defaultDeliveryCharge?: number | null;
+  specificDeliveryCharges?: { zone: string; charge: number }[];
   videoUrl?: string | null;
+
   status?: ProductStatus;
   variants?: { name: string; value: string }[];
   details?: { key: string; value: string }[];
