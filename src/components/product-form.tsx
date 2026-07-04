@@ -99,6 +99,9 @@ const initialState: FormState = {
   warranty: "",
   initialSoldCount: "0",
   useDefaultDelivery: true,
+  defaultDeliveryCharge: "0",
+  specificDeliveryCharges: [],
+
   variants: [],
   details: [],
   imageUrl: "",
