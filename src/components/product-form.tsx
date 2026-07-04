@@ -78,7 +78,10 @@ type FormState = {
   imageUrl: string;
   galleryUrls: string[];
   videoUrl: string;
+  addToReseller: boolean;
+  resellerPrice: string;
 };
+
 
 const initialState: FormState = {
   name: "",
