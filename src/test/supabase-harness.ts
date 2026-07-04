@@ -50,6 +50,8 @@ export function createSupabaseHarness(config: HarnessConfig) {
     const chain: any = {};
     chain.select = () => chain;
     chain.eq = () => chain;
+    chain.in = () => chain;
+    chain.order = () => chain;
     chain.limit = () => chain;
     chain.maybeSingle = async () => nextFor(table).maybeSingle ?? { data: null, error: null };
     chain.single = async () => nextFor(table).single ?? { data: null, error: null };
@@ -63,8 +65,10 @@ export function createSupabaseHarness(config: HarnessConfig) {
       return chain;
     };
     // Awaitable directly (e.g. select().eq() or update().eq() with no terminal method)
-    chain.then = (r: any, j: any) =>
-      Promise.resolve(nextFor(table).await ?? { data: [], error: null }).then(r, j);
+    chain.then = (r: any, j: any) => {
+      const entry = config[table] ? nextFor(table).await : undefined;
+      return Promise.resolve(entry ?? { data: [], error: null }).then(r, j);
+    };
     return chain;
   }
 
