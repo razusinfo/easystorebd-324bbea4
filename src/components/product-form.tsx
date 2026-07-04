@@ -275,6 +275,11 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         warranty: form.warranty.trim() || null,
         initialSoldCount: Number(form.initialSoldCount || "0"),
         useDefaultDelivery: form.useDefaultDelivery,
+        defaultDeliveryCharge: form.defaultDeliveryCharge === "" ? null : Number(form.defaultDeliveryCharge),
+        specificDeliveryCharges: form.specificDeliveryCharges
+          .map((s) => ({ zone: s.zone.trim(), charge: Number(s.charge || "0") }))
+          .filter((s) => s.zone && Number.isFinite(s.charge)),
+
         videoUrl: form.videoUrl.trim() || null,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
