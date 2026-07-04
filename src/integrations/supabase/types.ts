@@ -645,6 +645,7 @@ export type Database = {
       }
       reseller_products: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
           external_id: string
@@ -660,6 +661,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
           external_id: string
@@ -675,6 +677,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
           external_id?: string
