@@ -21,13 +21,36 @@ export const syncResellerProduct = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleErr } = await context.supabase
-      .rpc("has_role", { _user_id: context.userId, _role: "super_admin" });
-    if (roleErr) throw new Error(roleErr.message);
-    if (!isAdmin) throw new Response("Forbidden", { status: 403 });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: roles } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    const heldRoles = (roles ?? []).map((r: { role: string }) => r.role);
+    const isAdmin = heldRoles.includes("super_admin");
+    const actorRole = isAdmin ? "super_admin" : (heldRoles[0] ?? "unknown");
+
+    const logAttempt = async (success: boolean, error?: string) => {
+      await supabaseAdmin.from("reseller_marketplace_audit_logs").insert({
+        actor_id: context.userId,
+        actor_role: actorRole,
+        action: "sync_reseller_product_external",
+        product_id: data.id,
+        success,
+        error: error ?? null,
+      });
+    };
+
+    if (!isAdmin) {
+      await logAttempt(false, "forbidden");
+      throw new Response("Forbidden: super_admin only", { status: 403 });
+    }
+
     const url = process.env.RESELLER_SYNC_URL;
     if (!url) {
       console.warn("[reseller-sync] RESELLER_SYNC_URL not configured — skipping");
+      await logAttempt(true, "skipped: no url configured");
       return { skipped: true as const };
     }
     const apiKey = process.env.RESELLER_SYNC_API_KEY;
@@ -41,7 +64,10 @@ export const syncResellerProduct = createServerFn({ method: "POST" })
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(`Reseller sync failed: ${res.status} ${text}`.trim());
+      const msg = `Reseller sync failed: ${res.status} ${text}`.trim();
+      await logAttempt(false, msg);
+      throw new Error(msg);
     }
+    await logAttempt(true);
     return { ok: true as const, status: res.status };
   });
