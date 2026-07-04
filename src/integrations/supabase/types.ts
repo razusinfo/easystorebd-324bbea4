@@ -864,6 +864,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_reseller_settings: {
+        Row: {
+          created_at: string
+          custom_description: string | null
+          custom_image: string | null
+          custom_price: number | null
+          id: string
+          reseller_product_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_description?: string | null
+          custom_image?: string | null
+          custom_price?: number | null
+          id?: string
+          reseller_product_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_description?: string | null
+          custom_image?: string | null
+          custom_price?: number | null
+          id?: string
+          reseller_product_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reseller_settings_reseller_product_id_fkey"
+            columns: ["reseller_product_id"]
+            isOneToOne: false
+            referencedRelation: "reseller_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
