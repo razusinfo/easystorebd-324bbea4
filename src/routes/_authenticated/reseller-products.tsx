@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMyStore, uploadProductImage } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
+import { submitProductRequest } from "@/lib/product-requests.functions";
 
 
 
