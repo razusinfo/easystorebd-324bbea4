@@ -85,7 +85,7 @@ const initialState: FormState = {
   status: "active",
   brand: "",
   condition: "new",
-  categoryId: "",
+  categoryIds: [],
   sellPrice: "",
   regularPrice: "",
   buyingPrice: "",
