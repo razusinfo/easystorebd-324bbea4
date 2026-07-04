@@ -11,6 +11,7 @@ import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import { FlipmartTemplate } from "@/components/templates/flipmart-template";
 import {
   MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview,
   SportyPulsePreview, LuxeNoirPreview,
@@ -788,6 +789,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
 
   let inner: React.ReactNode = null;
   if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
+  else if (id === "flipmart") inner = <FlipmartTemplate demo accentColor={accent} />;
   else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
   else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
   else if (id === "techgrid") inner = <TechGridPreview accent={accent} />;
