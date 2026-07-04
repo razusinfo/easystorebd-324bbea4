@@ -424,7 +424,10 @@ export function CategoryEditor(props: Props) {
               onOpenFull={(id) => navigate({ to: "/categories/$id/edit", params: { id } })}
               onDelete={deleteSub}
               removePending={remove.isPending}
+              adding={addingSub}
+              setAdding={setAddingSub}
             />
+
           )}
         </aside>
       </div>
