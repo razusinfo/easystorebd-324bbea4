@@ -89,6 +89,24 @@ export const Route = createFileRoute("/api/public/orders/place")({
 
         if (insErr) return json({ error: insErr.message }, 500);
 
+        // Fire-and-forget SMS confirmation to the customer.
+        try {
+          const { sendOrderConfirmation } = await import(
+            "@/lib/order-notifications.server"
+          );
+          await sendOrderConfirmation({
+            id: order.id,
+            product_name: prod.name,
+            quantity: o.quantity,
+            reseller_price: resellerPrice,
+            customer_name: o.customer.name,
+            customer_phone: o.customer.phone ?? null,
+            reseller_id: o.reseller_id,
+          });
+        } catch (e) {
+          console.warn("[orders.place] SMS failed:", (e as Error).message);
+        }
+
         return json({
           ok: true,
           order_id: order.id,
