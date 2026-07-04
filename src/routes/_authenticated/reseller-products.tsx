@@ -18,6 +18,7 @@ import { useMyStore, uploadProductImage } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
+import { useI18n } from "@/lib/i18n";
 
 
 
@@ -67,6 +68,7 @@ type DisplayRow = ResellerRow & {
 };
 
 function ResellerProductsPage() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<string>(ALL);
 
   const userQ = useQuery({
@@ -200,7 +202,7 @@ function ResellerProductsPage() {
                   {outOfStock && (
                     <div className="pointer-events-none absolute inset-0 flex items-start justify-center bg-black/30 pt-3">
                       <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
-                        Out of Stock
+                        {t("outOfStock")}
                       </span>
                     </div>
                   )}
@@ -230,7 +232,7 @@ function ResellerProductsPage() {
                       <Badge className="text-[10px]">My shop</Badge>
                     )}
                     {outOfStock && (
-                      <Badge variant="destructive" className="text-[10px]">Out of Stock</Badge>
+                      <Badge variant="destructive" className="text-[10px]">{t("outOfStock")}</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -476,6 +478,7 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
 type MediaItem = { url: string; kind: "image" | "video" };
 
 function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeId: string; disabled?: boolean }) {
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [categoryId, setCategoryId] = useState<string>("");
@@ -595,10 +598,10 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         onClick={() => setOpen(true)}
         disabled={disabled}
         aria-disabled={disabled || undefined}
-        title={disabled ? "Out of stock from supplier" : undefined}
+        title={disabled ? t("outOfStockFromSupplier") : undefined}
       >
         <StoreIcon className="h-3.5 w-3.5" />{" "}
-        {disabled ? "Out of Stock" : "আমার শপে যোগ করুন / Add to My Shop"}
+        {disabled ? t("outOfStock") : t("addToMyShop")}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
