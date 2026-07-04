@@ -8,7 +8,7 @@
 
 /**
  * Marketplace "low stock == out of stock" threshold. Any product with
- * stock <= LOW_STOCK_THRESHOLD is treated as out of stock in the
+ * stock <= getLowStockThreshold() is treated as out of stock in the
  * marketplace to prevent overselling. Keep in sync with the DB generated
  * column `is_out_of_stock` on products / reseller_products.
  */
@@ -58,12 +58,12 @@ export type StockAuditRow = {
 
 /** True when stock transitions from >THRESHOLD to <=THRESHOLD. */
 export function didGoOutOfStock(oldStock: number, newStock: number): boolean {
-  return (oldStock ?? 0) > LOW_STOCK_THRESHOLD && (newStock ?? 0) <= LOW_STOCK_THRESHOLD;
+  return (oldStock ?? 0) > getLowStockThreshold() && (newStock ?? 0) <= getLowStockThreshold();
 }
 
 /** True when stock transitions from <=THRESHOLD back to >THRESHOLD. */
 export function didRestoreStock(oldStock: number, newStock: number): boolean {
-  return (oldStock ?? 0) <= LOW_STOCK_THRESHOLD && (newStock ?? 0) > LOW_STOCK_THRESHOLD;
+  return (oldStock ?? 0) <= getLowStockThreshold() && (newStock ?? 0) > getLowStockThreshold();
 }
 
 /** Apply a signed delta (negative for sales, positive for restocks). Clamped at 0. */
@@ -159,8 +159,8 @@ export function propagateStockChange(args: {
  */
 export function sortOutOfStockToBottom<T extends { stock?: number | null }>(rows: T[]): T[] {
   return [...rows].sort((a, b) => {
-    const ao = (a.stock ?? 0) <= LOW_STOCK_THRESHOLD ? 1 : 0;
-    const bo = (b.stock ?? 0) <= LOW_STOCK_THRESHOLD ? 1 : 0;
+    const ao = (a.stock ?? 0) <= getLowStockThreshold() ? 1 : 0;
+    const bo = (b.stock ?? 0) <= getLowStockThreshold() ? 1 : 0;
     return ao - bo;
   });
 }
@@ -190,7 +190,7 @@ export function sortByCategoryWithOutOfStockLast<
 
 /** Derived flag used by DB `is_out_of_stock` generated column. */
 export function computeIsOutOfStock(stock: number | null | undefined): boolean {
-  return (stock ?? 0) <= LOW_STOCK_THRESHOLD;
+  return (stock ?? 0) <= getLowStockThreshold();
 }
 
 /**
@@ -200,5 +200,5 @@ export function computeIsOutOfStock(stock: number | null | undefined): boolean {
  */
 export function displayMarketplaceStock(stock: number | null | undefined): number {
   const s = stock ?? 0;
-  return s <= LOW_STOCK_THRESHOLD ? 0 : s;
+  return s <= getLowStockThreshold() ? 0 : s;
 }
