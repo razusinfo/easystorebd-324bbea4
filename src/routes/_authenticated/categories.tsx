@@ -1,13 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import {
-  ArrowLeft, Plus, Search, Eye, Pencil, Trash2, Loader2, AlertCircle,
-  GripVertical, ImageIcon, Upload, X, ChevronRight, ChevronDown, ExternalLink,
+  ArrowLeft, Plus, Search, Eye, Pencil, Trash2, Loader2,
+  GripVertical, ImageIcon, ChevronRight, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { useMyStore } from "@/lib/eazystore-data";
 import {
-  useCategories, useCreateCategory, useUpdateCategory,
-  useDeleteCategory, useReorderCategory, uploadCategoryImage,
+  useCategories, useDeleteCategory, useReorderCategory,
   buildCategoryTree, type CategoryNode,
 } from "@/lib/categories-data";
 
@@ -16,18 +15,12 @@ export const Route = createFileRoute("/_authenticated/categories")({
   component: CategoriesPage,
 });
 
-type ModalState =
-  | { mode: "closed" }
-  | { mode: "create"; parent_id: string | null }
-  | { mode: "edit"; node: CategoryNode };
-
 function CategoriesPage() {
   const myStore = useMyStore();
   const storeId = myStore.data?.id;
   const list = useCategories(storeId);
 
   const [query, setQuery] = useState("");
-  const [modal, setModal] = useState<ModalState>({ mode: "closed" });
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const tree = useMemo(() => buildCategoryTree(list.data ?? []), [list.data]);
@@ -80,7 +73,6 @@ function CategoriesPage() {
         </Link>
       </div>
 
-      {/* Header card */}
       <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm">
         <h1 className="mr-auto font-display text-2xl font-black tracking-tight">Categories</h1>
         <div className="relative">
@@ -92,16 +84,14 @@ function CategoriesPage() {
             className="h-10 w-40 rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none ring-primary/30 focus:ring-2 sm:w-56"
           />
         </div>
-        <button
-          type="button"
-          onClick={() => setModal({ mode: "create", parent_id: null })}
+        <Link
+          to="/categories/new"
           className="inline-flex h-10 items-center gap-1.5 rounded-xl gradient-primary px-4 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90"
         >
           <Plus className="h-4 w-4" /> Add Categories
-        </button>
+        </Link>
       </section>
 
-      {/* Table */}
       <section className="mt-4 overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
         <div className="hidden grid-cols-[40px_1fr_180px_140px] items-center border-b border-border bg-muted/40 px-3 py-3 text-xs font-bold uppercase tracking-wide text-foreground/60 sm:grid">
           <span />
@@ -124,30 +114,18 @@ function CategoriesPage() {
                 storeSlug={myStore.data!.slug ?? ""}
                 expanded={expanded}
                 onToggle={toggle}
-                onEdit={(n) => setModal({ mode: "edit", node: n })}
-                onAddChild={(p) => setModal({ mode: "create", parent_id: p })}
                 storeId={storeId!}
               />
             ))}
           </ul>
         )}
       </section>
-
-      {modal.mode !== "closed" && (
-        <CategoryModal
-          key={modal.mode === "edit" ? modal.node.id : `create-${modal.parent_id ?? "root"}`}
-          state={modal}
-          storeId={storeId!}
-          allCategories={list.data ?? []}
-          onClose={() => setModal({ mode: "closed" })}
-        />
-      )}
     </main>
   );
 }
 
 function CategoryRow({
-  node, depth, storeSlug, storeId, expanded, onToggle, onEdit, onAddChild,
+  node, depth, storeSlug, storeId, expanded, onToggle,
 }: {
   node: CategoryNode;
   depth: number;
@@ -155,11 +133,10 @@ function CategoryRow({
   storeId: string;
   expanded: Set<string>;
   onToggle: (id: string) => void;
-  onEdit: (n: CategoryNode) => void;
-  onAddChild: (parent_id: string) => void;
 }) {
   const remove = useDeleteCategory(storeId);
   const reorder = useReorderCategory(storeId);
+  const navigate = useNavigate();
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
 
@@ -232,15 +209,15 @@ function CategoryRow({
         </div>
 
         <div className="flex items-center justify-end gap-1">
-          <button
-            type="button"
-            onClick={() => onAddChild(node.id)}
+          <Link
+            to="/categories/new"
+            search={{ parent: node.id }}
             className="hidden h-8 w-8 place-items-center rounded-md text-foreground/50 hover:bg-primary/10 hover:text-primary sm:grid"
             title="Add sub-category"
             aria-label="Add sub-category"
           >
             <Plus className="h-4 w-4" />
-          </button>
+          </Link>
           <button
             type="button"
             onClick={() => hasChildren ? onToggle(node.id) : undefined}
@@ -253,7 +230,7 @@ function CategoryRow({
           </button>
           <button
             type="button"
-            onClick={() => onEdit(node)}
+            onClick={() => navigate({ to: "/categories/$id/edit", params: { id: node.id } })}
             className="grid h-8 w-8 place-items-center rounded-md text-foreground/50 hover:bg-primary/10 hover:text-primary"
             title="Edit"
             aria-label="Edit"
@@ -284,184 +261,11 @@ function CategoryRow({
               storeId={storeId}
               expanded={expanded}
               onToggle={onToggle}
-              onEdit={onEdit}
-              onAddChild={onAddChild}
             />
           ))}
         </ul>
       )}
     </li>
-  );
-}
-
-function CategoryModal({
-  state, storeId, allCategories, onClose,
-}: {
-  state: Exclude<ModalState, { mode: "closed" }>;
-  storeId: string;
-  allCategories: { id: string; name: string; parent_id: string | null }[];
-  onClose: () => void;
-}) {
-  const create = useCreateCategory(storeId);
-  const update = useUpdateCategory(storeId);
-  const isEdit = state.mode === "edit";
-
-  const [name, setName] = useState(isEdit ? state.node.name : "");
-  const [parentId, setParentId] = useState<string | null>(
-    isEdit ? state.node.parent_id : state.mode === "create" ? state.parent_id : null,
-  );
-  const [imageUrl, setImageUrl] = useState<string | null>(isEdit ? state.node.image_url : null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const parentOptions = useMemo(() => {
-    // Prevent selecting self or a descendant as parent when editing
-    const excluded = new Set<string>();
-    if (isEdit) {
-      const collect = (id: string) => {
-        excluded.add(id);
-        allCategories.filter((c) => c.parent_id === id).forEach((c) => collect(c.id));
-      };
-      collect(state.node.id);
-    }
-    return allCategories.filter((c) => !excluded.has(c.id));
-  }, [allCategories, isEdit, state]);
-
-  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setError(null);
-    setUploading(true);
-    try {
-      const url = await uploadCategoryImage(file);
-      setImageUrl(url);
-    } catch (err) {
-      setError((err as Error)?.message ?? "Upload failed.");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  async function submit() {
-    setError(null);
-    try {
-      if (isEdit) {
-        await update.mutateAsync({ id: state.node.id, name, image_url: imageUrl });
-      } else {
-        await create.mutateAsync({ name, parent_id: parentId, image_url: imageUrl });
-      }
-      onClose();
-    } catch (err) {
-      setError((err as Error)?.message ?? "Could not save.");
-    }
-  }
-
-  const busy = create.isPending || update.isPending || uploading;
-
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-black">
-            {isEdit ? "Edit Category" : "Add Category"}
-          </h2>
-          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-md text-foreground/50 hover:bg-foreground/5" aria-label="Close">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wide text-foreground/60">Image</label>
-            <div className="mt-2 flex items-center gap-3">
-              <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-xl border border-border bg-muted">
-                {imageUrl ? (
-                  <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <ImageIcon className="h-5 w-5 text-foreground/40" />
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploading}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold hover:bg-foreground/5 disabled:opacity-50"
-                >
-                  {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  {imageUrl ? "Replace" : "Upload"}
-                </button>
-                {imageUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setImageUrl(null)}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Remove
-                  </button>
-                )}
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pick} />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="cat-name" className="block text-xs font-bold uppercase tracking-wide text-foreground/60">Name</label>
-            <input
-              id="cat-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={80}
-              autoFocus
-              placeholder="e.g. Women's Fashion"
-              className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none ring-primary/30 focus:ring-2"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="cat-parent" className="block text-xs font-bold uppercase tracking-wide text-foreground/60">Parent (optional)</label>
-            <select
-              id="cat-parent"
-              value={parentId ?? ""}
-              onChange={(e) => setParentId(e.target.value || null)}
-              className="mt-2 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none ring-primary/30 focus:ring-2"
-            >
-              <option value="">— Top level —</option>
-              {parentOptions.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {error && (
-            <p className="flex items-center gap-1.5 text-xs font-medium text-red-600">
-              <AlertCircle className="h-3.5 w-3.5" /> {error}
-            </p>
-          )}
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-bold hover:bg-foreground/5"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={submit}
-              disabled={busy || !name.trim()}
-              className="inline-flex items-center gap-1.5 rounded-xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50"
-            >
-              {(create.isPending || update.isPending) && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isEdit ? "Save" : "Add"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 

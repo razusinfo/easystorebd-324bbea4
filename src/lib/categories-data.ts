@@ -10,6 +10,8 @@ export type CategoryRow = {
   slug: string | null;
   sort_order: number;
   image_url: string | null;
+  banner_url: string | null;
+  description: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -60,21 +62,34 @@ function slugify(s: string) {
 export function useCreateCategory(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; parent_id: string | null; image_url?: string | null }) => {
+    mutationFn: async (input: {
+      name: string;
+      parent_id: string | null;
+      image_url?: string | null;
+      banner_url?: string | null;
+      description?: string | null;
+    }): Promise<CategoryRow> => {
       if (!storeId) throw new Error("No store");
       const name = input.name.trim();
       if (name.length < 1) throw new Error("Name is required.");
-      const { error } = await supabase.from("product_categories").insert({
-        store_id: storeId,
-        parent_id: input.parent_id,
-        name,
-        slug: slugify(name) || null,
-        image_url: input.image_url ?? null,
-      });
+      const { data, error } = await supabase
+        .from("product_categories")
+        .insert({
+          store_id: storeId,
+          parent_id: input.parent_id,
+          name,
+          slug: slugify(name) || null,
+          image_url: input.image_url ?? null,
+          banner_url: input.banner_url ?? null,
+          description: input.description ?? null,
+        })
+        .select("*")
+        .single();
       if (error) {
         if (error.code === "23505") throw new Error("A category with this name already exists here.");
         throw error;
       }
+      return data as CategoryRow;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories", "by-store", storeId] }),
   });
@@ -102,8 +117,20 @@ export function useRenameCategory(storeId: string | undefined) {
 export function useUpdateCategory(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id: string; name?: string; image_url?: string | null }) => {
-      const patch: { name?: string; slug?: string | null; image_url?: string | null } = {};
+    mutationFn: async (input: {
+      id: string;
+      name?: string;
+      image_url?: string | null;
+      banner_url?: string | null;
+      description?: string | null;
+    }) => {
+      const patch: {
+        name?: string;
+        slug?: string | null;
+        image_url?: string | null;
+        banner_url?: string | null;
+        description?: string | null;
+      } = {};
       if (typeof input.name === "string") {
         const name = input.name.trim();
         if (!name) throw new Error("Name is required.");
@@ -111,6 +138,8 @@ export function useUpdateCategory(storeId: string | undefined) {
         patch.slug = slugify(name) || null;
       }
       if (input.image_url !== undefined) patch.image_url = input.image_url;
+      if (input.banner_url !== undefined) patch.banner_url = input.banner_url;
+      if (input.description !== undefined) patch.description = input.description;
       if (Object.keys(patch).length === 0) return;
       const { error } = await supabase.from("product_categories").update(patch).eq("id", input.id);
       if (error) {
