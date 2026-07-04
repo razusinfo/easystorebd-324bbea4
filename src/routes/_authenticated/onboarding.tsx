@@ -8,6 +8,12 @@ import { useI18n, type Lang } from "@/lib/i18n";
 import {
   useMyStore, useCreateStore, TEMPLATES, BUSINESS_TYPES, type Category, type TemplateId,
 } from "@/lib/eazystore-data";
+import {
+  MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview, SportyPulsePreview, LuxeNoirPreview,
+} from "@/components/templates/mini-previews";
+import { EazyStoreBasicTemplate } from "@/components/templates/EazyStoreBasicTemplate";
+import { AutoPartsTemplate } from "@/components/templates/AutoPartsTemplate";
+import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.json";
 
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
