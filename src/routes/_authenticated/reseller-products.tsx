@@ -220,18 +220,82 @@ function ResellerProductsPage() {
   );
 }
 
-function CopyLinkButton({ url }: { url: string }) {
+function CopyLinkButton({
+  url,
+  row,
+  storeId,
+}: {
+  url: string;
+  row: DisplayRow;
+  storeId: string | null;
+}) {
+  const qc = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function copyToMyProducts() {
+    if (!storeId) return { skipped: true as const, reason: "no-store" };
+
+    // Dedup: skip if a product already exists in this store copied from the
+    // same source reseller product (matched by name, since we don't store a
+    // source_reseller_product_id on products).
+    const { data: existing, error: existingErr } = await supabase
+      .from("products")
+      .select("id")
+      .eq("store_id", storeId)
+      .eq("name", row.name)
+      .limit(1)
+      .maybeSingle();
+    if (existingErr) throw existingErr;
+    if (existing) return { skipped: true as const, reason: "exists" };
+
+    const price = row.displayPrice ?? row.reseller_price ?? row.price;
+    const image = row.displayImage ?? row.image_url ?? row.image ?? null;
+    const description = row.displayDescription ?? row.description ?? null;
+
+    const { error } = await supabase.from("products").insert({
+      store_id: storeId,
+      name: row.name,
+      description,
+      image_url: image,
+      price,
+      regular_price: row.price,
+      reseller_price: row.reseller_price,
+      stock: 0,
+      status: "approved",
+    } as never);
+    if (error) throw error;
+    return { skipped: false as const };
+  }
+
   async function onCopy() {
+    setBusy(true);
     try {
-      await navigator.clipboard.writeText(url);
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        // Non-fatal — still attempt the product copy.
+      }
+
+      const result = await copyToMyProducts();
       setCopied(true);
-      toast.success("Link copied");
       setTimeout(() => setCopied(false), 1500);
-    } catch {
-      toast.error("Copy failed");
+
+      if (result.skipped && result.reason === "exists") {
+        toast.success("Link copied · already in your products");
+      } else if (result.skipped && result.reason === "no-store") {
+        toast.success("Link copied");
+      } else {
+        toast.success("Link copied · added to your products");
+        qc.invalidateQueries({ queryKey: ["products"] });
+      }
+    } catch (e) {
+      toast.error((e as Error).message || "Copy failed");
+    } finally {
+      setBusy(false);
     }
   }
+
   return (
     <Button
       type="button"
@@ -239,9 +303,10 @@ function CopyLinkButton({ url }: { url: string }) {
       size="sm"
       className="mt-1 w-full gap-1.5"
       onClick={onCopy}
+      disabled={busy}
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-      {copied ? "Copied" : "Copy Link"}
+      {copied ? "Copied" : busy ? "Copying…" : "Copy Link"}
     </Button>
   );
 }
