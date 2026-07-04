@@ -210,10 +210,12 @@ function ResellerProductsPage() {
                       <Badge className="text-[10px]">My shop</Badge>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
+                    {storeId && <AddToMyShopButton row={p} storeId={storeId} />}
                     {userId && <EditResellerButton row={p} userId={userId} />}
                   </div>
+
                 </div>
               </Card>
             );
