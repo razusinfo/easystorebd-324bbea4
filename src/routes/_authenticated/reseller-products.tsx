@@ -202,7 +202,7 @@ function ResellerProductsPage() {
                   {outOfStock && (
                     <div className="pointer-events-none absolute inset-0 flex items-start justify-center bg-black/30 pt-3">
                       <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
-                        Out of Stock
+                        {t("outOfStock")}
                       </span>
                     </div>
                   )}
