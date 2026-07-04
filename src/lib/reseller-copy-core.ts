@@ -138,12 +138,36 @@ export async function runCopyResellerProduct(
     }
 
     const sellingPrice = input.custom_price != null ? Number(input.custom_price) : Number(price);
+
+    // Assemble media set from original product (fallback to reseller_products image).
+    const originalPrimary = original?.image_url ?? source.image_url ?? source.image ?? null;
+    const originalGallery = Array.isArray(original?.gallery_urls) ? original!.gallery_urls! : [];
+    const originalVideo = original?.video_url ?? null;
+
+    const allMedia = [
+      ...(originalPrimary ? [originalPrimary] : []),
+      ...originalGallery,
+      ...(originalVideo ? [originalVideo] : []),
+    ];
+
+    // Optional whitelist: intersect with what actually exists on the source.
+    const allowed = input.selected_media
+      ? new Set(input.selected_media.filter((u) => allMedia.includes(u)))
+      : null;
+    const keep = (u: string | null) => (u == null ? false : allowed ? allowed.has(u) : true);
+
+    const finalPrimary = keep(originalPrimary) ? originalPrimary : originalGallery.find(keep) ?? null;
+    const finalGallery = originalGallery.filter((u) => keep(u) && u !== finalPrimary);
+    const finalVideo = keep(originalVideo) ? originalVideo : null;
+
     const insertPayload = {
       store_id: store.id,
       name: source.name,
       description: source.description ?? null,
       short_description: original?.short_description ?? null,
-      image_url: source.image_url ?? source.image ?? null,
+      image_url: finalPrimary,
+      gallery_urls: finalGallery,
+      video_url: finalVideo,
       price: sellingPrice,
       regular_price: source.price,
       reseller_price: source.reseller_price,
@@ -156,6 +180,7 @@ export async function runCopyResellerProduct(
       brand: original?.brand ?? null,
       condition: original?.condition ?? "new",
     };
+
 
     const { data: inserted, error: insErr } = await adminSupabase
       .from("products")
