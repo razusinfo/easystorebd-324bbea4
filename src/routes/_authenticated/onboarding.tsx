@@ -11,8 +11,9 @@ import {
 import {
   MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview, SportyPulsePreview, LuxeNoirPreview,
 } from "@/components/templates/mini-previews";
-import { EazyStoreBasicTemplate } from "@/components/templates/EazyStoreBasicTemplate";
-import { AutoPartsTemplate } from "@/components/templates/AutoPartsTemplate";
+import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
+import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.json";
 
 
