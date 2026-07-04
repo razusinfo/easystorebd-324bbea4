@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -47,6 +48,7 @@ type Row = {
   profit_margin: number;
   status: Status;
   shipping_requested: boolean;
+  notes: string | null;
   created_at: string;
   reseller?: { full_name: string | null; email: string } | null;
 };
@@ -59,7 +61,7 @@ function AdminResellerOrdersPage() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, reseller_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, created_at")
+        .select("id, reseller_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
@@ -122,7 +124,8 @@ function AdminResellerOrdersPage() {
           </TableHeader>
           <TableBody>
             {q.data?.length ? q.data.map((r) => (
-              <TableRow key={r.id}>
+              <Fragment key={r.id}>
+              <TableRow>
                 <TableCell>
                   <div className="font-medium">{r.reseller?.full_name ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">{r.reseller?.email ?? r.reseller_id.slice(0, 8)}</div>
@@ -157,6 +160,19 @@ function AdminResellerOrdersPage() {
                   {new Date(r.created_at).toLocaleString()}
                 </TableCell>
               </TableRow>
+              {r.notes && (
+                <TableRow key={`${r.id}-notes`} className="bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-50 dark:hover:bg-amber-950/30">
+                  <TableCell colSpan={8} className="py-2">
+                    <div className="flex items-start gap-2 text-sm">
+                      <span className="rounded bg-amber-200 dark:bg-amber-800 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-900 dark:text-amber-100">
+                        Reseller note
+                      </span>
+                      <p className="whitespace-pre-wrap text-amber-900 dark:text-amber-100">{r.notes}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+              </Fragment>
             )) : (
               <TableRow>
                 <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
