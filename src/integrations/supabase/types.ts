@@ -643,6 +643,80 @@ export type Database = {
         }
         Relationships: []
       }
+      reseller_orders: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          customer_price: number | null
+          id: string
+          notes: string | null
+          original_price: number
+          product_name: string
+          profit_margin: number
+          quantity: number
+          reseller_id: string
+          reseller_price: number
+          reseller_product_id: string
+          shipping_address: string
+          shipping_requested: boolean
+          source: string | null
+          status: Database["public"]["Enums"]["reseller_order_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          customer_price?: number | null
+          id?: string
+          notes?: string | null
+          original_price?: number
+          product_name: string
+          profit_margin?: number
+          quantity: number
+          reseller_id: string
+          reseller_price?: number
+          reseller_product_id: string
+          shipping_address: string
+          shipping_requested?: boolean
+          source?: string | null
+          status?: Database["public"]["Enums"]["reseller_order_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          customer_price?: number | null
+          id?: string
+          notes?: string | null
+          original_price?: number
+          product_name?: string
+          profit_margin?: number
+          quantity?: number
+          reseller_id?: string
+          reseller_price?: number
+          reseller_product_id?: string
+          shipping_address?: string
+          shipping_requested?: boolean
+          source?: string | null
+          status?: Database["public"]["Enums"]["reseller_order_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_orders_reseller_product_id_fkey"
+            columns: ["reseller_product_id"]
+            isOneToOne: false
+            referencedRelation: "reseller_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reseller_products: {
         Row: {
           category: string | null
@@ -707,6 +781,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reseller_wallets: {
+        Row: {
+          balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       site_settings: {
         Row: {
@@ -1021,6 +1113,12 @@ export type Database = {
         | "cancelled"
       payment_status: "unpaid" | "paid" | "refunded"
       product_status: "pending" | "approved" | "rejected"
+      reseller_order_status:
+        | "pending"
+        | "confirmed"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
       store_category:
         | "Clothes"
         | "Electronics"
@@ -1206,6 +1304,13 @@ export const Constants = {
       ],
       payment_status: ["unpaid", "paid", "refunded"],
       product_status: ["pending", "approved", "rejected"],
+      reseller_order_status: [
+        "pending",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ],
       store_category: [
         "Clothes",
         "Electronics",

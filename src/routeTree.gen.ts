@@ -36,6 +36,7 @@ import { Route as AuthenticatedResellerProductsRouteImport } from './routes/_aut
 import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authenticated/promo-codes'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedMyOrdersRouteImport } from './routes/_authenticated/my-orders'
 import { Route as AuthenticatedMobileAppRouteImport } from './routes/_authenticated/mobile-app'
 import { Route as AuthenticatedManageShopRouteImport } from './routes/_authenticated/manage-shop'
 import { Route as AuthenticatedLandingPagesRouteImport } from './routes/_authenticated/landing-pages'
@@ -44,6 +45,7 @@ import { Route as AuthenticatedCustomersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticated/courier'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products.index'
@@ -60,6 +62,7 @@ import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCategoriesNewRouteImport } from './routes/_authenticated/categories_.new'
 import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$productId'
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
+import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 import { Route as AuthenticatedCategoriesIdEditRouteImport } from './routes/_authenticated/categories_.$id.edit'
 
@@ -200,6 +203,11 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyOrdersRoute = AuthenticatedMyOrdersRouteImport.update({
+  id: '/my-orders',
+  path: '/my-orders',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMobileAppRoute = AuthenticatedMobileAppRouteImport.update({
   id: '/mobile-app',
   path: '/mobile-app',
@@ -241,6 +249,12 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminResellerOrdersRoute =
+  AuthenticatedAdminResellerOrdersRouteImport.update({
+    id: '/admin-reseller-orders',
+    path: '/admin-reseller-orders',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -325,6 +339,11 @@ const ApiPublicResellerProductsUser_idRoute =
     path: '/api/public/reseller-products/$user_id',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicOrdersPlaceRoute = ApiPublicOrdersPlaceRouteImport.update({
+  id: '/api/public/orders/place',
+  path: '/api/public/orders/place',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedProductsProductIdEditRoute =
   AuthenticatedProductsProductIdEditRouteImport.update({
     id: '/products/$productId/edit',
@@ -348,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/courier': typeof AuthenticatedCourierRoute
@@ -356,6 +376,7 @@ export interface FileRoutesByFullPath {
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
@@ -389,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/': typeof SSlugIndexRoute
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
@@ -401,6 +423,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/courier': typeof AuthenticatedCourierRoute
@@ -409,6 +432,7 @@ export interface FileRoutesByTo {
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
@@ -441,6 +465,7 @@ export interface FileRoutesByTo {
   '/s/$slug': typeof SSlugIndexRoute
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
@@ -456,6 +481,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/courier': typeof AuthenticatedCourierRoute
@@ -464,6 +490,7 @@ export interface FileRoutesById {
   '/_authenticated/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/_authenticated/manage-shop': typeof AuthenticatedManageShopRoute
   '/_authenticated/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/_authenticated/my-orders': typeof AuthenticatedMyOrdersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/promo-codes': typeof AuthenticatedPromoCodesRoute
@@ -497,6 +524,7 @@ export interface FileRoutesById {
   '/s/$slug/': typeof SSlugIndexRoute
   '/_authenticated/categories_/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
@@ -512,6 +540,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-reseller-orders'
     | '/analytics'
     | '/categories'
     | '/courier'
@@ -520,6 +549,7 @@ export interface FileRouteTypes {
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
+    | '/my-orders'
     | '/onboarding'
     | '/orders'
     | '/promo-codes'
@@ -553,6 +583,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/categories/$id/edit'
     | '/products/$productId/edit'
+    | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
     | '/s/$slug/p/$productId'
   fileRoutesByTo: FileRoutesByTo
@@ -565,6 +596,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-reseller-orders'
     | '/analytics'
     | '/categories'
     | '/courier'
@@ -573,6 +605,7 @@ export interface FileRouteTypes {
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
+    | '/my-orders'
     | '/onboarding'
     | '/orders'
     | '/promo-codes'
@@ -605,6 +638,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/categories/$id/edit'
     | '/products/$productId/edit'
+    | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
     | '/s/$slug/p/$productId'
   id:
@@ -619,6 +653,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/admin-reseller-orders'
     | '/_authenticated/analytics'
     | '/_authenticated/categories'
     | '/_authenticated/courier'
@@ -627,6 +662,7 @@ export interface FileRouteTypes {
     | '/_authenticated/landing-pages'
     | '/_authenticated/manage-shop'
     | '/_authenticated/mobile-app'
+    | '/_authenticated/my-orders'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
     | '/_authenticated/promo-codes'
@@ -660,6 +696,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/_authenticated/categories_/$id/edit'
     | '/_authenticated/products/$productId/edit'
+    | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
     | '/s/$slug/p/$productId'
   fileRoutesById: FileRoutesById
@@ -679,6 +716,7 @@ export interface RootRouteChildren {
   RIdRoute: typeof RIdRoute
   SSlugRoute: typeof SSlugRouteWithChildren
   ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
+  ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
 }
 
@@ -873,6 +911,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my-orders': {
+      id: '/_authenticated/my-orders'
+      path: '/my-orders'
+      fullPath: '/my-orders'
+      preLoaderRoute: typeof AuthenticatedMyOrdersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mobile-app': {
       id: '/_authenticated/mobile-app'
       path: '/mobile-app'
@@ -927,6 +972,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin-reseller-orders': {
+      id: '/_authenticated/admin-reseller-orders'
+      path: '/admin-reseller-orders'
+      fullPath: '/admin-reseller-orders'
+      preLoaderRoute: typeof AuthenticatedAdminResellerOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
@@ -1041,6 +1093,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicResellerProductsUser_idRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/orders/place': {
+      id: '/api/public/orders/place'
+      path: '/api/public/orders/place'
+      fullPath: '/api/public/orders/place'
+      preLoaderRoute: typeof ApiPublicOrdersPlaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/products/$productId/edit': {
       id: '/_authenticated/products/$productId/edit'
       path: '/products/$productId/edit'
@@ -1060,6 +1119,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedCourierRoute: typeof AuthenticatedCourierRoute
@@ -1068,6 +1128,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLandingPagesRoute: typeof AuthenticatedLandingPagesRoute
   AuthenticatedManageShopRoute: typeof AuthenticatedManageShopRoute
   AuthenticatedMobileAppRoute: typeof AuthenticatedMobileAppRoute
+  AuthenticatedMyOrdersRoute: typeof AuthenticatedMyOrdersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedPromoCodesRoute: typeof AuthenticatedPromoCodesRoute
@@ -1087,6 +1148,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminResellerOrdersRoute: AuthenticatedAdminResellerOrdersRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedCourierRoute: AuthenticatedCourierRoute,
@@ -1095,6 +1157,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLandingPagesRoute: AuthenticatedLandingPagesRoute,
   AuthenticatedManageShopRoute: AuthenticatedManageShopRoute,
   AuthenticatedMobileAppRoute: AuthenticatedMobileAppRoute,
+  AuthenticatedMyOrdersRoute: AuthenticatedMyOrdersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedPromoCodesRoute: AuthenticatedPromoCodesRoute,
@@ -1186,6 +1249,7 @@ const rootRouteChildren: RootRouteChildren = {
   RIdRoute: RIdRoute,
   SSlugRoute: SSlugRouteWithChildren,
   ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
+  ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
   ApiPublicResellerProductsUser_idRoute: ApiPublicResellerProductsUser_idRoute,
 }
 export const routeTree = rootRouteImport
