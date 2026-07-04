@@ -15,16 +15,22 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
 
 import {
   useMyStore, useMyProducts, useUpsertProduct,
   useProductVariants, useProductDetails,
+  useProductCategoryAssignments,
   uploadProductImage, deleteProductImage,
   type ProductRow,
 } from "@/lib/eazystore-data";
 import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categories-data";
+
 
 
 type Props = {
