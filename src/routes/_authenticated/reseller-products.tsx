@@ -90,7 +90,7 @@ function ResellerProductsPage() {
       const { data, error } = await supabase
         .from("reseller_products")
         .select(
-          "id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden, user_reseller_settings(id, custom_price, custom_description, custom_image, user_id)",
+          "id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden, stock, user_reseller_settings(id, custom_price, custom_description, custom_image, user_id)",
         )
         .eq("user_reseller_settings.user_id", userId as string)
         .order("updated_at", { ascending: false });
