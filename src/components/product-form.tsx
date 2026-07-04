@@ -130,6 +130,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   const sourceId = editing?.id ?? sourceForDuplicate?.id;
   const variantsQ = useProductVariants(sourceId);
   const detailsQ = useProductDetails(sourceId);
+  const assignmentsQ = useProductCategoryAssignments(sourceId);
 
   // Hydrate once — either the product being edited, or the product being duplicated as a draft copy.
   const [hydrated, setHydrated] = useState(false);
@@ -137,8 +138,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     if (hydrated) return;
     const src = editing ?? sourceForDuplicate;
     if (!src) return;
-    // Wait until variants/details finish loading so we hydrate everything together.
-    if (variantsQ.isLoading || detailsQ.isLoading) return;
+    // Wait until variants/details/assignments finish loading so we hydrate everything together.
+    if (variantsQ.isLoading || detailsQ.isLoading || assignmentsQ.isLoading) return;
+    const assignedIds = assignmentsQ.data ?? [];
+    const fallbackIds = src.category_id ? [src.category_id] : [];
     setForm((prev) => ({
       ...prev,
       name: mode === "new" ? `${src.name} (Copy)` : src.name,
@@ -151,7 +154,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       status: prev.status,
       brand: src.brand ?? "",
       condition: (src.condition as FormState["condition"]) ?? "new",
-      categoryId: src.category_id ?? "",
+      categoryIds: assignedIds.length ? assignedIds : fallbackIds,
       sellPrice: String(src.price),
       regularPrice: src.regular_price != null ? String(src.regular_price) : "",
       buyingPrice: src.buying_price != null ? String(src.buying_price) : "",
@@ -172,7 +175,11 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       toast.success("Duplicated as a new draft — review and save");
     }
     setHydrated(true);
-  }, [hydrated, editing, sourceForDuplicate, mode, variantsQ.data, variantsQ.isLoading, detailsQ.data, detailsQ.isLoading]);
+  }, [hydrated, editing, sourceForDuplicate, mode,
+      variantsQ.data, variantsQ.isLoading,
+      detailsQ.data, detailsQ.isLoading,
+      assignmentsQ.data, assignmentsQ.isLoading]);
+
 
 
   const catTree = useMemo<CategoryNode[]>(
