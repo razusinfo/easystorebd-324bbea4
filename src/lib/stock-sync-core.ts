@@ -41,14 +41,14 @@ export type StockAuditRow = {
   success: true;
 };
 
-/** True when stock transitions from >0 to <=0 (i.e. just went out of stock). */
+/** True when stock transitions from >THRESHOLD to <=THRESHOLD. */
 export function didGoOutOfStock(oldStock: number, newStock: number): boolean {
-  return (oldStock ?? 0) > 0 && (newStock ?? 0) <= 0;
+  return (oldStock ?? 0) > LOW_STOCK_THRESHOLD && (newStock ?? 0) <= LOW_STOCK_THRESHOLD;
 }
 
-/** True when stock transitions from <=0 to >0 (i.e. was restored). */
+/** True when stock transitions from <=THRESHOLD back to >THRESHOLD. */
 export function didRestoreStock(oldStock: number, newStock: number): boolean {
-  return (oldStock ?? 0) <= 0 && (newStock ?? 0) > 0;
+  return (oldStock ?? 0) <= LOW_STOCK_THRESHOLD && (newStock ?? 0) > LOW_STOCK_THRESHOLD;
 }
 
 /** Apply a signed delta (negative for sales, positive for restocks). Clamped at 0. */
