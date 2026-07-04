@@ -186,8 +186,14 @@ function Onboarding() {
                       template === t.id ? "border-primary shadow-glow" : "border-border hover:border-primary/50"
                     }`}
                   >
-                    <div className={`relative h-24 bg-gradient-to-br ${t.gradient}`}>
-                      <Sparkles className="absolute right-2 top-2 h-4 w-4 text-white/80" />
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
+                      <TemplatePreview id={t.id} gradient={t.gradient} accent={t.accent} />
+                      {t.premium && (
+                        <span className="absolute left-2 top-2 rounded-md bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow">
+                          Premium
+                        </span>
+                      )}
+                      <Sparkles className="absolute right-2 top-2 h-4 w-4 text-white/90 drop-shadow" />
                       {template === t.id && (
                         <div className="absolute inset-0 grid place-items-center bg-black/30">
                           <div className="grid h-8 w-8 place-items-center rounded-full bg-white text-primary">
@@ -198,7 +204,7 @@ function Onboarding() {
                     </div>
                     <div className="p-3">
                       <div className="text-sm font-semibold">{t.name}</div>
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">{t.tagline}</div>
+                      <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{t.tagline}</div>
                     </div>
                   </button>
                 ))}
