@@ -220,14 +220,14 @@ function EditResellerButton({ row }: { row: ResellerRow }) {
       const priceChanged = parsedPrice !== origPrice;
       const imageChanged = trimmedImg !== origImg;
 
-      const payload: Record<string, unknown> = {
+      const payload = {
         reseller_price: parsedPrice,
         image: trimmedImg || null,
         image_url: trimmedImg || null,
         updated_at: new Date().toISOString(),
+        ...(priceChanged ? { price_overridden: true } : {}),
+        ...(imageChanged ? { image_overridden: true } : {}),
       };
-      if (priceChanged) payload.price_overridden = true;
-      if (imageChanged) payload.image_overridden = true;
 
       const { error } = await supabase.from("reseller_products").update(payload).eq("id", row.id);
       if (error) throw error;
