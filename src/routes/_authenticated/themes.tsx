@@ -811,6 +811,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
   let inner: React.ReactNode = null;
   if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
   else if (id === "flipmart" || id === "megamart") inner = <FlipmartTemplate demo accentColor={accent} />;
+  else if (id === "trendmart") inner = <FlipmartTemplate demo accentColor={accent} sliderRows sectionTitles={{ suggested: "Newly Added", trending: "Trendy Styles" }} />;
   else if (id === "freshmart") inner = <FreshmartTemplate demo accentColor={accent} />;
   else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
   else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
