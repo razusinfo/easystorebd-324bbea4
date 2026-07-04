@@ -59,6 +59,8 @@ export function CategoryEditor(props: Props) {
   const [uploadingKind, setUploadingKind] = useState<null | "image" | "banner">(null);
   const [error, setError] = useState<string | null>(null);
   const [subQuery, setSubQuery] = useState("");
+  const [addingSub, setAddingSub] = useState(false);
+
 
   const imgRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
@@ -193,14 +195,15 @@ export function CategoryEditor(props: Props) {
             <Search className="h-4 w-4" />
           </button>
           {isEdit && (
-            <Link
-              to="/categories/new"
-              search={{ parent: node!.id }}
+            <button
+              type="button"
+              onClick={() => setAddingSub(true)}
               className="inline-flex h-9 items-center gap-1.5 rounded-xl gradient-primary px-3.5 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90"
             >
               <Plus className="h-4 w-4" /> Add Sub Categories
-            </Link>
+            </button>
           )}
+
         </div>
       </section>
 
@@ -421,7 +424,10 @@ export function CategoryEditor(props: Props) {
               onOpenFull={(id) => navigate({ to: "/categories/$id/edit", params: { id } })}
               onDelete={deleteSub}
               removePending={remove.isPending}
+              adding={addingSub}
+              setAdding={setAddingSub}
             />
+
           )}
         </aside>
       </div>
@@ -430,7 +436,7 @@ export function CategoryEditor(props: Props) {
 }
 
 function SubCategoriesPanel({
-  parentId, storeId, items, query, onQuery, onOpenFull, onDelete, removePending,
+  parentId, storeId, items, query, onQuery, onOpenFull, onDelete, removePending, adding, setAdding,
 }: {
   parentId: string;
   storeId: string;
@@ -440,14 +446,16 @@ function SubCategoriesPanel({
   onOpenFull: (id: string) => void;
   onDelete: (id: string, name: string) => void;
   removePending: boolean;
+  adding: boolean;
+  setAdding: (v: boolean) => void;
 }) {
   const create = useCreateCategory(storeId);
   const update = useUpdateCategory(storeId);
   const [newName, setNewName] = useState("");
-  const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [err, setErr] = useState<string | null>(null);
+
 
   function isDuplicate(name: string, excludeId?: string) {
     const key = name.trim().toLowerCase();
