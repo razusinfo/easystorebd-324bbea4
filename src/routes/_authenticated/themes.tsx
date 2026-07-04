@@ -58,6 +58,7 @@ function ThemesPage() {
   const activeId = storeQ.data?.template as TemplateId | undefined;
   const [previewing, setPreviewing] = useState<TemplateId | null>(null);
   const [customizing, setCustomizing] = useState<TemplateId | null>(null);
+  useEffect(() => { warmPreviewImages(); }, []);
 
   const handleActivate = async (id: TemplateId) => {
     if (!storeQ.data) return;
