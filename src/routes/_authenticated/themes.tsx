@@ -672,7 +672,7 @@ function LivePreviewModal({
             footer={settings.footer}
           />
 
-        ) : id === "flipmart" || id === "megamart" ? (
+        ) : id === "flipmart" || id === "megamart" || id === "trendmart" ? (
           <FlipmartTemplate
             demo={orderedProducts.length === 0}
             products={orderedProducts.length ? orderedProducts : undefined}
@@ -680,6 +680,8 @@ function LivePreviewModal({
             accentColor={accent}
             defaultCategoryName={settings.defaultCategoryName}
             footer={settings.footer}
+            sliderRows={id === "trendmart"}
+            sectionTitles={id === "trendmart" ? { suggested: "Newly Added", trending: "Trendy Styles" } : undefined}
           />
         ) : id === "freshmart" ? (
           <FreshmartTemplate
