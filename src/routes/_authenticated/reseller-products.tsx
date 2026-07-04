@@ -153,7 +153,13 @@ function ResellerProductsPage() {
                       <Badge variant="outline" className="text-[10px]">{p.source}</Badge>
                     )}
                   </div>
-                  <CopyLinkButton url={shareUrl} />
+                  {(p.price_overridden || p.image_overridden) && (
+                    <p className="text-[10px] text-muted-foreground">Manually overridden</p>
+                  )}
+                  <div className="flex gap-2">
+                    <CopyLinkButton url={shareUrl} />
+                    <EditResellerButton row={p} />
+                  </div>
                 </div>
               </Card>
             );
