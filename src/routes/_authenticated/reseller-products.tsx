@@ -207,7 +207,7 @@ function ResellerProductsPage() {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <CopyLinkButton url={shareUrl} />
+                    <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
                     {userId && <EditResellerButton row={p} userId={userId} />}
                   </div>
                 </div>
