@@ -195,14 +195,15 @@ export function CategoryEditor(props: Props) {
             <Search className="h-4 w-4" />
           </button>
           {isEdit && (
-            <Link
-              to="/categories/new"
-              search={{ parent: node!.id }}
+            <button
+              type="button"
+              onClick={() => setAddingSub(true)}
               className="inline-flex h-9 items-center gap-1.5 rounded-xl gradient-primary px-3.5 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90"
             >
               <Plus className="h-4 w-4" /> Add Sub Categories
-            </Link>
+            </button>
           )}
+
         </div>
       </section>
 
