@@ -89,12 +89,12 @@ export const Route = createFileRoute("/api/public/orders/place")({
 
         if (insErr) return json({ error: insErr.message }, 500);
 
-        // Fire-and-forget SMS confirmation to the customer.
+        // Fire-and-forget SMS confirmation + external webhook (WhatsApp via Make/Zapier).
         try {
-          const { sendOrderConfirmation } = await import(
+          const { sendOrderConfirmation, sendOrderWebhook } = await import(
             "@/lib/order-notifications.server"
           );
-          await sendOrderConfirmation({
+          const payload = {
             id: order.id,
             product_name: prod.name,
             quantity: o.quantity,
@@ -103,9 +103,14 @@ export const Route = createFileRoute("/api/public/orders/place")({
             customer_phone: o.customer.phone ?? null,
             customer_email: o.customer.email ?? null,
             reseller_id: o.reseller_id,
-          });
+            status: order.status,
+          };
+          await Promise.all([
+            sendOrderConfirmation(payload),
+            sendOrderWebhook(payload, "order.placed", { source: o.source ?? "api", notes: o.notes ?? null }),
+          ]);
         } catch (e) {
-          console.warn("[orders.place] SMS failed:", (e as Error).message);
+          console.warn("[orders.place] notification failed:", (e as Error).message);
         }
 
         return json({
