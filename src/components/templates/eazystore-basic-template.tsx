@@ -79,10 +79,25 @@ const LABEL_TO_SUBPATH: Record<string, string> = {
 export function EazyStoreBasicTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
-  // Only use demo categories in preview mode.
-  const catList: string[] = demo
-    ? DEMO_CATEGORIES
-    : ["All Products", ...(categories ?? []).map((c) => c.name)];
+  // Build a top-level list + children map. Demo mode stays flat.
+  const topCats: { name: string; children: { id: string; name: string }[] }[] = useMemo(() => {
+    if (demo) return [{ name: "All Products", children: [] }, ...DEMO_CATEGORIES.slice(1).map((n) => ({ name: n, children: [] }))];
+    const cats = categories ?? [];
+    const childrenByParent = new Map<string, { id: string; name: string }[]>();
+    cats.forEach((c) => {
+      if (c.parent_id) {
+        const arr = childrenByParent.get(c.parent_id) ?? [];
+        arr.push({ id: c.id, name: c.name });
+        childrenByParent.set(c.parent_id, arr);
+      }
+    });
+    const roots = cats.filter((c) => !c.parent_id).map((c) => ({
+      name: c.name,
+      children: childrenByParent.get(c.id) ?? [],
+    }));
+    return [{ name: "All Products", children: [] }, ...roots];
+  }, [demo, categories]);
+  const catList: string[] = topCats.map((c) => c.name);
 
   const f: Required<FooterSettings> = {
     showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
