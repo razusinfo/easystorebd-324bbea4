@@ -278,8 +278,11 @@ export type ProductRow = {
   warranty?: string | null;
   initial_sold_count?: number;
   use_default_delivery?: boolean;
+  default_delivery_charge?: number | null;
+  specific_delivery_charges?: { zone: string; charge: number }[] | null;
   video_url?: string | null;
 };
+
 
 export type ProductVariantRow = {
   id: string;
