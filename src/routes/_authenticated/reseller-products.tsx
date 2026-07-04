@@ -68,6 +68,7 @@ type DisplayRow = ResellerRow & {
 };
 
 function ResellerProductsPage() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<string>(ALL);
 
   const userQ = useQuery({
