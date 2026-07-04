@@ -586,14 +586,13 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
-                    const f = e.dataTransfer.files?.[0];
-                    if (f) handleImageFile(f);
+                    if (e.dataTransfer.files?.length) handleAddImages(e.dataTransfer.files);
                   }}
                 >
                   <ImageIcon className="h-8 w-8 text-foreground/40" />
                   <p className="mt-3 max-w-2xl text-xs text-foreground/60">
-                    Drag and drop image here, or click add image. Supported formats: JPG, PNG, Max size: 4MB.
-                    Note: For the Sellora theme, use images with a 1:1.6 aspect ratio — for example, 570×924 pixels or 855×1386 pixels.
+                    Drag and drop up to {MAX_IMAGES} images here, or click add. Supported: JPG, PNG. Max 4MB each.
+                    The first image you pick becomes the primary product image; the rest are shown in the order selected.
                   </p>
                   <Button
                     type="button" size="sm" variant="ghost"
@@ -602,13 +601,14 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                     disabled={uploading}
                   >
                     {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
-                    Add Image
+                    Add Images
                   </Button>
                   {showError("imageUrl") && (
                     <p className="mt-2 text-xs font-medium text-destructive">{showError("imageUrl")}</p>
                   )}
                 </div>
               )}
+
 
               {/* Gallery — additional images */}
               <div className="rounded-lg border border-border bg-muted/20 p-3">
