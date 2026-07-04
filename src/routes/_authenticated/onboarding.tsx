@@ -15,6 +15,7 @@ import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-t
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { FlipmartTemplate } from "@/components/templates/flipmart-template";
+import { FreshmartTemplate } from "@/components/templates/freshmart-template";
 import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.json";
 
 
@@ -381,6 +382,7 @@ function TemplatePreview({ id, gradient, accent }: { id: TemplateId; gradient: s
   let inner: React.ReactNode = null;
   if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
   else if (id === "flipmart") inner = <FlipmartTemplate demo accentColor={accent} />;
+  else if (id === "freshmart") inner = <FreshmartTemplate demo accentColor={accent} />;
   else if (id === "prestige") inner = <PrestigeTemplate demo />;
   else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
   else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
