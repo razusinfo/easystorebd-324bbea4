@@ -59,6 +59,7 @@ import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
 import { Route as AuthenticatedCategoriesNewRouteImport } from './routes/_authenticated/categories_.new'
 import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$productId'
+import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 import { Route as AuthenticatedCategoriesIdEditRouteImport } from './routes/_authenticated/categories_.$id.edit'
 
@@ -318,6 +319,12 @@ const SSlugPProductIdRoute = SSlugPProductIdRouteImport.update({
   path: '/p/$productId',
   getParentRoute: () => SSlugRoute,
 } as any)
+const ApiPublicResellerProductsUser_idRoute =
+  ApiPublicResellerProductsUser_idRouteImport.update({
+    id: '/api/public/reseller-products/$user_id',
+    path: '/api/public/reseller-products/$user_id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedProductsProductIdEditRoute =
   AuthenticatedProductsProductIdEditRouteImport.update({
     id: '/products/$productId/edit',
@@ -382,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/': typeof SSlugIndexRoute
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -433,6 +441,7 @@ export interface FileRoutesByTo {
   '/s/$slug': typeof SSlugIndexRoute
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRoutesById {
@@ -488,6 +497,7 @@ export interface FileRoutesById {
   '/s/$slug/': typeof SSlugIndexRoute
   '/_authenticated/categories_/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRouteTypes {
@@ -543,6 +553,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/categories/$id/edit'
     | '/products/$productId/edit'
+    | '/api/public/reseller-products/$user_id'
     | '/s/$slug/p/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -594,6 +605,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/categories/$id/edit'
     | '/products/$productId/edit'
+    | '/api/public/reseller-products/$user_id'
     | '/s/$slug/p/$productId'
   id:
     | '__root__'
@@ -648,6 +660,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/_authenticated/categories_/$id/edit'
     | '/_authenticated/products/$productId/edit'
+    | '/api/public/reseller-products/$user_id'
     | '/s/$slug/p/$productId'
   fileRoutesById: FileRoutesById
 }
@@ -666,6 +679,7 @@ export interface RootRouteChildren {
   RIdRoute: typeof RIdRoute
   SSlugRoute: typeof SSlugRouteWithChildren
   ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
+  ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1020,6 +1034,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugPProductIdRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/api/public/reseller-products/$user_id': {
+      id: '/api/public/reseller-products/$user_id'
+      path: '/api/public/reseller-products/$user_id'
+      fullPath: '/api/public/reseller-products/$user_id'
+      preLoaderRoute: typeof ApiPublicResellerProductsUser_idRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/products/$productId/edit': {
       id: '/_authenticated/products/$productId/edit'
       path: '/products/$productId/edit'
@@ -1165,6 +1186,7 @@ const rootRouteChildren: RootRouteChildren = {
   RIdRoute: RIdRoute,
   SSlugRoute: SSlugRouteWithChildren,
   ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
+  ApiPublicResellerProductsUser_idRoute: ApiPublicResellerProductsUser_idRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
