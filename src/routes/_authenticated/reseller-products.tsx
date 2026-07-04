@@ -258,7 +258,7 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
     }
   }, [open, row]);
 
-  const settingsKey = ["user_reseller_settings", userId];
+  const settingsKey = ["reseller_products", userId];
 
   const save = useMutation({
     mutationFn: async () => {
