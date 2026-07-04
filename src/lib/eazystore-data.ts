@@ -278,8 +278,11 @@ export type ProductRow = {
   warranty?: string | null;
   initial_sold_count?: number;
   use_default_delivery?: boolean;
+  default_delivery_charge?: number | null;
+  specific_delivery_charges?: { zone: string; charge: number }[] | null;
   video_url?: string | null;
 };
+
 
 export type ProductVariantRow = {
   id: string;
@@ -724,7 +727,10 @@ export type UpsertProductInput = {
   warranty?: string | null;
   initialSoldCount?: number;
   useDefaultDelivery?: boolean;
+  defaultDeliveryCharge?: number | null;
+  specificDeliveryCharges?: { zone: string; charge: number }[];
   videoUrl?: string | null;
+
   status?: ProductStatus;
   variants?: { name: string; value: string }[];
   details?: { key: string; value: string }[];
@@ -777,6 +783,9 @@ export function useUpsertProduct(storeId: string | undefined) {
       if (input.warranty !== undefined) payload.warranty = input.warranty;
       if (input.initialSoldCount !== undefined) payload.initial_sold_count = input.initialSoldCount;
       if (input.useDefaultDelivery !== undefined) payload.use_default_delivery = input.useDefaultDelivery;
+      if (input.defaultDeliveryCharge !== undefined) payload.default_delivery_charge = input.defaultDeliveryCharge;
+      if (input.specificDeliveryCharges !== undefined) payload.specific_delivery_charges = input.specificDeliveryCharges;
+
       if (input.videoUrl !== undefined) payload.video_url = input.videoUrl;
       if (input.status !== undefined) payload.status = input.status;
 

@@ -67,6 +67,9 @@ type FormState = {
   warranty: string;
   initialSoldCount: string;
   useDefaultDelivery: boolean;
+  defaultDeliveryCharge: string;
+  specificDeliveryCharges: { id: string; zone: string; charge: string }[];
+
   variants: { id: string; name: string; value: string }[];
   details: { id: string; key: string; value: string }[];
   imageUrl: string;
@@ -96,6 +99,9 @@ const initialState: FormState = {
   warranty: "",
   initialSoldCount: "0",
   useDefaultDelivery: true,
+  defaultDeliveryCharge: "0",
+  specificDeliveryCharges: [],
+
   variants: [],
   details: [],
   imageUrl: "",
@@ -165,6 +171,15 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       warranty: src.warranty ?? "",
       initialSoldCount: src.initial_sold_count != null ? String(src.initial_sold_count) : "0",
       useDefaultDelivery: src.use_default_delivery ?? true,
+      defaultDeliveryCharge: src.default_delivery_charge != null ? String(src.default_delivery_charge) : "0",
+      specificDeliveryCharges: Array.isArray(src.specific_delivery_charges)
+        ? src.specific_delivery_charges.map((s) => ({
+            id: crypto.randomUUID(),
+            zone: s.zone ?? "",
+            charge: s.charge != null ? String(s.charge) : "",
+          }))
+        : [],
+
       variants: (variantsQ.data ?? []).map((v) => ({ id: v.id, name: v.name, value: v.value })),
       details: (detailsQ.data ?? []).map((d) => ({ id: d.id, key: d.key, value: d.value })),
       imageUrl: src.image_url ?? "",
@@ -260,6 +275,11 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         warranty: form.warranty.trim() || null,
         initialSoldCount: Number(form.initialSoldCount || "0"),
         useDefaultDelivery: form.useDefaultDelivery,
+        defaultDeliveryCharge: form.defaultDeliveryCharge === "" ? null : Number(form.defaultDeliveryCharge),
+        specificDeliveryCharges: form.specificDeliveryCharges
+          .map((s) => ({ zone: s.zone.trim(), charge: Number(s.charge || "0") }))
+          .filter((s) => s.zone && Number.isFinite(s.charge)),
+
         videoUrl: form.videoUrl.trim() || null,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
@@ -746,8 +766,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           </Section>
 
           <Section title="Shipping">
-            <div className="space-y-2">
-              <h3 className="font-semibold">Delivery Charge</h3>
+            <div className="space-y-3">
+              <h3 className="font-semibold text-primary">Delivery Charge</h3>
               <p className="text-sm text-foreground/60">
                 You can add specific delivery charge for this product or use the default charges
               </p>
@@ -758,7 +778,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                     "text-xs font-bold",
                     form.useDefaultDelivery ? "text-primary" : "text-foreground/50",
                   )}>
-                    {form.useDefaultDelivery ? "Applied" : "Off"}
+                    {form.useDefaultDelivery ? "Applied" : "Not Applied"}
                   </span>
                   <Switch
                     checked={form.useDefaultDelivery}
@@ -766,8 +786,87 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                   />
                 </div>
               </div>
+
+              {!form.useDefaultDelivery && (
+                <div className="space-y-4 pt-1">
+                  <Field
+                    label="Delivery Charge (Default)"
+                    hint="Default delivery charge will be applied to all areas, except for the specific zones listed below."
+                  >
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={form.defaultDeliveryCharge}
+                      onChange={(e) => set("defaultDeliveryCharge", e.target.value)}
+                    />
+                  </Field>
+
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">Specific Delivery Charges</h4>
+                    {form.specificDeliveryCharges.length > 0 && (
+                      <ul className="mb-3 space-y-2">
+                        {form.specificDeliveryCharges.map((s, i) => (
+                          <li key={s.id} className="grid grid-cols-[1fr_140px_auto] gap-2">
+                            <Input
+                              placeholder="Zone / area name (e.g. Dhaka)"
+                              value={s.zone}
+                              onChange={(e) => {
+                                const next = [...form.specificDeliveryCharges];
+                                next[i] = { ...s, zone: e.target.value };
+                                set("specificDeliveryCharges", next);
+                              }}
+                            />
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              inputMode="decimal"
+                              placeholder="Charge"
+                              value={s.charge}
+                              onChange={(e) => {
+                                const next = [...form.specificDeliveryCharges];
+                                next[i] = { ...s, charge: e.target.value };
+                                set("specificDeliveryCharges", next);
+                              }}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                set(
+                                  "specificDeliveryCharges",
+                                  form.specificDeliveryCharges.filter((x) => x.id !== s.id),
+                                )
+                              }
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        set("specificDeliveryCharges", [
+                          ...form.specificDeliveryCharges,
+                          { id: crypto.randomUUID(), zone: "", charge: "" },
+                        ])
+                      }
+                    >
+                      + Add specific zone
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </Section>
+
 
           <Section title="Product Variants">
             <p className="text-sm text-foreground/60">
