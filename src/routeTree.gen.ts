@@ -20,6 +20,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
+import { Route as RIdRouteImport } from './routes/r.$id'
 import { Route as DemoPrestigeRouteImport } from './routes/demo.prestige'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
 import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
@@ -113,6 +114,11 @@ const AccountIndexRoute = AccountIndexRouteImport.update({
 const SSlugRoute = SSlugRouteImport.update({
   id: '/s/$slug',
   path: '/s/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RIdRoute = RIdRouteImport.update({
+  id: '/r/$id',
+  path: '/r/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoPrestigeRoute = DemoPrestigeRouteImport.update({
@@ -358,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
+  '/r/$id': typeof RIdRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
@@ -409,6 +416,7 @@ export interface FileRoutesByTo {
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
+  '/r/$id': typeof RIdRoute
   '/account': typeof AccountIndexRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
@@ -462,6 +470,7 @@ export interface FileRoutesById {
   '/account/wishlist': typeof AccountWishlistRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
+  '/r/$id': typeof RIdRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
   '/_authenticated/categories_/new': typeof AuthenticatedCategoriesNewRoute
@@ -516,6 +525,7 @@ export interface FileRouteTypes {
     | '/account/wishlist'
     | '/demo/bdlove'
     | '/demo/prestige'
+    | '/r/$id'
     | '/s/$slug'
     | '/account/'
     | '/categories/new'
@@ -567,6 +577,7 @@ export interface FileRouteTypes {
     | '/account/wishlist'
     | '/demo/bdlove'
     | '/demo/prestige'
+    | '/r/$id'
     | '/account'
     | '/categories/new'
     | '/orders/$id'
@@ -619,6 +630,7 @@ export interface FileRouteTypes {
     | '/account/wishlist'
     | '/demo/bdlove'
     | '/demo/prestige'
+    | '/r/$id'
     | '/s/$slug'
     | '/account/'
     | '/_authenticated/categories_/new'
@@ -651,6 +663,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DemoBdloveRoute: typeof DemoBdloveRoute
   DemoPrestigeRoute: typeof DemoPrestigeRoute
+  RIdRoute: typeof RIdRoute
   SSlugRoute: typeof SSlugRouteWithChildren
   ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
 }
@@ -732,6 +745,13 @@ declare module '@tanstack/react-router' {
       path: '/s/$slug'
       fullPath: '/s/$slug'
       preLoaderRoute: typeof SSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/r/$id': {
+      id: '/r/$id'
+      path: '/r/$id'
+      fullPath: '/r/$id'
+      preLoaderRoute: typeof RIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/prestige': {
@@ -1142,6 +1162,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   DemoBdloveRoute: DemoBdloveRoute,
   DemoPrestigeRoute: DemoPrestigeRoute,
+  RIdRoute: RIdRoute,
   SSlugRoute: SSlugRouteWithChildren,
   ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
 }
