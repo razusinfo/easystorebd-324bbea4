@@ -72,16 +72,13 @@ function AdminResellerOrdersPage() {
     },
   });
 
+  const updateStatus = useServerFn(updateResellerOrderStatus);
   const upd = useMutation({
     mutationFn: async (v: { id: string; status: Status }) => {
-      const { error } = await supabase
-        .from("reseller_orders")
-        .update({ status: v.status })
-        .eq("id", v.id);
-      if (error) throw error;
+      await updateStatus({ data: v });
     },
     onSuccess: () => {
-      toast.success("Status updated");
+      toast.success("Status updated & customer notified");
       qc.invalidateQueries({ queryKey: ["admin-reseller-orders"] });
     },
     onError: (e: Error) => toast.error(e.message),
