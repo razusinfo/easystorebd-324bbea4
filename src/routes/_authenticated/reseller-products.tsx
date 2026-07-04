@@ -131,7 +131,7 @@ function ResellerProductsPage() {
 
   return (
     <div className="p-4 sm:p-6">
-      <header className="mb-6 flex items-center justify-between gap-3">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Reseller Products</h1>
           <p className="text-sm text-muted-foreground">
@@ -139,8 +139,13 @@ function ResellerProductsPage() {
             Your edits stay in your shop only.
           </p>
         </div>
-        {q.data && <Badge variant="secondary">{q.data.length} items</Badge>}
+        <div className="flex items-center gap-2">
+          {q.data && <Badge variant="secondary">{q.data.length} items</Badge>}
+          <RequestProductButton />
+        </div>
       </header>
+      <MyRequestsStrip />
+
 
       {(q.data?.length ?? 0) > 0 && (
         <Tabs value={tab} onValueChange={setTab} className="mb-4">
