@@ -21,6 +21,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
+import { Checkbox } from "@/components/ui/checkbox";
+import { syncResellerProduct } from "@/lib/reseller-sync.functions";
+
 
 import {
   useMyStore, useMyProducts, useUpsertProduct,
