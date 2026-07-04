@@ -449,25 +449,64 @@ export function EazyStoreBasicTemplate({
               </button>
             </div>
             <ul className="flex-1 space-y-1 overflow-y-auto p-3">
-              {catList.map((c) => {
-                const active = c === activeCat;
+              {topCats.map((tc) => {
+                const active = tc.name === activeCat;
+                const hasChildren = tc.children.length > 0;
+                const expanded = mobileExpanded === tc.name || tc.children.some((ch) => ch.name === activeCat);
                 return (
-                  <li key={c}>
-                    <button
-                      type="button"
-                      onClick={() => selectCategory(c)}
-                      className={
-                        active
-                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-base font-bold text-white"
-                          : "block w-full text-left rounded-xl px-4 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-100"
-                      }
-                    >
-                      {c}
-                    </button>
+                  <li key={tc.name}>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => selectCategory(tc.name)}
+                        className={
+                          (active
+                            ? "acc-bg text-white "
+                            : "text-neutral-700 hover:bg-neutral-100 ") +
+                          "flex-1 truncate rounded-xl px-4 py-3 text-left text-base font-medium"
+                        }
+                      >
+                        {tc.name}
+                      </button>
+                      {hasChildren && (
+                        <button
+                          type="button"
+                          onClick={() => setMobileExpanded(expanded ? null : tc.name)}
+                          aria-label={expanded ? "Collapse" : "Expand"}
+                          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-neutral-500 hover:bg-neutral-100"
+                        >
+                          <ChevronRight className={"h-4 w-4 transition-transform " + (expanded ? "rotate-90" : "")} />
+                        </button>
+                      )}
+                    </div>
+                    {hasChildren && expanded && (
+                      <ul className="mt-1 space-y-1 pl-4">
+                        {tc.children.map((child) => {
+                          const childActive = child.name === activeCat;
+                          return (
+                            <li key={child.id}>
+                              <button
+                                type="button"
+                                onClick={() => selectCategory(child.name)}
+                                className={
+                                  (childActive
+                                    ? "acc-bg text-white "
+                                    : "text-neutral-700 hover:bg-neutral-100 ") +
+                                  "block w-full rounded-lg px-3 py-2 text-left text-sm font-medium"
+                                }
+                              >
+                                {child.name}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </li>
                 );
               })}
             </ul>
+
           </aside>
         </div>
       )}
