@@ -450,6 +450,8 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
   );
 }
 
+type MediaItem = { url: string; kind: "image" | "video" };
+
 function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -457,13 +459,42 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
   const [price, setPrice] = useState<string>(
     row.displayPrice != null ? String(row.displayPrice) : row.reseller_price != null ? String(row.reseller_price) : "",
   );
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
 
   const catsQ = useCategories(storeId);
   const categories = catsQ.data ?? [];
 
+  // Fetch original product's media (images + video). reseller_products.external_id
+  // holds the original product's UUID.
+  const mediaQ = useQuery({
+    enabled: open && !!row.external_id,
+    queryKey: ["reseller-product-media", row.external_id],
+    queryFn: async (): Promise<MediaItem[]> => {
+      const { data } = await supabase
+        .from("products")
+        .select("image_url, video_url, gallery_urls")
+        .eq("id", row.external_id)
+        .maybeSingle();
+      const items: MediaItem[] = [];
+      const seen = new Set<string>();
+      const pushImg = (u: string | null | undefined) => {
+        if (u && !seen.has(u)) { seen.add(u); items.push({ url: u, kind: "image" }); }
+      };
+      pushImg(data?.image_url ?? row.image_url ?? row.image);
+      (data?.gallery_urls ?? []).forEach(pushImg);
+      if (data?.video_url && !seen.has(data.video_url)) {
+        seen.add(data.video_url);
+        items.push({ url: data.video_url, kind: "video" });
+      }
+      return items;
+    },
+  });
+  const media = mediaQ.data ?? [];
+
   useEffect(() => {
     if (open) {
       setCategoryId("");
+      setExcluded(new Set());
       setPrice(
         row.displayPrice != null
           ? String(row.displayPrice)
@@ -477,8 +508,18 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
   const trimmedName = row.name?.trim() ?? "";
   const parsedPrice = Number(price);
   const priceValid = price.trim() !== "" && Number.isFinite(parsedPrice) && parsedPrice >= 0;
+  const selectedMedia = media.filter((m) => !excluded.has(m.url));
   const canSubmit =
     !!categoryId && priceValid && trimmedName.length > 0 && categories.length > 0;
+
+  const toggleMedia = (url: string) => {
+    setExcluded((prev) => {
+      const next = new Set(prev);
+      if (next.has(url)) next.delete(url);
+      else next.add(url);
+      return next;
+    });
+  };
 
   const add = useMutation({
     mutationFn: async () => {
@@ -494,6 +535,8 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
           reseller_product_id: row.id,
           category_id: categoryId,
           custom_price: parsedPrice,
+          // If media list is empty (older products), send null → copy defaults.
+          selected_media: media.length > 0 ? selectedMedia.map((m) => m.url) : null,
         },
       });
     },
@@ -501,13 +544,12 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
       if (res.skipped) {
         toast.success("এই পণ্যটি আগে থেকেই আপনার তালিকায় আছে / Already in your products");
       } else {
-        toast.success("আপনার শপে যোগ করা হয়েছে / Added to your shop");
+        toast.success("আপনার শপে সফলভাবে যোগ করা হয়েছে! / Product added to your shop successfully!");
         qc.invalidateQueries({ queryKey: ["products"] });
       }
       setOpen(false);
     },
     onError: (e: unknown) => {
-      // Friendly 403 message
       if (e instanceof Response && e.status === 403) {
         toast.error("অনুমতি নেই (403) / You are not allowed to add this product");
         return;
@@ -531,7 +573,7 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
       >
         <StoreIcon className="h-3.5 w-3.5" /> আমার শপে যোগ করুন / Add to My Shop
       </Button>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>আমার শপে যোগ করুন / Add to My Shop</DialogTitle>
         </DialogHeader>
@@ -540,6 +582,7 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
             <Label>পণ্য / Product</Label>
             <p className="text-sm text-muted-foreground">{row.name}</p>
           </div>
+
           <div className="space-y-1">
             <Label htmlFor="ams-category">ক্যাটাগরি নির্বাচন করুন / Select Category</Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
@@ -572,6 +615,7 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
               </p>
             )}
           </div>
+
           <div className="space-y-1">
             <Label htmlFor="ams-price">আপনার বিক্রয় মূল্য / Your Selling Price</Label>
             <Input
@@ -594,6 +638,55 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
               Original: ৳{Number(row.price ?? 0).toLocaleString()}
             </p>
           </div>
+
+          <div className="space-y-2">
+            <Label>মিডিয়া নির্বাচন করুন / Select Media to Import</Label>
+            {mediaQ.isLoading ? (
+              <p className="text-[11px] text-muted-foreground">লোড হচ্ছে… / Loading…</p>
+            ) : media.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground">
+                কোনো মিডিয়া পাওয়া যায়নি / No media available for this product
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {media.map((m) => {
+                    const checked = !excluded.has(m.url);
+                    return (
+                      <label
+                        key={m.url}
+                        className={`relative block cursor-pointer overflow-hidden rounded-md border-2 ${
+                          checked ? "border-primary" : "border-muted opacity-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="absolute right-1 top-1 z-10 h-4 w-4"
+                          checked={checked}
+                          onChange={() => toggleMedia(m.url)}
+                        />
+                        {m.kind === "image" ? (
+                          <img src={m.url} alt="" className="aspect-square w-full object-cover" />
+                        ) : (
+                          <video
+                            src={m.url}
+                            className="aspect-square w-full bg-black object-cover"
+                            muted
+                          />
+                        )}
+                        <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[9px] text-white">
+                          {m.kind === "image" ? "IMG" : "VIDEO"}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {selectedMedia.length} / {media.length} নির্বাচিত / selected
+                </p>
+              </>
+            )}
+          </div>
         </div>
         <DialogFooter className="gap-2">
           <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -611,6 +704,7 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
     </Dialog>
   );
 }
+
 
 
 

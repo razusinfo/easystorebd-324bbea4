@@ -17,8 +17,10 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
       reseller_product_id: z.string().uuid(),
       category_id: z.string().uuid().optional().nullable(),
       custom_price: z.number().nonnegative().optional().nullable(),
+      selected_media: z.array(z.string().url()).max(50).optional().nullable(),
       note: z.string().max(500).optional().nullable(),
     }),
+
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -27,7 +29,9 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
         reseller_product_id: data.reseller_product_id,
         category_id: data.category_id ?? null,
         custom_price: data.custom_price ?? null,
+        selected_media: data.selected_media ?? null,
       },
+
       {
         userSupabase: context.supabase as never,
         adminSupabase: supabaseAdmin as never,

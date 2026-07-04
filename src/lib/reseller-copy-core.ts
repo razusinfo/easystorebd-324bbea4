@@ -5,7 +5,12 @@ export type CopyInput = {
   reseller_product_id: string;
   category_id?: string | null;
   custom_price?: number | null;
+  // Optional whitelist of media URLs the reseller wants to import. When
+  // provided, only these URLs from the original product's media set are
+  // copied. When omitted / null, all original media is copied.
+  selected_media?: string[] | null;
 };
+
 
 export type SupabaseLike = {
   from: (table: string) => any;
@@ -77,17 +82,21 @@ export async function runCopyResellerProduct(
       brand: string | null;
       condition: string | null;
       short_description: string | null;
+      image_url: string | null;
+      video_url: string | null;
+      gallery_urls: string[] | null;
     } | null = null;
     if (originalId) {
       const { data: orig } = await adminSupabase
         .from("products")
         .select(
-          "category_id, warranty, product_serial, sku, brand, condition, weight_kg, short_description",
+          "category_id, warranty, product_serial, sku, brand, condition, weight_kg, short_description, image_url, video_url, gallery_urls",
         )
         .eq("id", originalId)
         .maybeSingle();
       original = orig ?? null;
     }
+
 
     const price = source.reseller_price ?? source.price;
     const missing: string[] = [];
@@ -129,12 +138,36 @@ export async function runCopyResellerProduct(
     }
 
     const sellingPrice = input.custom_price != null ? Number(input.custom_price) : Number(price);
+
+    // Assemble media set from original product (fallback to reseller_products image).
+    const originalPrimary = original?.image_url ?? source.image_url ?? source.image ?? null;
+    const originalGallery = Array.isArray(original?.gallery_urls) ? original!.gallery_urls! : [];
+    const originalVideo = original?.video_url ?? null;
+
+    const allMedia = [
+      ...(originalPrimary ? [originalPrimary] : []),
+      ...originalGallery,
+      ...(originalVideo ? [originalVideo] : []),
+    ];
+
+    // Optional whitelist: intersect with what actually exists on the source.
+    const allowed = input.selected_media
+      ? new Set(input.selected_media.filter((u) => allMedia.includes(u)))
+      : null;
+    const keep = (u: string | null) => (u == null ? false : allowed ? allowed.has(u) : true);
+
+    const finalPrimary = keep(originalPrimary) ? originalPrimary : originalGallery.find(keep) ?? null;
+    const finalGallery = originalGallery.filter((u) => keep(u) && u !== finalPrimary);
+    const finalVideo = keep(originalVideo) ? originalVideo : null;
+
     const insertPayload = {
       store_id: store.id,
       name: source.name,
       description: source.description ?? null,
       short_description: original?.short_description ?? null,
-      image_url: source.image_url ?? source.image ?? null,
+      image_url: finalPrimary,
+      gallery_urls: finalGallery,
+      video_url: finalVideo,
       price: sellingPrice,
       regular_price: source.price,
       reseller_price: source.reseller_price,
@@ -147,6 +180,7 @@ export async function runCopyResellerProduct(
       brand: original?.brand ?? null,
       condition: original?.condition ?? "new",
     };
+
 
     const { data: inserted, error: insErr } = await adminSupabase
       .from("products")
