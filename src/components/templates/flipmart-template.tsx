@@ -21,6 +21,10 @@ type Props = {
   defaultCategoryName?: string | null;
   footer?: FooterSettings;
   categories?: { id: string; name: string; parent_id?: string | null }[];
+  /** When true, product rows render as horizontal sliders instead of grids. */
+  sliderRows?: boolean;
+  /** Optional override for the first two section titles (Suggested/Trending). */
+  sectionTitles?: { suggested?: string; trending?: string };
 };
 
 const DEMO_CATEGORY_ICONS = [
@@ -100,6 +104,7 @@ const LABEL_TO_SUBPATH: Record<string, string> = {
 
 export function FlipmartTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
+  sliderRows = false, sectionTitles,
 }: Props) {
   const accent = accentColor || "#2563eb";
   const yellow = "#fbbf24";
@@ -390,8 +395,8 @@ export function FlipmartTemplate({
       </section>
 
       {/* Suggested for You (colored bar) */}
-      <SectionBar bar={SECTION_BARS[0].bar} title={SECTION_BARS[0].title} />
-      <ProductRow items={suggested} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <SectionBar bar={SECTION_BARS[0].bar} title={sectionTitles?.suggested ?? SECTION_BARS[0].title} />
+      <ProductRow items={suggested} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Featured Brands strip */}
       <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6">
@@ -413,8 +418,8 @@ export function FlipmartTemplate({
       </section>
 
       {/* Trending Now (lime bar) */}
-      <SectionBar bar={SECTION_BARS[1].bar} title={SECTION_BARS[1].title} />
-      <ProductRow items={trending} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <SectionBar bar={SECTION_BARS[1].bar} title={sectionTitles?.trending ?? SECTION_BARS[1].title} />
+      <ProductRow items={trending} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Premium Products + Flight ticket */}
       <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
@@ -504,7 +509,7 @@ export function FlipmartTemplate({
 
       {/* Best Deals bar */}
       <SectionBar bar="bg-neutral-800" title="Best Deals" />
-      <ProductRow items={bestDeals} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={bestDeals} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Winter + Don't Miss */}
       <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
@@ -516,15 +521,15 @@ export function FlipmartTemplate({
 
       {/* Most Picked bar */}
       <SectionBar bar="bg-amber-500 text-neutral-900" title="Most Picked" />
-      <ProductRow items={mostPicked} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={mostPicked} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Recently Viewed (red bar) */}
       <SectionBar bar={SECTION_BARS[2].bar} title={SECTION_BARS[2].title} />
-      <ProductRow items={recently} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={recently} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* On Sale (dark bar) */}
       <SectionBar bar={SECTION_BARS[3].bar} title={SECTION_BARS[3].title} />
-      <ProductRow items={onSale} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={onSale} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Mobile category drawer */}
       {mobileNavOpen && (
@@ -629,19 +634,35 @@ type Item = {
 };
 
 function ProductRow({
-  items, onAdd, slug, search, activeCat,
+  items, onAdd, slug, search, activeCat, slider = false,
 }: {
   items: Item[];
   onAdd: (p: Item) => void;
   slug?: string | null;
   search: string;
   activeCat: string;
+  slider?: boolean;
 }) {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-6">
       <div className="rounded-b-xl bg-white p-4 shadow-sm sm:p-6">
         {items.length === 0 ? (
           <EmptyGrid search={search} cat={activeCat} />
+        ) : slider ? (
+          <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-1 pb-2 [scrollbar-width:thin]">
+            {items.map((p, i) => (
+              <div
+                key={p.id ?? i}
+                className="w-[46%] shrink-0 snap-start sm:w-[32%] md:w-[24%] lg:w-[19%]"
+              >
+                <FlipCard
+                  {...p}
+                  storeSlug={slug ?? undefined}
+                  onAdd={p.id ? () => onAdd(p) : undefined}
+                />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {items.map((p, i) => (

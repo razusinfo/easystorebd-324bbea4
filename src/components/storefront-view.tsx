@@ -161,7 +161,7 @@ export function StorefrontView({ slug }: { slug: string }) {
     );
   }
 
-  if (s.template === "flipmart" || s.template === "megamart") {
+  if (s.template === "flipmart" || s.template === "megamart" || s.template === "trendmart") {
     return (
       <FlipmartTemplate
         store={s}
@@ -171,6 +171,8 @@ export function StorefrontView({ slug }: { slug: string }) {
         defaultCategoryName={settings.defaultCategoryName}
         footer={settings.footer}
         categories={categories}
+        sliderRows={s.template === "trendmart"}
+        sectionTitles={s.template === "trendmart" ? { suggested: "Newly Added", trending: "Trendy Styles" } : undefined}
       />
     );
   }

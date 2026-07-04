@@ -939,6 +939,7 @@ export type Database = {
         | "flipmart"
         | "freshmart"
         | "megamart"
+        | "trendmart"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1122,6 +1123,7 @@ export const Constants = {
         "flipmart",
         "freshmart",
         "megamart",
+        "trendmart",
       ],
     },
   },
