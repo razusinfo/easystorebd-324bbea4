@@ -34,6 +34,24 @@ export const Route = createFileRoute("/_authenticated/themes")({
   component: ThemesPage,
 });
 
+const PREVIEW_IMAGE_URLS = [basicThemePreview.url, eazystoreBasicPreview.url];
+const warmedPreviews = new Set<string>();
+function warmPreviewImages() {
+  if (typeof window === "undefined") return;
+  const run = () => {
+    for (const url of PREVIEW_IMAGE_URLS) {
+      if (warmedPreviews.has(url)) continue;
+      warmedPreviews.add(url);
+      const img = new Image();
+      img.decoding = "async";
+      img.src = url;
+    }
+  };
+  const ric = (window as any).requestIdleCallback as ((cb: () => void) => number) | undefined;
+  if (ric) ric(run);
+  else window.setTimeout(run, 200);
+}
+
 function ThemesPage() {
   const storeQ = useMyStore();
   const save = useSaveTemplateSettings();
