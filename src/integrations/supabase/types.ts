@@ -107,6 +107,7 @@ export type Database = {
           statuses_email: string[]
           statuses_sms: string[]
           updated_at: string
+          whatsapp_webhook_url: string | null
         }
         Insert: {
           created_at?: string
@@ -122,6 +123,7 @@ export type Database = {
           statuses_email?: string[]
           statuses_sms?: string[]
           updated_at?: string
+          whatsapp_webhook_url?: string | null
         }
         Update: {
           created_at?: string
@@ -137,6 +139,7 @@ export type Database = {
           statuses_email?: string[]
           statuses_sms?: string[]
           updated_at?: string
+          whatsapp_webhook_url?: string | null
         }
         Relationships: []
       }
