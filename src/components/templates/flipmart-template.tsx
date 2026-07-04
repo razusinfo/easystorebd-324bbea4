@@ -634,19 +634,35 @@ type Item = {
 };
 
 function ProductRow({
-  items, onAdd, slug, search, activeCat,
+  items, onAdd, slug, search, activeCat, slider = false,
 }: {
   items: Item[];
   onAdd: (p: Item) => void;
   slug?: string | null;
   search: string;
   activeCat: string;
+  slider?: boolean;
 }) {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-6">
       <div className="rounded-b-xl bg-white p-4 shadow-sm sm:p-6">
         {items.length === 0 ? (
           <EmptyGrid search={search} cat={activeCat} />
+        ) : slider ? (
+          <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-1 pb-2 [scrollbar-width:thin]">
+            {items.map((p, i) => (
+              <div
+                key={p.id ?? i}
+                className="w-[46%] shrink-0 snap-start sm:w-[32%] md:w-[24%] lg:w-[19%]"
+              >
+                <FlipCard
+                  {...p}
+                  storeSlug={slug ?? undefined}
+                  onAdd={p.id ? () => onAdd(p) : undefined}
+                />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {items.map((p, i) => (
