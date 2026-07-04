@@ -432,10 +432,17 @@ function SubCategoriesPanel({
   const [editingName, setEditingName] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
+  function isDuplicate(name: string, excludeId?: string) {
+    const key = name.trim().toLowerCase();
+    return items.some((c) => c.id !== excludeId && c.name.trim().toLowerCase() === key);
+  }
+
   async function addInline() {
     const n = newName.trim();
-    if (!n) return;
     setErr(null);
+    if (!n) { setErr("Name cannot be empty."); return; }
+    if (n.length > 50) { setErr("Name must be 50 characters or fewer."); return; }
+    if (isDuplicate(n)) { setErr(`"${n}" already exists here.`); return; }
     try {
       await create.mutateAsync({ name: n, parent_id: parentId });
       setNewName("");
@@ -453,7 +460,10 @@ function SubCategoriesPanel({
   async function saveEdit() {
     if (!editingId) return;
     const n = editingName.trim();
-    if (!n) return;
+    setErr(null);
+    if (!n) { setErr("Name cannot be empty."); return; }
+    if (n.length > 50) { setErr("Name must be 50 characters or fewer."); return; }
+    if (isDuplicate(n, editingId)) { setErr(`"${n}" already exists here.`); return; }
     try {
       await update.mutateAsync({ id: editingId, name: n });
       setEditingId(null);
@@ -461,6 +471,7 @@ function SubCategoriesPanel({
       setErr((e as Error)?.message ?? "Could not save.");
     }
   }
+
 
   return (
     <div>
