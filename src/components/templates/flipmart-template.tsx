@@ -418,8 +418,8 @@ export function FlipmartTemplate({
       </section>
 
       {/* Trending Now (lime bar) */}
-      <SectionBar bar={SECTION_BARS[1].bar} title={SECTION_BARS[1].title} />
-      <ProductRow items={trending} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <SectionBar bar={SECTION_BARS[1].bar} title={sectionTitles?.trending ?? SECTION_BARS[1].title} />
+      <ProductRow items={trending} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Premium Products + Flight ticket */}
       <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
