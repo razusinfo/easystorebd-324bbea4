@@ -598,10 +598,10 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         onClick={() => setOpen(true)}
         disabled={disabled}
         aria-disabled={disabled || undefined}
-        title={disabled ? "Out of stock from supplier" : undefined}
+        title={disabled ? t("outOfStockFromSupplier") : undefined}
       >
         <StoreIcon className="h-3.5 w-3.5" />{" "}
-        {disabled ? "Out of Stock" : "আমার শপে যোগ করুন / Add to My Shop"}
+        {disabled ? t("outOfStock") : t("addToMyShop")}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
