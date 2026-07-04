@@ -108,6 +108,7 @@ export function AppSidebar() {
                 {renderItem({ title: "Moderation", url: "/admin", icon: ShieldCheck })}
                 {renderItem({ title: "Reseller Orders", url: "/admin-reseller-orders", icon: Receipt, badge: "NEW" })}
                 {renderItem({ title: "Notifications", url: "/admin-notifications", icon: Bell })}
+                {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
