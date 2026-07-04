@@ -45,7 +45,22 @@ export default defineConfig({
               },
             },
             {
-              // Images (including Lovable CDN)
+              // Template preview images (Lovable CDN assets + local preview files)
+              // Offline-first with background revalidation so repeat views are instant
+              // but new versions are picked up silently.
+              urlPattern: ({ url, request }) =>
+                request.destination === "image" &&
+                (url.pathname.startsWith("/__l5e/assets-v1/") ||
+                  /preview|thumbnail|thumb/i.test(url.pathname)),
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "eazystore-preview-images",
+                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 60 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              // Other images
               urlPattern: ({ request }) => request.destination === "image",
               handler: "CacheFirst",
               options: {
@@ -55,6 +70,7 @@ export default defineConfig({
               },
             },
           ],
+
         },
       }),
     ],
