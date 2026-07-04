@@ -24,7 +24,13 @@ import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.js
 
 
 export const Route = createFileRoute("/_authenticated/themes")({
-  head: () => ({ meta: [{ title: "Themes — EazyStore" }] }),
+  head: () => ({
+    meta: [{ title: "Themes — EazyStore" }],
+    links: [
+      { rel: "preload", as: "image", href: basicThemePreview.url, fetchpriority: "low" },
+      { rel: "preload", as: "image", href: eazystoreBasicPreview.url, fetchpriority: "low" },
+    ],
+  }),
   component: ThemesPage,
 });
 
