@@ -798,6 +798,9 @@ export function useUpsertProduct(storeId: string | undefined) {
 
       if (input.videoUrl !== undefined) payload.video_url = input.videoUrl;
       if (input.status !== undefined) payload.status = input.status;
+      if (input.addToReseller !== undefined) payload.add_to_reseller = input.addToReseller;
+      if (input.resellerPrice !== undefined) payload.reseller_price = input.resellerPrice;
+
 
       let productId: string;
       if (input.id) {
