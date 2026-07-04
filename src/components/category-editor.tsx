@@ -653,10 +653,10 @@ function SubCategoriesPanel({
                   <>
                     <button
                       type="button"
-                      onClick={() => startEdit(c)}
+                      onClick={() => onOpenFull(c.id)}
                       className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-primary/10 hover:text-primary"
-                      aria-label="Rename"
-                      title="Rename inline"
+                      aria-label="Edit sub-category"
+                      title="Edit sub-category"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
