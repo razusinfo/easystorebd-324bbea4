@@ -695,26 +695,65 @@ function useSignedLogoUrl(path: string | null | undefined) {
 }
 
 /** Accurate scaled-down live render of the actual template for each card. */
+function useInView<T extends Element>(rootMargin = "200px") {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (inView || !ref.current) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+          break;
+        }
+      }
+    }, { rootMargin });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [inView, rootMargin]);
+  return { ref, inView };
+}
+
+function ThumbSkeleton() {
+  return <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-muted via-muted/60 to-muted" />;
+}
+
+function LazyThumbImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <ThumbSkeleton />}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        className={`h-full w-full object-cover object-top transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </>
+  );
+}
+
 function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient: string; accent: string }) {
+  const { ref, inView } = useInView<HTMLDivElement>();
+
   if (id === "bdlove") {
     return (
-      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
-        <img
-          src={basicThemePreview.url}
-          alt="Basic Theme preview"
-          className="h-full w-full object-cover object-top"
-        />
+      <div ref={ref} className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+        {inView ? <LazyThumbImage src={basicThemePreview.url} alt="Basic Theme preview" /> : <ThumbSkeleton />}
       </div>
     );
   }
   if (id === "eazystore-basic") {
     return (
-      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
-        <img
-          src={eazystoreBasicPreview.url}
-          alt="EazyStore Basic preview"
-          className="h-full w-full object-cover object-top"
-        />
+      <div ref={ref} className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+        {inView ? <LazyThumbImage src={eazystoreBasicPreview.url} alt="EazyStore Basic preview" /> : <ThumbSkeleton />}
       </div>
     );
   }
@@ -733,19 +772,24 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
   if (inner) {
     return (
       <div
+        ref={ref}
         className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
         style={{ containerType: "size" } as React.CSSProperties}
       >
-        <div
-          style={{
-            width: FULL_W,
-            height: FULL_H,
-            transform: "scale(var(--tpl-scale, 0.28))",
-            transformOrigin: "top left",
-          }}
-        >
-          {inner}
-        </div>
+        {inView ? (
+          <div
+            style={{
+              width: FULL_W,
+              height: FULL_H,
+              transform: "scale(var(--tpl-scale, 0.28))",
+              transformOrigin: "top left",
+            }}
+          >
+            {inner}
+          </div>
+        ) : (
+          <ThumbSkeleton />
+        )}
         <style>{`
           @container (min-width: 260px) { [style*="--tpl-scale"] { --tpl-scale: 0.32; } }
           @container (min-width: 340px) { [style*="--tpl-scale"] { --tpl-scale: 0.42; } }
