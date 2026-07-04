@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  Search, ShoppingCart, Menu, X, Store as StoreIcon,
+  Search, ShoppingCart, Menu, X, Store as StoreIcon, Heart,
   Shirt, Laptop, Headphones, Home, Watch, Sparkles, Camera, Gamepad2, Sofa, Baby,
   Facebook, Instagram, Twitter, Youtube, ChevronRight,
 } from "lucide-react";
@@ -45,6 +45,43 @@ const DEMO_PRODUCTS = [
   { name: "Dignissim", price: 80, old: 100, hue: "from-yellow-50 to-orange-50" },
   { name: "Eratcelerisqu", price: 142, old: 136, hue: "from-rose-100 to-red-50" },
   { name: "Red justo", price: 300, old: null, hue: "from-pink-100 to-rose-50" },
+];
+
+const HERO_BANNERS = [
+  {
+    label: "NEW SMARTPHONE",
+    sub: "20% OFF",
+    grad: "from-slate-900 via-slate-800 to-blue-900",
+    accent: "text-blue-300",
+  },
+  {
+    label: "PURE SOUND",
+    sub: "ZERO CLUTTER",
+    grad: "from-neutral-100 via-white to-neutral-200",
+    accent: "text-neutral-900",
+    dark: true,
+  },
+  {
+    label: "GYM EQUIPMENT",
+    sub: "SHOP NOW",
+    grad: "from-neutral-900 via-neutral-800 to-black",
+    accent: "text-yellow-300",
+  },
+];
+
+const BRAND_STRIPES = [
+  { label: "NEW STYLE", grad: "from-neutral-900 to-neutral-700" },
+  { label: "WINTER SALE", grad: "from-amber-900 to-orange-700" },
+  { label: "FASHION", grad: "from-rose-700 to-red-500" },
+  { label: "LAPTOP PROMO", grad: "from-violet-700 to-fuchsia-600" },
+  { label: "SUMMER OFFER", grad: "from-cyan-600 to-sky-500" },
+];
+
+const SECTION_BARS = [
+  { title: "Suggested for You", bar: "bg-rose-500" },
+  { title: "Trending Now", bar: "bg-lime-400 text-neutral-900" },
+  { title: "Recently Viewed Products", bar: "bg-red-500" },
+  { title: "On Sale Items", bar: "bg-neutral-900" },
 ];
 
 function hexToRgb(hex?: string): string | null {
@@ -128,22 +165,47 @@ export function FlipmartTemplate({
     });
   }, [demo, products, activeCat, search, matchIdsByName]);
 
-  const premium = demo
-    ? DEMO_PRODUCTS.slice(0, 5).map((p) => ({ id: null as string | null, ...p, imageUrl: null as string | null }))
-    : filtered.slice(0, 5).map((p, i) => ({
-        id: p.id, name: p.name, price: p.price,
-        old: i % 2 === 0 ? Math.round(p.price * 1.2) : null,
-        hue: DEMO_PRODUCTS[i % DEMO_PRODUCTS.length].hue,
-        imageUrl: p.image_url ?? null,
+  // Slice product list into distinct sections. If not enough products,
+  // sections gracefully reuse from the top.
+  function slice(from: number, size: number) {
+    if (demo) {
+      return DEMO_PRODUCTS.slice(0, size).map((p) => ({
+        id: null as string | null, ...p, imageUrl: null as string | null,
       }));
-  const collection = demo
-    ? DEMO_PRODUCTS.slice(2, 8).map((p) => ({ id: null as string | null, ...p, imageUrl: null as string | null }))
-    : filtered.slice(5, 17).map((p, i) => ({
+    }
+    const arr = filtered;
+    if (arr.length === 0) return [];
+    const out: {
+      id: string | null; name: string; price: number; old: number | null;
+      hue: string; imageUrl: string | null;
+    }[] = [];
+    for (let i = 0; i < size; i++) {
+      const p = arr[(from + i) % arr.length];
+      if (!p) break;
+      out.push({
         id: p.id, name: p.name, price: p.price,
-        old: i % 3 === 0 ? Math.round(p.price * 1.15) : null,
-        hue: DEMO_PRODUCTS[i % DEMO_PRODUCTS.length].hue,
+        old: (from + i) % 2 === 0 ? Math.round(p.price * 1.2) : null,
+        hue: DEMO_PRODUCTS[(from + i) % DEMO_PRODUCTS.length].hue,
         imageUrl: p.image_url ?? null,
-      }));
+      });
+    }
+    return out;
+  }
+
+  const suggested = slice(0, 5);
+  const trending = slice(5, 5);
+  const premium = slice(0, 5);
+  const soundMusic = slice(2, 4);
+  const interior = slice(6, 4);
+  const fitness = slice(0, 4);
+  const beauty = slice(4, 4);
+  const accessories = slice(8, 4);
+  const bestDeals = slice(3, 5);
+  const winter = slice(1, 4);
+  const dontMiss = slice(5, 4);
+  const mostPicked = slice(2, 5);
+  const onSale = slice(4, 6);
+  const recently = slice(0, 5);
 
   const f: Required<FooterSettings> = {
     showNav: footer?.showNav ?? DEFAULT_FOOTER.showNav,
@@ -242,6 +304,13 @@ export function FlipmartTemplate({
 
           {/* Right actions */}
           <div className="flex items-center gap-1 sm:gap-2">
+            <button
+              type="button"
+              className="hidden h-10 w-10 place-items-center rounded-full text-neutral-700 hover:bg-neutral-100 sm:grid"
+              aria-label="Wishlist"
+            >
+              <Heart className="h-5 w-5" />
+            </button>
             <CustomerAuth />
             <button
               type="button"
@@ -297,35 +366,58 @@ export function FlipmartTemplate({
         </div>
       </header>
 
-      {/* Hero banner */}
+      {/* Hero: three banner strip */}
       <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 sm:pt-6">
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_1.2fr]">
-            <div className="flex flex-col justify-center gap-3 bg-white p-6 sm:p-10">
-              <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">Exclusive</p>
-              <h2 className="font-display text-3xl font-black leading-tight text-neutral-900 sm:text-5xl">
-                COLLECTION
-              </h2>
-              <div className="flex items-center gap-1">
-                {[0,1,2,3].map((i) => (
-                  <span key={i} className="h-2 w-2 rounded-sm bg-neutral-900" />
-                ))}
-              </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {HERO_BANNERS.map((b) => (
+            <div
+              key={b.label}
+              className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${b.grad} p-5 shadow-sm sm:p-6`}
+            >
+              <p className={`text-[11px] font-black uppercase tracking-[0.2em] ${b.dark ? "text-neutral-500" : "text-white/70"}`}>
+                Exclusive
+              </p>
+              <h3 className={`mt-1 font-display text-xl font-black sm:text-2xl ${b.dark ? "text-neutral-900" : "text-white"}`}>
+                {b.label}
+              </h3>
+              <p className={`mt-1 text-sm font-bold ${b.accent}`}>{b.sub}</p>
+              <button className={`mt-4 rounded-full px-4 py-1.5 text-[11px] font-black uppercase tracking-wider shadow ${b.dark ? "bg-neutral-900 text-white" : "bg-white text-neutral-900"}`}>
+                Shop Now
+              </button>
             </div>
-            <div className="relative flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-500 p-6 sm:p-10">
-              <div className="text-white">
-                <div className="font-display text-4xl font-black sm:text-6xl">70% <span className="text-3xl sm:text-4xl">OFF</span></div>
-                <button className="mt-4 rounded-md bg-white px-6 py-2 text-xs font-black uppercase tracking-widest acc-text shadow">
-                  Order Now
-                </button>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Premium Products row */}
-      <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 sm:pt-6">
+      {/* Suggested for You (colored bar) */}
+      <SectionBar bar={SECTION_BARS[0].bar} title={SECTION_BARS[0].title} />
+      <ProductRow items={suggested} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+
+      {/* Featured Brands strip */}
+      <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6">
+        <h3 className="mb-3 font-display text-sm font-black uppercase tracking-wider text-neutral-700">
+          Featured Brands
+        </h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {BRAND_STRIPES.map((b) => (
+            <div
+              key={b.label}
+              className={`grid h-20 place-items-center rounded-xl bg-gradient-to-r ${b.grad} px-3 text-center shadow-sm`}
+            >
+              <span className="font-display text-sm font-black uppercase tracking-widest text-white">
+                {b.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Trending Now (lime bar) */}
+      <SectionBar bar={SECTION_BARS[1].bar} title={SECTION_BARS[1].title} />
+      <ProductRow items={trending} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+
+      {/* Premium Products + Flight ticket */}
+      <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_240px]">
           <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-4 flex items-baseline justify-between">
@@ -333,18 +425,11 @@ export function FlipmartTemplate({
               <span className="text-xs font-semibold acc-text hover:underline">View all</span>
             </div>
             {premium.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">
-                No products yet.
-              </p>
+              <EmptyGrid search={search} cat={activeCat} />
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {premium.map((p, i) => (
-                  <FlipCard
-                    key={p.id ?? i}
-                    {...p}
-                    storeSlug={slug ?? undefined}
-                    onAdd={p.id ? () => handleAdd(p) : undefined}
-                  />
+                  <FlipCard key={p.id ?? i} {...p} storeSlug={slug ?? undefined} onAdd={p.id ? () => handleAdd(p) : undefined} />
                 ))}
               </div>
             )}
@@ -352,9 +437,7 @@ export function FlipmartTemplate({
           <aside className="hidden overflow-hidden rounded-2xl bg-gradient-to-br from-blue-800 to-blue-600 p-6 text-white shadow-sm lg:block">
             <div className="text-xs font-bold uppercase tracking-widest opacity-80">Flight</div>
             <div className="mt-1 font-display text-3xl font-black leading-none">TICKET</div>
-            <div className="mt-6 inline-block rounded bg-yellow-400 px-3 py-1 text-xs font-black text-neutral-900">
-              40% OFF
-            </div>
+            <div className="mt-6 inline-block rounded bg-yellow-400 px-3 py-1 text-xs font-black text-neutral-900">40% OFF</div>
             <button className="mt-6 block w-full rounded-md bg-white/95 py-2 text-xs font-black text-neutral-900">
               BOOK NOW
             </button>
@@ -362,8 +445,34 @@ export function FlipmartTemplate({
         </div>
       </section>
 
-      {/* Collection grid */}
-      <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
+      {/* Sound & Music + Interior + Fashion promo */}
+      <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_260px]">
+          <MiniGroup title="Sound & Music" items={soundMusic} onAdd={handleAdd} slug={slug} />
+          <MiniGroup title="Interior" items={interior} onAdd={handleAdd} slug={slug} />
+          <aside className="hidden overflow-hidden rounded-2xl bg-gradient-to-br from-pink-200 to-rose-100 p-6 shadow-sm lg:block">
+            <p className="text-xs font-black uppercase tracking-widest text-rose-700">Trending Now</p>
+            <h4 className="mt-1 font-display text-xl font-black text-neutral-900 leading-tight">
+              Shop your<br />Fashion Needs
+            </h4>
+            <button className="mt-6 rounded-full bg-rose-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-white shadow">
+              Shop Now
+            </button>
+          </aside>
+        </div>
+      </section>
+
+      {/* Fitness + Beauty + Accessories */}
+      <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <MiniGroup title="Fitness Equipment's" items={fitness} onAdd={handleAdd} slug={slug} />
+          <MiniGroup title="Beauty Products" items={beauty} onAdd={handleAdd} slug={slug} />
+          <MiniGroup title="Accessories" items={accessories} onAdd={handleAdd} slug={slug} />
+        </div>
+      </section>
+
+      {/* Main "Top Selling" grid (kept for filter/search users) */}
+      <section className="mx-auto max-w-7xl px-3 py-6 sm:px-6">
         <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-6">
           <div className="mb-4 flex items-baseline justify-between">
             <h3 className="font-display text-lg font-black sm:text-xl">
@@ -371,24 +480,51 @@ export function FlipmartTemplate({
             </h3>
             <span className="text-xs font-semibold acc-text hover:underline">View all</span>
           </div>
-          {collection.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">
-              No products match{search ? ` "${search}"` : ""}{activeCat !== "All" ? ` in ${activeCat}` : ""}.
-            </p>
+          {filtered.length === 0 && !demo ? (
+            <EmptyGrid search={search} cat={activeCat} />
           ) : (
             <div className={productGridClass(store?.shop_settings)}>
-              {collection.map((p, i) => (
+              {(demo ? DEMO_PRODUCTS.slice(0, 8).map((p) => ({ id: null, ...p, imageUrl: null as string | null })) : filtered.slice(0, 12).map((p, i) => ({
+                id: p.id, name: p.name, price: p.price,
+                old: i % 3 === 0 ? Math.round(p.price * 1.15) : null,
+                hue: DEMO_PRODUCTS[i % DEMO_PRODUCTS.length].hue,
+                imageUrl: p.image_url ?? null,
+              }))).map((p, i) => (
                 <FlipCard
-                  key={p.id ?? i}
-                  {...p}
+                  key={(p as any).id ?? i}
+                  {...(p as any)}
                   storeSlug={slug ?? undefined}
-                  onAdd={p.id ? () => handleAdd(p) : undefined}
+                  onAdd={(p as any).id ? () => handleAdd(p as any) : undefined}
                 />
               ))}
             </div>
           )}
         </div>
       </section>
+
+      {/* Best Deals bar */}
+      <SectionBar bar="bg-neutral-800" title="Best Deals" />
+      <ProductRow items={bestDeals} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+
+      {/* Winter + Don't Miss */}
+      <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <MiniGroup title="Winter's Collection" items={winter} onAdd={handleAdd} slug={slug} />
+          <MiniGroup title="Don't Miss Out" items={dontMiss} onAdd={handleAdd} slug={slug} />
+        </div>
+      </section>
+
+      {/* Most Picked bar */}
+      <SectionBar bar="bg-amber-500 text-neutral-900" title="Most Picked" />
+      <ProductRow items={mostPicked} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+
+      {/* Recently Viewed (red bar) */}
+      <SectionBar bar={SECTION_BARS[2].bar} title={SECTION_BARS[2].title} />
+      <ProductRow items={recently} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+
+      {/* On Sale (dark bar) */}
+      <SectionBar bar={SECTION_BARS[3].bar} title={SECTION_BARS[3].title} />
+      <ProductRow items={onSale} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
 
       {/* Mobile category drawer */}
       {mobileNavOpen && (
@@ -472,6 +608,96 @@ export function FlipmartTemplate({
         <CartDrawer storeId={storeId} storeName={name} open={cartOpen} onOpenChange={setCartOpen} />
       )}
     </div>
+  );
+}
+
+/* ---------- Section pieces ---------- */
+
+function SectionBar({ bar, title }: { bar: string; title: string }) {
+  return (
+    <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
+      <div className={`flex items-center rounded-t-xl px-4 py-2 text-white ${bar}`}>
+        <h3 className="font-display text-sm font-black uppercase tracking-widest">{title}</h3>
+      </div>
+    </section>
+  );
+}
+
+type Item = {
+  id: string | null; name: string; price: number; old: number | null;
+  hue: string; imageUrl: string | null;
+};
+
+function ProductRow({
+  items, onAdd, slug, search, activeCat,
+}: {
+  items: Item[];
+  onAdd: (p: Item) => void;
+  slug?: string;
+  search: string;
+  activeCat: string;
+}) {
+  return (
+    <section className="mx-auto max-w-7xl px-3 sm:px-6">
+      <div className="rounded-b-xl bg-white p-4 shadow-sm sm:p-6">
+        {items.length === 0 ? (
+          <EmptyGrid search={search} cat={activeCat} />
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {items.map((p, i) => (
+              <FlipCard
+                key={p.id ?? i}
+                {...p}
+                storeSlug={slug ?? undefined}
+                onAdd={p.id ? () => onAdd(p) : undefined}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MiniGroup({
+  title, items, onAdd, slug,
+}: {
+  title: string;
+  items: Item[];
+  onAdd: (p: Item) => void;
+  slug?: string;
+}) {
+  return (
+    <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h3 className="font-display text-base font-black">{title}</h3>
+        <span className="text-[11px] font-semibold acc-text hover:underline">View all</span>
+      </div>
+      {items.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-neutral-200 p-6 text-center text-xs text-neutral-500">
+          No products yet.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {items.map((p, i) => (
+            <FlipCard
+              key={p.id ?? i}
+              {...p}
+              storeSlug={slug ?? undefined}
+              onAdd={p.id ? () => onAdd(p) : undefined}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyGrid({ search, cat }: { search: string; cat: string }) {
+  return (
+    <p className="rounded-xl border border-dashed border-neutral-200 p-8 text-center text-sm text-neutral-500">
+      No products match{search ? ` "${search}"` : ""}{cat !== "All" ? ` in ${cat}` : ""}.
+    </p>
   );
 }
 
