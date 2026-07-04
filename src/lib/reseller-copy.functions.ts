@@ -153,7 +153,7 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
       if (insErr) throw new Error(insErr.message);
 
       const productId = (inserted as { id: string }).id;
-      await logAttempt(true, source.id, null ?? undefined);
+      await logAttempt(true, source.id);
       return { ok: true as const, product_id: productId, skipped: false as const };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
