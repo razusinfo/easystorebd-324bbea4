@@ -724,7 +724,6 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
 
   let inner: React.ReactNode = null;
   if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
-  else if (id === "eazystore-basic") inner = <EazyStoreBasicTemplate demo accentColor={accent} />;
   else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
   else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
   else if (id === "techgrid") inner = <TechGridPreview accent={accent} />;
