@@ -239,6 +239,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   const showError = (name: keyof Errors) => touched[name] ? errors[name] : undefined;
 
   async function handleSave() {
+    if (uploading || galleryUploading) {
+      toast.error("Please wait until image upload is complete");
+      return;
+    }
     if (!store) return toast.error("No store found");
     setTouched({ name: true, sellPrice: true, regularPrice: true, buyingPrice: true, stock: true, imageUrl: true });
     const eNow = validate(form);
@@ -315,9 +319,12 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   };
 
   const MAX_IMAGES = 5; // primary + up to 4 more, in selection order
+  const MAX_RAW_IMAGE_BYTES = 12 * 1024 * 1024; // phone photos are compressed before upload
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const MAX_GALLERY = MAX_IMAGES - 1;
+  const totalImages = (form.imageUrl ? 1 : 0) + form.galleryUrls.length;
+  const imageSlotsRemaining = Math.max(0, MAX_IMAGES - totalImages);
 
   /**
    * Upload one or more images. Preserves the order the user picked them in:
@@ -328,38 +335,42 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     const list = Array.from(files);
     if (!list.length) return;
 
-    const currentTotal = (form.imageUrl ? 1 : 0) + form.galleryUrls.length;
-    const room = MAX_IMAGES - currentTotal;
-    if (room <= 0) {
+    if (imageSlotsRemaining <= 0) {
       toast.error(`You can add up to ${MAX_IMAGES} images`);
       return;
     }
 
-    const picked = list.slice(0, room);
+    const picked = list.slice(0, imageSlotsRemaining);
+    if (list.length > imageSlotsRemaining) {
+      toast.info(`Only ${imageSlotsRemaining} more image${imageSlotsRemaining > 1 ? "s" : ""} can be added`);
+    }
     setUploading(true);
     setGalleryUploading(true);
     try {
+      const uploadable = picked.filter((f) => {
+        if (!f.type.startsWith("image/")) { toast.error(`Skipped ${f.name}: not an image`); return false; }
+        if (f.size > MAX_RAW_IMAGE_BYTES) { toast.error(`Skipped ${f.name}: over 12MB`); return false; }
+        return true;
+      });
+      const results = await Promise.allSettled(uploadable.map((f) => uploadProductImage(f)));
       const uploaded: string[] = [];
-      for (const f of picked) {
-        if (!f.type.startsWith("image/")) { toast.error(`Skipped ${f.name}: not an image`); continue; }
-        if (f.size > 4 * 1024 * 1024) { toast.error(`Skipped ${f.name}: over 4MB`); continue; }
-        try {
-          const { publicUrl } = await uploadProductImage(f);
-          uploaded.push(publicUrl);
-        } catch (e: any) {
-          toast.error(`${f.name}: ${e?.message ?? "upload failed"}`);
-        }
-      }
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") uploaded.push(result.value.publicUrl);
+        else toast.error(`${uploadable[index]?.name ?? "Image"}: ${result.reason?.message ?? "upload failed"}`);
+      });
       if (!uploaded.length) return;
 
       // Preserve selection order: fill primary first if empty, then gallery.
-      let primary = form.imageUrl;
-      const gallery = [...form.galleryUrls];
-      for (const url of uploaded) {
-        if (!primary) primary = url;
-        else gallery.push(url);
-      }
-      setForm((prev) => ({ ...prev, imageUrl: primary, galleryUrls: gallery }));
+      setForm((prev) => {
+        let primary = prev.imageUrl;
+        const gallery = [...prev.galleryUrls];
+        const remaining = Math.max(0, MAX_IMAGES - ((primary ? 1 : 0) + gallery.length));
+        for (const url of uploaded.slice(0, remaining)) {
+          if (!primary) primary = url;
+          else gallery.push(url);
+        }
+        return { ...prev, imageUrl: primary, galleryUrls: gallery };
+      });
       markTouched("imageUrl");
       toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} added`);
     } finally {
@@ -447,8 +458,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 <Copy className="mr-1 h-4 w-4" /> Duplicate
               </Button>
             )}
-            <Button onClick={handleSave} disabled={upsert.isPending || loading}>
-              {upsert.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
+            <Button onClick={handleSave} disabled={upsert.isPending || loading || uploading || galleryUploading}>
+              {upsert.isPending || uploading || galleryUploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
               Save
             </Button>
           </div>
@@ -560,7 +571,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                         <Button
                           type="button" size="sm" variant="outline"
                           onClick={() => fileInputRef.current?.click()}
-                          disabled={uploading || ((form.imageUrl ? 1 : 0) + form.galleryUrls.length) >= MAX_IMAGES}
+                          disabled={uploading || imageSlotsRemaining <= 0}
                         >
                           {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
                           Add more
@@ -592,7 +603,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 >
                   <ImageIcon className="h-8 w-8 text-foreground/40" />
                   <p className="mt-3 max-w-2xl text-xs text-foreground/60">
-                    Drag and drop up to {MAX_IMAGES} images here, or click add. Supported: JPG, PNG. Max 4MB each.
+                    Drag and drop up to {MAX_IMAGES} images here, or click add. Supported: JPG, PNG, WEBP. Max 12MB each.
                     The first image you pick becomes the primary product image; the rest are shown in the order selected.
                   </p>
                   <Button
@@ -634,7 +645,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                     type="button" size="sm" variant="ghost"
                     className="bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                     onClick={() => galleryInputRef.current?.click()}
-                    disabled={galleryUploading || form.galleryUrls.length >= MAX_GALLERY}
+                    disabled={galleryUploading || imageSlotsRemaining <= 0}
                   >
                     {galleryUploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
                     Add images
