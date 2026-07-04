@@ -436,7 +436,7 @@ export function CategoryEditor(props: Props) {
 }
 
 function SubCategoriesPanel({
-  parentId, storeId, items, query, onQuery, onOpenFull, onDelete, removePending,
+  parentId, storeId, items, query, onQuery, onOpenFull, onDelete, removePending, adding, setAdding,
 }: {
   parentId: string;
   storeId: string;
@@ -446,14 +446,16 @@ function SubCategoriesPanel({
   onOpenFull: (id: string) => void;
   onDelete: (id: string, name: string) => void;
   removePending: boolean;
+  adding: boolean;
+  setAdding: (v: boolean) => void;
 }) {
   const create = useCreateCategory(storeId);
   const update = useUpdateCategory(storeId);
   const [newName, setNewName] = useState("");
-  const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [err, setErr] = useState<string | null>(null);
+
 
   function isDuplicate(name: string, excludeId?: string) {
     const key = name.trim().toLowerCase();
