@@ -672,7 +672,7 @@ function LivePreviewModal({
             footer={settings.footer}
           />
 
-        ) : id === "flipmart" || id === "megamart" || id === "trendmart" || id === "shopii" ? (
+        ) : id === "flipmart" || id === "megamart" || id === "trendmart" || id === "shopii" || id === "quickmart" ? (
           <FlipmartTemplate
             demo={orderedProducts.length === 0}
             products={orderedProducts.length ? orderedProducts : undefined}
@@ -680,12 +680,14 @@ function LivePreviewModal({
             accentColor={accent}
             defaultCategoryName={settings.defaultCategoryName}
             footer={settings.footer}
-            sliderRows={id === "trendmart" || id === "shopii"}
+            sliderRows={id === "trendmart" || id === "shopii" || id === "quickmart"}
             sectionTitles={
               id === "trendmart"
                 ? { suggested: "Newly Added", trending: "Trendy Styles" }
                 : id === "shopii"
                 ? { suggested: "Top Products", trending: "Daily Discover" }
+                : id === "quickmart"
+                ? { suggested: "Top Products", trending: "Just For You" }
                 : undefined
             }
           />
