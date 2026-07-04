@@ -12,7 +12,7 @@ import {
   type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
 import { UICustomizer } from "@/components/admin/ui-customizer";
-import { approveProductRequest } from "@/lib/product-requests.functions";
+import { approveProductRequest, rejectProductRequest } from "@/lib/product-requests.functions";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
@@ -621,18 +621,12 @@ function RequestCard({ row, readOnly }: { row: ProductRequest; readOnly?: boolea
 
   const reject = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("product_requests")
-        .update({
-          status: "rejected",
-          admin_notes: notes.trim() || null,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", row.id);
-      if (error) throw error;
+      await rejectProductRequest({
+        data: { request_id: row.id, admin_notes: notes.trim() || null },
+      });
     },
     onSuccess: () => {
-      toast.success("Rejected");
+      toast.success("Rejected — reseller will see the updated status");
       qc.invalidateQueries({ queryKey: ["admin-product-requests"] });
     },
     onError: (e) => toast.error((e as Error).message),

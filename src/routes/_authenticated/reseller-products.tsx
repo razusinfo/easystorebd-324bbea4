@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMyStore, uploadProductImage } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
+import { submitProductRequest } from "@/lib/product-requests.functions";
 
 
 
@@ -825,21 +826,45 @@ function RequestProductDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  const MAX_IMAGES = 8;
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB per image
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+  const trimmedName = name.trim();
+  const trimmedDesc = description.trim();
   const priceNum = Number(price);
-  const canSubmit =
-    name.trim().length > 0 &&
-    price.trim().length > 0 &&
-    Number.isFinite(priceNum) &&
-    priceNum >= 0;
+
+  const errors: string[] = [];
+  if (trimmedName.length < 2) errors.push("Name must be at least 2 characters");
+  if (trimmedName.length > 120) errors.push("Name too long (max 120)");
+  if (trimmedDesc.length > 2000) errors.push("Description too long (max 2000)");
+  if (price.trim().length === 0 || !Number.isFinite(priceNum)) errors.push("Enter a valid price");
+  else if (priceNum < 0) errors.push("Price cannot be negative");
+  else if (priceNum > 10_000_000) errors.push("Price too large");
+  const canSubmit = errors.length === 0 && !uploading;
 
   async function onPickFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
+    const remaining = MAX_IMAGES - images.length;
+    if (remaining <= 0) {
+      toast.error(`Max ${MAX_IMAGES} images`);
+      return;
+    }
+    const list = Array.from(files).slice(0, remaining);
+    for (const f of list) {
+      if (!ALLOWED_TYPES.includes(f.type)) {
+        toast.error(`${f.name}: unsupported type (JPEG/PNG/WEBP/GIF only)`);
+        return;
+      }
+      if (f.size > MAX_IMAGE_BYTES) {
+        toast.error(`${f.name}: exceeds 5 MB limit`);
+        return;
+      }
+    }
     setUploading(true);
     try {
-      const uploads = await Promise.all(
-        Array.from(files).slice(0, 6).map((f) => uploadProductImage(f)),
-      );
-      setImages((prev) => [...prev, ...uploads.map((u) => u.publicUrl)].slice(0, 8));
+      const uploads = await Promise.all(list.map((f) => uploadProductImage(f)));
+      setImages((prev) => [...prev, ...uploads.map((u) => u.publicUrl)].slice(0, MAX_IMAGES));
     } catch (e) {
       toast.error(`Upload failed: ${(e as Error).message}`);
     } finally {
@@ -850,16 +875,14 @@ function RequestProductDialog({ open, onOpenChange }: { open: boolean; onOpenCha
 
   const submit = useMutation({
     mutationFn: async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Not signed in");
-      const { error } = await supabase.from("product_requests").insert({
-        requested_by: u.user.id,
-        name: name.trim(),
-        description: description.trim() || null,
-        price: priceNum,
-        images,
+      await submitProductRequest({
+        data: {
+          name: trimmedName,
+          description: trimmedDesc || null,
+          price: priceNum,
+          images,
+        },
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("অনুরোধ জমা হয়েছে! / Product request submitted!");
@@ -920,14 +943,22 @@ function RequestProductDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 <input
                   ref={fileRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   multiple
                   className="hidden"
                   onChange={(e) => onPickFiles(e.target.files)}
                 />
               </label>
             </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              JPEG/PNG/WEBP/GIF · up to 5 MB · max 8 images
+            </p>
           </div>
+          {errors.length > 0 && (
+            <ul className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-xs text-destructive">
+              {errors.map((e) => <li key={e}>• {e}</li>)}
+            </ul>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
