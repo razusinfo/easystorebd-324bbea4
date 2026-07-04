@@ -60,7 +60,7 @@ function AdminResellerOrdersPage() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, reseller_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, created_at")
+        .select("id, reseller_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
