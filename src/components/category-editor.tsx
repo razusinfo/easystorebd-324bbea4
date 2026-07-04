@@ -597,7 +597,8 @@ function SubCategoriesPanel({
             return (
               <li
                 key={c.id}
-                className="flex items-center gap-3 rounded-xl border border-border p-2 hover:bg-muted/40"
+                onClick={() => { if (!isEditing) onOpenFull(c.id); }}
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-2 hover:bg-muted/40"
               >
                 <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
                   {c.image_url ? (
@@ -611,6 +612,7 @@ function SubCategoriesPanel({
                     <input
                       value={editingName}
                       onChange={(e) => setEditingName(e.target.value.slice(0, 50))}
+                      onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") { e.preventDefault(); void saveEdit(); }
                         if (e.key === "Escape") setEditingId(null);
@@ -619,16 +621,12 @@ function SubCategoriesPanel({
                       className="h-9 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none ring-primary/30 focus:ring-2"
                     />
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => onOpenFull(c.id)}
-                      className="block w-full truncate text-left text-sm font-semibold hover:text-primary"
-                      title="Open full editor"
-                    >
+                    <span className="block w-full truncate text-left text-sm font-semibold">
                       {c.name}
-                    </button>
+                    </span>
                   )}
                 </div>
+
                 {isEditing ? (
                   <>
                     <button
