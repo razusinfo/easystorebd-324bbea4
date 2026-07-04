@@ -298,7 +298,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   }
 
 
-  // --- Image upload ---
+  // --- Image upload (unified: primary + gallery, first-picked is primary) ---
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   // URLs to delete from storage only AFTER the product is saved successfully.
@@ -314,80 +314,85 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     await Promise.all(urls.map((u) => deleteProductImage(u).catch(() => {})));
   };
 
-  async function handleImageFile(file: File) {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Only image files are allowed");
-      return;
-    }
-    if (file.size > 4 * 1024 * 1024) {
-      toast.error("Image must be 4MB or smaller");
-      return;
-    }
-    setUploading(true);
-    try {
-      const { publicUrl } = await uploadProductImage(file);
-      // Defer deletion of the previous image until the form is saved.
-      queueDelete(form.imageUrl);
-      set("imageUrl", publicUrl);
-      markTouched("imageUrl");
-      toast.success("Image uploaded");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Upload failed");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  }
-
-  async function handleRemoveImage() {
-    const url = form.imageUrl;
-    set("imageUrl", "");
-    markTouched("imageUrl");
-    queueDelete(url);
-    toast.success("Image removed");
-  }
-
-
-  // --- Gallery (multi-image) ---
+  const MAX_IMAGES = 5; // primary + up to 4 more, in selection order
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const [galleryUploading, setGalleryUploading] = useState(false);
-  const MAX_GALLERY = 8;
+  const MAX_GALLERY = MAX_IMAGES - 1;
 
-  async function handleGalleryFiles(files: FileList | File[]) {
+  /**
+   * Upload one or more images. Preserves the order the user picked them in:
+   * the very first picked image (when no primary exists yet) becomes the
+   * primary product image; the rest fill the gallery in order.
+   */
+  async function handleAddImages(files: FileList | File[]) {
     const list = Array.from(files);
     if (!list.length) return;
-    const room = MAX_GALLERY - form.galleryUrls.length;
+
+    const currentTotal = (form.imageUrl ? 1 : 0) + form.galleryUrls.length;
+    const room = MAX_IMAGES - currentTotal;
     if (room <= 0) {
-      toast.error(`You can add up to ${MAX_GALLERY} extra images`);
+      toast.error(`You can add up to ${MAX_IMAGES} images`);
       return;
     }
+
     const picked = list.slice(0, room);
+    setUploading(true);
     setGalleryUploading(true);
     try {
       const uploaded: string[] = [];
       for (const f of picked) {
         if (!f.type.startsWith("image/")) { toast.error(`Skipped ${f.name}: not an image`); continue; }
         if (f.size > 4 * 1024 * 1024) { toast.error(`Skipped ${f.name}: over 4MB`); continue; }
-        const { publicUrl } = await uploadProductImage(f);
-        uploaded.push(publicUrl);
+        try {
+          const { publicUrl } = await uploadProductImage(f);
+          uploaded.push(publicUrl);
+        } catch (e: any) {
+          toast.error(`${f.name}: ${e?.message ?? "upload failed"}`);
+        }
       }
-      if (uploaded.length) {
-        set("galleryUrls", [...form.galleryUrls, ...uploaded]);
-        toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} added`);
+      if (!uploaded.length) return;
+
+      // Preserve selection order: fill primary first if empty, then gallery.
+      let primary = form.imageUrl;
+      const gallery = [...form.galleryUrls];
+      for (const url of uploaded) {
+        if (!primary) primary = url;
+        else gallery.push(url);
       }
-    } catch (e: any) {
-      toast.error(e?.message ?? "Upload failed");
+      setForm((prev) => ({ ...prev, imageUrl: primary, galleryUrls: gallery }));
+      markTouched("imageUrl");
+      toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} added`);
     } finally {
+      setUploading(false);
       setGalleryUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       if (galleryInputRef.current) galleryInputRef.current.value = "";
     }
+  }
+
+  // Back-compat aliases used by the existing UI.
+  const handleImageFile = (f: File) => handleAddImages([f]);
+  const handleGalleryFiles = (files: FileList | File[]) => handleAddImages(files);
+
+  async function handleRemoveImage() {
+    const url = form.imageUrl;
+    // If gallery has images, promote the first gallery image to primary so
+    // the product never ends up with only "extra" images and no main one.
+    const [nextPrimary, ...rest] = form.galleryUrls;
+    setForm((prev) => ({
+      ...prev,
+      imageUrl: nextPrimary ?? "",
+      galleryUrls: rest,
+    }));
+    markTouched("imageUrl");
+    queueDelete(url);
+    toast.success("Image removed");
   }
 
   async function handleRemoveGalleryImage(url: string) {
     set("galleryUrls", form.galleryUrls.filter((u) => u !== url));
     queueDelete(url);
   }
-
 
   function handlePromoteGalleryImage(url: string) {
     // Swap: gallery image becomes the primary, previous primary joins gallery.
@@ -397,6 +402,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     set("imageUrl", url);
     set("galleryUrls", nextGallery);
   }
+
 
 
   const loading = storeQ.isLoading || (mode === "edit" && productsQ.isLoading);
