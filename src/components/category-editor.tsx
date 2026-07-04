@@ -597,7 +597,8 @@ function SubCategoriesPanel({
             return (
               <li
                 key={c.id}
-                className="flex items-center gap-3 rounded-xl border border-border p-2 hover:bg-muted/40"
+                onClick={() => { if (!isEditing) onOpenFull(c.id); }}
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-2 hover:bg-muted/40"
               >
                 <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted">
                   {c.image_url ? (
@@ -611,6 +612,7 @@ function SubCategoriesPanel({
                     <input
                       value={editingName}
                       onChange={(e) => setEditingName(e.target.value.slice(0, 50))}
+                      onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") { e.preventDefault(); void saveEdit(); }
                         if (e.key === "Escape") setEditingId(null);
@@ -619,21 +621,17 @@ function SubCategoriesPanel({
                       className="h-9 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none ring-primary/30 focus:ring-2"
                     />
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => onOpenFull(c.id)}
-                      className="block w-full truncate text-left text-sm font-semibold hover:text-primary"
-                      title="Open full editor"
-                    >
+                    <span className="block w-full truncate text-left text-sm font-semibold">
                       {c.name}
-                    </button>
+                    </span>
                   )}
                 </div>
+
                 {isEditing ? (
                   <>
                     <button
                       type="button"
-                      onClick={saveEdit}
+                      onClick={(e) => { e.stopPropagation(); void saveEdit(); }}
                       disabled={update.isPending || !editingName.trim()}
                       className="grid h-8 w-8 place-items-center rounded-md text-emerald-600 hover:bg-emerald-50 disabled:opacity-50"
                       aria-label="Save"
@@ -642,7 +640,7 @@ function SubCategoriesPanel({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditingId(null)}
+                      onClick={(e) => { e.stopPropagation(); setEditingId(null); }}
                       className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-foreground/5"
                       aria-label="Cancel"
                     >
@@ -653,7 +651,7 @@ function SubCategoriesPanel({
                   <>
                     <button
                       type="button"
-                      onClick={() => onOpenFull(c.id)}
+                      onClick={(e) => { e.stopPropagation(); onOpenFull(c.id); }}
                       className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-primary/10 hover:text-primary"
                       aria-label="Edit sub-category"
                       title="Edit sub-category"
@@ -662,7 +660,7 @@ function SubCategoriesPanel({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(c.id, c.name)}
+                      onClick={(e) => { e.stopPropagation(); onDelete(c.id, c.name); }}
                       disabled={removePending}
                       className="grid h-8 w-8 place-items-center rounded-md text-red-500 hover:bg-red-50 disabled:opacity-50"
                       aria-label="Delete"
@@ -671,6 +669,7 @@ function SubCategoriesPanel({
                     </button>
                   </>
                 )}
+
               </li>
             );
           })}
