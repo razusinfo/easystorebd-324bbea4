@@ -161,7 +161,7 @@ export function StorefrontView({ slug }: { slug: string }) {
     );
   }
 
-  if (s.template === "flipmart") {
+  if (s.template === "flipmart" || s.template === "megamart") {
     return (
       <FlipmartTemplate
         store={s}
