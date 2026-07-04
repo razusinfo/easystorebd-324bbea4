@@ -316,7 +316,7 @@ export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradien
   
   { id: "eazystore-basic", name: "EazyStore Basic", tagline: "EazyStore's own basic storefront — sidebar categories, product grid, mobile-friendly", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
   
-  { id: "autoparts", name: "AutoParts Pro", tagline: "Multi-vendor auto parts marketplace with hero deals, category rail, and stock-progress cards", gradient: "from-red-600 to-rose-700", accent: "#DC2626", category: "Automotive", premium: true },
+  
   { id: "flipmart", name: "Flipmart Bazaar", tagline: "Marketplace megastore — blue + yellow, category rail, hero banner, and multi-section product grids", gradient: "from-blue-600 to-yellow-400", accent: "#2563eb", category: "General", premium: true },
   { id: "freshmart", name: "Freshmart Organic", tagline: "Grocery & organic foods — green + yellow, circular category tiles, hot deals countdown, kitchen essentials banner", gradient: "from-green-700 to-yellow-400", accent: "#166534", category: "Grocery", premium: true },
 
