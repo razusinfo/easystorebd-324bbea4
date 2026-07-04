@@ -1,43 +1,38 @@
+## Goal
 
-# Make Basic Theme Links & Cart Actually Work
+Replace the single-category dropdown on the product form with an "Assign categories" card + modal (like the screenshots), letting a product belong to multiple categories.
 
-Right now the Basic Theme storefront looks finished but almost nothing is clickable — category items, footer links (Company / About Us / Team / Products / Blogs / Pricing), and the **Add to cart** button are all dead `href="#"` / no-op buttons. This plan turns them into working features.
+## Changes
 
-## What will work after this
+**1. Database migration (new junction table)**
 
-1. **Add to cart** button on each product card actually adds the item to a cart.
-2. A **cart drawer** opens from the header cart icon showing items, quantities, remove, and total.
-3. **Checkout** button in the drawer submits the order into the existing `orders` + `order_items` tables (guest checkout with name / phone / address).
-4. **Category sidebar** items filter the product grid (both desktop sidebar and mobile drawer).
-5. **Footer links** navigate to real pages (`/s/$slug/about`, `/contact`, `/products`, etc.) instead of `#`. Each page is a simple, on-brand page using the store's own content (about text, contact info, product list).
-6. **Search bar** filters products by name as the user types.
+- Create `public.product_category_assignments` with columns: `product_id` (FK products, cascade), `category_id` (FK product_categories, cascade), primary key `(product_id, category_id)`, `created_at`.
+- GRANT to authenticated + service_role.
+- Enable RLS. Policies: user can manage assignments only for products in stores they own (mirroring existing `products` policy pattern).
+- Keep existing `products.category_id` column intact for backward compatibility (storefront still reads it as the "primary" category).
 
-## How it will be built (technical)
+**2. Data layer (`src/lib/eazystore-data.ts`)**
 
-### Cart (client-side, per-store, persisted)
-- New `src/lib/cart-store.ts` — Zustand store keyed by `storeId`, persisted in `localStorage`.
-- Items: `{ productId, name, price, imageUrl, qty }`. Actions: `add`, `remove`, `setQty`, `clear`, selectors for `count` and `total`.
+- Add `useProductCategoryAssignments(productId)` query — returns array of category IDs.
+- Extend `useUpsertProduct` to accept `categoryIds: string[]`; after upsert, replace the product's assignments (delete-all + insert). Also set `products.category_id` to the first selected id for backward compatibility.
 
-### Cart drawer
-- New `src/components/storefront/cart-drawer.tsx` using existing shadcn `Sheet`.
-- Header cart icon shows a live count badge and opens the drawer.
-- Checkout form (name, phone, address, optional note) inserts a row into `orders` + one row per line into `order_items`, then clears the cart and shows a "Thanks — order #… placed" confirmation. Uses the existing anon-safe insert policies already on those tables.
+**3. Product form (`src/components/product-form.tsx`)**
 
-### Category filter
-- Selected category held in local state inside `EazyStoreBasicTemplate`.
-- Filter `products` by `category_id` (already on `products`). "All Products" clears the filter.
-- Active pill uses the theme accent color, as today.
+- Replace the "Category" `<Field>` block with a right-column style "Category" card:
+  - Header "Category" + chevron.
+  - Shows selected category chips or "No assigned category found".
+  - Purple "Assign category" button opens a modal.
+- Modal (`Dialog`): title "Assign categories" + "+" button (links to `/categories/new` in a new tab). Body shows all categories as toggleable chips (multi-select). Footer "Done" saves selection to local form state.
+- Store selection in `form.categoryIds: string[]` (replaces `categoryId` in FormState; hydrate from assignments query on edit, or from source product on duplicate).
+- Pass `categoryIds` to `upsert.mutateAsync`.
 
-### Footer & pages
-- Replace footer `<a href>` values with TanStack `<Link>` to new routes under `src/routes/s.$slug.about.tsx`, `contact.tsx`, `team.tsx`, `products.tsx`, `blogs.tsx`, `pricing.tsx`.
-- Each page reuses the store header/footer chrome from the Basic Theme so the look stays consistent, and pulls content from the existing `stores` row (about, address, phone, email, socials). Pages that have no data yet (Team, Blogs, Pricing) render a friendly empty state — no fake demo content.
-- Add the missing routes with `head()` metadata so they're SEO-friendly and shareable.
+## Technical notes
 
-### Search
-- Controlled input in the header filters the visible product list by case-insensitive substring on `name`.
+- Categories page and storefront filtering continue to work off `products.category_id` unchanged; multi-assignment is additive.
+- Migration order: CREATE TABLE → GRANT → ENABLE RLS → CREATE POLICY (per project rules).
+- Modal uses existing shadcn `Dialog` component.
 
-## Not in scope (ask before adding)
+## Out of scope
 
-- Payment gateway integration (Stripe / bKash) — checkout only records the order for now.
-- Product detail page (clicking a product card). Can be a follow-up.
-- Cart syncing across devices (server-side cart) — local cart is enough for guest checkout.
+- Updating storefront filtering to use the junction table (can be a follow-up).
+- Bulk-assign UI on the categories list page.
