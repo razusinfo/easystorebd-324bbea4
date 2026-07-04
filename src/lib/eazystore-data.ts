@@ -318,6 +318,7 @@ export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradien
   { id: "prestige", name: "Prestige Bento", tagline: "Premium mobile commerce — emerald + gold, bento grid, flash-sale countdown, sticky search with voice + bell", gradient: "from-emerald-900 to-emerald-700", accent: "#064e3b", category: "General", premium: true },
   { id: "autoparts", name: "AutoParts Pro", tagline: "Multi-vendor auto parts marketplace with hero deals, category rail, and stock-progress cards", gradient: "from-red-600 to-rose-700", accent: "#DC2626", category: "Automotive", premium: true },
   { id: "flipmart", name: "Flipmart Bazaar", tagline: "Marketplace megastore — blue + yellow, category rail, hero banner, and multi-section product grids", gradient: "from-blue-600 to-yellow-400", accent: "#2563eb", category: "General", premium: true },
+  { id: "freshmart", name: "Freshmart Organic", tagline: "Grocery & organic foods — green + yellow, circular category tiles, hot deals countdown, kitchen essentials banner", gradient: "from-green-700 to-yellow-400", accent: "#166534", category: "Grocery", premium: true },
 
   { id: "minimal", name: "Minimal Mono", tagline: "Clean, editorial, type-led", gradient: "from-slate-900 to-slate-600", accent: "#0F172A", category: "Editorial" },
   { id: "boutique", name: "Boutique Blush", tagline: "Soft pastels for fashion", gradient: "from-pink-400 to-rose-500", accent: "#EC4899", category: "Fashion" },
