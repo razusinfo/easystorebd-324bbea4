@@ -509,7 +509,7 @@ export function FlipmartTemplate({
 
       {/* Best Deals bar */}
       <SectionBar bar="bg-neutral-800" title="Best Deals" />
-      <ProductRow items={bestDeals} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={bestDeals} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Winter + Don't Miss */}
       <section className="mx-auto max-w-7xl px-3 pt-6 sm:px-6">
@@ -521,15 +521,15 @@ export function FlipmartTemplate({
 
       {/* Most Picked bar */}
       <SectionBar bar="bg-amber-500 text-neutral-900" title="Most Picked" />
-      <ProductRow items={mostPicked} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={mostPicked} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Recently Viewed (red bar) */}
       <SectionBar bar={SECTION_BARS[2].bar} title={SECTION_BARS[2].title} />
-      <ProductRow items={recently} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={recently} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* On Sale (dark bar) */}
       <SectionBar bar={SECTION_BARS[3].bar} title={SECTION_BARS[3].title} />
-      <ProductRow items={onSale} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <ProductRow items={onSale} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Mobile category drawer */}
       {mobileNavOpen && (
