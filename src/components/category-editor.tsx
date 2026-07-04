@@ -631,7 +631,7 @@ function SubCategoriesPanel({
                   <>
                     <button
                       type="button"
-                      onClick={saveEdit}
+                      onClick={(e) => { e.stopPropagation(); void saveEdit(); }}
                       disabled={update.isPending || !editingName.trim()}
                       className="grid h-8 w-8 place-items-center rounded-md text-emerald-600 hover:bg-emerald-50 disabled:opacity-50"
                       aria-label="Save"
@@ -640,7 +640,7 @@ function SubCategoriesPanel({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditingId(null)}
+                      onClick={(e) => { e.stopPropagation(); setEditingId(null); }}
                       className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-foreground/5"
                       aria-label="Cancel"
                     >
@@ -651,7 +651,7 @@ function SubCategoriesPanel({
                   <>
                     <button
                       type="button"
-                      onClick={() => onOpenFull(c.id)}
+                      onClick={(e) => { e.stopPropagation(); onOpenFull(c.id); }}
                       className="grid h-8 w-8 place-items-center rounded-md text-foreground/60 hover:bg-primary/10 hover:text-primary"
                       aria-label="Edit sub-category"
                       title="Edit sub-category"
@@ -660,7 +660,7 @@ function SubCategoriesPanel({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(c.id, c.name)}
+                      onClick={(e) => { e.stopPropagation(); onDelete(c.id, c.name); }}
                       disabled={removePending}
                       className="grid h-8 w-8 place-items-center rounded-md text-red-500 hover:bg-red-50 disabled:opacity-50"
                       aria-label="Delete"
@@ -669,6 +669,7 @@ function SubCategoriesPanel({
                     </button>
                   </>
                 )}
+
               </li>
             );
           })}
