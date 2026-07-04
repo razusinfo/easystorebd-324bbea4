@@ -6,6 +6,7 @@ import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { FlipmartTemplate } from "@/components/templates/flipmart-template";
+import { FreshmartTemplate } from "@/components/templates/freshmart-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
