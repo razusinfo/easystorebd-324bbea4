@@ -1114,38 +1114,22 @@ export function useChangeSlug() {
   });
 }
 
-// Public fetch by slug — relies on RLS allowing anon read of published stores.
+// Public fetch by slug. The store + product + category filtering happens on
+// the SERVER via getPublishedStorefront so demo/template rows can never be
+// injected for a non-preview (published) storefront request. Image signing
+// stays on the client because it uses short-lived signed URLs.
 export function usePublicStoreBySlug(slug: string | undefined) {
   return useQuery({
     queryKey: ["public-store", slug],
     enabled: !!slug,
     queryFn: async (): Promise<{ store: StoreRow; products: ProductRow[]; logoUrl: string | null; categories: { id: string; name: string }[] } | null> => {
-      const { data: store, error } = await supabase
-        .from("stores")
-        .select("*")
-        .eq("slug", slug!)
-        .eq("published", true)
-        .maybeSingle();
-      if (error) throw error;
-      if (!store) return null;
+      const { getPublishedStorefront } = await import("./storefront.functions");
+      const result = await getPublishedStorefront({ data: { slug: slug! } });
+      if (!result) return null;
+      const store = result.store as StoreRow;
+      const products = (result.products ?? []) as ProductRow[];
+      const categories = (result.categories ?? []).map((c: any) => ({ id: c.id as string, name: c.name as string }));
 
-      const [{ data: products, error: pErr }, { data: cats, error: cErr }] = await Promise.all([
-        supabase
-          .from("products")
-          .select("id, store_id, name, price, stock, status, image_url, category_id, created_at")
-          .eq("store_id", store.id)
-          .eq("status", "approved")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("product_categories")
-          .select("id, name, slug, parent_id, sort_order")
-          .eq("store_id", store.id)
-          .order("sort_order", { ascending: true })
-          .order("name", { ascending: true }),
-      ]);
-      if (pErr) throw pErr;
-      if (cErr) throw cErr;
-      const categories = (cats ?? []).map((c: any) => ({ id: c.id as string, name: c.name as string }));
 
 
       // Product images live in a private bucket. Re-sign stored URLs so <img> can load on every visit.
