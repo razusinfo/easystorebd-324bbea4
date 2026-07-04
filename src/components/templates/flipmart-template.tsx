@@ -395,8 +395,8 @@ export function FlipmartTemplate({
       </section>
 
       {/* Suggested for You (colored bar) */}
-      <SectionBar bar={SECTION_BARS[0].bar} title={SECTION_BARS[0].title} />
-      <ProductRow items={suggested} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} />
+      <SectionBar bar={SECTION_BARS[0].bar} title={sectionTitles?.suggested ?? SECTION_BARS[0].title} />
+      <ProductRow items={suggested} onAdd={handleAdd} slug={slug} search={search} activeCat={activeCat} slider={sliderRows} />
 
       {/* Featured Brands strip */}
       <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6">
