@@ -207,6 +207,19 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       published_reseller_product_id: inserted.id,
     });
 
+    // Fire-and-forget success email to the reseller.
+    try {
+      const { notifyRequestApproved } = await import("./product-request-emails.server");
+      await notifyRequestApproved(supabaseAdmin as never, {
+        request_id: req.id,
+        reseller_id: req.requested_by,
+        name: req.name,
+        reseller_price: data.reseller_price,
+      });
+    } catch (e) {
+      console.warn("[product-request notify approved]", (e as Error).message);
+    }
+
     return { ok: true as const, reseller_product_id: inserted.id };
   });
 
