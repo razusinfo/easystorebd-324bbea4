@@ -104,6 +104,7 @@ const LABEL_TO_SUBPATH: Record<string, string> = {
 
 export function FlipmartTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
+  sliderRows = false, sectionTitles,
 }: Props) {
   const accent = accentColor || "#2563eb";
   const yellow = "#fbbf24";
