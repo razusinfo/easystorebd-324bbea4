@@ -14,11 +14,14 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       reseller_product_id: z.string().uuid(),
-      // Client-supplied hints; server re-reads from DB and validates.
-      // No trust boundary depends on these values.
+      // Optional user-chosen category from the reseller's own list.
+      category_id: z.string().uuid().optional().nullable(),
+      // Optional custom selling price for the reseller's own shop.
+      custom_price: z.number().nonnegative().optional().nullable(),
       note: z.string().max(500).optional().nullable(),
     }),
   )
+
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -102,13 +105,26 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
       }
       const stock = 0; // reseller copies start unstocked; validate it's a non-negative integer
       if (!Number.isInteger(stock) || stock < 0) missing.push("quantity");
-      // Category: prefer original product's category_id; fall back to source.category text
-      if (!original?.category_id && !source.category) missing.push("category");
+      // Category: prefer user-selected category_id, then original product's, then source.category text
+      const chosenCategoryId = data.category_id ?? original?.category_id ?? null;
+      if (!chosenCategoryId && !source.category) missing.push("category");
 
       if (missing.length) {
         const msg = `Missing required product fields: ${missing.join(", ")}`;
         await logAttempt(false, source.id, msg);
         throw new Error(msg);
+      }
+
+      // If a user-supplied category_id was provided, verify it belongs to this store.
+      if (data.category_id) {
+        const { data: cat, error: catErr } = await supabaseAdmin
+          .from("product_categories")
+          .select("id")
+          .eq("id", data.category_id)
+          .eq("store_id", store.id)
+          .maybeSingle();
+        if (catErr) throw new Error(catErr.message);
+        if (!cat) throw new Error("Selected category does not belong to your store");
       }
 
       // 5. Dedup by (store_id, name)
@@ -126,24 +142,26 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
       }
 
       // 6. Insert into caller's products
+      const sellingPrice = data.custom_price != null ? Number(data.custom_price) : Number(price);
       const insertPayload = {
         store_id: store.id,
         name: source.name,
         description: source.description ?? null,
         short_description: original?.short_description ?? null,
         image_url: source.image_url ?? source.image ?? null,
-        price: Number(price),
+        price: sellingPrice,
         regular_price: source.price,
         reseller_price: source.reseller_price,
         stock,
         status: "approved" as const,
-        category_id: original?.category_id ?? null,
+        category_id: chosenCategoryId,
         warranty: original?.warranty ?? null,
         product_serial: original?.product_serial ?? null,
         sku: original?.sku ?? null,
         brand: original?.brand ?? null,
         condition: original?.condition ?? "new",
       };
+
 
       const { data: inserted, error: insErr } = await supabaseAdmin
         .from("products")
