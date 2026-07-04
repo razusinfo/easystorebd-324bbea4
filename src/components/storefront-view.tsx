@@ -41,13 +41,40 @@ export function StorefrontView({ slug }: { slug: string }) {
     },
   });
 
+  const effectiveLogoEarly = templateLogoQ.data ?? q.data?.logoUrl ?? null;
+  const storeName = q.data?.store?.name ?? null;
+
+  useEffect(() => {
+    if (effectiveLogoEarly) writeCache(LOGO_CACHE_PREFIX, slug, effectiveLogoEarly);
+    if (storeName) writeCache(NAME_CACHE_PREFIX, slug, storeName);
+  }, [slug, effectiveLogoEarly, storeName]);
+
   if (q.isLoading) {
+    const cachedLogo = readCache(LOGO_CACHE_PREFIX, slug);
+    const cachedName = readCache(NAME_CACHE_PREFIX, slug);
     return (
-      <main className="grid min-h-screen place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <main className="grid min-h-screen place-items-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          {cachedLogo ? (
+            <img
+              src={cachedLogo}
+              alt={cachedName ? `${cachedName} logo` : "Store logo"}
+              className="h-20 w-20 rounded-2xl object-cover shadow-sm animate-pulse"
+            />
+          ) : (
+            <div className="grid h-20 w-20 place-items-center rounded-2xl bg-foreground/5 animate-pulse">
+              <StoreIcon className="h-8 w-8 text-foreground/40" />
+            </div>
+          )}
+          {cachedName && (
+            <p className="font-display text-base font-semibold text-foreground/70">{cachedName}</p>
+          )}
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
       </main>
     );
   }
+
 
   if (!q.data) {
     return (
