@@ -15,6 +15,14 @@ const SettingsSchema = z.object({
   statuses_email: z.array(z.enum(STATUSES)).default([]),
   statuses_sms: z.array(z.enum(STATUSES)).default([]),
   delivery_eta: z.string().trim().min(1).max(80),
+  whatsapp_webhook_url: z
+    .string()
+    .trim()
+    .max(500)
+    .url()
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
 });
 
 async function assertSuperAdmin(ctx: { supabase: any; userId: string }): Promise<void> {
