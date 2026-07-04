@@ -196,3 +196,132 @@ function CopyLinkButton({ url }: { url: string }) {
   );
 }
 
+function EditResellerButton({ row }: { row: ResellerRow }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [price, setPrice] = useState<string>(row.reseller_price != null ? String(row.reseller_price) : "");
+  const [image, setImage] = useState<string>(row.image_url ?? row.image ?? "");
+
+  useEffect(() => {
+    if (open) {
+      setPrice(row.reseller_price != null ? String(row.reseller_price) : "");
+      setImage(row.image_url ?? row.image ?? "");
+    }
+  }, [open, row]);
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      const trimmedImg = image.trim();
+      const parsedPrice = price.trim() === "" ? null : Number(price);
+      if (parsedPrice != null && !Number.isFinite(parsedPrice)) throw new Error("Invalid price");
+
+      const origPrice = row.reseller_price ?? null;
+      const origImg = row.image_url ?? row.image ?? "";
+      const priceChanged = parsedPrice !== origPrice;
+      const imageChanged = trimmedImg !== origImg;
+
+      const payload: Record<string, unknown> = {
+        reseller_price: parsedPrice,
+        image: trimmedImg || null,
+        image_url: trimmedImg || null,
+        updated_at: new Date().toISOString(),
+      };
+      if (priceChanged) payload.price_overridden = true;
+      if (imageChanged) payload.image_overridden = true;
+
+      const { error } = await supabase.from("reseller_products").update(payload).eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Reseller product updated");
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resetOverrides = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("reseller_products")
+        .update({ price_overridden: false, image_overridden: false })
+        .eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Overrides cleared — will re-sync from main product");
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-1 w-full gap-1.5"
+        onClick={() => setOpen(true)}
+      >
+        <Pencil className="h-3.5 w-3.5" /> Edit
+      </Button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit reseller product</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="rp-price">Reseller Price</Label>
+            <Input
+              id="rp-price"
+              type="number"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Original: ৳{Number(row.price).toLocaleString()} — manual edits won't be overwritten by sync.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="rp-image">Product Image URL</Label>
+            <Input
+              id="rp-image"
+              type="url"
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+              placeholder="https://..."
+            />
+            {image && (
+              <img src={image} alt="preview" className="mt-2 h-24 w-24 rounded-md object-cover" />
+            )}
+          </div>
+        </div>
+        <DialogFooter className="gap-2 sm:justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={resetOverrides.isPending || (!row.price_overridden && !row.image_overridden)}
+            onClick={() => resetOverrides.mutate()}
+          >
+            Reset to synced values
+          </Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={() => mut.mutate()} disabled={mut.isPending}>
+              {mut.isPending ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
