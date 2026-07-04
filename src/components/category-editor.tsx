@@ -444,6 +444,7 @@ function SubCategoriesPanel({
   const create = useCreateCategory(storeId);
   const update = useUpdateCategory(storeId);
   const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -462,6 +463,7 @@ function SubCategoriesPanel({
     try {
       await create.mutateAsync({ name: n, parent_id: parentId });
       setNewName("");
+      setAdding(false);
     } catch (e) {
       setErr((e as Error)?.message ?? "Could not add.");
     }
@@ -488,6 +490,7 @@ function SubCategoriesPanel({
     }
   }
 
+  const isEmpty = items.length === 0;
 
   return (
     <div>
@@ -495,31 +498,51 @@ function SubCategoriesPanel({
         <h3 className="mr-auto font-display text-sm font-black uppercase tracking-wide text-foreground/70">
           Sub Categories ({items.length})
         </h3>
+        {!isEmpty && !adding && (
+          <button
+            type="button"
+            onClick={() => { setAdding(true); setErr(null); }}
+            className="inline-flex h-8 items-center gap-1 rounded-lg gradient-primary px-2.5 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add
+          </button>
+        )}
       </div>
 
-      {/* Inline add row */}
-      <div className="mt-3 flex items-center gap-2">
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value.slice(0, 50))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") { e.preventDefault(); void addInline(); }
-          }}
-          placeholder="New sub category name"
-          className="h-10 flex-1 rounded-xl border border-border bg-background px-3 text-sm outline-none ring-primary/30 focus:ring-2"
-        />
-        <button
-          type="button"
-          onClick={addInline}
-          disabled={!newName.trim() || create.isPending}
-          className="inline-flex h-10 items-center gap-1.5 rounded-xl gradient-primary px-3 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50"
-        >
-          {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Add
-        </button>
-      </div>
+      {adding && (
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value.slice(0, 50))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); void addInline(); }
+              if (e.key === "Escape") { setAdding(false); setNewName(""); setErr(null); }
+            }}
+            autoFocus
+            placeholder="New sub category name"
+            className="h-10 flex-1 rounded-xl border border-border bg-background px-3 text-sm outline-none ring-primary/30 focus:ring-2"
+          />
+          <button
+            type="button"
+            onClick={addInline}
+            disabled={!newName.trim() || create.isPending}
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl gradient-primary px-3 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50"
+          >
+            {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Save
+          </button>
+          <button
+            type="button"
+            onClick={() => { setAdding(false); setNewName(""); setErr(null); }}
+            className="grid h-10 w-10 place-items-center rounded-xl border border-border text-foreground/60 hover:bg-foreground/5"
+            aria-label="Cancel"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
-      {items.length > 0 && (
+      {!isEmpty && (
         <div className="relative mt-3">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
           <input
@@ -537,19 +560,29 @@ function SubCategoriesPanel({
         </p>
       )}
 
-      {items.length === 0 ? (
-        <div className="mt-6 grid place-items-center gap-2 rounded-xl border border-dashed border-border py-8 text-center">
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-muted text-foreground/40">
-            <Package className="h-5 w-5" />
+      {isEmpty ? (
+        !adding && (
+          <div className="mt-4 grid place-items-center gap-3 py-10 text-center">
+            <div className="grid h-16 w-16 place-items-center rounded-full bg-muted text-foreground/40">
+              <Package className="h-7 w-7" />
+            </div>
+            <p className="text-sm font-semibold text-foreground/80">
+              Your sub categories list is currently empty
+            </p>
+            <p className="max-w-xs text-xs text-foreground/60">
+              Lets get started by adding your first sub category now
+            </p>
+            <button
+              type="button"
+              onClick={() => { setAdding(true); setErr(null); }}
+              className="mt-1 inline-flex items-center gap-1.5 rounded-xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90"
+            >
+              Add Sub Category
+            </button>
           </div>
-          <p className="text-sm font-semibold text-foreground/80">
-            Your sub categories list is currently empty
-          </p>
-          <p className="max-w-xs text-xs text-foreground/60">
-            Type a name above and click Add to create your first one.
-          </p>
-        </div>
+        )
       ) : (
+
         <ul className="mt-3 space-y-2">
           {items.map((c) => {
             const isEditing = editingId === c.id;
