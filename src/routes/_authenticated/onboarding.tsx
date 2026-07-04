@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, ArrowRight, Check, Sparkles, Loader2, Mail, Languages, Briefcase,
 } from "lucide-react";
@@ -300,14 +300,72 @@ function Onboarding() {
   );
 }
 
+function useInView<T extends Element>(rootMargin = "200px") {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (inView || !ref.current) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setInView(true);
+            io.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin },
+    );
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [inView, rootMargin]);
+  return { ref, inView };
+}
+
+function PreviewSkeleton() {
+  return (
+    <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-muted via-muted/60 to-muted" />
+  );
+}
+
+function LazyImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <PreviewSkeleton />}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        className={`${className ?? ""} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </>
+  );
+}
+
 function TemplatePreview({ id, gradient, accent }: { id: TemplateId; gradient: string; accent: string }) {
+  const { ref, inView } = useInView<HTMLDivElement>();
+
   if (id === "eazystore-basic") {
     return (
-      <img
-        src={eazystoreBasicPreview.url}
-        alt="EazyStore Basic preview"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
-      />
+      <div ref={ref} className="absolute inset-0">
+        {inView ? (
+          <LazyImage
+            src={eazystoreBasicPreview.url}
+            alt="EazyStore Basic preview"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
+          />
+        ) : (
+          <PreviewSkeleton />
+        )}
+      </div>
     );
   }
 
@@ -326,19 +384,24 @@ function TemplatePreview({ id, gradient, accent }: { id: TemplateId; gradient: s
   if (inner) {
     return (
       <div
+        ref={ref}
         className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
         style={{ containerType: "size" } as React.CSSProperties}
       >
-        <div
-          style={{
-            width: FULL_W,
-            height: FULL_H,
-            transform: "scale(var(--tpl-scale, 0.2))",
-            transformOrigin: "top left",
-          }}
-        >
-          {inner}
-        </div>
+        {inView ? (
+          <div
+            style={{
+              width: FULL_W,
+              height: FULL_H,
+              transform: "scale(var(--tpl-scale, 0.2))",
+              transformOrigin: "top left",
+            }}
+          >
+            {inner}
+          </div>
+        ) : (
+          <PreviewSkeleton />
+        )}
         <style>{`
           @container (min-width: 180px) { [style*="--tpl-scale"] { --tpl-scale: 0.22; } }
           @container (min-width: 240px) { [style*="--tpl-scale"] { --tpl-scale: 0.28; } }
