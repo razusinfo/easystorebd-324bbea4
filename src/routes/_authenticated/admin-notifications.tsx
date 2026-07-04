@@ -35,6 +35,7 @@ type SettingsRow = {
   statuses_email: string[];
   statuses_sms: string[];
   delivery_eta: string;
+  whatsapp_webhook_url: string | null;
 };
 
 const DEFAULTS: SettingsRow = {
@@ -48,6 +49,7 @@ const DEFAULTS: SettingsRow = {
   statuses_email: [...STATUSES],
   statuses_sms: [...STATUSES],
   delivery_eta: "3-5 business days",
+  whatsapp_webhook_url: null,
 };
 
 function AdminNotificationsPage() {
