@@ -129,3 +129,44 @@ export function propagateStockChange(args: {
     : [];
   return { propagated, notifications };
 }
+
+/**
+ * Stable "in-stock first, out-of-stock last" sort. Preserves the original
+ * relative order within each group (JS `Array.prototype.sort` is stable in
+ * every current runtime).
+ */
+export function sortOutOfStockToBottom<T extends { stock?: number | null }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const ao = (a.stock ?? 0) <= 0 ? 1 : 0;
+    const bo = (b.stock ?? 0) <= 0 ? 1 : 0;
+    return ao - bo;
+  });
+}
+
+/**
+ * Group by category then apply `sortOutOfStockToBottom` inside each category
+ * and flatten back to a single list. Used to guarantee that a zero-stock
+ * item stays in its category but always sits at the bottom of it.
+ */
+export function sortByCategoryWithOutOfStockLast<
+  T extends { stock?: number | null; category?: string | null },
+>(rows: T[]): T[] {
+  const groups = new Map<string, T[]>();
+  const order: string[] = [];
+  for (const r of rows) {
+    const k = r.category ?? "";
+    if (!groups.has(k)) {
+      groups.set(k, []);
+      order.push(k);
+    }
+    groups.get(k)!.push(r);
+  }
+  const out: T[] = [];
+  for (const k of order) out.push(...sortOutOfStockToBottom(groups.get(k)!));
+  return out;
+}
+
+/** Derived flag used by DB `is_out_of_stock` generated column. */
+export function computeIsOutOfStock(stock: number | null | undefined): boolean {
+  return (stock ?? 0) <= 0;
+}
