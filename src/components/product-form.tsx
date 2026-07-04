@@ -527,12 +527,13 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleImageFile(f);
+                  if (e.target.files && e.target.files.length) handleAddImages(e.target.files);
                 }}
               />
+
 
               {form.imageUrl ? (
                 <div className="rounded-lg border border-border bg-muted/20 p-3">
