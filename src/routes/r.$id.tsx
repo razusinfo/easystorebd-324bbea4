@@ -1,5 +1,11 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { Package } from "lucide-react";
+import { Check, Code2, Package } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { supabase } from "@/integrations/supabase/client";
 
