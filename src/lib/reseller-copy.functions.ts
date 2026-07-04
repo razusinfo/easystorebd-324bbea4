@@ -29,7 +29,9 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
         reseller_product_id: data.reseller_product_id,
         category_id: data.category_id ?? null,
         custom_price: data.custom_price ?? null,
+        selected_media: data.selected_media ?? null,
       },
+
       {
         userSupabase: context.supabase as never,
         adminSupabase: supabaseAdmin as never,
