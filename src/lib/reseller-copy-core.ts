@@ -186,6 +186,7 @@ export async function runCopyResellerProduct(
       sku: original?.sku ?? null,
       brand: original?.brand ?? null,
       condition: original?.condition ?? "new",
+      source_reseller_product_id: source.id,
     };
 
 
