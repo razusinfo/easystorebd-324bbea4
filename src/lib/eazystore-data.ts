@@ -737,11 +737,15 @@ export type UpsertProductInput = {
   specificDeliveryCharges?: { zone: string; charge: number }[];
   videoUrl?: string | null;
 
+  addToReseller?: boolean;
+  resellerPrice?: number | null;
+
   status?: ProductStatus;
   variants?: { name: string; value: string }[];
   details?: { key: string; value: string }[];
   categoryIds?: string[];
 };
+
 
 export function useProductCategoryAssignments(productId: string | undefined) {
   return useQuery({
