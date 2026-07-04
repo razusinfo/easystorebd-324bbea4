@@ -194,7 +194,12 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       imageUrl: src.image_url ?? "",
       galleryUrls: Array.isArray(src.gallery_urls) ? src.gallery_urls : [],
       videoUrl: src.video_url ?? "",
+      addToReseller: (src as { add_to_reseller?: boolean }).add_to_reseller ?? false,
+      resellerPrice: (src as { reseller_price?: number | null }).reseller_price != null
+        ? String((src as { reseller_price?: number | null }).reseller_price)
+        : "",
     }));
+
     if (mode === "new" && sourceForDuplicate) {
       toast.success("Duplicated as a new draft — review and save");
     }
