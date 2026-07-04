@@ -35,6 +35,7 @@ type SettingsRow = {
   statuses_email: string[];
   statuses_sms: string[];
   delivery_eta: string;
+  whatsapp_webhook_url: string | null;
 };
 
 const DEFAULTS: SettingsRow = {
@@ -48,6 +49,7 @@ const DEFAULTS: SettingsRow = {
   statuses_email: [...STATUSES],
   statuses_sms: [...STATUSES],
   delivery_eta: "3-5 business days",
+  whatsapp_webhook_url: null,
 };
 
 function AdminNotificationsPage() {
@@ -213,6 +215,37 @@ function AdminNotificationsPage() {
             />
           </div>
         </div>
+      </Card>
+
+      <Card className="p-5 space-y-3">
+        <h2 className="font-semibold">WhatsApp / Automation webhook</h2>
+        <p className="text-xs text-muted-foreground">
+          Paste a webhook URL from Make.com, Zapier, or n8n. Every new order and
+          status change will POST a JSON payload (order id, product, customer &amp;
+          reseller info) to this URL — connect that Zap/Scenario to the WhatsApp
+          Business API to send instant messages.
+        </p>
+        <div>
+          <Label>Webhook URL</Label>
+          <Input
+            type="url"
+            placeholder="https://hook.eu2.make.com/xxxxxxxxxxxx"
+            value={form.whatsapp_webhook_url ?? ""}
+            onChange={(e) =>
+              setForm({ ...form, whatsapp_webhook_url: e.target.value.trim() || null })
+            }
+          />
+        </div>
+        <details className="text-xs text-muted-foreground">
+          <summary className="cursor-pointer select-none font-medium">Sample payload</summary>
+          <pre className="mt-2 overflow-x-auto rounded bg-muted p-3 text-[11px] leading-relaxed">{`{
+  "event": "order.placed",
+  "timestamp": "2026-07-04T12:00:00.000Z",
+  "order": { "id": "...", "short_id": "A1B2C3D4", "product_name": "...", "quantity": 1, "total": 500, "currency": "BDT" },
+  "customer": { "name": "...", "phone": "+8801...", "email": "..." },
+  "reseller": { "id": "...", "shop_name": "My Shop", "phone": "+8801...", "email": "..." }
+}`}</pre>
+        </details>
       </Card>
 
       <Card className="p-5 space-y-4">

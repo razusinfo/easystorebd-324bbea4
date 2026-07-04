@@ -27,6 +27,7 @@ type Settings = {
   statuses_email: string[];
   statuses_sms: string[];
   delivery_eta: string;
+  whatsapp_webhook_url: string | null;
 };
 
 const DEFAULTS: Settings = {
@@ -40,7 +41,57 @@ const DEFAULTS: Settings = {
   statuses_email: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
   statuses_sms: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
   delivery_eta: "3-5 business days",
+  whatsapp_webhook_url: null,
 };
+
+// Fire a JSON payload to an external automation platform (Make.com, Zapier, n8n)
+// which can then forward to WhatsApp Business API, Slack, etc.
+export async function sendOrderWebhook(
+  order: OrderCore,
+  event: "order.placed" | "order.status_changed",
+  extra: Record<string, unknown> = {},
+): Promise<void> {
+  const cfg = await loadSettings();
+  const url = (cfg.whatsapp_webhook_url ?? "").trim();
+  if (!url) return;
+  try {
+    const { brand, resellerPhone, resellerEmail } = await getResellerBrand(order.reseller_id);
+    const total = Number(order.reseller_price ?? 0) * order.quantity;
+    const payload = {
+      event,
+      timestamp: new Date().toISOString(),
+      order: {
+        id: order.id,
+        short_id: order.id.slice(0, 8).toUpperCase(),
+        status: order.status ?? null,
+        product_name: order.product_name,
+        quantity: order.quantity,
+        unit_price: Number(order.reseller_price ?? 0),
+        total,
+        currency: "BDT",
+      },
+      customer: {
+        name: order.customer_name,
+        phone: order.customer_phone,
+        email: order.customer_email ?? null,
+      },
+      reseller: {
+        id: order.reseller_id,
+        shop_name: brand,
+        phone: resellerPhone,
+        email: resellerEmail,
+      },
+      ...extra,
+    };
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    console.warn("[webhook] error:", (e as Error).message);
+  }
+}
 
 async function loadSettings(): Promise<Settings> {
   try {

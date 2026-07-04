@@ -15,6 +15,14 @@ const SettingsSchema = z.object({
   statuses_email: z.array(z.enum(STATUSES)).default([]),
   statuses_sms: z.array(z.enum(STATUSES)).default([]),
   delivery_eta: z.string().trim().min(1).max(80),
+  whatsapp_webhook_url: z
+    .string()
+    .trim()
+    .max(500)
+    .url()
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
 });
 
 async function assertSuperAdmin(ctx: { supabase: any; userId: string }): Promise<void> {
@@ -34,7 +42,12 @@ export const updateNotificationSettings = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("notification_settings")
-      .upsert({ id: true, ...data, reply_to: data.reply_to ?? null })
+      .upsert({
+        id: true,
+        ...data,
+        reply_to: data.reply_to ?? null,
+        whatsapp_webhook_url: data.whatsapp_webhook_url?.trim() || null,
+      })
       .eq("id", true);
     if (error) throw new Error(error.message);
     return { ok: true as const };

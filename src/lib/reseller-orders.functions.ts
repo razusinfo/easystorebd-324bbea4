@@ -35,8 +35,11 @@ export const updateResellerOrderStatus = createServerFn({ method: "POST" })
 
     // Fire-and-forget notification (don't block on SMS)
     try {
-      const { sendOrderStatusUpdate } = await import("./order-notifications.server");
-      await sendOrderStatusUpdate(order, data.status);
+      const { sendOrderStatusUpdate, sendOrderWebhook } = await import("./order-notifications.server");
+      await Promise.all([
+        sendOrderStatusUpdate(order, data.status),
+        sendOrderWebhook(order, "order.status_changed", { new_status: data.status }),
+      ]);
     } catch (e) {
       console.warn("[order-status] notification failed:", (e as Error).message);
     }

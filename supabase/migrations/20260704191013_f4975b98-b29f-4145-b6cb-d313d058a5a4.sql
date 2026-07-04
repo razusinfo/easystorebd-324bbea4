@@ -1,0 +1,1 @@
+ALTER TABLE public.notification_settings ADD COLUMN IF NOT EXISTS whatsapp_webhook_url text;
