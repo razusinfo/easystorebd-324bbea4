@@ -349,34 +349,44 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     setGalleryUploading(true);
     try {
       const uploadable = picked.filter((f) => {
-        if (!f.type.startsWith("image/")) { toast.error(`Skipped ${f.name}: not an image`); return false; }
+        const isImg = f.type ? f.type.startsWith("image/") : /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name);
+        if (!isImg) { toast.error(`Skipped ${f.name || "file"}: not an image`); return false; }
         if (f.size > MAX_RAW_IMAGE_BYTES) { toast.error(`Skipped ${f.name}: over 12MB`); return false; }
         return true;
       });
-      const results = await Promise.allSettled(uploadable.map((f) => uploadProductImage(f)));
-      const uploaded: string[] = [];
-      results.forEach((result, index) => {
-        if (result.status === "fulfilled") uploaded.push(result.value.publicUrl);
-        else toast.error(`${uploadable[index]?.name ?? "Image"}: ${result.reason?.message ?? "upload failed"}`);
-      });
-      if (!uploaded.length) return;
+      if (!uploadable.length) return;
 
-      // Preserve selection order: fill primary first if empty, then gallery.
-      setForm((prev) => {
-        let primary = prev.imageUrl;
-        const gallery = [...prev.galleryUrls];
-        const remaining = Math.max(0, MAX_IMAGES - ((primary ? 1 : 0) + gallery.length));
-        for (const url of uploaded.slice(0, remaining)) {
-          if (!primary) primary = url;
-          else gallery.push(url);
+      setUploadProgress({ done: 0, total: uploadable.length });
+      // Upload sequentially so selection order is preserved deterministically
+      // and each successful upload shows immediately in the preview.
+      const uploaded: string[] = [];
+      for (let i = 0; i < uploadable.length; i++) {
+        const f = uploadable[i];
+        try {
+          const { publicUrl } = await uploadProductImage(f);
+          uploaded.push(publicUrl);
+          // Live-append so the user sees each image appear as it finishes.
+          setForm((prev) => {
+            let primary = prev.imageUrl;
+            const gallery = [...prev.galleryUrls];
+            if ((primary ? 1 : 0) + gallery.length >= MAX_IMAGES) return prev;
+            if (!primary) primary = publicUrl;
+            else gallery.push(publicUrl);
+            return { ...prev, imageUrl: primary, galleryUrls: gallery };
+          });
+        } catch (err: any) {
+          toast.error(`${f.name || "Image"}: ${err?.message ?? "upload failed"}`);
+        } finally {
+          setUploadProgress({ done: i + 1, total: uploadable.length });
         }
-        return { ...prev, imageUrl: primary, galleryUrls: gallery };
-      });
+      }
+      if (!uploaded.length) return;
       markTouched("imageUrl");
       toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} added`);
     } finally {
       setUploading(false);
       setGalleryUploading(false);
+      setUploadProgress(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       if (galleryInputRef.current) galleryInputRef.current.value = "";
     }
