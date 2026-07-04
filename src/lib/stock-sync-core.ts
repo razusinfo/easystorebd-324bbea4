@@ -1,11 +1,18 @@
 // Pure, testable core for inventory sync logic.
 // - Propagates supplier reseller_products.stock into all reseller copies.
-// - Emits a `supplier_out_of_stock` notification for each affected store owner
-//   ONLY on the transition from >0 to 0 (never on updates that keep stock=0
-//   or on partial decrements).
-// - Emits stock-audit entries when a supplier product's stock crosses 0
-//   (out) or is restored above 0 (in).
+// - Emits a low-stock/out-of-stock notification for each affected store
+//   owner ONLY on the crossing from >THRESHOLD to <=THRESHOLD.
+// - Emits stock-audit entries when a supplier product's stock crosses the
+//   threshold (out) or is restored above it (in).
 // - Applies stock deltas for POS sales / completed orders.
+
+/**
+ * Marketplace "low stock == out of stock" threshold. Any product with
+ * stock <= LOW_STOCK_THRESHOLD is treated as out of stock in the
+ * marketplace to prevent overselling. Keep in sync with the DB generated
+ * column `is_out_of_stock` on products / reseller_products.
+ */
+export const LOW_STOCK_THRESHOLD = 3;
 
 export type ResellerCopy = {
   id: string;
