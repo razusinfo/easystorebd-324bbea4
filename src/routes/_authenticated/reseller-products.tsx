@@ -474,29 +474,51 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
     }
   }, [open, row]);
 
+  const trimmedName = row.name?.trim() ?? "";
+  const parsedPrice = Number(price);
+  const priceValid = price.trim() !== "" && Number.isFinite(parsedPrice) && parsedPrice >= 0;
+  const canSubmit =
+    !!categoryId && priceValid && trimmedName.length > 0 && categories.length > 0;
+
   const add = useMutation({
     mutationFn: async () => {
-      const parsed = Number(price);
-      if (!Number.isFinite(parsed) || parsed < 0) throw new Error("Enter a valid price");
-      if (!categoryId) throw new Error("Please select a category");
+      if (!trimmedName) throw new Error("পণ্যের নাম নেই / Product name missing");
+      if (!categoryId) throw new Error("অনুগ্রহ করে একটি ক্যাটাগরি নির্বাচন করুন / Please select a category");
+      if (price.trim() === "" || !Number.isFinite(parsedPrice)) {
+        throw new Error("সঠিক দাম লিখুন / Enter a valid price");
+      }
+      if (parsedPrice < 0) throw new Error("দাম ঋণাত্মক হতে পারে না / Price cannot be negative");
+
       return copyResellerProductToMyStore({
         data: {
           reseller_product_id: row.id,
           category_id: categoryId,
-          custom_price: parsed,
+          custom_price: parsedPrice,
         },
       });
     },
     onSuccess: (res) => {
       if (res.skipped) {
-        toast.success("Already in your products");
+        toast.success("এই পণ্যটি আগে থেকেই আপনার তালিকায় আছে / Already in your products");
       } else {
-        toast.success("Added to your shop");
+        toast.success("আপনার শপে যোগ করা হয়েছে / Added to your shop");
         qc.invalidateQueries({ queryKey: ["products"] });
       }
       setOpen(false);
     },
-    onError: (e: Error) => toast.error(e.message || "Failed to add"),
+    onError: (e: unknown) => {
+      // Friendly 403 message
+      if (e instanceof Response && e.status === 403) {
+        toast.error("অনুমতি নেই (403) / You are not allowed to add this product");
+        return;
+      }
+      const msg = (e as Error)?.message || "";
+      if (/forbidden/i.test(msg) || /403/.test(msg)) {
+        toast.error("অনুমতি নেই (403) / " + msg);
+        return;
+      }
+      toast.error(msg || "যোগ করা যায়নি / Failed to add");
+    },
   });
 
   return (
@@ -507,27 +529,33 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
         className="mt-1 w-full gap-1.5"
         onClick={() => setOpen(true)}
       >
-        <StoreIcon className="h-3.5 w-3.5" /> Add to My Shop
+        <StoreIcon className="h-3.5 w-3.5" /> আমার শপে যোগ করুন / Add to My Shop
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add to My Shop</DialogTitle>
+          <DialogTitle>আমার শপে যোগ করুন / Add to My Shop</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1">
-            <Label>Product</Label>
+            <Label>পণ্য / Product</Label>
             <p className="text-sm text-muted-foreground">{row.name}</p>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="ams-category">Select Category</Label>
+            <Label htmlFor="ams-category">ক্যাটাগরি নির্বাচন করুন / Select Category</Label>
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger id="ams-category">
-                <SelectValue placeholder={catsQ.isLoading ? "Loading…" : "Choose a category"} />
+                <SelectValue
+                  placeholder={
+                    catsQ.isLoading
+                      ? "লোড হচ্ছে… / Loading…"
+                      : "একটি ক্যাটাগরি বেছে নিন / Choose a category"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {categories.length === 0 ? (
                   <div className="px-3 py-2 text-sm text-muted-foreground">
-                    No categories yet. Create one in your Categories page.
+                    কোনো ক্যাটাগরি নেই। আগে ক্যাটাগরি তৈরি করুন। / No categories yet.
                   </div>
                 ) : (
                   categories.map((c) => (
@@ -538,9 +566,14 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
                 )}
               </SelectContent>
             </Select>
+            {!categoryId && (
+              <p className="text-[11px] text-destructive">
+                ক্যাটাগরি আবশ্যক / Category is required
+              </p>
+            )}
           </div>
           <div className="space-y-1">
-            <Label htmlFor="ams-price">Your Selling Price</Label>
+            <Label htmlFor="ams-price">আপনার বিক্রয় মূল্য / Your Selling Price</Label>
             <Input
               id="ams-price"
               type="number"
@@ -549,25 +582,36 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
+              aria-invalid={price.trim() !== "" && !priceValid}
             />
+            {price.trim() !== "" && !priceValid && (
+              <p className="text-[11px] text-destructive">
+                সঠিক ধনাত্মক মূল্য দিন / Enter a valid non-negative price
+              </p>
+            )}
             <p className="text-[11px] text-muted-foreground">
-              Reseller price: ৳{Number(row.reseller_price ?? 0).toLocaleString()} · Original: ৳
-              {Number(row.price ?? 0).toLocaleString()}
+              রিসেলার মূল্য / Reseller: ৳{Number(row.reseller_price ?? 0).toLocaleString()} · মূল /
+              Original: ৳{Number(row.price ?? 0).toLocaleString()}
             </p>
           </div>
         </div>
         <DialogFooter className="gap-2">
           <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            বাতিল / Cancel
           </Button>
-          <Button type="button" onClick={() => add.mutate()} disabled={add.isPending}>
-            {add.isPending ? "Adding…" : "Confirm"}
+          <Button
+            type="button"
+            onClick={() => add.mutate()}
+            disabled={add.isPending || !canSubmit}
+          >
+            {add.isPending ? "যোগ করা হচ্ছে… / Adding…" : "নিশ্চিত করুন / Confirm"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 
 
