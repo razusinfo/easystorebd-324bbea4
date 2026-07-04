@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bold, Check, ChevronDown, ChevronUp, Copy, Eraser, ImageIcon, Italic, Link2,
-  List, ListOrdered, Loader2, Quote, Trash2, Underline, Upload, Video, X,
+  List, ListOrdered, Loader2, Plus, Quote, Trash2, Underline, Upload, Video, X,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -14,16 +15,22 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
 
 import {
   useMyStore, useMyProducts, useUpsertProduct,
   useProductVariants, useProductDetails,
+  useProductCategoryAssignments,
   uploadProductImage, deleteProductImage,
   type ProductRow,
 } from "@/lib/eazystore-data";
 import { useCategories, buildCategoryTree, type CategoryNode } from "@/lib/categories-data";
+
 
 
 type Props = {
@@ -49,7 +56,7 @@ type FormState = {
   status: "active" | "inactive";
   brand: string;
   condition: "new" | "used" | "refurbished";
-  categoryId: string;
+  categoryIds: string[];
   sellPrice: string;
   regularPrice: string;
   buyingPrice: string;
@@ -78,7 +85,7 @@ const initialState: FormState = {
   status: "active",
   brand: "",
   condition: "new",
-  categoryId: "",
+  categoryIds: [],
   sellPrice: "",
   regularPrice: "",
   buyingPrice: "",
@@ -123,6 +130,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   const sourceId = editing?.id ?? sourceForDuplicate?.id;
   const variantsQ = useProductVariants(sourceId);
   const detailsQ = useProductDetails(sourceId);
+  const assignmentsQ = useProductCategoryAssignments(sourceId);
 
   // Hydrate once — either the product being edited, or the product being duplicated as a draft copy.
   const [hydrated, setHydrated] = useState(false);
@@ -130,8 +138,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
     if (hydrated) return;
     const src = editing ?? sourceForDuplicate;
     if (!src) return;
-    // Wait until variants/details finish loading so we hydrate everything together.
-    if (variantsQ.isLoading || detailsQ.isLoading) return;
+    // Wait until variants/details/assignments finish loading so we hydrate everything together.
+    if (variantsQ.isLoading || detailsQ.isLoading || assignmentsQ.isLoading) return;
+    const assignedIds = assignmentsQ.data ?? [];
+    const fallbackIds = src.category_id ? [src.category_id] : [];
     setForm((prev) => ({
       ...prev,
       name: mode === "new" ? `${src.name} (Copy)` : src.name,
@@ -144,7 +154,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       status: prev.status,
       brand: src.brand ?? "",
       condition: (src.condition as FormState["condition"]) ?? "new",
-      categoryId: src.category_id ?? "",
+      categoryIds: assignedIds.length ? assignedIds : fallbackIds,
       sellPrice: String(src.price),
       regularPrice: src.regular_price != null ? String(src.regular_price) : "",
       buyingPrice: src.buying_price != null ? String(src.buying_price) : "",
@@ -165,7 +175,11 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       toast.success("Duplicated as a new draft — review and save");
     }
     setHydrated(true);
-  }, [hydrated, editing, sourceForDuplicate, mode, variantsQ.data, variantsQ.isLoading, detailsQ.data, detailsQ.isLoading]);
+  }, [hydrated, editing, sourceForDuplicate, mode,
+      variantsQ.data, variantsQ.isLoading,
+      detailsQ.data, detailsQ.isLoading,
+      assignmentsQ.data, assignmentsQ.isLoading]);
+
 
 
   const catTree = useMemo<CategoryNode[]>(
@@ -229,7 +243,9 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         galleryUrls: form.galleryUrls,
         shortDescription: form.shortDescription.trim() || null,
         description: form.description.trim() || null,
-        categoryId: form.categoryId || null,
+        categoryId: form.categoryIds[0] || null,
+        categoryIds: form.categoryIds,
+
         brand: form.brand.trim() || null,
         condition: form.condition,
         weightKg: numOrNull(form.weightKg),
@@ -365,6 +381,23 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
   const loading = storeQ.isLoading || (mode === "edit" && productsQ.isLoading);
 
+  // Category picker modal
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const flatCategories = useMemo(() => flattenCategories(catTree), [catTree]);
+  const categoryLookup = useMemo(() => {
+    const m = new Map<string, { name: string; depth: number }>();
+    flatCategories.forEach((c) => m.set(c.id, { name: c.name, depth: c.depth }));
+    return m;
+  }, [flatCategories]);
+  const toggleCategoryId = (id: string) =>
+    set(
+      "categoryIds",
+      form.categoryIds.includes(id)
+        ? form.categoryIds.filter((x) => x !== id)
+        : [...form.categoryIds, id],
+    );
+
+
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -413,27 +446,107 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
               </Field>
 
               <Field label="Category">
-                {catTree.length === 0 ? (
-                  <div className="flex items-center justify-between gap-3 rounded-md border border-dashed border-border px-3 py-2">
-                    <span className="text-sm text-foreground/60">No categories yet</span>
-                    <Button size="sm" variant="outline" type="button"
-                      onClick={() => toast.info("Create categories from the Categories page.")}>
-                      Assign category
-                    </Button>
-                  </div>
-                ) : (
-                  <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
-                    <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
-                    <SelectContent>
-                      {flattenCategories(catTree).map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {"— ".repeat(c.depth)}{c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <div className="rounded-md border border-border bg-muted/20 p-3">
+                  {form.categoryIds.length === 0 ? (
+                    <p className="mb-3 rounded-md border border-dashed border-border bg-background px-3 py-2 text-sm text-foreground/60">
+                      No assigned category found
+                    </p>
+                  ) : (
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      {form.categoryIds.map((id) => {
+                        const meta = categoryLookup.get(id);
+                        return (
+                          <span
+                            key={id}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary"
+                          >
+                            {meta?.name ?? "Unknown"}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                set("categoryIds", form.categoryIds.filter((x) => x !== id))
+                              }
+                              className="grid h-4 w-4 place-items-center rounded-full text-primary/70 hover:bg-primary/10 hover:text-primary"
+                              aria-label={`Remove ${meta?.name ?? "category"}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    className="w-full gradient-primary text-primary-foreground hover:opacity-90"
+                    onClick={() => setPickerOpen(true)}
+                  >
+                    Assign category
+                  </Button>
+                </div>
               </Field>
+
+              <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center justify-center gap-2 text-center">
+                      Assign categories
+                      <Link
+                        to="/categories/new"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="grid h-7 w-7 place-items-center rounded-md gradient-primary text-primary-foreground hover:opacity-90"
+                        title="Create new category"
+                        aria-label="Create new category"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Link>
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="max-h-[60vh] overflow-y-auto py-2">
+                    {flatCategories.length === 0 ? (
+                      <p className="py-6 text-center text-sm text-foreground/60">
+                        No categories yet. Click + to create one.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="mb-3 text-sm font-medium">Select categories</p>
+                        <div className="flex flex-wrap gap-2">
+                          {flatCategories.map((c) => {
+                            const active = form.categoryIds.includes(c.id);
+                            return (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => toggleCategoryId(c.id)}
+                                className={cn(
+                                  "rounded-full border px-3 py-1.5 text-sm transition",
+                                  active
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-background hover:border-primary/50 hover:text-primary",
+                                )}
+                              >
+                                {"— ".repeat(c.depth)}{c.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      className="w-full gradient-primary text-primary-foreground hover:opacity-90"
+                      onClick={() => setPickerOpen(false)}
+                    >
+                      Done
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+
 
 
               <Field
