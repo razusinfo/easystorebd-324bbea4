@@ -36,6 +36,7 @@ import { Route as AuthenticatedResellerProductsRouteImport } from './routes/_aut
 import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authenticated/promo-codes'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedMyOrdersRouteImport } from './routes/_authenticated/my-orders'
 import { Route as AuthenticatedMobileAppRouteImport } from './routes/_authenticated/mobile-app'
 import { Route as AuthenticatedManageShopRouteImport } from './routes/_authenticated/manage-shop'
 import { Route as AuthenticatedLandingPagesRouteImport } from './routes/_authenticated/landing-pages'
@@ -201,6 +202,11 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyOrdersRoute = AuthenticatedMyOrdersRouteImport.update({
+  id: '/my-orders',
+  path: '/my-orders',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMobileAppRoute = AuthenticatedMobileAppRouteImport.update({
   id: '/mobile-app',
   path: '/mobile-app',
@@ -362,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
@@ -416,6 +423,7 @@ export interface FileRoutesByTo {
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
@@ -472,6 +480,7 @@ export interface FileRoutesById {
   '/_authenticated/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/_authenticated/manage-shop': typeof AuthenticatedManageShopRoute
   '/_authenticated/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/_authenticated/my-orders': typeof AuthenticatedMyOrdersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/promo-codes': typeof AuthenticatedPromoCodesRoute
@@ -529,6 +538,7 @@ export interface FileRouteTypes {
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
+    | '/my-orders'
     | '/onboarding'
     | '/orders'
     | '/promo-codes'
@@ -583,6 +593,7 @@ export interface FileRouteTypes {
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
+    | '/my-orders'
     | '/onboarding'
     | '/orders'
     | '/promo-codes'
@@ -638,6 +649,7 @@ export interface FileRouteTypes {
     | '/_authenticated/landing-pages'
     | '/_authenticated/manage-shop'
     | '/_authenticated/mobile-app'
+    | '/_authenticated/my-orders'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
     | '/_authenticated/promo-codes'
@@ -886,6 +898,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my-orders': {
+      id: '/_authenticated/my-orders'
+      path: '/my-orders'
+      fullPath: '/my-orders'
+      preLoaderRoute: typeof AuthenticatedMyOrdersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mobile-app': {
       id: '/_authenticated/mobile-app'
       path: '/mobile-app'
@@ -1088,6 +1107,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLandingPagesRoute: typeof AuthenticatedLandingPagesRoute
   AuthenticatedManageShopRoute: typeof AuthenticatedManageShopRoute
   AuthenticatedMobileAppRoute: typeof AuthenticatedMobileAppRoute
+  AuthenticatedMyOrdersRoute: typeof AuthenticatedMyOrdersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedPromoCodesRoute: typeof AuthenticatedPromoCodesRoute
@@ -1115,6 +1135,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLandingPagesRoute: AuthenticatedLandingPagesRoute,
   AuthenticatedManageShopRoute: AuthenticatedManageShopRoute,
   AuthenticatedMobileAppRoute: AuthenticatedMobileAppRoute,
+  AuthenticatedMyOrdersRoute: AuthenticatedMyOrdersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedPromoCodesRoute: AuthenticatedPromoCodesRoute,
