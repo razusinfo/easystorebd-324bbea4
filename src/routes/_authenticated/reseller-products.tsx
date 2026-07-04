@@ -232,7 +232,7 @@ function ResellerProductsPage() {
                       <Badge className="text-[10px]">My shop</Badge>
                     )}
                     {outOfStock && (
-                      <Badge variant="destructive" className="text-[10px]">Out of Stock</Badge>
+                      <Badge variant="destructive" className="text-[10px]">{t("outOfStock")}</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
