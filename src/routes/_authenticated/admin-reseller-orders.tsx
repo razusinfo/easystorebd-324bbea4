@@ -172,7 +172,7 @@ function AdminResellerOrdersPage() {
                   </TableCell>
                 </TableRow>
               )}
-              </>
+              </Fragment>
             )) : (
               <TableRow>
                 <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
