@@ -747,8 +747,198 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
   );
 }
 
+// -------- Request Product --------
 
+type MyRequestRow = {
+  id: string;
+  name: string;
+  price: number;
+  status: "pending" | "approved" | "rejected";
+  reseller_price: number | null;
+  admin_notes: string | null;
+  created_at: string;
+};
 
+function useMyRequests() {
+  return useQuery({
+    queryKey: ["my-product-requests"],
+    queryFn: async (): Promise<MyRequestRow[]> => {
+      const { data, error } = await supabase
+        .from("product_requests")
+        .select("id, name, price, status, reseller_price, admin_notes, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as MyRequestRow[];
+    },
+  });
+}
 
+function MyRequestsStrip() {
+  const rq = useMyRequests();
+  const rows = rq.data ?? [];
+  if (rows.length === 0) return null;
+  return (
+    <div className="mb-4 space-y-2">
+      <h2 className="text-sm font-semibold">My Product Requests</h2>
+      <div className="flex flex-wrap gap-2">
+        {rows.map((r) => (
+          <div key={r.id} className="rounded-lg border border-border bg-card px-3 py-2 text-xs">
+            <div className="font-medium">{r.name}</div>
+            <div className="mt-0.5 flex items-center gap-2">
+              <Badge
+                variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"}
+                className="text-[10px]"
+              >
+                {r.status}
+              </Badge>
+              <span className="text-muted-foreground">{fmt(r.price)}</span>
+              {r.reseller_price != null && (
+                <span className="text-primary">→ {fmt(r.reseller_price)}</span>
+              )}
+            </div>
+            {r.admin_notes && <div className="mt-1 text-muted-foreground">{r.admin_notes}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
+function RequestProductButton() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setOpen(true)} size="sm" variant="outline" className="gap-1">
+        <PlusCircle className="h-4 w-4" /> Request Product
+      </Button>
+      {open && <RequestProductDialog open={open} onOpenChange={setOpen} />}
+    </>
+  );
+}
+
+function RequestProductDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const qc = useQueryClient();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const priceNum = Number(price);
+  const canSubmit =
+    name.trim().length > 0 &&
+    price.trim().length > 0 &&
+    Number.isFinite(priceNum) &&
+    priceNum >= 0;
+
+  async function onPickFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const uploads = await Promise.all(
+        Array.from(files).slice(0, 6).map((f) => uploadProductImage(f)),
+      );
+      setImages((prev) => [...prev, ...uploads.map((u) => u.publicUrl)].slice(0, 8));
+    } catch (e) {
+      toast.error(`Upload failed: ${(e as Error).message}`);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  const submit = useMutation({
+    mutationFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Not signed in");
+      const { error } = await supabase.from("product_requests").insert({
+        requested_by: u.user.id,
+        name: name.trim(),
+        description: description.trim() || null,
+        price: priceNum,
+        images,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("অনুরোধ জমা হয়েছে! / Product request submitted!");
+      qc.invalidateQueries({ queryKey: ["my-product-requests"] });
+      onOpenChange(false);
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Request a Product / পণ্যের অনুরোধ</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Name *</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Product name" />
+          </div>
+          <div>
+            <Label>Price (৳) *</Label>
+            <Input
+              type="number"
+              inputMode="decimal"
+              min={0}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0"
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="Optional details"
+            />
+          </div>
+          <div>
+            <Label>Images</Label>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {images.map((url) => (
+                <div key={url} className="relative">
+                  <img src={url} alt="" className="h-16 w-16 rounded-md object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setImages((p) => p.filter((x) => x !== url))}
+                    className="absolute -right-1 -top-1 rounded-full bg-destructive p-0.5 text-destructive-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-md border border-dashed border-border text-muted-foreground hover:bg-muted">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => onPickFiles(e.target.files)}
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel / বাতিল
+          </Button>
+          <Button onClick={() => submit.mutate()} disabled={!canSubmit || submit.isPending || uploading}>
+            {submit.isPending ? "Submitting…" : "Submit / জমা দিন"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
