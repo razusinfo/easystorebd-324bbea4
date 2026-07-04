@@ -161,7 +161,7 @@ export function StorefrontView({ slug }: { slug: string }) {
     );
   }
 
-  if (s.template === "flipmart" || s.template === "megamart" || s.template === "trendmart" || s.template === "shopii") {
+  if (s.template === "flipmart" || s.template === "megamart" || s.template === "trendmart" || s.template === "shopii" || s.template === "quickmart") {
     return (
       <FlipmartTemplate
         store={s}
@@ -171,12 +171,14 @@ export function StorefrontView({ slug }: { slug: string }) {
         defaultCategoryName={settings.defaultCategoryName}
         footer={settings.footer}
         categories={categories}
-        sliderRows={s.template === "trendmart" || s.template === "shopii"}
+        sliderRows={s.template === "trendmart" || s.template === "shopii" || s.template === "quickmart"}
         sectionTitles={
           s.template === "trendmart"
             ? { suggested: "Newly Added", trending: "Trendy Styles" }
             : s.template === "shopii"
             ? { suggested: "Top Products", trending: "Daily Discover" }
+            : s.template === "quickmart"
+            ? { suggested: "Top Products", trending: "Just For You" }
             : undefined
         }
       />
