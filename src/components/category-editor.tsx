@@ -163,11 +163,27 @@ export function CategoryEditor(props: Props) {
           <Link to="/categories" className="font-semibold text-foreground/70 hover:text-primary">
             Categories
           </Link>
+          {isEdit && node!.parent_id && (() => {
+            const p = allCategories.find((c) => c.id === node!.parent_id);
+            return p ? (
+              <>
+                <span className="text-foreground/40">›</span>
+                <Link
+                  to="/categories/$id/edit"
+                  params={{ id: p.id }}
+                  className="truncate font-semibold text-foreground/70 hover:text-primary"
+                >
+                  {p.name}
+                </Link>
+              </>
+            ) : null;
+          })()}
           <span className="text-foreground/40">›</span>
-          <span className="truncate font-bold uppercase tracking-wide text-foreground">
-            {isEdit ? node!.name : parent ? parent.name : "New Category"}
+          <span className="truncate font-bold text-foreground">
+            {isEdit ? node!.name : parent ? `${parent.name} › New` : "New Category"}
           </span>
         </div>
+
         <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
