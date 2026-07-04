@@ -59,6 +59,8 @@ export function CategoryEditor(props: Props) {
   const [uploadingKind, setUploadingKind] = useState<null | "image" | "banner">(null);
   const [error, setError] = useState<string | null>(null);
   const [subQuery, setSubQuery] = useState("");
+  const [addingSub, setAddingSub] = useState(false);
+
 
   const imgRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
