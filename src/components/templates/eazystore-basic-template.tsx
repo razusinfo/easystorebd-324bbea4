@@ -332,29 +332,60 @@ export function EazyStoreBasicTemplate({
       <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6">
           {/* Sidebar categories (desktop) */}
-          <aside className="hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
+          <aside className="relative hidden rounded-2xl bg-white p-4 shadow-sm sm:p-5 lg:block">
             <h2 className="mb-3 font-display text-xl font-black text-neutral-900">Categories</h2>
-            <ul className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
-              {catList.map((c) => {
-                const active = c === activeCat;
+            <ul className="max-h-[70vh] space-y-1 overflow-visible pr-1">
+              {topCats.map((tc) => {
+                const active = tc.name === activeCat;
+                const hasChildren = tc.children.length > 0;
                 return (
-                  <li key={c}>
+                  <li key={tc.name} className="group relative">
                     <button
                       type="button"
-                      onClick={() => selectCategory(c)}
+                      onClick={() => selectCategory(tc.name)}
                       className={
-                        active
-                          ? "acc-bg block w-full text-left rounded-xl px-4 py-3 text-base font-bold text-white sm:text-[17px]"
-                          : "block w-full text-left rounded-xl px-4 py-3 text-base font-medium text-neutral-700 hover:bg-neutral-100 sm:text-[17px]"
+                        (active
+                          ? "acc-bg text-white "
+                          : "text-neutral-700 hover:bg-neutral-100 ") +
+                        "flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-base font-medium sm:text-[17px]"
                       }
                     >
-                      {c}
+                      <span className="truncate">{tc.name}</span>
+                      {hasChildren && (
+                        <ChevronRight className={"ml-2 h-4 w-4 shrink-0 " + (active ? "text-white" : "text-neutral-400")} />
+                      )}
                     </button>
+                    {hasChildren && (
+                      <div className="invisible absolute left-full top-0 z-30 -ml-1 hidden min-w-[220px] pl-2 group-hover:visible group-hover:block group-focus-within:visible group-focus-within:block">
+                        <ul className="rounded-2xl border border-neutral-200 bg-white p-2 shadow-lg">
+                          {tc.children.map((child) => {
+                            const childActive = child.name === activeCat;
+                            return (
+                              <li key={child.id}>
+                                <button
+                                  type="button"
+                                  onClick={() => selectCategory(child.name)}
+                                  className={
+                                    (childActive
+                                      ? "acc-bg text-white "
+                                      : "text-neutral-700 hover:bg-neutral-100 ") +
+                                    "block w-full rounded-lg px-3 py-2 text-left text-sm font-medium"
+                                  }
+                                >
+                                  {child.name}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
                   </li>
                 );
               })}
             </ul>
           </aside>
+
 
 
           {/* Main product area */}
