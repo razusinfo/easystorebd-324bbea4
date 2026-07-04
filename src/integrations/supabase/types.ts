@@ -503,6 +503,7 @@ export type Database = {
           category_id: string | null
           condition: string
           created_at: string
+          default_delivery_charge: number | null
           description: string | null
           gallery_urls: string[]
           height_cm: number | null
@@ -516,6 +517,7 @@ export type Database = {
           regular_price: number | null
           short_description: string | null
           sku: string | null
+          specific_delivery_charges: Json
           status: Database["public"]["Enums"]["product_status"]
           stock: number
           store_id: string
@@ -533,6 +535,7 @@ export type Database = {
           category_id?: string | null
           condition?: string
           created_at?: string
+          default_delivery_charge?: number | null
           description?: string | null
           gallery_urls?: string[]
           height_cm?: number | null
@@ -546,6 +549,7 @@ export type Database = {
           regular_price?: number | null
           short_description?: string | null
           sku?: string | null
+          specific_delivery_charges?: Json
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
           store_id: string
@@ -563,6 +567,7 @@ export type Database = {
           category_id?: string | null
           condition?: string
           created_at?: string
+          default_delivery_charge?: number | null
           description?: string | null
           gallery_urls?: string[]
           height_cm?: number | null
@@ -576,6 +581,7 @@ export type Database = {
           regular_price?: number | null
           short_description?: string | null
           sku?: string | null
+          specific_delivery_charges?: Json
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
           store_id?: string
