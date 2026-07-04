@@ -832,28 +832,30 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
             </div>
 
-            <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
-              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                <Checkbox
-                  checked={form.addToReseller}
-                  onCheckedChange={(v) => set("addToReseller", v === true)}
-                />
-                Add to Reseller Marketplace
-              </label>
-              {form.addToReseller && (
-                <Field label="Reseller Price">
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder="Reseller Price"
-                    value={form.resellerPrice}
-                    onChange={(e) => set("resellerPrice", e.target.value)}
+            {isSuperAdmin && (
+              <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                  <Checkbox
+                    checked={form.addToReseller}
+                    onCheckedChange={(v) => set("addToReseller", v === true)}
                   />
-                </Field>
-              )}
-            </div>
+                  Add to Reseller Marketplace
+                </label>
+                {form.addToReseller && (
+                  <Field label="Reseller Price">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      placeholder="Reseller Price"
+                      value={form.resellerPrice}
+                      onChange={(e) => set("resellerPrice", e.target.value)}
+                    />
+                  </Field>
+                )}
+              </div>
+            )}
           </Section>
 
 
