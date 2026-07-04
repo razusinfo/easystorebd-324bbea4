@@ -77,6 +77,10 @@ export function StorefrontView({ slug }: { slug: string }) {
 
 
   if (!q.data) {
+    if (typeof window !== "undefined") {
+      writeCache(LOGO_CACHE_PREFIX, slug, null);
+      writeCache(NAME_CACHE_PREFIX, slug, null);
+    }
     return (
       <main className="grid min-h-screen place-items-center px-6 text-center">
         <div className="max-w-md space-y-3">
