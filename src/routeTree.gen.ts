@@ -31,6 +31,7 @@ import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
 import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
 import { Route as AuthenticatedSmsSettingsRouteImport } from './routes/_authenticated/sms-settings'
+import { Route as AuthenticatedResellerProductsRouteImport } from './routes/_authenticated/reseller-products'
 import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authenticated/promo-codes'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -51,6 +52,7 @@ import { Route as SSlugPricingRouteImport } from './routes/s.$slug.pricing'
 import { Route as SSlugContactRouteImport } from './routes/s.$slug.contact'
 import { Route as SSlugBlogsRouteImport } from './routes/s.$slug.blogs'
 import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
+import { Route as ApiPublicResellerSyncRouteImport } from './routes/api/public/reseller-sync'
 import { Route as AccountOrdersIdRouteImport } from './routes/account.orders.$id'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
@@ -170,6 +172,12 @@ const AuthenticatedSmsSettingsRoute =
     path: '/sms-settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedResellerProductsRoute =
+  AuthenticatedResellerProductsRouteImport.update({
+    id: '/reseller-products',
+    path: '/reseller-products',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPromoCodesRoute = AuthenticatedPromoCodesRouteImport.update({
   id: '/promo-codes',
   path: '/promo-codes',
@@ -272,6 +280,11 @@ const SSlugAboutRoute = SSlugAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => SSlugRoute,
 } as any)
+const ApiPublicResellerSyncRoute = ApiPublicResellerSyncRouteImport.update({
+  id: '/api/public/reseller-sync',
+  path: '/api/public/reseller-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountOrdersIdRoute = AccountOrdersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -333,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
+  '/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
@@ -350,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
+  '/api/public/reseller-sync': typeof ApiPublicResellerSyncRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/blogs': typeof SSlugBlogsRoute
   '/s/$slug/contact': typeof SSlugContactRoute
@@ -382,6 +397,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
+  '/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
@@ -398,6 +414,7 @@ export interface FileRoutesByTo {
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
+  '/api/public/reseller-sync': typeof ApiPublicResellerSyncRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/blogs': typeof SSlugBlogsRoute
   '/s/$slug/contact': typeof SSlugContactRoute
@@ -433,6 +450,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/promo-codes': typeof AuthenticatedPromoCodesRoute
+  '/_authenticated/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/_authenticated/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
@@ -450,6 +468,7 @@ export interface FileRoutesById {
   '/_authenticated/orders_/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
+  '/api/public/reseller-sync': typeof ApiPublicResellerSyncRoute
   '/s/$slug/about': typeof SSlugAboutRoute
   '/s/$slug/blogs': typeof SSlugBlogsRoute
   '/s/$slug/contact': typeof SSlugContactRoute
@@ -485,6 +504,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/orders'
     | '/promo-codes'
+    | '/reseller-products'
     | '/sms-settings'
     | '/spotlights'
     | '/theme-builder'
@@ -502,6 +522,7 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/products/new'
     | '/account/orders/$id'
+    | '/api/public/reseller-sync'
     | '/s/$slug/about'
     | '/s/$slug/blogs'
     | '/s/$slug/contact'
@@ -534,6 +555,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/orders'
     | '/promo-codes'
+    | '/reseller-products'
     | '/sms-settings'
     | '/spotlights'
     | '/theme-builder'
@@ -550,6 +572,7 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/products/new'
     | '/account/orders/$id'
+    | '/api/public/reseller-sync'
     | '/s/$slug/about'
     | '/s/$slug/blogs'
     | '/s/$slug/contact'
@@ -584,6 +607,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
     | '/_authenticated/promo-codes'
+    | '/_authenticated/reseller-products'
     | '/_authenticated/sms-settings'
     | '/_authenticated/spotlights'
     | '/_authenticated/theme-builder'
@@ -601,6 +625,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orders_/$id'
     | '/_authenticated/products/new'
     | '/account/orders/$id'
+    | '/api/public/reseller-sync'
     | '/s/$slug/about'
     | '/s/$slug/blogs'
     | '/s/$slug/contact'
@@ -627,6 +652,7 @@ export interface RootRouteChildren {
   DemoBdloveRoute: typeof DemoBdloveRoute
   DemoPrestigeRoute: typeof DemoPrestigeRoute
   SSlugRoute: typeof SSlugRouteWithChildren
+  ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -785,6 +811,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSmsSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reseller-products': {
+      id: '/_authenticated/reseller-products'
+      path: '/reseller-products'
+      fullPath: '/reseller-products'
+      preLoaderRoute: typeof AuthenticatedResellerProductsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/promo-codes': {
       id: '/_authenticated/promo-codes'
       path: '/promo-codes'
@@ -925,6 +958,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugAboutRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/api/public/reseller-sync': {
+      id: '/api/public/reseller-sync'
+      path: '/api/public/reseller-sync'
+      fullPath: '/api/public/reseller-sync'
+      preLoaderRoute: typeof ApiPublicResellerSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/orders/$id': {
       id: '/account/orders/$id'
       path: '/$id'
@@ -990,6 +1030,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedPromoCodesRoute: typeof AuthenticatedPromoCodesRoute
+  AuthenticatedResellerProductsRoute: typeof AuthenticatedResellerProductsRoute
   AuthenticatedSmsSettingsRoute: typeof AuthenticatedSmsSettingsRoute
   AuthenticatedSpotlightsRoute: typeof AuthenticatedSpotlightsRoute
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
@@ -1016,6 +1057,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedPromoCodesRoute: AuthenticatedPromoCodesRoute,
+  AuthenticatedResellerProductsRoute: AuthenticatedResellerProductsRoute,
   AuthenticatedSmsSettingsRoute: AuthenticatedSmsSettingsRoute,
   AuthenticatedSpotlightsRoute: AuthenticatedSpotlightsRoute,
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
@@ -1101,6 +1143,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoBdloveRoute: DemoBdloveRoute,
   DemoPrestigeRoute: DemoPrestigeRoute,
   SSlugRoute: SSlugRouteWithChildren,
+  ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
