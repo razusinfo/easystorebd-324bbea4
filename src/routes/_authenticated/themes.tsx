@@ -707,6 +707,17 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
       </div>
     );
   }
+  if (id === "eazystore-basic") {
+    return (
+      <div className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
+        <img
+          src={eazystoreBasicPreview.url}
+          alt="EazyStore Basic preview"
+          className="h-full w-full object-cover object-top"
+        />
+      </div>
+    );
+  }
 
   const FULL_W = 1280;
   const FULL_H = 1000;
