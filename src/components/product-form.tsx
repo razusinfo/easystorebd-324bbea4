@@ -113,7 +113,10 @@ const initialState: FormState = {
   imageUrl: "",
   galleryUrls: [],
   videoUrl: "",
+  addToReseller: false,
+  resellerPrice: "",
 };
+
 
 export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel, onDuplicate }: Props) {
   const storeQ = useMyStore();
