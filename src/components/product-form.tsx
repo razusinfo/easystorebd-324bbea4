@@ -305,6 +305,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   // --- Image upload (unified: primary + gallery, first-picked is primary) ---
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   // URLs to delete from storage only AFTER the product is saved successfully.
   // Deleting earlier can leave the DB pointing at a missing storage object
   // if the user never clicks Save.
