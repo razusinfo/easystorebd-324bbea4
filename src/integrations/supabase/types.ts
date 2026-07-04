@@ -702,6 +702,7 @@ export type Database = {
           created_at: string
           error: string | null
           id: string
+          metadata: Json
           product_id: string | null
           success: boolean
         }
@@ -712,6 +713,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          metadata?: Json
           product_id?: string | null
           success?: boolean
         }
@@ -722,6 +724,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          metadata?: Json
           product_id?: string | null
           success?: boolean
         }
