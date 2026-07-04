@@ -124,8 +124,8 @@ function AdminResellerOrdersPage() {
           </TableHeader>
           <TableBody>
             {q.data?.length ? q.data.map((r) => (
-              <>
-              <TableRow key={r.id}>
+              <Fragment key={r.id}>
+              <TableRow>
                 <TableCell>
                   <div className="font-medium">{r.reseller?.full_name ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">{r.reseller?.email ?? r.reseller_id.slice(0, 8)}</div>
