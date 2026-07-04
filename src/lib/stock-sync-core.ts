@@ -12,7 +12,22 @@
  * marketplace to prevent overselling. Keep in sync with the DB generated
  * column `is_out_of_stock` on products / reseller_products.
  */
-export const LOW_STOCK_THRESHOLD = 3;
+export const DEFAULT_LOW_STOCK_THRESHOLD = 3;
+let _lowStockThreshold = DEFAULT_LOW_STOCK_THRESHOLD;
+/** Runtime threshold used by all helpers below. Configurable via admin setting. */
+export function getLowStockThreshold(): number {
+  return _lowStockThreshold;
+}
+export function setLowStockThreshold(n: number): void {
+  _lowStockThreshold = Number.isFinite(n) && n >= 0 ? Math.floor(n) : DEFAULT_LOW_STOCK_THRESHOLD;
+}
+/** @deprecated Use getLowStockThreshold(). Kept for existing imports. */
+export const LOW_STOCK_THRESHOLD = DEFAULT_LOW_STOCK_THRESHOLD;
+
+/** True when stock crosses the low-stock threshold in either direction. */
+export function didCrossLowStock(oldStock: number, newStock: number): boolean {
+  return didGoOutOfStock(oldStock, newStock) || didRestoreStock(oldStock, newStock);
+}
 
 export type ResellerCopy = {
   id: string;
