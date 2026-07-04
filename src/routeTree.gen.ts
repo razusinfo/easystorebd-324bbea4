@@ -46,6 +46,7 @@ import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
+import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products.index'
@@ -255,6 +256,12 @@ const AuthenticatedAdminResellerOrdersRoute =
     path: '/admin-reseller-orders',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminNotificationsRoute =
+  AuthenticatedAdminNotificationsRouteImport.update({
+    id: '/admin-notifications',
+    path: '/admin-notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -367,6 +374,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
@@ -423,6 +431,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
@@ -481,6 +490,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
@@ -540,6 +550,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-notifications'
     | '/admin-reseller-orders'
     | '/analytics'
     | '/categories'
@@ -596,6 +607,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/admin'
+    | '/admin-notifications'
     | '/admin-reseller-orders'
     | '/analytics'
     | '/categories'
@@ -653,6 +665,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/admin-notifications'
     | '/_authenticated/admin-reseller-orders'
     | '/_authenticated/analytics'
     | '/_authenticated/categories'
@@ -981,6 +994,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminResellerOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-notifications': {
+      id: '/_authenticated/admin-notifications'
+      path: '/admin-notifications'
+      fullPath: '/admin-notifications'
+      preLoaderRoute: typeof AuthenticatedAdminNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -1119,6 +1139,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
   AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
@@ -1148,6 +1169,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
   AuthenticatedAdminResellerOrdersRoute: AuthenticatedAdminResellerOrdersRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,

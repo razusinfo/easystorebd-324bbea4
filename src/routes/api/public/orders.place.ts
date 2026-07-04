@@ -101,6 +101,7 @@ export const Route = createFileRoute("/api/public/orders/place")({
             reseller_price: resellerPrice,
             customer_name: o.customer.name,
             customer_phone: o.customer.phone ?? null,
+            customer_email: o.customer.email ?? null,
             reseller_id: o.reseller_id,
           });
         } catch (e) {

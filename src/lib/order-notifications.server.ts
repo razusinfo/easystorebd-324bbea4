@@ -1,5 +1,8 @@
-// Server-only helpers to send SMS notifications for reseller orders.
-// Uses BulkSMSBD (already configured for phone OTP).
+// Server-only helpers for sending order notifications (SMS + Email).
+// - SMS via BulkSMSBD (already configured for OTP).
+// - Email via Resend (RESEND_API_KEY secret).
+// Config is read from public.notification_settings, with reseller branding
+// from public.stores / public.profiles.
 
 type OrderCore = {
   id: string;
@@ -8,19 +11,84 @@ type OrderCore = {
   reseller_price: number | string | null;
   customer_name: string;
   customer_phone: string | null;
+  customer_email?: string | null;
   reseller_id: string;
   status?: string | null;
 };
 
-const DELIVERY_ETA = "3-5 business days";
+type Settings = {
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  from_email: string;
+  from_name: string;
+  reply_to: string | null;
+  notify_customer: boolean;
+  notify_reseller: boolean;
+  statuses_email: string[];
+  statuses_sms: string[];
+  delivery_eta: string;
+};
 
+const DEFAULTS: Settings = {
+  email_enabled: true,
+  sms_enabled: true,
+  from_email: "orders@resend.dev",
+  from_name: "EazyStore",
+  reply_to: null,
+  notify_customer: true,
+  notify_reseller: true,
+  statuses_email: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+  statuses_sms: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+  delivery_eta: "3-5 business days",
+};
+
+async function loadSettings(): Promise<Settings> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("notification_settings")
+      .select("*")
+      .eq("id", true)
+      .maybeSingle();
+    if (!data) return DEFAULTS;
+    return { ...DEFAULTS, ...(data as Partial<Settings>) };
+  } catch {
+    return DEFAULTS;
+  }
+}
+
+async function getResellerBrand(resellerId: string): Promise<{
+  brand: string;
+  resellerPhone: string | null;
+  resellerEmail: string | null;
+}> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const [{ data: store }, { data: profile }] = await Promise.all([
+    supabaseAdmin
+      .from("stores")
+      .select("name, phone, whatsapp_number, contact_email")
+      .eq("owner_user_id", resellerId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabaseAdmin.from("profiles").select("store, name").eq("id", resellerId).maybeSingle(),
+  ]);
+  const brand = store?.name || profile?.store || profile?.name || "Our Shop";
+  const resellerPhone = store?.phone || store?.whatsapp_number || null;
+  const resellerEmail = store?.contact_email || null;
+  return { brand, resellerPhone, resellerEmail };
+}
+
+function money(n: number | string | null | undefined): string {
+  const v = Number(n ?? 0);
+  return `৳${v.toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
+}
+
+// ---------- SMS ----------
 async function sendSms(phone: string, message: string): Promise<void> {
   const apiKey = process.env.BULKSMSBD_API_KEY;
   const senderId = process.env.BULKSMSBD_SENDER_ID;
-  if (!apiKey || !senderId) {
-    console.warn("[order-sms] BulkSMSBD not configured; skipping SMS");
-    return;
-  }
+  if (!apiKey || !senderId) return;
   const number = phone.replace(/^\+/, "").replace(/\s+/g, "");
   if (!number) return;
   const url = new URL("https://bulksmsbd.net/api/smsapi");
@@ -30,72 +98,175 @@ async function sendSms(phone: string, message: string): Promise<void> {
   url.searchParams.set("senderid", senderId);
   url.searchParams.set("message", message);
   try {
-    const res = await fetch(url.toString(), { method: "GET" });
-    const text = await res.text();
-    if (!res.ok) console.warn("[order-sms] send failed:", res.status, text);
+    const res = await fetch(url.toString());
+    if (!res.ok) console.warn("[sms] failed:", res.status, await res.text());
   } catch (e) {
-    console.warn("[order-sms] send error:", (e as Error).message);
+    console.warn("[sms] error:", (e as Error).message);
   }
 }
 
-async function getResellerBrand(resellerId: string): Promise<{
-  brand: string;
-  resellerPhone: string | null;
-}> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: store } = await supabaseAdmin
-    .from("stores")
-    .select("name, phone, whatsapp_number")
-    .eq("owner_user_id", resellerId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("store, name")
-    .eq("id", resellerId)
-    .maybeSingle();
-  const brand =
-    store?.name || profile?.store || profile?.name || "Our Shop";
-  const resellerPhone = store?.phone || store?.whatsapp_number || null;
-  return { brand, resellerPhone };
+// ---------- Email (Resend) ----------
+async function sendEmail(opts: {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  replyTo?: string | null;
+}): Promise<void> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    console.warn("[email] RESEND_API_KEY not set; skipping email");
+    return;
+  }
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        from: opts.from,
+        to: [opts.to],
+        subject: opts.subject,
+        html: opts.html,
+        ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+      }),
+    });
+    if (!res.ok) console.warn("[email] failed:", res.status, await res.text());
+  } catch (e) {
+    console.warn("[email] error:", (e as Error).message);
+  }
 }
 
-function money(n: number | string | null | undefined): string {
-  const v = Number(n ?? 0);
-  return `৳${v.toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
+function baseTemplate(brand: string, heading: string, bodyHtml: string): string {
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#f6f7fb;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7fb;padding:24px 0">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+        <tr><td style="padding:20px 24px;background:#0f172a;color:#fff;font-weight:700;font-size:16px">${brand}</td></tr>
+        <tr><td style="padding:24px">
+          <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a">${heading}</h1>
+          ${bodyHtml}
+          <p style="margin-top:24px;font-size:12px;color:#64748b">Thank you for shopping with ${brand}.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table></body></html>`;
 }
 
+function orderRowsHtml(order: OrderCore, total: string, brand: string): string {
+  const rows: [string, string][] = [
+    ["Order", `#${order.id.slice(0, 8).toUpperCase()}`],
+    ["Product", `${order.product_name} × ${order.quantity}`],
+    ["Total", total],
+    ["Customer", order.customer_name],
+    ["Shop", brand],
+  ];
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse">${rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:8px 0;color:#64748b;width:35%">${k}</td><td style="padding:8px 0;font-weight:600">${v}</td></tr>`,
+    )
+    .join("")}</table>`;
+}
+
+// ---------- Public API ----------
 export async function sendOrderConfirmation(order: OrderCore): Promise<void> {
-  if (!order.customer_phone) return;
+  const cfg = await loadSettings();
   const { brand } = await getResellerBrand(order.reseller_id);
   const total = money(Number(order.reseller_price ?? 0) * order.quantity);
   const shortId = order.id.slice(0, 8).toUpperCase();
-  const msg =
-    `${brand}: Hi ${order.customer_name}, your order #${shortId} for ` +
-    `${order.product_name} (x${order.quantity}) totaling ${total} is confirmed. ` +
-    `Estimated delivery: ${DELIVERY_ETA}. Thank you!`;
-  await sendSms(order.customer_phone, msg);
+
+  // SMS -> customer
+  if (
+    cfg.sms_enabled &&
+    cfg.notify_customer &&
+    cfg.statuses_sms.includes("pending") &&
+    order.customer_phone
+  ) {
+    const msg = `${brand}: Hi ${order.customer_name}, your order #${shortId} for ${order.product_name} (x${order.quantity}) totaling ${total} is confirmed. Estimated delivery: ${cfg.delivery_eta}. Thank you!`;
+    await sendSms(order.customer_phone, msg);
+  }
+
+  // Email -> customer
+  if (
+    cfg.email_enabled &&
+    cfg.notify_customer &&
+    cfg.statuses_email.includes("pending") &&
+    order.customer_email
+  ) {
+    const html = baseTemplate(
+      brand,
+      "Order confirmed 🎉",
+      `<p style="margin:0 0 16px">Hi ${order.customer_name}, thanks for your order! Here's your summary:</p>
+       ${orderRowsHtml(order, total, brand)}
+       <p style="margin:16px 0 0">Estimated delivery: <strong>${cfg.delivery_eta}</strong>.</p>`,
+    );
+    await sendEmail({
+      from: `${cfg.from_name} <${cfg.from_email}>`,
+      to: order.customer_email,
+      subject: `${brand} — Order #${shortId} confirmed`,
+      html,
+      replyTo: cfg.reply_to,
+    });
+  }
 }
 
 export async function sendOrderStatusUpdate(
   order: OrderCore,
   newStatus: string,
 ): Promise<void> {
-  const { brand, resellerPhone } = await getResellerBrand(order.reseller_id);
+  const cfg = await loadSettings();
+  const { brand, resellerPhone, resellerEmail } = await getResellerBrand(order.reseller_id);
   const shortId = order.id.slice(0, 8).toUpperCase();
   const label = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-  const customerMsg =
-    `${brand}: Update on order #${shortId} (${order.product_name}). ` +
-    `Status: ${label}.` +
-    (newStatus === "shipped" ? ` Expected in ${DELIVERY_ETA}.` : "") +
-    ` Thank you!`;
-  const resellerMsg =
-    `${brand} order #${shortId} for ${order.customer_name} ` +
-    `is now "${label}".`;
+  const total = money(Number(order.reseller_price ?? 0) * order.quantity);
 
-  await Promise.all([
-    order.customer_phone ? sendSms(order.customer_phone, customerMsg) : Promise.resolve(),
-    resellerPhone ? sendSms(resellerPhone, resellerMsg) : Promise.resolve(),
-  ]);
+  const smsCustomer = `${brand}: Update on order #${shortId} (${order.product_name}). Status: ${label}.${
+    newStatus === "shipped" ? ` Expected in ${cfg.delivery_eta}.` : ""
+  } Thank you!`;
+  const smsReseller = `${brand} order #${shortId} for ${order.customer_name} is now "${label}".`;
+
+  const jobs: Promise<unknown>[] = [];
+
+  if (cfg.sms_enabled && cfg.statuses_sms.includes(newStatus)) {
+    if (cfg.notify_customer && order.customer_phone) jobs.push(sendSms(order.customer_phone, smsCustomer));
+    if (cfg.notify_reseller && resellerPhone) jobs.push(sendSms(resellerPhone, smsReseller));
+  }
+
+  if (cfg.email_enabled && cfg.statuses_email.includes(newStatus)) {
+    const html = baseTemplate(
+      brand,
+      `Order ${label}`,
+      `<p style="margin:0 0 16px">Your order status has been updated to <strong>${label}</strong>.</p>
+       ${orderRowsHtml(order, total, brand)}
+       ${newStatus === "shipped" ? `<p style="margin:16px 0 0">Expected delivery: <strong>${cfg.delivery_eta}</strong>.</p>` : ""}`,
+    );
+    const from = `${cfg.from_name} <${cfg.from_email}>`;
+    if (cfg.notify_customer && order.customer_email) {
+      jobs.push(
+        sendEmail({
+          from,
+          to: order.customer_email,
+          subject: `${brand} — Order #${shortId} ${label}`,
+          html,
+          replyTo: cfg.reply_to,
+        }),
+      );
+    }
+    if (cfg.notify_reseller && resellerEmail) {
+      jobs.push(
+        sendEmail({
+          from,
+          to: resellerEmail,
+          subject: `[${brand}] Order #${shortId} is now ${label}`,
+          html,
+          replyTo: cfg.reply_to,
+        }),
+      );
+    }
+  }
+
+  await Promise.all(jobs);
 }

@@ -92,6 +92,54 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          delivery_eta: string
+          email_enabled: boolean
+          from_email: string
+          from_name: string
+          id: boolean
+          notify_customer: boolean
+          notify_reseller: boolean
+          reply_to: string | null
+          sms_enabled: boolean
+          statuses_email: string[]
+          statuses_sms: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_eta?: string
+          email_enabled?: boolean
+          from_email?: string
+          from_name?: string
+          id?: boolean
+          notify_customer?: boolean
+          notify_reseller?: boolean
+          reply_to?: string | null
+          sms_enabled?: boolean
+          statuses_email?: string[]
+          statuses_sms?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_eta?: string
+          email_enabled?: boolean
+          from_email?: string
+          from_name?: string
+          id?: boolean
+          notify_customer?: boolean
+          notify_reseller?: boolean
+          reply_to?: string | null
+          sms_enabled?: boolean
+          statuses_email?: string[]
+          statuses_sms?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
