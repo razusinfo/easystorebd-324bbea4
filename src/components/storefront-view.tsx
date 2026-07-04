@@ -1,4 +1,5 @@
 import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe, Store as StoreIcon } from "lucide-react";
+import { useEffect } from "react";
 import { TEMPLATES, usePublicStoreBySlug, getTemplateSettings } from "@/lib/eazystore-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
@@ -7,6 +8,20 @@ import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+
+const LOGO_CACHE_PREFIX = "storefront_logo_cache:";
+const NAME_CACHE_PREFIX = "storefront_name_cache:";
+function readCache(prefix: string, slug: string): string | null {
+  if (typeof window === "undefined") return null;
+  try { return window.localStorage.getItem(prefix + slug); } catch { return null; }
+}
+function writeCache(prefix: string, slug: string, value: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (value) window.localStorage.setItem(prefix + slug, value);
+    else window.localStorage.removeItem(prefix + slug);
+  } catch { /* ignore */ }
+}
 
 export function StorefrontView({ slug }: { slug: string }) {
   const q = usePublicStoreBySlug(slug);
