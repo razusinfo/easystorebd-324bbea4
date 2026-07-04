@@ -943,14 +943,22 @@ function RequestProductDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 <input
                   ref={fileRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   multiple
                   className="hidden"
                   onChange={(e) => onPickFiles(e.target.files)}
                 />
               </label>
             </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              JPEG/PNG/WEBP/GIF · up to 5 MB · max 8 images
+            </p>
           </div>
+          {errors.length > 0 && (
+            <ul className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-xs text-destructive">
+              {errors.map((e) => <li key={e}>• {e}</li>)}
+            </ul>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
