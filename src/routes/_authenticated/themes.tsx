@@ -672,7 +672,7 @@ function LivePreviewModal({
             footer={settings.footer}
           />
 
-        ) : id === "flipmart" || id === "megamart" || id === "trendmart" ? (
+        ) : id === "flipmart" || id === "megamart" || id === "trendmart" || id === "shopii" ? (
           <FlipmartTemplate
             demo={orderedProducts.length === 0}
             products={orderedProducts.length ? orderedProducts : undefined}
@@ -680,8 +680,14 @@ function LivePreviewModal({
             accentColor={accent}
             defaultCategoryName={settings.defaultCategoryName}
             footer={settings.footer}
-            sliderRows={id === "trendmart"}
-            sectionTitles={id === "trendmart" ? { suggested: "Newly Added", trending: "Trendy Styles" } : undefined}
+            sliderRows={id === "trendmart" || id === "shopii"}
+            sectionTitles={
+              id === "trendmart"
+                ? { suggested: "Newly Added", trending: "Trendy Styles" }
+                : id === "shopii"
+                ? { suggested: "Top Products", trending: "Daily Discover" }
+                : undefined
+            }
           />
         ) : id === "freshmart" ? (
           <FreshmartTemplate
@@ -812,6 +818,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
   if (id === "autoparts") inner = <AutoPartsTemplate demo accentColor={accent} />;
   else if (id === "flipmart" || id === "megamart") inner = <FlipmartTemplate demo accentColor={accent} />;
   else if (id === "trendmart") inner = <FlipmartTemplate demo accentColor={accent} sliderRows sectionTitles={{ suggested: "Newly Added", trending: "Trendy Styles" }} />;
+  else if (id === "shopii") inner = <FlipmartTemplate demo accentColor={accent} sliderRows sectionTitles={{ suggested: "Top Products", trending: "Daily Discover" }} />;
   else if (id === "freshmart") inner = <FreshmartTemplate demo accentColor={accent} />;
   else if (id === "minimal") inner = <MinimalMonoPreview accent={accent} />;
   else if (id === "boutique") inner = <BoutiqueBlushPreview accent={accent} />;
