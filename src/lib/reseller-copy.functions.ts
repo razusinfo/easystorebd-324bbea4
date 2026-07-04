@@ -14,11 +14,14 @@ export const copyResellerProductToMyStore = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       reseller_product_id: z.string().uuid(),
-      // Client-supplied hints; server re-reads from DB and validates.
-      // No trust boundary depends on these values.
+      // Optional user-chosen category from the reseller's own list.
+      category_id: z.string().uuid().optional().nullable(),
+      // Optional custom selling price for the reseller's own shop.
+      custom_price: z.number().nonnegative().optional().nullable(),
       note: z.string().max(500).optional().nullable(),
     }),
   )
+
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
