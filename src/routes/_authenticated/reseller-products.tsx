@@ -478,6 +478,7 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
 type MediaItem = { url: string; kind: "image" | "video" };
 
 function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeId: string; disabled?: boolean }) {
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [categoryId, setCategoryId] = useState<string>("");
