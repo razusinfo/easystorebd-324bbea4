@@ -102,6 +102,8 @@ const dict = {
   // inventory
   outOfStock: { bn: "স্টক শেষ", en: "Out of Stock" },
   lowStockBadge: { bn: "লো স্টক", en: "Low Stock" },
+  criticalLowStock: { bn: "সংকটজনক লো স্টক", en: "Critical Low Stock" },
+  outOfStockCta: { bn: "স্টক শেষ", en: "Out of Stock" },
   outOfStockFromSupplier: {
     bn: "সরবরাহকারীর কাছে স্টক শেষ",
     en: "Out of stock from supplier",
