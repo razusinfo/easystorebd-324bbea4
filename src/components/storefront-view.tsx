@@ -1,4 +1,5 @@
 import { Loader2, MapPin, Phone, Mail, Facebook, Instagram, MessageCircle, Globe, Store as StoreIcon } from "lucide-react";
+import { useEffect } from "react";
 import { TEMPLATES, usePublicStoreBySlug, getTemplateSettings } from "@/lib/eazystore-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
@@ -7,6 +8,20 @@ import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+
+const LOGO_CACHE_PREFIX = "storefront_logo_cache:";
+const NAME_CACHE_PREFIX = "storefront_name_cache:";
+function readCache(prefix: string, slug: string): string | null {
+  if (typeof window === "undefined") return null;
+  try { return window.localStorage.getItem(prefix + slug); } catch { return null; }
+}
+function writeCache(prefix: string, slug: string, value: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (value) window.localStorage.setItem(prefix + slug, value);
+    else window.localStorage.removeItem(prefix + slug);
+  } catch { /* ignore */ }
+}
 
 export function StorefrontView({ slug }: { slug: string }) {
   const q = usePublicStoreBySlug(slug);
@@ -26,15 +41,46 @@ export function StorefrontView({ slug }: { slug: string }) {
     },
   });
 
+  const effectiveLogoEarly = templateLogoQ.data ?? q.data?.logoUrl ?? null;
+  const storeName = q.data?.store?.name ?? null;
+
+  useEffect(() => {
+    if (effectiveLogoEarly) writeCache(LOGO_CACHE_PREFIX, slug, effectiveLogoEarly);
+    if (storeName) writeCache(NAME_CACHE_PREFIX, slug, storeName);
+  }, [slug, effectiveLogoEarly, storeName]);
+
   if (q.isLoading) {
+    const cachedLogo = readCache(LOGO_CACHE_PREFIX, slug);
+    const cachedName = readCache(NAME_CACHE_PREFIX, slug);
     return (
-      <main className="grid min-h-screen place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <main className="grid min-h-screen place-items-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          {cachedLogo ? (
+            <img
+              src={cachedLogo}
+              alt={cachedName ? `${cachedName} logo` : "Store logo"}
+              className="h-20 w-20 rounded-2xl object-cover shadow-sm animate-pulse"
+            />
+          ) : (
+            <div className="grid h-20 w-20 place-items-center rounded-2xl bg-foreground/5 animate-pulse">
+              <StoreIcon className="h-8 w-8 text-foreground/40" />
+            </div>
+          )}
+          {cachedName && (
+            <p className="font-display text-base font-semibold text-foreground/70">{cachedName}</p>
+          )}
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
       </main>
     );
   }
 
+
   if (!q.data) {
+    if (typeof window !== "undefined") {
+      writeCache(LOGO_CACHE_PREFIX, slug, null);
+      writeCache(NAME_CACHE_PREFIX, slug, null);
+    }
     return (
       <main className="grid min-h-screen place-items-center px-6 text-center">
         <div className="max-w-md space-y-3">
