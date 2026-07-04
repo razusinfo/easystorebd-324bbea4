@@ -39,6 +39,7 @@ type ResellerRow = {
   updated_at: string;
   price_overridden: boolean | null;
   image_overridden: boolean | null;
+  stock: number;
 };
 
 const ALL = "__all__";
@@ -89,7 +90,7 @@ function ResellerProductsPage() {
       const { data, error } = await supabase
         .from("reseller_products")
         .select(
-          "id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden, user_reseller_settings(id, custom_price, custom_description, custom_image, user_id)",
+          "id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden, stock, user_reseller_settings(id, custom_price, custom_description, custom_image, user_id)",
         )
         .eq("user_reseller_settings.user_id", userId as string)
         .order("updated_at", { ascending: false });
@@ -177,18 +178,30 @@ function ResellerProductsPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {filtered.map((p) => {
             const img = p.displayImage;
+            const outOfStock = (p.stock ?? 0) <= 0;
             const shareUrl =
               typeof window !== "undefined"
                 ? `${window.location.origin}/r/${p.external_id}`
                 : `/r/${p.external_id}`;
             return (
-              <Card key={p.id} className="overflow-hidden">
-                <div className="aspect-square bg-muted">
+              <Card
+                key={p.id}
+                className={`overflow-hidden ${outOfStock ? "opacity-60 grayscale" : ""}`}
+                aria-disabled={outOfStock || undefined}
+              >
+                <div className="relative aspect-square bg-muted">
                   {img ? (
                     <img src={img} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="grid h-full w-full place-items-center text-muted-foreground">
                       <Package className="h-8 w-8" />
+                    </div>
+                  )}
+                  {outOfStock && (
+                    <div className="pointer-events-none absolute inset-0 flex items-start justify-center bg-black/30 pt-3">
+                      <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
+                        Out of Stock
+                      </span>
                     </div>
                   )}
                 </div>
@@ -216,10 +229,13 @@ function ResellerProductsPage() {
                     {p.isCustom && (
                       <Badge className="text-[10px]">My shop</Badge>
                     )}
+                    {outOfStock && (
+                      <Badge variant="destructive" className="text-[10px]">Out of Stock</Badge>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
-                    {storeId && <AddToMyShopButton row={p} storeId={storeId} />}
+                    {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {userId && <EditResellerButton row={p} userId={userId} />}
                   </div>
 
@@ -459,7 +475,7 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
 
 type MediaItem = { url: string; kind: "image" | "video" };
 
-function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string }) {
+function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeId: string; disabled?: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [categoryId, setCategoryId] = useState<string>("");
@@ -577,8 +593,12 @@ function AddToMyShopButton({ row, storeId }: { row: DisplayRow; storeId: string 
         size="sm"
         className="mt-1 w-full gap-1.5"
         onClick={() => setOpen(true)}
+        disabled={disabled}
+        aria-disabled={disabled || undefined}
+        title={disabled ? "Out of stock from supplier" : undefined}
       >
-        <StoreIcon className="h-3.5 w-3.5" /> আমার শপে যোগ করুন / Add to My Shop
+        <StoreIcon className="h-3.5 w-3.5" />{" "}
+        {disabled ? "Out of Stock" : "আমার শপে যোগ করুন / Add to My Shop"}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>

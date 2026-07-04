@@ -663,6 +663,7 @@ export type Database = {
           reseller_price: number | null
           short_description: string | null
           sku: string | null
+          source_reseller_product_id: string | null
           specific_delivery_charges: Json
           status: Database["public"]["Enums"]["product_status"]
           stock: number
@@ -698,6 +699,7 @@ export type Database = {
           reseller_price?: number | null
           short_description?: string | null
           sku?: string | null
+          source_reseller_product_id?: string | null
           specific_delivery_charges?: Json
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
@@ -733,6 +735,7 @@ export type Database = {
           reseller_price?: number | null
           short_description?: string | null
           sku?: string | null
+          source_reseller_product_id?: string | null
           specific_delivery_charges?: Json
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
@@ -751,6 +754,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_source_reseller_product_id_fkey"
+            columns: ["source_reseller_product_id"]
+            isOneToOne: false
+            referencedRelation: "reseller_products"
             referencedColumns: ["id"]
           },
           {
@@ -913,6 +923,7 @@ export type Database = {
           price_overridden: boolean
           reseller_price: number | null
           source: string | null
+          stock: number
           updated_at: string
         }
         Insert: {
@@ -931,6 +942,7 @@ export type Database = {
           price_overridden?: boolean
           reseller_price?: number | null
           source?: string | null
+          stock?: number
           updated_at?: string
         }
         Update: {
@@ -949,6 +961,7 @@ export type Database = {
           price_overridden?: boolean
           reseller_price?: number | null
           source?: string | null
+          stock?: number
           updated_at?: string
         }
         Relationships: [
@@ -1159,6 +1172,42 @@ export type Database = {
           read_at?: string | null
           receiver_id?: string | null
           sender_id?: string
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          related_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }

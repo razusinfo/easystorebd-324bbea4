@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_reseller_stock_to_shops() FROM PUBLIC, anon, authenticated;

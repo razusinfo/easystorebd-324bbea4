@@ -61,7 +61,7 @@ export async function runCopyResellerProduct(
     const { data: source, error: srcErr } = await adminSupabase
       .from("reseller_products")
       .select(
-        "id, external_id, original_product_id, name, description, image, image_url, price, reseller_price, category",
+        "id, external_id, original_product_id, name, description, image, image_url, price, reseller_price, category, stock",
       )
       .eq("id", input.reseller_product_id)
       .maybeSingle();
@@ -111,7 +111,7 @@ export async function runCopyResellerProduct(
     if (price == null || !Number.isFinite(Number(price)) || Number(price) < 0) {
       missing.push("price");
     }
-    const stock = 0;
+    const stock = Number.isInteger(source.stock) ? Number(source.stock) : 0;
     if (!Number.isInteger(stock) || stock < 0) missing.push("quantity");
     const chosenCategoryId = input.category_id ?? original?.category_id ?? null;
     if (!chosenCategoryId && !source.category) missing.push("category");
@@ -186,6 +186,7 @@ export async function runCopyResellerProduct(
       sku: original?.sku ?? null,
       brand: original?.brand ?? null,
       condition: original?.condition ?? "new",
+      source_reseller_product_id: source.id,
     };
 
 
