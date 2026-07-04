@@ -243,7 +243,9 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
         galleryUrls: form.galleryUrls,
         shortDescription: form.shortDescription.trim() || null,
         description: form.description.trim() || null,
-        categoryId: form.categoryId || null,
+        categoryId: form.categoryIds[0] || null,
+        categoryIds: form.categoryIds,
+
         brand: form.brand.trim() || null,
         condition: form.condition,
         weightKg: numOrNull(form.weightKg),
