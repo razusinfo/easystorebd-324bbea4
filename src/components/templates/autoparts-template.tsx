@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { isValidHexColor, sanitizeHexColor } from "@/lib/hex-color";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
