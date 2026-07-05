@@ -505,6 +505,30 @@ function RequestCard({
               <Label htmlFor="an">Admin notes (optional)</Label>
               <Textarea id="an" rows={3} value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} />
             </div>
+            <div className="space-y-1.5">
+              <Label>Category (Reseller Products)</Label>
+              <Select value={categoryKey || undefined} onValueChange={(v) => setCategoryKey(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose or create a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {existingCategories.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                  <SelectItem value={NEW_KEY}>+ New category…</SelectItem>
+                </SelectContent>
+              </Select>
+              {categoryKey === NEW_KEY && (
+                <Input
+                  placeholder="New category name"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                />
+              )}
+              <p className="text-[11px] text-muted-foreground">
+                Optional — controls where the product appears in Reseller Products.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setApproveOpen(false)}>Cancel</Button>
