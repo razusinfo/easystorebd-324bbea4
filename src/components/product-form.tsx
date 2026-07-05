@@ -844,30 +844,33 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
             </div>
 
-            {isSuperAdmin && (
-              <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
-                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                  <Checkbox
-                    checked={form.addToReseller}
-                    onCheckedChange={(v) => set("addToReseller", v === true)}
+            <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <Checkbox
+                  checked={form.addToReseller}
+                  onCheckedChange={(v) => set("addToReseller", v === true)}
+                />
+                {isSuperAdmin ? "Add to Reseller Marketplace" : "Request for Reseller Marketplace"}
+              </label>
+              {!isSuperAdmin && form.addToReseller && (
+                <p className="text-xs text-muted-foreground">
+                  A super admin will review your submission. The reseller price is only visible in the marketplace — it is not shown on your storefront.
+                </p>
+              )}
+              {form.addToReseller && (
+                <Field label="Reseller Price">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="Reseller Price"
+                    value={form.resellerPrice}
+                    onChange={(e) => set("resellerPrice", e.target.value)}
                   />
-                  Add to Reseller Marketplace
-                </label>
-                {form.addToReseller && (
-                  <Field label="Reseller Price">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputMode="decimal"
-                      placeholder="Reseller Price"
-                      value={form.resellerPrice}
-                      onChange={(e) => set("resellerPrice", e.target.value)}
-                    />
-                  </Field>
-                )}
-              </div>
-            )}
+                </Field>
+              )}
+            </div>
           </Section>
 
 
