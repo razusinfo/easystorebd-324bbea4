@@ -517,6 +517,22 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const catsQ = useCategories(storeId);
   const categories = catsQ.data ?? [];
 
+  // Detect if this reseller product is already listed in the user's store.
+  const alreadyAddedQ = useQuery({
+    enabled: !!storeId && !!row.id,
+    queryKey: ["reseller-already-added", storeId, row.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", storeId)
+        .eq("source_reseller_product_id", row.id);
+      if (error) throw error;
+      return (count ?? 0) > 0;
+    },
+  });
+  const alreadyAdded = alreadyAddedQ.data === true;
+
   // Fetch original product's media (images + video). reseller_products.external_id
   // holds the original product's UUID.
   const mediaQ = useQuery({
