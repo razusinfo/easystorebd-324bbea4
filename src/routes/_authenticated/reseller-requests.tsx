@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Send, ImageIcon } from "lucide-react";
+import { Loader2, Upload, X, Send, ImageIcon, Check, AlertCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { uploadProductImage } from "@/lib/eazystore-data";
