@@ -214,12 +214,16 @@ function baseTemplate(brand: string, heading: string, bodyHtml: string): string 
 }
 
 function orderRowsHtml(order: OrderCore, total: string, brand: string): string {
+  // Every value here is escaped because order.product_name and
+  // order.customer_name originate from the unauthenticated
+  // /api/public/orders/place endpoint and could otherwise inject phishing
+  // links or fake UI into a real transactional email.
   const rows: [string, string][] = [
-    ["Order", `#${order.id.slice(0, 8).toUpperCase()}`],
-    ["Product", `${order.product_name} × ${order.quantity}`],
-    ["Total", total],
-    ["Customer", order.customer_name],
-    ["Shop", brand],
+    ["Order", `#${escapeHtml(order.id.slice(0, 8).toUpperCase())}`],
+    ["Product", `${escapeHtml(order.product_name)} × ${escapeHtml(String(order.quantity))}`],
+    ["Total", escapeHtml(total)],
+    ["Customer", escapeHtml(order.customer_name)],
+    ["Shop", escapeHtml(brand)],
   ];
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse">${rows
     .map(
