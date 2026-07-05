@@ -857,6 +857,9 @@ export type Database = {
           shipping_address: string
           shipping_requested: boolean
           source: string | null
+          source_order_id: string | null
+          source_order_item_id: string | null
+          source_store_id: string | null
           status: Database["public"]["Enums"]["reseller_order_status"]
           updated_at: string
         }
@@ -878,6 +881,9 @@ export type Database = {
           shipping_address: string
           shipping_requested?: boolean
           source?: string | null
+          source_order_id?: string | null
+          source_order_item_id?: string | null
+          source_store_id?: string | null
           status?: Database["public"]["Enums"]["reseller_order_status"]
           updated_at?: string
         }
@@ -899,6 +905,9 @@ export type Database = {
           shipping_address?: string
           shipping_requested?: boolean
           source?: string | null
+          source_order_id?: string | null
+          source_order_item_id?: string | null
+          source_store_id?: string | null
           status?: Database["public"]["Enums"]["reseller_order_status"]
           updated_at?: string
         }
@@ -908,6 +917,27 @@ export type Database = {
             columns: ["reseller_product_id"]
             isOneToOne: false
             referencedRelation: "reseller_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reseller_orders_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reseller_orders_source_order_item_id_fkey"
+            columns: ["source_order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reseller_orders_source_store_id_fkey"
+            columns: ["source_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
