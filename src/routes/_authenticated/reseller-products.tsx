@@ -230,16 +230,13 @@ function ResellerProductsPage() {
       {suppliers.length > 0 && (
         <section className="mb-5">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Suppliers</h2>
-            <span className="text-[11px] text-muted-foreground">
-              {suppliers.length} supplier{suppliers.length === 1 ? "" : "s"}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
+            <p className="text-xs text-muted-foreground">
+              {suppliers.length} supplier{suppliers.length === 1 ? "" : "s"} available
+            </p>
             <button
               type="button"
               onClick={() => { setSupplier(ALL); setTab(ALL); setSearch(""); }}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 supplier === ALL
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background hover:bg-muted"
@@ -247,25 +244,53 @@ function ResellerProductsPage() {
             >
               All · {merged.length}
             </button>
-            {suppliers.map((s) => (
-              <button
-                key={s.name}
-                type="button"
-                onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
-
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                  supplier === s.name
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background hover:bg-muted"
-                }`}
-              >
-                <StoreIcon className="h-3 w-3" />
-                {s.name}
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${supplier === s.name ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                  {s.count}
-                </span>
-              </button>
-            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {suppliers.map((s) => {
+              const active = supplier === s.name;
+              const initials = s.name
+                .split(/\s+/)
+                .map((w) => w[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase();
+              return (
+                <button
+                  key={s.name}
+                  type="button"
+                  onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
+                  className={`rounded-xl border bg-card p-3 text-left transition-all hover:shadow-sm ${
+                    active ? "border-primary ring-2 ring-primary/20" : "border-border"
+                  }`}
+                >
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                      {initials || <StoreIcon className="h-5 w-5" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{s.name}</p>
+                      <span className="mt-0.5 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        Standard
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-md bg-muted/50 px-2 py-1.5">
+                      <p className="text-[10px] text-muted-foreground">Products</p>
+                      <p className="text-sm font-bold">{s.count}</p>
+                    </div>
+                    <div className="rounded-md bg-muted/50 px-2 py-1.5">
+                      <p className="text-[10px] text-muted-foreground">Delivery</p>
+                      <p className="text-sm font-bold">৳0</p>
+                    </div>
+                    <div className="rounded-md bg-muted/50 px-2 py-1.5">
+                      <p className="text-[10px] text-muted-foreground">Orders</p>
+                      <p className="text-sm font-bold">0</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </section>
       )}
