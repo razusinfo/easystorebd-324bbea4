@@ -493,10 +493,10 @@ function ProductTable({
 }
 
 function StatusBadge({ status }: { status: ProductStatus }) {
+  // Hide the "approved" badge — approved is the default active state and adds noise.
+  if (status === "approved") return null;
   const cls =
-    status === "approved"
-      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-      : status === "rejected"
+    status === "rejected"
       ? "bg-destructive/15 text-destructive"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-400";
   return (
