@@ -70,16 +70,21 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
     e.preventDefault();
     setBusy(true);
     try {
-      let signInEmail = loginId.trim();
       if (loginMode === "phone") {
-        const { email: found } = await resolveEmailForPhone({ data: { phone: signInEmail } });
-        signInEmail = found;
+        // Phone→email lookup + sign-in happen server-side so the associated
+        // email address never leaves the server (no account enumeration).
+        const { access_token, refresh_token } = await phoneSignIn({
+          data: { phone: loginId.trim(), password },
+        });
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: loginId.trim(),
+          password,
+        });
+        if (error) throw error;
       }
-      const { error } = await supabase.auth.signInWithPassword({
-        email: signInEmail,
-        password,
-      });
-      if (error) throw error;
       toast.success("Signed in");
       setOpen(false);
       setLoginId(""); setPassword("");
