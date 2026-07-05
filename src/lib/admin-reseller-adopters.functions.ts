@@ -68,7 +68,7 @@ export const adminListResellerAdopters = createServerFn({ method: "POST" })
       .select("id, name, price, stock, status, store_id, created_at, source_reseller_product_id")
       .not("source_reseller_product_id", "is", null);
 
-    if (data.status) adoptQuery = adoptQuery.eq("status", data.status);
+    if (data.status) adoptQuery = adoptQuery.eq("status", data.status as never);
     if (data.dateFrom) adoptQuery = adoptQuery.gte("created_at", data.dateFrom);
     if (data.dateTo) adoptQuery = adoptQuery.lte("created_at", data.dateTo);
 
