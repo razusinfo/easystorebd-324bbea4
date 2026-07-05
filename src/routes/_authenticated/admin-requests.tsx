@@ -509,9 +509,12 @@ function RequestCard({
               <Label>Category (Reseller Products)</Label>
               <Select value={categoryKey || undefined} onValueChange={(v) => setCategoryKey(v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose or create a category" />
+                  <SelectValue placeholder={existingCategories.length === 0 ? "No categories yet — create one" : "Choose or create a category"} />
                 </SelectTrigger>
                 <SelectContent>
+                  {existingCategories.length === 0 && (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">No categories yet.</div>
+                  )}
                   {existingCategories.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
