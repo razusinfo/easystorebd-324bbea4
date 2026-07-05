@@ -71,7 +71,7 @@ export function BdLoveTemplate({
       }));
 
   const activeCat = defaultCategoryName || "All Products";
-  const accent = accentColor || "#5B21B6"; // purple
+  const accent = sanitizeHexColor(accentColor, "#5B21B6");
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
 
   const style = `
