@@ -83,3 +83,59 @@ export const adminRevokeRole = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/**
+ * List reseller-marketplace audit log entries (super_admin only).
+ * Filters:
+ *   - action:   optional exact match (e.g. "admin_revoke")
+ *   - actorId:  optional actor uuid
+ *   - since:    optional ISO timestamp lower bound (created_at >= since)
+ *   - search:   optional substring match against product name in metadata
+ */
+export const adminListResellerAuditLogs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      limit: z.number().int().min(1).max(500).optional(),
+      action: z.string().trim().min(1).max(64).optional(),
+      actorId: z.string().uuid().optional(),
+      since: z.string().datetime().optional(),
+    }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    await assertSuperAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let q = supabaseAdmin
+      .from("reseller_marketplace_audit_logs")
+      .select("id, actor_id, actor_role, action, product_id, success, error, metadata, created_at")
+      .order("created_at", { ascending: false })
+      .limit(data.limit ?? 200);
+    if (data.action) q = q.eq("action", data.action);
+    if (data.actorId) q = q.eq("actor_id", data.actorId);
+    if (data.since) q = q.gte("created_at", data.since);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    const actorIds = Array.from(
+      new Set((rows ?? []).map((r) => r.actor_id).filter((v): v is string => !!v)),
+    );
+    const emails = new Map<string, string>();
+    if (actorIds.length) {
+      const { data: users } = await supabaseAdmin
+        .from("profiles")
+        .select("id, name")
+        .in("id", actorIds);
+      for (const u of users ?? []) emails.set(u.id, u.name ?? "");
+      // Also fetch auth emails via admin API for accuracy.
+      for (const id of actorIds) {
+        try {
+          const { data: u } = await supabaseAdmin.auth.admin.getUserById(id);
+          if (u?.user?.email) emails.set(id, u.user.email);
+        } catch { /* ignore */ }
+      }
+    }
+    return (rows ?? []).map((r) => ({
+      ...r,
+      actor_email: r.actor_id ? emails.get(r.actor_id) ?? null : null,
+    }));
+  });
+
