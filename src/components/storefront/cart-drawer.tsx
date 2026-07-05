@@ -14,6 +14,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useCartStore, useStoreCart, cartTotal, cartCount, type CartItem } from "@/lib/cart-store";
+import { formatOrderError } from "@/lib/order-error";
+import { logOrderPlacementAttempt } from "@/lib/order-placement-logging.functions";
 
 type SavedAddress = {
   id: string;
