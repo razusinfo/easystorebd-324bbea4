@@ -26,6 +26,7 @@ const mainItems = [
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
   { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
+  { title: "Notifications", url: "/my-notifications", icon: Bell },
 ];
 
 
