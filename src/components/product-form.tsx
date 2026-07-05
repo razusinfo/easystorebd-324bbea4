@@ -24,6 +24,7 @@ import { Link } from "@tanstack/react-router";
 import { Checkbox } from "@/components/ui/checkbox";
 import { syncResellerProduct } from "@/lib/reseller-sync.functions";
 import { upsertLocalResellerProduct } from "@/lib/reseller-local.functions";
+import { submitProductRequest } from "@/lib/product-requests.functions";
 
 
 import {
