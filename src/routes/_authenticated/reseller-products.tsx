@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2, Trash2 } from "lucide-react";
+import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2, Trash2, Search, Truck, ShoppingBag, Star } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -71,12 +71,28 @@ type DisplayRow = ResellerRow & {
 
 const PRIMARY_SUPPLIER = "Sylheti Online Shop";
 
+function SupplierStat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="rounded-md bg-muted/50 px-2 py-1.5">
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Icon className="h-3 w-3" />
+        <span>{label}</span>
+      </div>
+      <p className="mt-0.5 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+
 function ResellerProductsPage() {
   const { t } = useI18n();
   const [tab, setTab] = useState<string>(ALL);
   const [supplier, setSupplier] = useState<string>(ALL);
   const [search, setSearch] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [supplierSearch, setSupplierSearch] = useState<string>("");
+  const [supplierSort, setSupplierSort] = useState<string>("recommended");
+
 
 
 
@@ -129,19 +145,31 @@ function ResellerProductsPage() {
   const merged = q.data ?? [];
 
   const suppliers = useMemo(() => {
-    const counts = new Map<string, number>();
+    const map = new Map<string, { name: string; count: number; logo: string | null }>();
     for (const r of merged) {
-      const s = (r.source && r.source.trim()) || PRIMARY_SUPPLIER;
-      counts.set(s, (counts.get(s) ?? 0) + 1);
+      const name = (r.source && r.source.trim()) || PRIMARY_SUPPLIER;
+      const existing = map.get(name);
+      if (existing) {
+        existing.count += 1;
+        if (!existing.logo && r.displayImage) existing.logo = r.displayImage;
+      } else {
+        map.set(name, { name, count: 1, logo: r.displayImage ?? null });
+      }
     }
-    const list = Array.from(counts.entries()).map(([name, count]) => ({ name, count }));
-    list.sort((a, b) => {
+    const list = Array.from(map.values());
+    const term = supplierSearch.trim().toLowerCase();
+    const filtered = term ? list.filter((s) => s.name.toLowerCase().includes(term)) : list;
+    filtered.sort((a, b) => {
+      // Sylheti Online Shop always first
       if (a.name === PRIMARY_SUPPLIER) return -1;
       if (b.name === PRIMARY_SUPPLIER) return 1;
+      if (supplierSort === "most-products") return b.count - a.count;
+      if (supplierSort === "name") return a.name.localeCompare(b.name);
       return a.name.localeCompare(b.name);
     });
-    return list;
-  }, [merged]);
+    return filtered;
+  }, [merged, supplierSearch, supplierSort]);
+
 
   const bySupplier = useMemo(() => {
     if (supplier === ALL) return merged;
@@ -227,48 +255,116 @@ function ResellerProductsPage() {
       </header>
       <MyRequestsStrip />
 
-      {suppliers.length > 0 && (
-        <section className="mb-5">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Suppliers</h2>
-            <span className="text-[11px] text-muted-foreground">
-              {suppliers.length} supplier{suppliers.length === 1 ? "" : "s"}
-            </span>
+      <section className="mb-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold">Supplier Catalog</h2>
+          <p className="text-sm text-muted-foreground">
+            Choose a supplier to browse their products and add to your store
+          </p>
+        </div>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[220px] flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={supplierSearch}
+              onChange={(e) => setSupplierSearch(e.target.value)}
+              placeholder="Search suppliers..."
+              className="h-9 pl-9"
+            />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <Select value={supplierSort} onValueChange={setSupplierSort}>
+            <SelectTrigger className="h-9 w-[170px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recommended">Recommended</SelectItem>
+              <SelectItem value="most-products">Most Products</SelectItem>
+              <SelectItem value="name">Name (A–Z)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <p className="mb-3 text-xs text-muted-foreground">
+          {suppliers.length} supplier{suppliers.length === 1 ? "" : "s"} available
+        </p>
+
+        {q.isLoading ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-40 animate-pulse rounded-xl border bg-muted/40" />
+            ))}
+          </div>
+        ) : suppliers.length === 0 ? (
+          <Card className="p-6 text-center text-sm text-muted-foreground">
+            No suppliers found.
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <button
               type="button"
               onClick={() => { setSupplier(ALL); setTab(ALL); setSearch(""); }}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                supplier === ALL
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background hover:bg-muted"
+              className={`rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md ${
+                supplier === ALL ? "border-primary ring-2 ring-primary/20" : "border-border"
               }`}
             >
-              All · {merged.length}
+              <div className="flex items-center gap-3">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                  <StoreIcon className="h-6 w-6" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-semibold">All Suppliers</h3>
+                  <span className="mt-0.5 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
+                    Everything
+                  </span>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-1.5">
+                <SupplierStat icon={Package} label="Products" value={String(merged.length)} />
+                <SupplierStat icon={Truck} label="Delivery" value="৳0" />
+                <SupplierStat icon={Star} label="Orders" value="0" />
+              </div>
             </button>
-            {suppliers.map((s) => (
-              <button
-                key={s.name}
-                type="button"
-                onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
 
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                  supplier === s.name
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background hover:bg-muted"
-                }`}
-              >
-                <StoreIcon className="h-3 w-3" />
-                {s.name}
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${supplier === s.name ? "bg-primary-foreground/20" : "bg-muted"}`}>
-                  {s.count}
-                </span>
-              </button>
-            ))}
+            {suppliers.map((s) => {
+              const active = supplier === s.name;
+              return (
+                <button
+                  key={s.name}
+                  type="button"
+                  onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
+                  className={`rounded-xl border bg-card p-4 text-left transition-all hover:shadow-md ${
+                    active ? "border-primary ring-2 ring-primary/20" : "border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted">
+                      {s.logo ? (
+                        <img src={s.logo} alt={s.name} className="h-full w-full object-cover" loading="lazy" />
+                      ) : (
+                        <StoreIcon className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-semibold">{s.name}</h3>
+                      <span className="mt-0.5 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
+                        Standard
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-1.5">
+                    <SupplierStat icon={Package} label="Products" value={String(s.count)} />
+                    <SupplierStat icon={Truck} label="Delivery" value="৳0" />
+                    <SupplierStat icon={Star} label="Orders" value="0" />
+                  </div>
+                </button>
+              );
+            })}
           </div>
-        </section>
-      )}
+        )}
+      </section>
+
+
 
 
 
