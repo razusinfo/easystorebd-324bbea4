@@ -42,10 +42,26 @@ export const revokeResellerProduct = createServerFn({ method: "POST" })
     reason: d.reason ? String(d.reason).slice(0, 500) : undefined,
   }))
   .handler(async ({ context, data }) => {
+    // Explicit role check for a clear error before hitting the RPC.
+    const { data: isSuper, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "super_admin",
+    } as any);
+    if (roleErr) throw new Error(roleErr.message || "Permission check failed");
+    if (!isSuper) {
+      throw new Error("Permission denied: only super admins can delete marketplace products.");
+    }
+
     const { error } = await context.supabase.rpc("admin_revoke_reseller_product", {
       _reseller_product_id: data.id,
       _reason: data.reason ?? null,
     } as any);
-    if (error) throw error;
+    if (error) {
+      const msg = error.message || "";
+      if (/permission|denied|not allowed|super_admin|access/i.test(msg)) {
+        throw new Error("Permission denied: only super admins can delete marketplace products.");
+      }
+      throw new Error(msg || "Failed to delete marketplace product");
+    }
     return { ok: true };
   });
