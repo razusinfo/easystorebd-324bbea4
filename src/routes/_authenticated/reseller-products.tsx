@@ -637,14 +637,31 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       <Button
         type="button"
         size="sm"
+        variant={alreadyAdded ? "secondary" : "default"}
         className="mt-1 w-full gap-1.5"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (alreadyAdded) {
+            toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
+            return;
+          }
+          setOpen(true);
+        }}
         disabled={disabled}
         aria-disabled={disabled || undefined}
-        title={disabled ? t("outOfStockFromSupplier") : undefined}
+        title={
+          disabled
+            ? t("outOfStockFromSupplier")
+            : alreadyAdded
+              ? "Already on your website"
+              : undefined
+        }
       >
         <StoreIcon className="h-3.5 w-3.5" />{" "}
-        {disabled ? t("outOfStock") : t("addToMyShop")}
+        {disabled
+          ? t("outOfStock")
+          : alreadyAdded
+            ? "ওয়েবসাইটে আছে / Already added"
+            : t("addToMyShop")}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
