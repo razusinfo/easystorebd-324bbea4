@@ -124,14 +124,14 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
       return;
     }
     setCheckingOut(true);
+    const { data: userRes } = await supabase.auth.getUser();
+    const customerUserId = userRes.user?.id ?? null;
+    const orderId =
+      (typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
     try {
-      const { data: userRes } = await supabase.auth.getUser();
-      const customerUserId = userRes.user?.id ?? null;
-      const orderId =
-        (typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-      const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
       // RLS on `orders` blocks SELECT for the inserter (guest or shopper),
       // so we don't use RETURNING. Generate id + order_number client-side.
       const { error: oErr } = await supabase
@@ -152,7 +152,19 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
           status: "pending",
           payment_status: "unpaid",
         });
-      if (oErr) throw oErr;
+      if (oErr) {
+        const f = formatOrderError(oErr, "order");
+        toast.error(f.title, { description: f.description });
+        void logOrderPlacementAttempt({
+          data: {
+            outcome: "order_insert_failed",
+            store_id: storeId, order_id: orderId, order_number: orderNumber,
+            customer_user_id: customerUserId, item_count: items.length, total,
+            error_kind: f.kind, error_code: oErr.code ?? null, error_message: oErr.message ?? null,
+          },
+        }).catch(() => {});
+        return;
+      }
 
       const { error: iErr } = await supabase.from("order_items").insert(
         items.map((it) => ({
@@ -164,14 +176,34 @@ export function CartDrawer({ storeId, storeName, open, onOpenChange }: Props) {
           subtotal: it.price * it.qty,
         }))
       );
-      if (iErr) throw iErr;
+      if (iErr) {
+        const f = formatOrderError(iErr, "items");
+        toast.error(f.title, { description: f.description });
+        void logOrderPlacementAttempt({
+          data: {
+            outcome: "items_insert_failed",
+            store_id: storeId, order_id: orderId, order_number: orderNumber,
+            customer_user_id: customerUserId, item_count: items.length, total,
+            error_kind: f.kind, error_code: iErr.code ?? null, error_message: iErr.message ?? null,
+          },
+        }).catch(() => {});
+        return;
+      }
 
       clear(storeId);
       setPlaced(orderNumber);
       setName(""); setPhone(""); setAddressLine(""); setCity(""); setRegion(""); setPostal(""); setNotes("");
       toast.success(`Order ${orderNumber} placed!`);
+      void logOrderPlacementAttempt({
+        data: {
+          outcome: "success",
+          store_id: storeId, order_id: orderId, order_number: orderNumber,
+          customer_user_id: customerUserId, item_count: items.length, total,
+        },
+      }).catch(() => {});
     } catch (e: any) {
-      toast.error(e?.message ?? "Could not place order");
+      const f = formatOrderError(e, "order");
+      toast.error(f.title, { description: f.description });
     } finally {
       setCheckingOut(false);
     }
