@@ -36,6 +36,94 @@ export const productRequestInputSchema = z.object({
 
 export type ProductRequestInput = z.infer<typeof productRequestInputSchema>;
 
+// Reseller: update their OWN pending request. Blocked once reviewed.
+export const updateProductRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    productRequestInputSchema.extend({ id: z.string().uuid() }).parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing, error: readErr } = await supabaseAdmin
+      .from("product_requests")
+      .select("id, requested_by, status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!existing) throw new Response("Not found", { status: 404 });
+    if (existing.requested_by !== context.userId) {
+      throw new Response("Forbidden", { status: 403 });
+    }
+    if (existing.status !== "pending") {
+      throw new Response(`Cannot edit a ${existing.status} request`, { status: 400 });
+    }
+    const { error } = await supabaseAdmin
+      .from("product_requests")
+      .update({
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        images: data.images,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await supabaseAdmin.from("reseller_marketplace_audit_logs").insert({
+      actor_id: context.userId,
+      actor_role: "reseller",
+      action: "update_product_request",
+      product_id: data.id,
+      success: true,
+      error: null,
+      metadata: {
+        name: data.name,
+        price: data.price,
+        category: data.category,
+        image_count: data.images.length,
+      } as never,
+    });
+    return { ok: true as const };
+  });
+
+// Reseller: delete their OWN pending request.
+export const deleteProductRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing, error: readErr } = await supabaseAdmin
+      .from("product_requests")
+      .select("id, requested_by, status, name")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!existing) throw new Response("Not found", { status: 404 });
+    if (existing.requested_by !== context.userId) {
+      throw new Response("Forbidden", { status: 403 });
+    }
+    if (existing.status !== "pending") {
+      throw new Response(`Cannot delete a ${existing.status} request`, { status: 400 });
+    }
+    const { error } = await supabaseAdmin
+      .from("product_requests")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await supabaseAdmin.from("reseller_marketplace_audit_logs").insert({
+      actor_id: context.userId,
+      actor_role: "reseller",
+      action: "delete_product_request",
+      product_id: data.id,
+      success: true,
+      error: null,
+      metadata: { name: existing.name } as never,
+    });
+    return { ok: true as const };
+  });
+
+
 async function resolveActorRole(userSupabase: {
   from: (t: string) => { select: (s: string) => { eq: (c: string, v: string) => Promise<{ data: { role: string }[] | null }> } };
 }, userId: string) {

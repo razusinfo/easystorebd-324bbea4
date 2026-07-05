@@ -24,6 +24,7 @@ import { Link } from "@tanstack/react-router";
 import { Checkbox } from "@/components/ui/checkbox";
 import { syncResellerProduct } from "@/lib/reseller-sync.functions";
 import { upsertLocalResellerProduct } from "@/lib/reseller-local.functions";
+import { submitProductRequest } from "@/lib/product-requests.functions";
 
 
 import {
@@ -303,10 +304,13 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           .filter((s) => s.zone && Number.isFinite(s.charge)),
 
         videoUrl: form.videoUrl.trim() || null,
-        addToReseller: form.addToReseller,
-        resellerPrice: form.addToReseller && form.resellerPrice !== ""
-          ? Number(form.resellerPrice)
-          : null,
+        // Only super admins can directly publish to the marketplace. Regular
+        // resellers instead submit a product_request (below) for review.
+        addToReseller: isSuperAdmin ? form.addToReseller : false,
+        resellerPrice:
+          isSuperAdmin && form.addToReseller && form.resellerPrice !== ""
+            ? Number(form.resellerPrice)
+            : null,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
@@ -318,8 +322,32 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       queryClient.invalidateQueries({ queryKey: ["public-store"] });
       queryClient.invalidateQueries({ queryKey: ["products", store?.id] });
 
-      // Sync to reseller marketplace if enabled.
-      if (form.addToReseller) {
+      // Sync to reseller marketplace (super admin only) or submit a request
+      // (regular reseller) if enabled.
+      if (form.addToReseller && !isSuperAdmin) {
+        const primaryCatId = form.categoryIds[0];
+        const categoryName =
+          (categoriesQ.data ?? []).find((c) => c.id === primaryCatId)?.name ?? null;
+        const resellerPriceNum =
+          form.resellerPrice !== "" ? Number(form.resellerPrice) : Number(form.sellPrice);
+        try {
+          const gallery = [form.imageUrl, ...form.galleryUrls].filter(
+            (u): u is string => !!u && /^https?:\/\//i.test(u),
+          );
+          await submitProductRequest({
+            data: {
+              name: form.name.trim(),
+              description: form.description.trim() || null,
+              price: resellerPriceNum,
+              category: categoryName,
+              images: gallery.slice(0, 8),
+            },
+          });
+          toast.success("Marketplace request submitted for review.");
+        } catch (err: any) {
+          toast.error(err?.message ?? "Failed to submit marketplace request");
+        }
+      } else if (form.addToReseller && isSuperAdmin) {
         const productId = (upsert.data as { id: string } | undefined)?.id ?? editing?.id ?? "";
         // Resolve primary category name from the selected category ids.
         const primaryCatId = form.categoryIds[0];
@@ -844,30 +872,33 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
             </div>
 
-            {isSuperAdmin && (
-              <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
-                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                  <Checkbox
-                    checked={form.addToReseller}
-                    onCheckedChange={(v) => set("addToReseller", v === true)}
+            <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <Checkbox
+                  checked={form.addToReseller}
+                  onCheckedChange={(v) => set("addToReseller", v === true)}
+                />
+                {isSuperAdmin ? "Add to Reseller Marketplace" : "Request for Reseller Marketplace"}
+              </label>
+              {!isSuperAdmin && form.addToReseller && (
+                <p className="text-xs text-muted-foreground">
+                  A super admin will review your submission. The reseller price is only visible in the marketplace — it is not shown on your storefront.
+                </p>
+              )}
+              {form.addToReseller && (
+                <Field label="Reseller Price">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="Reseller Price"
+                    value={form.resellerPrice}
+                    onChange={(e) => set("resellerPrice", e.target.value)}
                   />
-                  Add to Reseller Marketplace
-                </label>
-                {form.addToReseller && (
-                  <Field label="Reseller Price">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputMode="decimal"
-                      placeholder="Reseller Price"
-                      value={form.resellerPrice}
-                      onChange={(e) => set("resellerPrice", e.target.value)}
-                    />
-                  </Field>
-                )}
-              </div>
-            )}
+                </Field>
+              )}
+            </div>
           </Section>
 
 
