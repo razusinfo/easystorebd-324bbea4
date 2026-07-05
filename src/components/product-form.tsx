@@ -25,6 +25,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { syncResellerProduct } from "@/lib/reseller-sync.functions";
 import { upsertLocalResellerProduct } from "@/lib/reseller-local.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
+import { DescriptionPreview } from "@/components/description-preview";
+
 
 
 import {
@@ -746,6 +748,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                   />
                 </div>
               </Field>
+              <Field label="Live Preview">
+                <DescriptionPreview markdown={form.description} />
+              </Field>
+
 
             </div>
           </Section>
