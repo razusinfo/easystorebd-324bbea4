@@ -30,6 +30,7 @@ function AdminSupportPage() {
   const [activeUser, setActiveUser] = useState<string | null>(null);
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const listUsers = useServerFn(adminListUsers);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setAdminId(data.user?.id ?? null));
