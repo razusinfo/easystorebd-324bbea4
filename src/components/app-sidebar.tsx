@@ -3,6 +3,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Truck,
   Store, BarChart3, Palette, Wand2, LayoutTemplate, Smartphone,
   Megaphone, Tag, Settings, LogOut, ShieldCheck, Repeat2, Receipt, Bell, MessageCircle,
+  Send,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -19,6 +20,7 @@ const mainItems = [
   { title: "Orders", url: "/orders", icon: ShoppingBag },
   { title: "Products", url: "/products", icon: Package },
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
+  { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
   { title: "My Orders", url: "/my-orders", icon: Receipt, badge: "NEW" },
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },

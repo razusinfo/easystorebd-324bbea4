@@ -40,6 +40,7 @@ export async function runSubmitProductRequest(
       name: input.name,
       description: input.description,
       price: input.price,
+      category: input.category,
       images: input.images,
     })
     .select("id")
@@ -57,6 +58,7 @@ export async function runSubmitProductRequest(
         name: input.name,
         description: input.description,
         price: input.price,
+        category: input.category,
         images: input.images,
       },
     });
@@ -74,6 +76,7 @@ export async function runSubmitProductRequest(
       name: input.name,
       description: input.description,
       price: input.price,
+      category: input.category,
       images: input.images,
       image_count: input.images.length,
     },

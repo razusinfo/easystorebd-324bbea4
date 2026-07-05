@@ -548,6 +548,7 @@ export type Database = {
       product_requests: {
         Row: {
           admin_notes: string | null
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -564,6 +565,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -580,6 +582,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string

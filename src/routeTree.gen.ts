@@ -32,6 +32,7 @@ import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
 import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
 import { Route as AuthenticatedSmsSettingsRouteImport } from './routes/_authenticated/sms-settings'
+import { Route as AuthenticatedResellerRequestsRouteImport } from './routes/_authenticated/reseller-requests'
 import { Route as AuthenticatedResellerProductsRouteImport } from './routes/_authenticated/reseller-products'
 import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authenticated/promo-codes'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
@@ -183,6 +184,12 @@ const AuthenticatedSmsSettingsRoute =
   AuthenticatedSmsSettingsRouteImport.update({
     id: '/sms-settings',
     path: '/sms-settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedResellerRequestsRoute =
+  AuthenticatedResellerRequestsRouteImport.update({
+    id: '/reseller-requests',
+    path: '/reseller-requests',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedResellerProductsRoute =
@@ -405,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/reseller-products': typeof AuthenticatedResellerProductsRoute
+  '/reseller-requests': typeof AuthenticatedResellerRequestsRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
@@ -464,6 +472,7 @@ export interface FileRoutesByTo {
   '/orders': typeof AuthenticatedOrdersRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/reseller-products': typeof AuthenticatedResellerProductsRoute
+  '/reseller-requests': typeof AuthenticatedResellerRequestsRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
@@ -525,6 +534,7 @@ export interface FileRoutesById {
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/_authenticated/reseller-products': typeof AuthenticatedResellerProductsRoute
+  '/_authenticated/reseller-requests': typeof AuthenticatedResellerRequestsRoute
   '/_authenticated/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
@@ -587,6 +597,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/promo-codes'
     | '/reseller-products'
+    | '/reseller-requests'
     | '/sms-settings'
     | '/spotlights'
     | '/theme-builder'
@@ -646,6 +657,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/promo-codes'
     | '/reseller-products'
+    | '/reseller-requests'
     | '/sms-settings'
     | '/spotlights'
     | '/theme-builder'
@@ -706,6 +718,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orders'
     | '/_authenticated/promo-codes'
     | '/_authenticated/reseller-products'
+    | '/_authenticated/reseller-requests'
     | '/_authenticated/sms-settings'
     | '/_authenticated/spotlights'
     | '/_authenticated/theme-builder'
@@ -920,6 +933,13 @@ declare module '@tanstack/react-router' {
       path: '/sms-settings'
       fullPath: '/sms-settings'
       preLoaderRoute: typeof AuthenticatedSmsSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reseller-requests': {
+      id: '/_authenticated/reseller-requests'
+      path: '/reseller-requests'
+      fullPath: '/reseller-requests'
+      preLoaderRoute: typeof AuthenticatedResellerRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reseller-products': {
@@ -1196,6 +1216,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedPromoCodesRoute: typeof AuthenticatedPromoCodesRoute
   AuthenticatedResellerProductsRoute: typeof AuthenticatedResellerProductsRoute
+  AuthenticatedResellerRequestsRoute: typeof AuthenticatedResellerRequestsRoute
   AuthenticatedSmsSettingsRoute: typeof AuthenticatedSmsSettingsRoute
   AuthenticatedSpotlightsRoute: typeof AuthenticatedSpotlightsRoute
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
@@ -1228,6 +1249,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedPromoCodesRoute: AuthenticatedPromoCodesRoute,
   AuthenticatedResellerProductsRoute: AuthenticatedResellerProductsRoute,
+  AuthenticatedResellerRequestsRoute: AuthenticatedResellerRequestsRoute,
   AuthenticatedSmsSettingsRoute: AuthenticatedSmsSettingsRoute,
   AuthenticatedSpotlightsRoute: AuthenticatedSpotlightsRoute,
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
