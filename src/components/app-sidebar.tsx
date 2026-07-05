@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
+import { useQuery } from "@tanstack/react-query";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
