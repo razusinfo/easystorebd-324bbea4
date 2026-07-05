@@ -164,7 +164,7 @@ function AdminResellerOrdersPage() {
         </div>
       </header>
 
-      <Card className="p-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <Card className="p-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         <div>
           <Label className="text-xs">Sold By (reseller / store)</Label>
           <Input value={fReseller} onChange={(e) => setFReseller(e.target.value)} placeholder="name, email or store" />
@@ -174,6 +174,24 @@ function AdminResellerOrdersPage() {
           <Input value={fProduct} onChange={(e) => setFProduct(e.target.value)} placeholder="product name" />
         </div>
         <div>
+          <Label className="text-xs">Customer phone</Label>
+          <Input value={fPhone} onChange={(e) => setFPhone(e.target.value)} placeholder="e.g. 017…" />
+        </div>
+        <div>
+          <Label className="text-xs">Status</Label>
+          <Select value={fStatus} onValueChange={(v) => setFStatus(v as "all" | Status)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs">Tracking ID</Label>
+          <Input value={fTracking} onChange={(e) => setFTracking(e.target.value)} placeholder="tracking #" />
+        </div>
+        <div>
           <Label className="text-xs">Forwarded from</Label>
           <Input type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} />
         </div>
@@ -181,12 +199,13 @@ function AdminResellerOrdersPage() {
           <Label className="text-xs">Forwarded to</Label>
           <Input type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} />
         </div>
-        <div className="flex items-end">
-          <Button variant="outline" size="sm" onClick={() => { setFReseller(""); setFProduct(""); setFFrom(""); setFTo(""); }}>
+        <div className="flex items-end xl:col-span-7">
+          <Button variant="outline" size="sm" onClick={() => { setFReseller(""); setFProduct(""); setFPhone(""); setFStatus("all"); setFTracking(""); setFFrom(""); setFTo(""); }}>
             Clear filters
           </Button>
         </div>
       </Card>
+
 
 
       <Card className="overflow-x-auto">
