@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct, useAdminUsers,
   useAdminAuditLogs, useAssignRole, useRevokeRole,
+  useResellerMarketplaceAuditLogs,
   type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
 import { UICustomizer } from "@/components/admin/ui-customizer";
