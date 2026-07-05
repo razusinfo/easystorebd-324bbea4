@@ -236,6 +236,9 @@ function AdminRequestsList() {
 
       </div>
 
+      <MarketplaceStockReconciliationCard />
+
+
       <div className="relative max-w-md">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
