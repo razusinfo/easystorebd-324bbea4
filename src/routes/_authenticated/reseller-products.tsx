@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2, Trash2 } from "lucide-react";
+import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2, Trash2, Link2, AlertTriangle, Truck, ShieldCheck } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -729,6 +730,10 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const { t } = useI18n();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [agreementOpen, setAgreementOpen] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const supplierName = row.source?.trim() || "this supplier";
+  const agreementKey = `reseller-agreement-accepted:${supplierName}`;
   const [categoryId, setCategoryId] = useState<string>("");
   const [price, setPrice] = useState<string>(
     row.displayPrice != null ? String(row.displayPrice) : row.reseller_price != null ? String(row.reseller_price) : "",
@@ -855,6 +860,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   });
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
         type="button"
@@ -866,7 +872,18 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
             toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
             return;
           }
-          setOpen(true);
+          let accepted = false;
+          try {
+            accepted = typeof window !== "undefined" && window.localStorage.getItem(agreementKey) === "1";
+          } catch {
+            accepted = false;
+          }
+          if (accepted) {
+            setOpen(true);
+          } else {
+            setAgreed(false);
+            setAgreementOpen(true);
+          }
         }}
         disabled={disabled}
         aria-disabled={disabled || undefined}
@@ -1050,6 +1067,89 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <Dialog open={agreementOpen} onOpenChange={setAgreementOpen}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+              <Link2 className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <DialogTitle>Supplier Connection Agreement</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                You are about to connect with <span className="font-semibold text-foreground">{supplierName}</span>
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="rounded-lg bg-muted/60 p-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold">Single Supplier Policy</p>
+                <p className="text-xs text-muted-foreground">
+                  You can only connect with <span className="font-semibold">1 supplier</span> at a time. All products you add must come from this supplier. Switching requires admin approval.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-lg bg-muted/60 p-3">
+            <div className="flex items-start gap-2">
+              <Truck className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold">Platform Courier Only</p>
+                <p className="text-xs text-muted-foreground">
+                  All resell orders are fulfilled by the supplier and delivered via the <span className="font-semibold">platform courier</span>. You cannot use your own courier.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-lg bg-muted/60 p-3">
+            <div className="flex items-start gap-2">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold">Advance Return Charge</p>
+                <p className="text-xs text-muted-foreground">
+                  A refundable charge of <span className="font-semibold">৳60</span> is secured per forwarded shipment. It is returned after successful delivery.
+                </p>
+              </div>
+            </div>
+          </div>
+          <label className="flex items-start gap-2 pt-1">
+            <Checkbox
+              checked={agreed}
+              onCheckedChange={(v) => setAgreed(v === true)}
+              className="mt-0.5"
+            />
+            <span className="text-xs text-muted-foreground">
+              I understand and agree to the <span className="font-semibold text-foreground">supplier connection terms</span> and <span className="font-semibold text-foreground">reselling policies</span> outlined above.
+            </span>
+          </label>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setAgreementOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={!agreed}
+            onClick={() => {
+              try {
+                window.localStorage.setItem(agreementKey, "1");
+              } catch {
+                // ignore
+              }
+              setAgreementOpen(false);
+              setOpen(true);
+            }}
+          >
+            Agree & Continue
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
