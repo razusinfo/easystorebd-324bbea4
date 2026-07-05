@@ -41,7 +41,32 @@ type RequestRow = {
   reseller_price: number | null;
 };
 
+function RepairStockButton() {
+  const repairFn = useServerFn(adminRepairApprovedStock);
+  const m = useMutation({
+    mutationFn: () => repairFn({ data: {} }),
+    onSuccess: (r: { repaired: number; checked: number }) => {
+      toast.success(`Stock repair: ${r.repaired} fixed of ${r.checked} approved items checked.`);
+    },
+    onError: (e: Error) => toast.error(e.message || "Repair failed"),
+  });
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      disabled={m.isPending}
+      onClick={() => {
+        if (confirm("Backfill stock to 100 for approved reseller products currently stuck at 0?")) m.mutate();
+      }}
+    >
+      {m.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
+      Repair Stock
+    </Button>
+  );
+}
+
 function AdminRequestsPage() {
+
   const isAdmin = useIsSuperAdmin();
 
   if (isAdmin.isLoading) {
