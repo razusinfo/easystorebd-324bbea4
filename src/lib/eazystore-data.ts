@@ -9,6 +9,7 @@ import {
   adminListAuditLogs,
   adminAssignRole,
   adminRevokeRole,
+  adminListResellerAuditLogs,
 } from "@/lib/admin.functions";
 
 
