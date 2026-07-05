@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2 } from "lucide-react";
+import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
