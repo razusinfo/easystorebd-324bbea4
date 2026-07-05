@@ -80,6 +80,7 @@ import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$product
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
 import { Route as ApiPublicHooksResyncMarketplaceStockRouteImport } from './routes/api/public/hooks/resync-marketplace-stock'
+import { Route as ApiPublicHooksCourierStatusRouteImport } from './routes/api/public/hooks/courier-status'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 import { Route as AuthenticatedCategoriesIdEditRouteImport } from './routes/_authenticated/categories_.$id.edit'
 
@@ -459,6 +460,12 @@ const ApiPublicHooksResyncMarketplaceStockRoute =
     path: '/api/public/hooks/resync-marketplace-stock',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksCourierStatusRoute =
+  ApiPublicHooksCourierStatusRouteImport.update({
+    id: '/api/public/hooks/courier-status',
+    path: '/api/public/hooks/courier-status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedProductsProductIdEditRoute =
   AuthenticatedProductsProductIdEditRouteImport.update({
     id: '/products/$productId/edit',
@@ -541,6 +548,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug/': typeof SSlugIndexRoute
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -613,6 +621,7 @@ export interface FileRoutesByTo {
   '/s/$slug': typeof SSlugIndexRoute
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -689,6 +698,7 @@ export interface FileRoutesById {
   '/s/$slug/': typeof SSlugIndexRoute
   '/_authenticated/categories_/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
+  '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -765,6 +775,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/categories/$id/edit'
     | '/products/$productId/edit'
+    | '/api/public/hooks/courier-status'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -837,6 +848,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/categories/$id/edit'
     | '/products/$productId/edit'
+    | '/api/public/hooks/courier-status'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -912,6 +924,7 @@ export interface FileRouteTypes {
     | '/s/$slug/'
     | '/_authenticated/categories_/$id/edit'
     | '/_authenticated/products/$productId/edit'
+    | '/api/public/hooks/courier-status'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -938,6 +951,7 @@ export interface RootRouteChildren {
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
+  ApiPublicHooksCourierStatusRoute: typeof ApiPublicHooksCourierStatusRoute
   ApiPublicHooksResyncMarketplaceStockRoute: typeof ApiPublicHooksResyncMarketplaceStockRoute
   ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
@@ -1442,6 +1456,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksResyncMarketplaceStockRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/courier-status': {
+      id: '/api/public/hooks/courier-status'
+      path: '/api/public/hooks/courier-status'
+      fullPath: '/api/public/hooks/courier-status'
+      preLoaderRoute: typeof ApiPublicHooksCourierStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/products/$productId/edit': {
       id: '/_authenticated/products/$productId/edit'
       path: '/products/$productId/edit'
@@ -1621,6 +1642,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
+  ApiPublicHooksCourierStatusRoute: ApiPublicHooksCourierStatusRoute,
   ApiPublicHooksResyncMarketplaceStockRoute:
     ApiPublicHooksResyncMarketplaceStockRoute,
   ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
