@@ -136,6 +136,22 @@ function ResellerProductsPage() {
 
   const merged = q.data ?? [];
 
+  // Delivered reseller orders — counted live from the DB, plus a fixed baseline
+  // so historical deliveries are represented. New deliveries increment this.
+  const DELIVERY_BASELINE = 58;
+  const deliveredQ = useQuery({
+    queryKey: ["reseller_orders_delivered_count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("reseller_orders")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "delivered");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+  const primaryDeliveries = DELIVERY_BASELINE + (deliveredQ.data ?? 0);
+
   const suppliers = useMemo(() => {
     const counts = new Map<string, number>();
     for (const r of merged) {
@@ -295,7 +311,9 @@ function ResellerProductsPage() {
                     </div>
                     <div className="rounded-md bg-muted/50 px-2 py-1.5">
                       <p className="text-[10px] text-muted-foreground">Delivery</p>
-                      <p className="text-sm font-bold">৳0</p>
+                      <p className="text-sm font-bold">
+                        {s.name === PRIMARY_SUPPLIER ? primaryDeliveries : 0}
+                      </p>
                     </div>
                   </div>
                 </button>
