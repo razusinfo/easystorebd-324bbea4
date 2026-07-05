@@ -120,6 +120,22 @@ function AdminRequestsList() {
     },
   });
 
+  // Distinct categories currently used in the reseller marketplace, for the
+  // category selector in the Approve dialog.
+  const categoriesQ = useQuery({
+    queryKey: ["reseller-product-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("reseller_products").select("category");
+      if (error) throw error;
+      const set = new Set<string>();
+      for (const r of (data ?? []) as { category: string | null }[]) {
+        if (r.category && r.category.trim()) set.add(r.category.trim());
+      }
+      return Array.from(set).sort((a, b) => a.localeCompare(b));
+    },
+  });
+  const existingCategories = categoriesQ.data ?? [];
+
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["admin-product-requests"] });
     qc.invalidateQueries({ queryKey: ["pending-product-requests"] });
