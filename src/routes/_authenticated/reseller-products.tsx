@@ -248,6 +248,7 @@ function ResellerProductsPage() {
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {userId && <EditResellerButton row={p} userId={userId} />}
+                    {isSuperAdmin.data && <AdminRevokeButton row={p} />}
                   </div>
 
                 </div>
