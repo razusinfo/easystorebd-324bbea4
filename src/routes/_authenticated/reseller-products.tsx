@@ -238,7 +238,7 @@ function ResellerProductsPage() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => { setSupplier(ALL); setTab(ALL); }}
+              onClick={() => { setSupplier(ALL); setTab(ALL); setSearch(""); }}
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                 supplier === ALL
                   ? "border-primary bg-primary text-primary-foreground"
@@ -251,7 +251,8 @@ function ResellerProductsPage() {
               <button
                 key={s.name}
                 type="button"
-                onClick={() => { setSupplier(s.name); setTab(ALL); }}
+                onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
+
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                   supplier === s.name
                     ? "border-primary bg-primary text-primary-foreground"
