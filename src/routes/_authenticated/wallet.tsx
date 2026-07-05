@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Download } from "lucide-react";
+import { Download, Send } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   component: WalletPage,
@@ -134,13 +134,18 @@ function WalletPage() {
             Every credit and debit on your account. Balance reflects outstanding platform charges.
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => download(`wallet-ledger-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(entries))}
-          disabled={!entries.length}
-        >
-          <Download className="h-4 w-4 mr-2" /> Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="default">
+            <Link to="/payouts"><Send className="h-4 w-4 mr-2" /> Payouts</Link>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => download(`wallet-ledger-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(entries))}
+            disabled={!entries.length}
+          >
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
+        </div>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-3">
