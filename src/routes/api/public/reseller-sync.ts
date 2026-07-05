@@ -38,6 +38,19 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
             ? null
             : Number(resellerPriceRaw);
 
+        // Stock: honor the webhook value when provided; otherwise seed to a
+        // safe default so the marketplace card doesn't render as "Out of
+        // Stock" the moment the product is synced. External sources that
+        // don't track stock can still update it later via the same webhook.
+        const stockRaw = body.stock;
+        const parsedStock = stockRaw === null || stockRaw === undefined || stockRaw === ""
+          ? null
+          : Number(stockRaw);
+        const stockNum =
+          parsedStock != null && Number.isFinite(parsedStock) && parsedStock >= 0
+            ? Math.trunc(parsedStock)
+            : 100;
+
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error } = await supabaseAdmin
           .from("reseller_products")
@@ -49,6 +62,7 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
               image: (body.image as string | null) ?? null,
               price: Number.isFinite(priceNum) ? priceNum : 0,
               reseller_price: resellerPrice != null && Number.isFinite(resellerPrice) ? resellerPrice : null,
+              stock: stockNum,
               source: (body.source as string | null) ?? "product-sales",
               payload: body as never,
               updated_at: new Date().toISOString(),
