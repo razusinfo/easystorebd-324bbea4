@@ -192,7 +192,7 @@ function AdminResellerOrdersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {q.data?.length ? q.data.map((r) => (
+            {filtered.length ? filtered.map((r) => (
               <Fragment key={r.id}>
               <TableRow>
                 <TableCell>
