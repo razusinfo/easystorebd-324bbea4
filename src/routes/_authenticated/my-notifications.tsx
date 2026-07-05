@@ -102,6 +102,29 @@ function MyNotificationsPage() {
         </button>
       </div>
 
+      <div className="mb-3 flex flex-wrap gap-2">
+        {([
+          { id: "all", label: "All", icon: Bell },
+          { id: "unread", label: `Unread (${unread})`, icon: Bell },
+          { id: "approved", label: "Approved", icon: Check },
+          { id: "rejected", label: "Rejected", icon: X },
+        ] as const).map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs ${
+              filter === f.id
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            <f.icon className="h-3 w-3" />
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+
       {q.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : rows.length === 0 ? (
