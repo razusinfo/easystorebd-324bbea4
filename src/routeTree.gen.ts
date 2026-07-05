@@ -28,6 +28,7 @@ import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as AccountReviewsRouteImport } from './routes/account.reviews'
 import { Route as AccountReturnsRouteImport } from './routes/account.returns'
 import { Route as AccountOrdersRouteImport } from './routes/account.orders'
+import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
@@ -172,6 +173,11 @@ const AccountOrdersRoute = AccountOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
   getParentRoute: () => AccountRoute,
+} as any)
+const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUpgradeRoute = AuthenticatedUpgradeRouteImport.update({
   id: '/upgrade',
@@ -485,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
+  '/wallet': typeof AuthenticatedWalletRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
@@ -554,6 +561,7 @@ export interface FileRoutesByTo {
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
+  '/wallet': typeof AuthenticatedWalletRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
@@ -625,6 +633,7 @@ export interface FileRoutesById {
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
+  '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/account/orders': typeof AccountOrdersRouteWithChildren
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
@@ -697,6 +706,7 @@ export interface FileRouteTypes {
     | '/theme-builder'
     | '/themes'
     | '/upgrade'
+    | '/wallet'
     | '/account/orders'
     | '/account/returns'
     | '/account/reviews'
@@ -766,6 +776,7 @@ export interface FileRouteTypes {
     | '/theme-builder'
     | '/themes'
     | '/upgrade'
+    | '/wallet'
     | '/account/orders'
     | '/account/returns'
     | '/account/reviews'
@@ -836,6 +847,7 @@ export interface FileRouteTypes {
     | '/_authenticated/theme-builder'
     | '/_authenticated/themes'
     | '/_authenticated/upgrade'
+    | '/_authenticated/wallet'
     | '/account/orders'
     | '/account/returns'
     | '/account/reviews'
@@ -1027,6 +1039,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/account/orders'
       preLoaderRoute: typeof AccountOrdersRouteImport
       parentRoute: typeof AccountRoute
+    }
+    '/_authenticated/wallet': {
+      id: '/_authenticated/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/upgrade': {
       id: '/_authenticated/upgrade'
@@ -1409,6 +1428,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
+  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedCategoriesNewRoute: typeof AuthenticatedCategoriesNewRoute
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
   AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
@@ -1447,6 +1467,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
+  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedCategoriesNewRoute: AuthenticatedCategoriesNewRoute,
   AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
   AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
