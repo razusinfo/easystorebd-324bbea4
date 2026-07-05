@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { adminListUsers } from "@/lib/admin.functions";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ function AdminSupportPage() {
   const [activeUser, setActiveUser] = useState<string | null>(null);
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const listUsers = useServerFn(adminListUsers);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setAdminId(data.user?.id ?? null));
@@ -49,8 +52,7 @@ function AdminSupportPage() {
   const usersQ = useQuery({
     queryKey: ["support_users_list"],
     queryFn: async (): Promise<UserInfo[]> => {
-      const { data, error } = await supabase.rpc("admin_list_users");
-      if (error) throw error;
+      const data = await listUsers();
       return (data ?? []).map((u) => ({
         user_id: u.user_id,
         email: u.email,

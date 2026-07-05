@@ -17,6 +17,7 @@ export const upsertLocalResellerProduct = createServerFn({ method: "POST" })
       price: z.number(),
       reseller_price: z.number().nullable().optional(),
       category: z.string().nullable().optional(),
+      stock: z.number().int().nonnegative().max(1_000_000).optional(),
     }),
   )
   .handler(async ({ data, context }) => {
@@ -60,6 +61,9 @@ export const upsertLocalResellerProduct = createServerFn({ method: "POST" })
           price: data.price,
           reseller_price: data.reseller_price ?? null,
           category: data.category ?? null,
+          // Seed a positive stock so the marketplace card doesn't render as
+          // "Out of Stock" the moment the admin pushes it live.
+          stock: data.stock ?? 100,
           source: "internal",
           updated_at: new Date().toISOString(),
         },
