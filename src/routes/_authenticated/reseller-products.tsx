@@ -70,6 +70,13 @@ type DisplayRow = ResellerRow & {
 };
 
 const PRIMARY_SUPPLIER = "Sylheti Online Shop";
+// Internal sync sources that all represent the primary shop, not an external supplier.
+const INTERNAL_SOURCES = new Set(["trigger", "internal", "sylheti", "sylheti online shop"]);
+function normalizeSupplier(source: string | null | undefined): string {
+  const s = (source ?? "").trim();
+  if (!s || INTERNAL_SOURCES.has(s.toLowerCase())) return PRIMARY_SUPPLIER;
+  return s;
+}
 
 function ResellerProductsPage() {
   const { t } = useI18n();
@@ -131,7 +138,7 @@ function ResellerProductsPage() {
   const suppliers = useMemo(() => {
     const counts = new Map<string, number>();
     for (const r of merged) {
-      const s = (r.source && r.source.trim()) || PRIMARY_SUPPLIER;
+      const s = normalizeSupplier(r.source);
       counts.set(s, (counts.get(s) ?? 0) + 1);
     }
     const list = Array.from(counts.entries()).map(([name, count]) => ({ name, count }));
@@ -145,7 +152,7 @@ function ResellerProductsPage() {
 
   const bySupplier = useMemo(() => {
     if (supplier === ALL) return merged;
-    return merged.filter((r) => ((r.source && r.source.trim()) || PRIMARY_SUPPLIER) === supplier);
+    return merged.filter((r) => normalizeSupplier(r.source) === supplier);
   }, [merged, supplier]);
 
   const categories = useMemo(() => {
