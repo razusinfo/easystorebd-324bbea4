@@ -34,6 +34,21 @@ export const Route = createFileRoute("/api/public/orders/place")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
+        // Authenticate the caller. This endpoint places real orders and
+        // triggers paid SMS + transactional email notifications; without a
+        // shared secret any internet user could fabricate orders and use the
+        // platform's sending reputation to spam arbitrary phones/emails.
+        const secret = process.env.RESELLER_WEBHOOK_SECRET;
+        if (!secret) {
+          return json({ error: "Orders API not configured" }, 500);
+        }
+        const provided =
+          request.headers.get("x-webhook-secret") ??
+          (request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "");
+        if (!provided || provided !== secret) {
+          return json({ error: "Unauthorized" }, 401);
+        }
+
         let body: unknown;
         try {
           body = await request.json();
