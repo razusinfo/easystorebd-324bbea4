@@ -35,6 +35,8 @@ function ResellerRequestsPage() {
         </p>
       </div>
 
+      <HighlightedRequestCard />
+
       <SubmitRequestForm />
 
       {isAdmin.data ? (
