@@ -70,6 +70,13 @@ type DisplayRow = ResellerRow & {
 };
 
 const PRIMARY_SUPPLIER = "Sylheti Online Shop";
+// Internal sync sources that all represent the primary shop, not an external supplier.
+const INTERNAL_SOURCES = new Set(["trigger", "internal", "sylheti", "sylheti online shop"]);
+function normalizeSupplier(source: string | null | undefined): string {
+  const s = (source ?? "").trim();
+  if (!s || INTERNAL_SOURCES.has(s.toLowerCase())) return PRIMARY_SUPPLIER;
+  return s;
+}
 
 function ResellerProductsPage() {
   const { t } = useI18n();
