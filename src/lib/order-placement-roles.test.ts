@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateOrderInsert, type OrderInsertPayload, type StoreState, type SessionState } from "./order-placement-rls";
+import { canInsertOrder, type OrderInsertPayload, type StoreState, type SessionState } from "./order-placement-rls.test";
 
 // End-to-end style role coverage for the Place Order flow. Verifies the
 // insert policy model allows all three checkout scenarios that shoppers hit
