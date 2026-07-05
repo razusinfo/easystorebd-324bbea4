@@ -39,7 +39,7 @@ function MyOrdersPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, product_name, customer_name, customer_phone, shipping_address, quantity, reseller_price, status, created_at")
+        .select("id, product_name, customer_name, customer_phone, shipping_address, quantity, reseller_price, status, source, source_order_id, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -80,9 +80,18 @@ function MyOrdersPage() {
           </TableHeader>
           <TableBody>
             {orders.data?.length ? (
-              orders.data.map((o) => (
+              orders.data.map((o) => {
+                const forwarded = o.source === "storefront" || !!o.source_order_id;
+                return (
                 <TableRow key={o.id}>
-                  <TableCell className="font-medium">{o.product_name}</TableCell>
+                  <TableCell className="font-medium">
+                    {o.product_name}
+                    {forwarded && (
+                      <div className="mt-1">
+                        <Badge variant="secondary" className="text-[10px]">Forwarded to Super Admin</Badge>
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div>{o.customer_name}</div>
                     {o.customer_phone && <div className="text-xs text-muted-foreground">{o.customer_phone}</div>}
@@ -91,13 +100,16 @@ function MyOrdersPage() {
                   <TableCell className="text-right">{o.quantity}</TableCell>
                   <TableCell className="text-right">{fmt(Number(o.reseller_price) * o.quantity)}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_COLORS[o.status] ?? "outline"}>{o.status}</Badge>
+                    <Badge variant={STATUS_COLORS[o.status] ?? "outline"}>
+                      {forwarded ? `${o.status} · admin fulfilling` : o.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {new Date(o.created_at).toLocaleString()}
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">

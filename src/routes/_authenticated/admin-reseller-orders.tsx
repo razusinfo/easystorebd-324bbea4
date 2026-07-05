@@ -38,6 +38,7 @@ function fmt(n: number | null | undefined) {
 type Row = {
   id: string;
   reseller_id: string;
+  reseller_product_id: string;
   product_name: string;
   customer_name: string;
   customer_phone: string | null;
@@ -50,8 +51,12 @@ type Row = {
   status: Status;
   shipping_requested: boolean;
   notes: string | null;
+  source: string | null;
+  source_order_id: string | null;
+  source_store_id: string | null;
   created_at: string;
   reseller?: { full_name: string | null; email: string } | null;
+  store_name?: string | null;
 };
 
 function AdminResellerOrdersPage() {
@@ -63,16 +68,26 @@ function AdminResellerOrdersPage() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, reseller_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, created_at")
+        .select("id, reseller_id, reseller_product_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, source, source_order_id, source_store_id, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      const rows = (data ?? []) as Row[];
-      // Fetch reseller names via server fn (super_admin only).
+      const rows = (data ?? []) as unknown as Row[];
       const users = await listUsers().catch(() => [] as Array<{ user_id: string; full_name: string | null; email: string }>);
       const map = new Map<string, { full_name: string | null; email: string }>();
       for (const u of users ?? []) map.set(u.user_id, { full_name: u.full_name, email: u.email });
-      return rows.map((r) => ({ ...r, reseller: map.get(r.reseller_id) ?? null }));
+
+      const storeIds = Array.from(new Set(rows.map((r) => r.source_store_id).filter(Boolean))) as string[];
+      const storeMap = new Map<string, string>();
+      if (storeIds.length) {
+        const { data: stores } = await supabase.from("stores").select("id, name").in("id", storeIds);
+        (stores ?? []).forEach((s) => storeMap.set(s.id, s.name ?? ""));
+      }
+      return rows.map((r) => ({
+        ...r,
+        reseller: map.get(r.reseller_id) ?? null,
+        store_name: r.source_store_id ? storeMap.get(r.source_store_id) ?? null : null,
+      }));
     },
   });
 
@@ -114,8 +129,8 @@ function AdminResellerOrdersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Reseller</TableHead>
-              <TableHead>Product</TableHead>
+              <TableHead>Sold By</TableHead>
+              <TableHead>Source Product</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Ship to</TableHead>
               <TableHead className="text-right">Qty</TableHead>
@@ -131,8 +146,22 @@ function AdminResellerOrdersPage() {
                 <TableCell>
                   <div className="font-medium">{r.reseller?.full_name ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">{r.reseller?.email ?? r.reseller_id.slice(0, 8)}</div>
+                  {r.store_name && (
+                    <div className="text-[11px] text-muted-foreground">Store: {r.store_name}</div>
+                  )}
+                  {r.source === "storefront" && (
+                    <Badge variant="secondary" className="mt-1 text-[10px]">Storefront order</Badge>
+                  )}
                 </TableCell>
-                <TableCell>{r.product_name}</TableCell>
+                <TableCell>
+                  <div className="font-medium">{r.product_name}</div>
+                  <a
+                    href={`/admin-reseller-adopters?rp=${r.reseller_product_id}`}
+                    className="text-xs text-primary underline"
+                  >
+                    View source · deducts stock
+                  </a>
+                </TableCell>
                 <TableCell>
                   <div>{r.customer_name}</div>
                   {r.customer_phone && <div className="text-xs text-muted-foreground">{r.customer_phone}</div>}
@@ -167,7 +196,7 @@ function AdminResellerOrdersPage() {
                   <TableCell colSpan={8} className="py-2">
                     <div className="flex items-start gap-2 text-sm">
                       <span className="rounded bg-amber-200 dark:bg-amber-800 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-900 dark:text-amber-100">
-                        Reseller note
+                        Note
                       </span>
                       <p className="whitespace-pre-wrap text-amber-900 dark:text-amber-100">{r.notes}</p>
                     </div>
