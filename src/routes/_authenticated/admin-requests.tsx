@@ -321,30 +321,41 @@ function AdminRequestsList() {
 
 
 function RequestCard({
-  row, resellerName, onDone,
+  row, resellerName, existingCategories, onDone,
 }: {
   row: RequestRow;
   resellerName: string;
+  existingCategories: string[];
   onDone: () => void;
 }) {
+  const qc = useQueryClient();
   const approveFn = useServerFn(approveProductRequest);
   const rejectFn = useServerFn(rejectProductRequest);
   const [approveOpen, setApproveOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [resellerPrice, setResellerPrice] = useState<string>(String(row.price));
   const [adminNotes, setAdminNotes] = useState("");
   const [rejectNotes, setRejectNotes] = useState("");
+
+  // Category selection for Approve dialog: dropdown (existing) or "__new__".
+  const NEW_KEY = "__new__";
+  const initialCatKey = row.category && existingCategories.includes(row.category) ? row.category : row.category ? NEW_KEY : "";
+  const [categoryKey, setCategoryKey] = useState<string>(initialCatKey);
+  const [newCategory, setNewCategory] = useState<string>(row.category && !existingCategories.includes(row.category) ? row.category : "");
 
   const approve = useMutation({
     mutationFn: async () => {
       const p = Number(resellerPrice);
       if (!Number.isFinite(p) || p < 0) throw new Error("Enter a valid reseller price");
+      const cat = categoryKey === NEW_KEY ? newCategory.trim() : categoryKey || null;
       return approveFn({
-        data: { request_id: row.id, reseller_price: p, admin_notes: adminNotes || null },
+        data: { request_id: row.id, reseller_price: p, admin_notes: adminNotes || null, category: cat || null },
       });
     },
     onSuccess: () => {
       toast.success("Request approved — added to Reseller Products.");
       setApproveOpen(false);
+      qc.invalidateQueries({ queryKey: ["reseller-product-categories"] });
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
