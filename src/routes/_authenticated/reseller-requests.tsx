@@ -72,7 +72,7 @@ function HighlightedRequestCard() {
       return data;
     },
   });
-  if (!id || !q.data) return null;
+  if (!id || !q.data || q.data.status === "approved") return null;
   const r = q.data;
   const tone =
     r.status === "approved"
@@ -346,7 +346,8 @@ function MyRequestsList() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const rows = q.data ?? [];
+  // Hide approved requests — once approved, the product lives in Reseller Products.
+  const rows = (q.data ?? []).filter((r: any) => r.status !== "approved");
 
   return (
     <Card>
