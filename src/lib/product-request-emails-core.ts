@@ -23,13 +23,15 @@ export function resellerProductsUrl(origin: string = resolveSiteOrigin()): strin
 }
 
 function shell(brand: string, heading: string, body: string): string {
+  const safeBrand = escapeHtml(brand);
+  const safeHeading = escapeHtml(heading);
   return `<!doctype html><html><body style="margin:0;padding:0;background:#f6f7fb;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7fb;padding:24px 0">
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-        <tr><td style="padding:20px 24px;background:#0f172a;color:#fff;font-weight:700;font-size:16px">${brand}</td></tr>
+        <tr><td style="padding:20px 24px;background:#0f172a;color:#fff;font-weight:700;font-size:16px">${safeBrand}</td></tr>
         <tr><td style="padding:24px">
-          <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a">${heading}</h1>
+          <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a">${safeHeading}</h1>
           ${body}
         </td></tr>
       </table>
@@ -38,7 +40,10 @@ function shell(brand: string, heading: string, body: string): string {
 }
 
 function primaryButton(href: string, label: string): string {
-  return `<a href="${href}" style="display:inline-block;margin:16px 0;padding:12px 20px;background:#0f172a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">${label}</a>`;
+  // Only http(s) URLs are allowed as the CTA href so a caller can't smuggle
+  // `javascript:` or `data:` links into the button.
+  const safeHref = /^https?:\/\//i.test(href) ? escapeHtml(href) : "#";
+  return `<a href="${safeHref}" style="display:inline-block;margin:16px 0;padding:12px 20px;background:#0f172a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">${escapeHtml(label)}</a>`;
 }
 
 export type SubmittedInput = {
