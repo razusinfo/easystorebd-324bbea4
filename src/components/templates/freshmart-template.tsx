@@ -83,7 +83,7 @@ function useCountdown(targetHours = 12) {
 export function FreshmartTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
-  const accent = accentColor || "#166534";
+  const accent = sanitizeHexColor(accentColor, "#166534");
   const yellow = "#fbbf24";
   const rgb = hexToRgb(accent) ?? "22, 101, 52";
   const name = (store?.name ?? "FRESHMART").toUpperCase();
