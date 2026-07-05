@@ -938,11 +938,14 @@ export type Database = {
       }
       reseller_orders: {
         Row: {
+          courier_provider: string | null
+          courier_status: string | null
           created_at: string
           customer_email: string | null
           customer_name: string
           customer_phone: string | null
           customer_price: number | null
+          delivered_at: string | null
           id: string
           notes: string | null
           original_price: number
@@ -952,6 +955,7 @@ export type Database = {
           reseller_id: string
           reseller_price: number
           reseller_product_id: string
+          settled_at: string | null
           shipping_address: string
           shipping_requested: boolean
           source: string | null
@@ -964,11 +968,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          courier_provider?: string | null
+          courier_status?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name: string
           customer_phone?: string | null
           customer_price?: number | null
+          delivered_at?: string | null
           id?: string
           notes?: string | null
           original_price?: number
@@ -978,6 +985,7 @@ export type Database = {
           reseller_id: string
           reseller_price?: number
           reseller_product_id: string
+          settled_at?: string | null
           shipping_address: string
           shipping_requested?: boolean
           source?: string | null
@@ -990,11 +998,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          courier_provider?: string | null
+          courier_status?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string | null
           customer_price?: number | null
+          delivered_at?: string | null
           id?: string
           notes?: string | null
           original_price?: number
@@ -1004,6 +1015,7 @@ export type Database = {
           reseller_id?: string
           reseller_price?: number
           reseller_product_id?: string
+          settled_at?: string | null
           shipping_address?: string
           shipping_requested?: boolean
           source?: string | null
@@ -1581,6 +1593,49 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      mark_reseller_order_delivered: {
+        Args: {
+          _external_status?: string
+          _order_id: string
+          _provider?: string
+        }
+        Returns: {
+          courier_provider: string | null
+          courier_status: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          customer_price: number | null
+          delivered_at: string | null
+          id: string
+          notes: string | null
+          original_price: number
+          product_name: string
+          profit_margin: number
+          quantity: number
+          reseller_id: string
+          reseller_price: number
+          reseller_product_id: string
+          settled_at: string | null
+          shipping_address: string
+          shipping_requested: boolean
+          source: string | null
+          source_order_id: string | null
+          source_order_item_id: string | null
+          source_store_id: string | null
+          status: Database["public"]["Enums"]["reseller_order_status"]
+          tracking_id: string | null
+          tracking_url: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reseller_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       reconcile_reseller_stock: {
         Args: { _rp_id: string }
