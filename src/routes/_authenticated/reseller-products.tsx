@@ -351,10 +351,12 @@ function ResellerProductsPage() {
               onValueChange={(v) => { setSupplier(v); setTab(ALL); }}
             >
               <SelectTrigger className="h-9 w-[180px]">
-                <SelectValue placeholder="Supplier" />
+                <SelectValue placeholder="Select Supplier">
+                  {supplier === ALL ? "Select Supplier" : supplier}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>All suppliers ({merged.length})</SelectItem>
+                <SelectItem value={ALL}>Select Supplier</SelectItem>
                 {suppliers.map((s) => (
                   <SelectItem key={s.name} value={s.name}>
                     {s.name} ({s.count})
