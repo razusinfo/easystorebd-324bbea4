@@ -23,6 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MarketplaceStockReconciliationCard } from "@/components/admin/marketplace-stock-reconciliation-card";
 
 export const Route = createFileRoute("/_authenticated/admin-requests")({
   component: AdminRequestsPage,
