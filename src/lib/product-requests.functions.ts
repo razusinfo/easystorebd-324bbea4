@@ -217,6 +217,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       request_id: z.string().uuid(),
       reseller_price: z.number().nonnegative().max(10_000_000),
       admin_notes: z.string().max(1000).optional().nullable(),
+      category: z.string().trim().max(120).optional().nullable().transform((v) => (v && v.length > 0 ? v : null)),
     }),
   )
   .handler(async ({ data, context }) => {
