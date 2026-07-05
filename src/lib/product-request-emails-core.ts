@@ -2,6 +2,8 @@
 // Exported so unit tests can assert exact Resend payloads and CTA URLs
 // without touching the network.
 
+import { escapeHtml } from "@/lib/html-escape";
+
 export const DEFAULT_SITE_ORIGIN = "https://eazystorebd.lovable.app";
 export const ADMIN_REQUESTS_PATH = "/admin";
 // Reseller-facing marketplace page (matches src/routes/_authenticated/reseller-products.tsx).
