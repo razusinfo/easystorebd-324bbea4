@@ -123,7 +123,11 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>
+              {mainItems
+                .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
+                .map(renderItem)}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
