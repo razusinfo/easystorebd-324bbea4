@@ -321,8 +321,32 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       queryClient.invalidateQueries({ queryKey: ["public-store"] });
       queryClient.invalidateQueries({ queryKey: ["products", store?.id] });
 
-      // Sync to reseller marketplace if enabled.
-      if (form.addToReseller) {
+      // Sync to reseller marketplace (super admin only) or submit a request
+      // (regular reseller) if enabled.
+      if (form.addToReseller && !isSuperAdmin) {
+        const primaryCatId = form.categoryIds[0];
+        const categoryName =
+          (categoriesQ.data ?? []).find((c) => c.id === primaryCatId)?.name ?? null;
+        const resellerPriceNum =
+          form.resellerPrice !== "" ? Number(form.resellerPrice) : Number(form.sellPrice);
+        try {
+          const gallery = [form.imageUrl, ...form.galleryUrls].filter(
+            (u): u is string => !!u && /^https?:\/\//i.test(u),
+          );
+          await submitProductRequest({
+            data: {
+              name: form.name.trim(),
+              description: form.description.trim() || null,
+              price: resellerPriceNum,
+              category: categoryName,
+              images: gallery.slice(0, 8),
+            },
+          });
+          toast.success("Marketplace request submitted for review.");
+        } catch (err: any) {
+          toast.error(err?.message ?? "Failed to submit marketplace request");
+        }
+      } else if (form.addToReseller && isSuperAdmin) {
         const productId = (upsert.data as { id: string } | undefined)?.id ?? editing?.id ?? "";
         // Resolve primary category name from the selected category ids.
         const primaryCatId = form.categoryIds[0];
