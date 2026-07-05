@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.log_wallet_change() FROM PUBLIC, anon, authenticated;
