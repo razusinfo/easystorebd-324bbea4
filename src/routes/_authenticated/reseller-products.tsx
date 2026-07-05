@@ -14,10 +14,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMyStore, uploadProductImage } from "@/lib/eazystore-data";
+import { useMyStore, uploadProductImage, useIsSuperAdmin } from "@/lib/eazystore-data";
 import { useCategories } from "@/lib/categories-data";
 import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
+import { revokeResellerProduct } from "@/lib/admin-settings.functions";
 import { useI18n } from "@/lib/i18n";
 import { sortOutOfStockToBottom, computeIsOutOfStock } from "@/lib/stock-sync-core";
 
