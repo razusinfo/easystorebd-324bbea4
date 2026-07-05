@@ -111,6 +111,9 @@ function AdminResellerOrdersPage() {
 
   const [fReseller, setFReseller] = useState("");
   const [fProduct, setFProduct] = useState("");
+  const [fPhone, setFPhone] = useState("");
+  const [fStatus, setFStatus] = useState<"all" | Status>("all");
+  const [fTracking, setFTracking] = useState("");
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
 
@@ -118,6 +121,8 @@ function AdminResellerOrdersPage() {
     const rows = q.data ?? [];
     const rq = fReseller.trim().toLowerCase();
     const pq = fProduct.trim().toLowerCase();
+    const phq = fPhone.trim().toLowerCase();
+    const tq = fTracking.trim().toLowerCase();
     const from = fFrom ? new Date(fFrom).getTime() : null;
     const to = fTo ? new Date(fTo).getTime() + 86_400_000 : null;
     return rows.filter((r) => {
@@ -126,12 +131,16 @@ function AdminResellerOrdersPage() {
         if (!hay.includes(rq)) return false;
       }
       if (pq && !r.product_name.toLowerCase().includes(pq)) return false;
+      if (phq && !(r.customer_phone ?? "").toLowerCase().includes(phq)) return false;
+      if (fStatus !== "all" && r.status !== fStatus) return false;
+      if (tq && !(r.tracking_id ?? "").toLowerCase().includes(tq)) return false;
       const t = new Date(r.created_at).getTime();
       if (from != null && t < from) return false;
       if (to != null && t >= to) return false;
       return true;
     });
-  }, [q.data, fReseller, fProduct, fFrom, fTo]);
+  }, [q.data, fReseller, fProduct, fPhone, fStatus, fTracking, fFrom, fTo]);
+
 
   const totalProfit = filtered.reduce((s, r) => s + Number(r.profit_margin || 0), 0);
   const pendingShip = filtered.filter((r) => r.shipping_requested && r.status !== "delivered" && r.status !== "cancelled").length;
@@ -155,7 +164,7 @@ function AdminResellerOrdersPage() {
         </div>
       </header>
 
-      <Card className="p-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <Card className="p-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         <div>
           <Label className="text-xs">Sold By (reseller / store)</Label>
           <Input value={fReseller} onChange={(e) => setFReseller(e.target.value)} placeholder="name, email or store" />
@@ -165,6 +174,24 @@ function AdminResellerOrdersPage() {
           <Input value={fProduct} onChange={(e) => setFProduct(e.target.value)} placeholder="product name" />
         </div>
         <div>
+          <Label className="text-xs">Customer phone</Label>
+          <Input value={fPhone} onChange={(e) => setFPhone(e.target.value)} placeholder="e.g. 017…" />
+        </div>
+        <div>
+          <Label className="text-xs">Status</Label>
+          <Select value={fStatus} onValueChange={(v) => setFStatus(v as "all" | Status)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs">Tracking ID</Label>
+          <Input value={fTracking} onChange={(e) => setFTracking(e.target.value)} placeholder="tracking #" />
+        </div>
+        <div>
           <Label className="text-xs">Forwarded from</Label>
           <Input type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} />
         </div>
@@ -172,12 +199,13 @@ function AdminResellerOrdersPage() {
           <Label className="text-xs">Forwarded to</Label>
           <Input type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} />
         </div>
-        <div className="flex items-end">
-          <Button variant="outline" size="sm" onClick={() => { setFReseller(""); setFProduct(""); setFFrom(""); setFTo(""); }}>
+        <div className="flex items-end xl:col-span-7">
+          <Button variant="outline" size="sm" onClick={() => { setFReseller(""); setFProduct(""); setFPhone(""); setFStatus("all"); setFTracking(""); setFFrom(""); setFTo(""); }}>
             Clear filters
           </Button>
         </div>
       </Card>
+
 
 
       <Card className="overflow-x-auto">
