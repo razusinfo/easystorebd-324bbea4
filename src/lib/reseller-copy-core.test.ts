@@ -27,7 +27,8 @@ describe("runCopyResellerProduct (role-based)", () => {
       stores: { maybeSingle: { data: { id: "store-1" }, error: null } },
       product_categories: { maybeSingle: { data: { id: INPUT.category_id }, error: null } },
       products: [
-        { maybeSingle: { data: null, error: null } }, // dedup lookup
+        { maybeSingle: { data: null, error: null } }, // dedup lookup by link
+        { maybeSingle: { data: null, error: null } }, // dedup lookup by name
         { single: { data: { id: "new-product-id" }, error: null } }, // insert
       ],
       reseller_marketplace_audit_logs: {},
@@ -105,7 +106,8 @@ describe("runCopyResellerProduct (role-based)", () => {
       product_categories: { maybeSingle: { data: { id: INPUT.category_id }, error: null } },
       products: [
         { maybeSingle: { data: originalProduct, error: null } }, // fetch original media
-        { maybeSingle: { data: null, error: null } }, // dedup lookup
+        { maybeSingle: { data: null, error: null } }, // dedup lookup by link
+        { maybeSingle: { data: null, error: null } }, // dedup lookup by name
         { single: { data: { id: "new-product-id" }, error: null } }, // insert
       ],
       reseller_marketplace_audit_logs: {},
@@ -150,5 +152,39 @@ describe("runCopyResellerProduct (role-based)", () => {
       },
     });
   });
+
+  it("re-adding an existing reseller product short-circuits with skipped=true and audits a duplicate_add_attempt", async () => {
+    const EXISTING_PRODUCT_ID = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee";
+    const { client: admin, audits, inserts } = createSupabaseHarness({
+      reseller_products: { maybeSingle: { data: sourceRow, error: null } },
+      stores: { maybeSingle: { data: { id: "store-1" }, error: null } },
+      product_categories: { maybeSingle: { data: { id: INPUT.category_id }, error: null } },
+      products: [
+        { maybeSingle: { data: { id: EXISTING_PRODUCT_ID }, error: null } }, // dedup hit
+      ],
+      reseller_marketplace_audit_logs: {},
+    });
+
+    const res = await runCopyResellerProduct(INPUT, {
+      userSupabase: userClientWithRole("reseller") as never,
+      adminSupabase: admin as never,
+      userId: "reseller-user",
+    });
+
+    // Mutation short-circuits — returns skipped=true, existing product id.
+    expect(res).toEqual({ ok: true, product_id: EXISTING_PRODUCT_ID, skipped: true });
+
+    // No products insert was performed.
+    expect(inserts.find((i) => i.table === "products")).toBeUndefined();
+
+    // Audit records a dedicated duplicate_add_attempt row.
+    expect(audits.at(-1)).toMatchObject({
+      success: true,
+      action: "duplicate_add_attempt",
+      error: "already_added_on_website",
+      actor_role: "reseller",
+    });
+  });
 });
+
 

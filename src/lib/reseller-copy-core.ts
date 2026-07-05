@@ -132,15 +132,42 @@ export async function runCopyResellerProduct(
       if (!cat) throw new Error("Selected category does not belong to your store");
     }
 
-    const { data: existing } = await adminSupabase
+    // Server-side duplicate guard: a reseller product may only be linked to
+    // a given store once. Match by source_reseller_product_id (stable link).
+    // Legacy rows without the link column fall back to name-match below.
+    let existing: { id: string } | null = null;
+    const linkedLookup = await adminSupabase
       .from("products")
       .select("id")
       .eq("store_id", store.id)
-      .eq("name", source.name)
+      .eq("source_reseller_product_id", source.id)
       .limit(1)
       .maybeSingle();
+    existing = (linkedLookup?.data as { id: string } | null) ?? null;
+    if (!existing) {
+      const nameLookup = await adminSupabase
+        .from("products")
+        .select("id")
+        .eq("store_id", store.id)
+        .eq("name", source.name)
+        .limit(1)
+        .maybeSingle();
+      existing = (nameLookup?.data as { id: string } | null) ?? null;
+    }
     if (existing) {
-      await logAttempt(true, source.id, "already_exists");
+      await adminSupabase.from("reseller_marketplace_audit_logs").insert({
+        actor_id: userId,
+        actor_role: actorRole,
+        action: "duplicate_add_attempt",
+        product_id: source.id,
+        success: true,
+        error: "already_added_on_website",
+        metadata: {
+          existing_product_id: existing.id,
+          store_id: store.id,
+          reseller_product_id: source.id,
+        },
+      });
       return { ok: true, product_id: existing.id, skipped: true };
     }
 
