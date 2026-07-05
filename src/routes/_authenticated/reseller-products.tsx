@@ -169,6 +169,21 @@ function ResellerProductsPage() {
     return list;
   }, [merged]);
 
+  const infoSupplierCategories = useMemo(() => {
+    if (!infoSupplier) return [];
+    const counts = new Map<string, number>();
+    for (const r of merged) {
+      if (normalizeSupplier(r.source) !== infoSupplier) continue;
+      const c = (r.category ?? "").trim();
+      if (!c) continue;
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([name]) => name);
+  }, [infoSupplier, merged]);
+
   const bySupplier = useMemo(() => {
     if (supplier === ALL) return merged;
     return merged.filter((r) => normalizeSupplier(r.source) === supplier);
