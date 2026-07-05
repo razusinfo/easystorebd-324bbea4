@@ -324,18 +324,14 @@ function ResellerProductsPage() {
                       </span>
                       <span className="flex items-center gap-1">
                         <span
-                          className="inline-flex items-center gap-0.5 rounded-md bg-muted px-1 py-0.5 text-[10px] font-semibold text-muted-foreground"
-                          title="Products"
+                          className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground"
                         >
-                          <Package className="h-2.5 w-2.5" />
-                          {s.count}
+                          Products: {s.count}
                         </span>
                         <span
-                          className="inline-flex items-center gap-0.5 rounded-md bg-muted px-1 py-0.5 text-[10px] font-semibold text-muted-foreground"
-                          title="Deliveries"
+                          className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground"
                         >
-                          <Truck className="h-2.5 w-2.5" />
-                          {deliveries}
+                          Deliveries: {deliveries}
                         </span>
                       </span>
                     </span>
