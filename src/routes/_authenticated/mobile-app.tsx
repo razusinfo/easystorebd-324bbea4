@@ -447,11 +447,12 @@ function ProductsTab({ products, loading }: { products: any[]; loading: boolean 
               <p className="truncate text-xs font-black text-slate-900">{p.name}</p>
               <div className="mt-1 flex items-center justify-between">
                 <p className="text-sm font-black text-violet-700">৳{Number(p.price).toLocaleString()}</p>
-                <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
-                  p.status === "approved" ? "bg-emerald-100 text-emerald-700" :
-                  p.status === "pending" ? "bg-amber-100 text-amber-700" :
-                  "bg-rose-100 text-rose-700"
-                }`}>{p.status}</span>
+                {p.status !== "approved" && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black ${
+                    p.status === "pending" ? "bg-amber-100 text-amber-700" :
+                    "bg-rose-100 text-rose-700"
+                  }`}>{p.status}</span>
+                )}
               </div>
               <p className="mt-0.5 text-[10px] text-slate-500">Stock: {p.stock}</p>
             </div>
