@@ -212,3 +212,150 @@ function StatCard({ label, value, icon: Icon, tone }: { label: string; value: nu
     </Card>
   );
 }
+
+type OrderWithCourier = OrderRow & {
+  courier_provider?: string | null;
+  courier_status?: string | null;
+  tracking_id?: string | null;
+  tracking_url?: string | null;
+  shipped_at?: string | null;
+  delivered_at?: string | null;
+};
+
+type TrackingEvent = {
+  id: string;
+  event_type: string;
+  old_status: string | null;
+  new_status: string | null;
+  courier_status: string | null;
+  courier_provider: string | null;
+  tracking_id: string | null;
+  tracking_url: string | null;
+  created_at: string;
+};
+
+function OrderRowWithTimeline({
+  order, onShip, onDeliver, onCopy,
+}: { order: OrderWithCourier; onShip: () => void; onDeliver: () => void; onCopy: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ev = useQuery({
+    queryKey: ["order-tracking-events", order.id],
+    enabled: open,
+    queryFn: async (): Promise<TrackingEvent[]> => {
+      const { data, error } = await supabase
+        .from("order_tracking_events" as never)
+        .select("id, event_type, old_status, new_status, courier_status, courier_provider, tracking_id, tracking_url, created_at")
+        .eq("order_id", order.id)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as TrackingEvent[];
+    },
+  });
+
+  return (
+    <>
+      <TableRow>
+        <TableCell>
+          <div className="font-medium">#{order.order_number}</div>
+          <div className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleString()}</div>
+          {order.tracking_id && (
+            <div className="mt-1 text-[11px] text-muted-foreground">
+              {order.courier_provider ?? "Courier"}: {order.tracking_id}
+            </div>
+          )}
+        </TableCell>
+        <TableCell>
+          <div className="font-medium">{order.customer_name}</div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Phone className="h-3 w-3" />{order.customer_phone}
+          </div>
+        </TableCell>
+        <TableCell className="max-w-xs">
+          <div className="flex items-start gap-1 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <span className="whitespace-pre-wrap">{order.customer_address || "—"}</span>
+          </div>
+        </TableCell>
+        <TableCell className="text-right font-medium">{fmt(order.total)}</TableCell>
+        <TableCell>
+          <Badge className={statusBadgeClass(order.status)}>{order.status}</Badge>
+          {order.courier_status && (
+            <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+              {order.courier_status}
+            </div>
+          )}
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex flex-wrap justify-end gap-1">
+            <Button size="sm" variant="ghost" onClick={onCopy} title="Copy address">
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)} title="Timeline">
+              <History className="h-4 w-4" />
+            </Button>
+            {(order.status === "confirmed" || order.status === "processing") && (
+              <Button size="sm" variant="secondary" onClick={onShip}>
+                <Send className="h-3 w-3 mr-1" />Mark shipped
+              </Button>
+            )}
+            {order.status === "shipped" && (
+              <Button size="sm" onClick={onDeliver}>
+                <CheckCircle2 className="h-3 w-3 mr-1" />Delivered
+              </Button>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
+      {open && (
+        <TableRow className="bg-muted/30 hover:bg-muted/30">
+          <TableCell colSpan={6} className="py-3">
+            <div className="space-y-2 text-xs">
+              <div className="font-semibold uppercase tracking-wide text-foreground">Delivery timeline</div>
+              {order.tracking_url && (
+                <a href={order.tracking_url} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-primary hover:underline">
+                  Track on courier site <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              <div className="grid gap-1">
+                <TimelineStep label="Placed" at={order.created_at} done />
+                <TimelineStep label="Shipped" at={order.shipped_at ?? null} done={!!order.shipped_at || order.status === "shipped" || order.status === "delivered"} />
+                <TimelineStep label="Delivered" at={order.delivered_at ?? null} done={order.status === "delivered"} />
+              </div>
+              <div className="mt-2 font-semibold uppercase tracking-wide text-foreground">Status history</div>
+              {ev.isLoading && <div className="text-muted-foreground">Loading…</div>}
+              {ev.data?.length === 0 && <div className="text-muted-foreground">No changes recorded yet.</div>}
+              {(ev.data ?? []).map((e) => (
+                <div key={e.id} className="border-l-2 border-primary/40 pl-2">
+                  <div className="font-medium text-foreground">
+                    {e.event_type === "status_change" && `Status: ${e.old_status ?? "—"} → ${e.new_status}`}
+                    {e.event_type === "status_and_tracking" && `Status: ${e.old_status ?? "—"} → ${e.new_status} + tracking`}
+                    {e.event_type === "tracking_update" && `Tracking updated`}
+                    {e.event_type === "courier_update" && `Courier: ${e.courier_status ?? "—"}`}
+                  </div>
+                  {(e.courier_provider || e.tracking_id) && (
+                    <div className="text-muted-foreground">
+                      {e.courier_provider ?? ""} {e.tracking_id ?? ""}
+                    </div>
+                  )}
+                  <div className="text-muted-foreground">{new Date(e.created_at).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+}
+
+function TimelineStep({ label, at, done }: { label: string; at: string | null; done: boolean }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`inline-block h-2 w-2 rounded-full ${done ? "bg-primary" : "bg-muted-foreground/30"}`} />
+      <span className={done ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+      <span className="text-muted-foreground ml-auto">{at ? new Date(at).toLocaleString() : "pending"}</span>
+    </div>
+  );
+}
+
