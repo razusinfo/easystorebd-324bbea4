@@ -49,6 +49,7 @@ import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin-support'
 import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
+import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
@@ -277,6 +278,12 @@ const AuthenticatedAdminResellerOrdersRoute =
     path: '/admin-reseller-orders',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminRequestsRoute =
+  AuthenticatedAdminRequestsRouteImport.update({
+    id: '/admin-requests',
+    path: '/admin-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminNotificationsRoute =
   AuthenticatedAdminNotificationsRouteImport.update({
     id: '/admin-notifications',
@@ -396,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -456,6 +464,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -518,6 +527,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
   '/_authenticated/admin-support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
@@ -581,6 +591,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/admin-notifications'
+    | '/admin-requests'
     | '/admin-reseller-orders'
     | '/admin-support'
     | '/analytics'
@@ -641,6 +652,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/admin-notifications'
+    | '/admin-requests'
     | '/admin-reseller-orders'
     | '/admin-support'
     | '/analytics'
@@ -702,6 +714,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/admin-notifications'
+    | '/_authenticated/admin-requests'
     | '/_authenticated/admin-reseller-orders'
     | '/_authenticated/admin-support'
     | '/_authenticated/analytics'
@@ -1054,6 +1067,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminResellerOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-requests': {
+      id: '/_authenticated/admin-requests'
+      path: '/admin-requests'
+      fullPath: '/admin-requests'
+      preLoaderRoute: typeof AuthenticatedAdminRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin-notifications': {
       id: '/_authenticated/admin-notifications'
       path: '/admin-notifications'
@@ -1200,6 +1220,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
+  AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
@@ -1233,6 +1254,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
+  AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
   AuthenticatedAdminResellerOrdersRoute: AuthenticatedAdminResellerOrdersRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
