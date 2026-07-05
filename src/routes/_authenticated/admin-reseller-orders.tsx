@@ -129,8 +129,8 @@ function AdminResellerOrdersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Reseller</TableHead>
-              <TableHead>Product</TableHead>
+              <TableHead>Sold By</TableHead>
+              <TableHead>Source Product</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Ship to</TableHead>
               <TableHead className="text-right">Qty</TableHead>
@@ -146,8 +146,22 @@ function AdminResellerOrdersPage() {
                 <TableCell>
                   <div className="font-medium">{r.reseller?.full_name ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">{r.reseller?.email ?? r.reseller_id.slice(0, 8)}</div>
+                  {r.store_name && (
+                    <div className="text-[11px] text-muted-foreground">Store: {r.store_name}</div>
+                  )}
+                  {r.source === "storefront" && (
+                    <Badge variant="secondary" className="mt-1 text-[10px]">Storefront order</Badge>
+                  )}
                 </TableCell>
-                <TableCell>{r.product_name}</TableCell>
+                <TableCell>
+                  <div className="font-medium">{r.product_name}</div>
+                  <a
+                    href={`/admin-reseller-adopters?rp=${r.reseller_product_id}`}
+                    className="text-xs text-primary underline"
+                  >
+                    View source · deducts stock
+                  </a>
+                </TableCell>
                 <TableCell>
                   <div>{r.customer_name}</div>
                   {r.customer_phone && <div className="text-xs text-muted-foreground">{r.customer_phone}</div>}
@@ -182,7 +196,7 @@ function AdminResellerOrdersPage() {
                   <TableCell colSpan={8} className="py-2">
                     <div className="flex items-start gap-2 text-sm">
                       <span className="rounded bg-amber-200 dark:bg-amber-800 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-900 dark:text-amber-100">
-                        Reseller note
+                        Note
                       </span>
                       <p className="whitespace-pre-wrap text-amber-900 dark:text-amber-100">{r.notes}</p>
                     </div>
