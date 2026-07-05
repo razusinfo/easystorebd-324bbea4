@@ -311,7 +311,9 @@ function ResellerProductsPage() {
                     </div>
                     <div className="rounded-md bg-muted/50 px-2 py-1.5">
                       <p className="text-[10px] text-muted-foreground">Delivery</p>
-                      <p className="text-sm font-bold">৳0</p>
+                      <p className="text-sm font-bold">
+                        {s.name === PRIMARY_SUPPLIER ? primaryDeliveries : 0}
+                      </p>
                     </div>
                   </div>
                 </button>
