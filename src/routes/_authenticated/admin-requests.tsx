@@ -539,6 +539,14 @@ function RequestCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditRequestDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        row={row}
+        existingCategories={existingCategories}
+        onSaved={() => { setEditOpen(false); onDone(); }}
+      />
     </Card>
   );
 }
