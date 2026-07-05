@@ -98,11 +98,11 @@ function AdminResellerOrdersPage() {
 
   const updateStatus = useServerFn(updateResellerOrderStatus);
   const upd = useMutation({
-    mutationFn: async (v: { id: string; status: Status }) => {
+    mutationFn: async (v: { id: string; status?: Status; tracking_id?: string | null; tracking_url?: string | null }) => {
       await updateStatus({ data: v });
     },
     onSuccess: () => {
-      toast.success("Status updated & customer notified");
+      toast.success("Saved & customer notified");
       qc.invalidateQueries({ queryKey: ["admin-reseller-orders"] });
     },
     onError: (e: Error) => toast.error(e.message),
