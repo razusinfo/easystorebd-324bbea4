@@ -9,6 +9,7 @@ export type ApprovalStockResolution = ApprovalStockSource & {
 };
 
 function toNonNegativeInteger(value: unknown): number | null {
+  if (value == null) return null;
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0) return null;
   return Math.trunc(n);
