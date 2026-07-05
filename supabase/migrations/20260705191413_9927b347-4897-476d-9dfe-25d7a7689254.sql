@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.log_order_tracking_change() FROM PUBLIC, anon, authenticated;
