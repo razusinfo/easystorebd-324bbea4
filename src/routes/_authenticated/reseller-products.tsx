@@ -142,6 +142,22 @@ function ResellerProductsPage() {
     return sortOutOfStockToBottom(base);
   }, [merged, tab]);
 
+  // Deep link support: /reseller-products?highlight=<id> — scrolls to and
+  // temporarily rings the matching card.
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = new URLSearchParams(window.location.search).get("highlight");
+    if (!id) return;
+    setHighlightId(id);
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-rp-id="${id}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 250);
+    const clear = setTimeout(() => setHighlightId(null), 4000);
+    return () => { clearTimeout(timer); clearTimeout(clear); };
+  }, [q.data]);
+
   return (
     <div className="p-4 sm:p-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -197,7 +213,8 @@ function ResellerProductsPage() {
             return (
               <Card
                 key={p.id}
-                className={`overflow-hidden ${outOfStock ? "opacity-60 grayscale" : ""}`}
+                data-rp-id={p.id}
+                className={`overflow-hidden transition-shadow ${outOfStock ? "opacity-60 grayscale" : ""} ${highlightId === p.id ? "ring-2 ring-primary shadow-lg" : ""}`}
                 aria-disabled={outOfStock || undefined}
               >
                 <div className="relative aspect-square bg-muted">

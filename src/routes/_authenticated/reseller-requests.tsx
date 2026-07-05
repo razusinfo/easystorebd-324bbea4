@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Send, ImageIcon } from "lucide-react";
+import { Loader2, Upload, X, Send, ImageIcon, Check, AlertCircle } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { uploadProductImage } from "@/lib/eazystore-data";
@@ -35,6 +35,8 @@ function ResellerRequestsPage() {
         </p>
       </div>
 
+      <HighlightedRequestCard />
+
       <SubmitRequestForm />
 
       {isAdmin.data ? (
@@ -44,6 +46,56 @@ function ResellerRequestsPage() {
         </>
       ) : null}
     </div>
+  );
+}
+
+function HighlightedRequestCard() {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search).get("request");
+    setId(p);
+  }, []);
+  const q = useQuery({
+    queryKey: ["reseller-request-single", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_requests")
+        .select("id, name, price, status, admin_notes, reviewed_at, images")
+        .eq("id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  if (!id || !q.data) return null;
+  const r = q.data;
+  const tone =
+    r.status === "approved"
+      ? "border-green-500/40 bg-green-500/5"
+      : r.status === "rejected"
+        ? "border-destructive/40 bg-destructive/5"
+        : "border-primary/40 bg-primary/5";
+  const Icon = r.status === "approved" ? Check : r.status === "rejected" ? X : AlertCircle;
+  return (
+    <Card className={`ring-2 ring-primary/40 ${tone}`}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Icon className="h-5 w-5" /> Your request: {r.name}
+          <Badge variant="secondary" className="capitalize">{r.status}</Badge>
+        </CardTitle>
+        <CardDescription>
+          Submitted price ৳{Number(r.price).toLocaleString()}
+          {r.reviewed_at ? ` · Reviewed ${new Date(r.reviewed_at).toLocaleString()}` : ""}
+        </CardDescription>
+      </CardHeader>
+      {r.admin_notes ? (
+        <CardContent>
+          <p className="text-sm"><span className="font-semibold">Admin notes:</span> {r.admin_notes}</p>
+        </CardContent>
+      ) : null}
+    </Card>
   );
 }
 

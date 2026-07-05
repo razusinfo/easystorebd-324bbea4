@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Check, X, ImageIcon, ShieldAlert, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
@@ -123,6 +124,51 @@ function AdminRequestsList() {
     qc.invalidateQueries({ queryKey: ["pending-product-requests"] });
   };
 
+  // Bulk selection (pending only).
+  const approveFn = useServerFn(approveProductRequest);
+  const rejectFn = useServerFn(rejectProductRequest);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  useEffect(() => { setSelected(new Set()); }, [filter, search, page]);
+  const pendingRows = useMemo(() => rows.filter((r) => r.status === "pending"), [rows]);
+  const allSelected = pendingRows.length > 0 && pendingRows.every((r) => selected.has(r.id));
+  const toggleAll = () => {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(pendingRows.map((r) => r.id)));
+  };
+  const toggleOne = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const runBulk = async (action: "approve" | "reject") => {
+    const targets = pendingRows.filter((r) => selected.has(r.id));
+    if (targets.length === 0) return;
+    let ok = 0, fail = 0;
+    for (const r of targets) {
+      try {
+        if (action === "approve") {
+          await approveFn({ data: { request_id: r.id, reseller_price: Number(r.price), admin_notes: null } });
+        } else {
+          await rejectFn({ data: { request_id: r.id, admin_notes: null } });
+        }
+        ok++;
+      } catch (e) {
+        fail++;
+        console.warn("[bulk]", (e as Error).message);
+      }
+    }
+    toast[fail === 0 ? "success" : "error"](
+      `Bulk ${action}: ${ok} succeeded${fail ? `, ${fail} failed` : ""}.`
+    );
+    setSelected(new Set());
+    refresh();
+  };
+  const bulkApprove = useMutation({ mutationFn: () => runBulk("approve") });
+  const bulkReject = useMutation({ mutationFn: () => runBulk("reject") });
+
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -167,14 +213,63 @@ function AdminRequestsList() {
         </Card>
       ) : (
         <>
+          {pendingRows.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 p-2">
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                <span>
+                  {selected.size > 0
+                    ? `${selected.size} selected`
+                    : `Select all pending on this page (${pendingRows.length})`}
+                </span>
+              </label>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  disabled={selected.size === 0 || bulkApprove.isPending || bulkReject.isPending}
+                  onClick={() => {
+                    if (confirm(`Approve ${selected.size} request(s) at their submitted price?`)) bulkApprove.mutate();
+                  }}
+                >
+                  {bulkApprove.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Check className="mr-1.5 h-4 w-4" />}
+                  Bulk Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={selected.size === 0 || bulkApprove.isPending || bulkReject.isPending}
+                  onClick={() => {
+                    if (confirm(`Reject ${selected.size} request(s)?`)) bulkReject.mutate();
+                  }}
+                >
+                  {bulkReject.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <X className="mr-1.5 h-4 w-4" />}
+                  Bulk Reject
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="grid gap-4">
             {rows.map((r) => (
-              <RequestCard
-                key={r.id}
-                row={r}
-                resellerName={profiles.data?.[r.requested_by] ?? "Unknown"}
-                onDone={refresh}
-              />
+              <div key={r.id} className="flex items-start gap-2">
+                {r.status === "pending" ? (
+                  <div className="pt-4">
+                    <Checkbox
+                      checked={selected.has(r.id)}
+                      onCheckedChange={() => toggleOne(r.id)}
+                      aria-label={`Select ${r.name}`}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-4" />
+                )}
+                <div className="flex-1">
+                  <RequestCard
+                    row={r}
+                    resellerName={profiles.data?.[r.requested_by] ?? "Unknown"}
+                    onDone={refresh}
+                  />
+                </div>
+              </div>
             ))}
           </div>
 

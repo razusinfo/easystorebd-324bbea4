@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, PackageX, CheckCheck, Bell } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, PackageX, CheckCheck, Bell, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -71,8 +72,15 @@ function MyNotificationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["user_notifications", "me"] }),
   });
 
-  const rows = q.data ?? [];
-  const unread = rows.filter((r) => !r.read_at).length;
+  const [filter, setFilter] = useState<"all" | "unread" | "approved" | "rejected">("all");
+  const allRows = q.data ?? [];
+  const unread = allRows.filter((r) => !r.read_at).length;
+  const rows = allRows.filter((r) => {
+    if (filter === "unread") return !r.read_at;
+    if (filter === "approved") return r.type === "product_request_approved";
+    if (filter === "rejected") return r.type === "product_request_rejected";
+    return true;
+  });
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6">
@@ -93,6 +101,29 @@ function MyNotificationsPage() {
           <CheckCheck className="mr-1 inline h-3.5 w-3.5" /> Mark all read
         </button>
       </div>
+
+      <div className="mb-3 flex flex-wrap gap-2">
+        {([
+          { id: "all", label: "All", icon: Bell },
+          { id: "unread", label: `Unread (${unread})`, icon: Bell },
+          { id: "approved", label: "Approved", icon: Check },
+          { id: "rejected", label: "Rejected", icon: X },
+        ] as const).map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs ${
+              filter === f.id
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+          >
+            <f.icon className="h-3 w-3" />
+            {f.label}
+          </button>
+        ))}
+      </div>
+
 
       {q.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
