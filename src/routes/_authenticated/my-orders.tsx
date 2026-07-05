@@ -65,6 +65,14 @@ function MyOrdersPage() {
         </Card>
       </header>
 
+      {orders.data?.some((o) => o.source === "storefront" || !!o.source_order_id) && (
+        <Card className="border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+          <strong>Forwarded orders are managed by the Super Admin.</strong> Status and tracking
+          updates for these orders are read-only here — you'll receive an email/SMS whenever the
+          Super Admin changes the status or adds a tracking ID.
+        </Card>
+      )}
+
       <Card className="overflow-hidden">
         <Table>
           <TableHeader>
