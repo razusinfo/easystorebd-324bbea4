@@ -53,7 +53,7 @@ function MyNotificationsPage() {
         .eq("user_id", uid); // scope to my rows only
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["user_notifications", "me"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["user_notifications"] }),
     onError: (e: any) => toast.error(e?.message ?? "Failed"),
   });
 
@@ -69,7 +69,7 @@ function MyNotificationsPage() {
         .is("read_at", null);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["user_notifications", "me"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["user_notifications"] }),
   });
 
   const [filter, setFilter] = useState<"all" | "unread" | "approved" | "rejected">("all");
