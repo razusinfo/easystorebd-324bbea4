@@ -346,7 +346,8 @@ function MyRequestsList() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const rows = q.data ?? [];
+  // Hide approved requests — once approved, the product lives in Reseller Products.
+  const rows = (q.data ?? []).filter((r: any) => r.status !== "approved");
 
   return (
     <Card>
