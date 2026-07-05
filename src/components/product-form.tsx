@@ -673,10 +673,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
               <Field
                 label="Short Description (SEO & Data Feed)"
-                hint={`${form.shortDescription.length}/255`}
+                hint={`${form.shortDescription.length}/355`}
               >
                 <Textarea
-                  maxLength={255}
+                  maxLength={355}
                   placeholder="Short Description"
                   value={form.shortDescription}
                   onChange={(e) => set("shortDescription", e.target.value)}
