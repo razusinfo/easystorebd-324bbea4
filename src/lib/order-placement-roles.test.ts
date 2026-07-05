@@ -21,36 +21,36 @@ const publishedStore: StoreState = { published: true };
 
 describe("Place order — role flows", () => {
   it("customer (anonymous) can insert into orders on a published store", () => {
-    const res = evaluateOrderInsert(basePayload, publishedStore, { auth_uid: null } as SessionState);
-    expect(res.allowed).toBe(true);
+    const res = canInsertOrder(basePayload, publishedStore, { auth_uid: null } as SessionState);
+    expect(res.ok).toBe(true);
   });
 
   it("super admin site (signed-in shopper) can insert without customer_user_id", () => {
-    const res = evaluateOrderInsert(basePayload, publishedStore, { auth_uid: "super-admin-uid" });
-    expect(res.allowed).toBe(true);
+    const res = canInsertOrder(basePayload, publishedStore, { auth_uid: "super-admin-uid" });
+    expect(res.ok).toBe(true);
   });
 
   it("retailer site (signed-in shopper) can insert with matching customer_user_id", () => {
     const uid = "retailer-shopper-uid";
-    const res = evaluateOrderInsert(
+    const res = canInsertOrder(
       { ...basePayload, customer_user_id: uid },
       publishedStore,
       { auth_uid: uid },
     );
-    expect(res.allowed).toBe(true);
+    expect(res.ok).toBe(true);
   });
 
   it("blocks insert when customer_user_id belongs to another user", () => {
-    const res = evaluateOrderInsert(
+    const res = canInsertOrder(
       { ...basePayload, customer_user_id: "someone-else" },
       publishedStore,
       { auth_uid: "me" },
     );
-    expect(res.allowed).toBe(false);
+    expect(res.ok).toBe(false);
   });
 
   it("blocks insert on unpublished stores", () => {
-    const res = evaluateOrderInsert(basePayload, { published: false }, { auth_uid: null });
-    expect(res.allowed).toBe(false);
+    const res = canInsertOrder(basePayload, { published: false }, { auth_uid: null });
+    expect(res.ok).toBe(false);
   });
 });
