@@ -77,6 +77,9 @@ function ResellerProductsPage() {
   const [supplier, setSupplier] = useState<string>(ALL);
   const [search, setSearch] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [supplierSearch, setSupplierSearch] = useState<string>("");
+  const [supplierSort, setSupplierSort] = useState<string>("recommended");
+
 
 
 
