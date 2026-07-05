@@ -67,25 +67,47 @@ function AdminRequestsPage() {
   return <AdminRequestsList />;
 }
 
+const PAGE_SIZE = 10;
+
 function AdminRequestsList() {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<"pending" | "all">("pending");
+  const [filter, setFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+
+  // Debounce search input.
+  useState(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 300);
+    return () => clearTimeout(t);
+  });
+  // Reset to first page when filters change.
+  const resetPage = () => setPage(0);
 
   const q = useQuery({
-    queryKey: ["admin-product-requests", filter],
+    queryKey: ["admin-product-requests", filter, search, page],
     queryFn: async () => {
       let query = supabase
         .from("product_requests")
-        .select("id, name, description, price, category, images, status, requested_by, created_at, reseller_price")
-        .order("created_at", { ascending: false });
-      if (filter === "pending") query = query.eq("status", "pending");
-      const { data, error } = await query;
+        .select(
+          "id, name, description, price, category, images, status, requested_by, created_at, reseller_price",
+          { count: "exact" },
+        )
+        .order("created_at", { ascending: false })
+        .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+      if (filter !== "all") query = query.eq("status", filter);
+      if (search) query = query.or(`name.ilike.%${search}%,category.ilike.%${search}%,description.ilike.%${search}%`);
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data ?? []) as RequestRow[];
+      return { rows: (data ?? []) as RequestRow[], total: count ?? 0 };
     },
   });
 
-  const ids = Array.from(new Set((q.data ?? []).map((r) => r.requested_by)));
+  const rows = q.data?.rows ?? [];
+  const total = q.data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const ids = Array.from(new Set(rows.map((r) => r.requested_by)));
   const profiles = useQuery({
     queryKey: ["admin-request-profiles", ids],
     enabled: ids.length > 0,
@@ -103,46 +125,87 @@ function AdminRequestsList() {
 
   return (
     <div className="space-y-4 p-4 md:p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Admin Request Review</h1>
           <p className="text-sm text-muted-foreground">Approve or reject reseller product submissions.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant={filter === "pending" ? "default" : "outline"} size="sm" onClick={() => setFilter("pending")}>
-            Pending
-          </Button>
-          <Button variant={filter === "all" ? "default" : "outline"} size="sm" onClick={() => setFilter("all")}>
-            All
-          </Button>
+        <div className="flex flex-wrap gap-2">
+          {(["pending", "approved", "rejected", "all"] as const).map((f) => (
+            <Button
+              key={f}
+              variant={filter === f ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setFilter(f); resetPage(); }}
+              className="capitalize"
+            >
+              {f}
+            </Button>
+          ))}
         </div>
+      </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={searchInput}
+          onChange={(e) => { setSearchInput(e.target.value); resetPage(); }}
+          placeholder="Search name, category, description…"
+          className="pl-8"
+        />
       </div>
 
       {q.isLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading…
         </div>
-      ) : (q.data?.length ?? 0) === 0 ? (
+      ) : rows.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            No {filter === "pending" ? "pending" : ""} requests.
+            No {filter === "all" ? "" : filter} requests{search ? ` matching "${search}"` : ""}.
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {q.data!.map((r) => (
-            <RequestCard
-              key={r.id}
-              row={r}
-              resellerName={profiles.data?.[r.requested_by] ?? "Unknown"}
-              onDone={refresh}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4">
+            {rows.map((r) => (
+              <RequestCard
+                key={r.id}
+                row={r}
+                resellerName={profiles.data?.[r.requested_by] ?? "Unknown"}
+                onDone={refresh}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-xs text-muted-foreground">
+              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline" size="sm"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+              >
+                <ChevronLeft className="h-4 w-4" /> Prev
+              </Button>
+              <span className="text-xs">Page {page + 1} / {totalPages}</span>
+              <Button
+                variant="outline" size="sm"
+                onClick={() => setPage((p) => (p + 1 < totalPages ? p + 1 : p))}
+                disabled={page + 1 >= totalPages}
+              >
+                Next <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
 }
+
 
 function RequestCard({
   row, resellerName, onDone,
