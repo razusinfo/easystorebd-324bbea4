@@ -71,6 +71,19 @@ type DisplayRow = ResellerRow & {
 
 const PRIMARY_SUPPLIER = "Sylheti Online Shop";
 
+function SupplierStat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="rounded-md bg-muted/50 px-2 py-1.5">
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <Icon className="h-3 w-3" />
+        <span>{label}</span>
+      </div>
+      <p className="mt-0.5 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+
 function ResellerProductsPage() {
   const { t } = useI18n();
   const [tab, setTab] = useState<string>(ALL);
