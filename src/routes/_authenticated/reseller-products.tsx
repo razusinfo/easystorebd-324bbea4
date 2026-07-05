@@ -1451,3 +1451,90 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
     </Dialog>
   );
 }
+
+function SupplierInfoDialog({
+  open,
+  supplierName,
+  productCount,
+  deliveries,
+  topCategories,
+  onClose,
+}: {
+  open: boolean;
+  supplierName: string | null;
+  productCount: number;
+  deliveries: number;
+  topCategories: string[];
+  onClose: () => void;
+}) {
+  const name = supplierName ?? "";
+  const isPrimary = name === PRIMARY_SUPPLIER;
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Supplier Info</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-sm font-bold text-muted-foreground">
+              {isPrimary ? (
+                <img src={eazystoreLogo.url} alt={name} className="h-full w-full object-contain" />
+              ) : initials ? (
+                initials
+              ) : (
+                <StoreIcon className="h-5 w-5" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-base font-semibold">{name}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+                  <ShieldCheck className="h-3 w-3" /> Verified
+                </span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  Platform Courier
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-md bg-muted/50 px-2.5 py-2">
+              <p className="text-[10px] text-muted-foreground">Products</p>
+              <p className="text-sm font-bold">{productCount}</p>
+            </div>
+            <div className="rounded-md bg-muted/50 px-2.5 py-2">
+              <p className="text-[10px] text-muted-foreground">Deliveries</p>
+              <p className="text-sm font-bold">{deliveries}</p>
+            </div>
+          </div>
+          {topCategories.length > 0 && (
+            <div>
+              <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Top Categories</p>
+              <div className="flex flex-wrap gap-1">
+                {topCategories.map((c) => (
+                  <span key={c} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="rounded-md border border-dashed p-2.5 text-[11px] text-muted-foreground">
+            For supplier privacy, direct contact details are hidden. All orders, payments and delivery are handled through the platform.
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
