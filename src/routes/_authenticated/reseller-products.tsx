@@ -732,7 +732,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const [open, setOpen] = useState(false);
   const [agreementOpen, setAgreementOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  const supplierName = row.source?.trim() || "this supplier";
+  const supplierName = normalizeSupplier(row.source);
   const agreementKey = `reseller-agreement-accepted:${supplierName}`;
   const [categoryId, setCategoryId] = useState<string>("");
   const [price, setPrice] = useState<string>(
