@@ -6,14 +6,15 @@ import { createRouter, createRootRoute, RouterProvider } from "@tanstack/react-r
 import {
   DEFAULT_LOW_STOCK_THRESHOLD,
   applyLowStockThresholdSetting,
-} from "@/lib/admin-settings-core";
+  getLowStockThreshold,
+  computeIsOutOfStock,
+} from "@/lib/stock-sync-core";
 import {
   InvalidLowStockThresholdError,
   LOW_STOCK_THRESHOLD_MAX,
   parseLowStockThreshold,
   validateLowStockThreshold,
 } from "@/lib/admin-settings-core";
-import { getLowStockThreshold, computeIsOutOfStock } from "@/lib/stock-sync-core";
 import { createSupabaseHarness } from "@/test/supabase-harness";
 import { NotificationCard } from "@/routes/_authenticated/my-notifications";
 
