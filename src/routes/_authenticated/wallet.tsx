@@ -134,13 +134,18 @@ function WalletPage() {
             Every credit and debit on your account. Balance reflects outstanding platform charges.
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => download(`wallet-ledger-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(entries))}
-          disabled={!entries.length}
-        >
-          <Download className="h-4 w-4 mr-2" /> Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="default">
+            <Link to="/payouts"><Send className="h-4 w-4 mr-2" /> Payouts</Link>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => download(`wallet-ledger-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(entries))}
+            disabled={!entries.length}
+          >
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
+        </div>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-3">
