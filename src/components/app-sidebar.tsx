@@ -145,7 +145,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {renderItem({ title: "Moderation", url: "/admin", icon: ShieldCheck })}
                 {renderItem({ title: "Request Review", url: "/admin-requests", icon: Send, badge: "NEW" })}
-                {renderItem({ title: "Reseller Orders", url: "/admin-reseller-orders", icon: Receipt, badge: "NEW" })}
+                {renderItem({ title: "Orders to Fulfill", url: "/admin-reseller-orders", icon: Truck, badge: "NEW" })}
                 {renderItem({ title: "Product Adopters", url: "/admin-reseller-adopters", icon: Users, badge: "NEW" })}
                 {renderItem({ title: "Notifications", url: "/admin-notifications", icon: Bell })}
                 {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
