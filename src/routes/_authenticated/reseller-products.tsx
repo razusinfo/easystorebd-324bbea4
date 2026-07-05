@@ -132,19 +132,31 @@ function ResellerProductsPage() {
   const merged = q.data ?? [];
 
   const suppliers = useMemo(() => {
-    const counts = new Map<string, number>();
+    const map = new Map<string, { name: string; count: number; logo: string | null }>();
     for (const r of merged) {
-      const s = (r.source && r.source.trim()) || PRIMARY_SUPPLIER;
-      counts.set(s, (counts.get(s) ?? 0) + 1);
+      const name = (r.source && r.source.trim()) || PRIMARY_SUPPLIER;
+      const existing = map.get(name);
+      if (existing) {
+        existing.count += 1;
+        if (!existing.logo && r.displayImage) existing.logo = r.displayImage;
+      } else {
+        map.set(name, { name, count: 1, logo: r.displayImage ?? null });
+      }
     }
-    const list = Array.from(counts.entries()).map(([name, count]) => ({ name, count }));
-    list.sort((a, b) => {
+    const list = Array.from(map.values());
+    const term = supplierSearch.trim().toLowerCase();
+    const filtered = term ? list.filter((s) => s.name.toLowerCase().includes(term)) : list;
+    filtered.sort((a, b) => {
+      // Sylheti Online Shop always first
       if (a.name === PRIMARY_SUPPLIER) return -1;
       if (b.name === PRIMARY_SUPPLIER) return 1;
+      if (supplierSort === "most-products") return b.count - a.count;
+      if (supplierSort === "name") return a.name.localeCompare(b.name);
       return a.name.localeCompare(b.name);
     });
-    return list;
-  }, [merged]);
+    return filtered;
+  }, [merged, supplierSearch, supplierSort]);
+
 
   const bySupplier = useMemo(() => {
     if (supplier === ALL) return merged;
