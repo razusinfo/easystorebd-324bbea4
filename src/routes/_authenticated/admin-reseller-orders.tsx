@@ -358,7 +358,7 @@ type OrderEvent = {
   created_at: string;
 };
 
-function TimelineToggle({ orderId }: { orderId: string }) {
+function TimelineToggle({ orderId, row }: { orderId: string; row: Row }) {
   const [open, setOpen] = useState(false);
   const q = useQuery({
     queryKey: ["reseller-order-events", orderId],
@@ -381,6 +381,14 @@ function TimelineToggle({ orderId }: { orderId: string }) {
       return data ?? [];
     },
   });
+
+  // Financial breakdown — Platform = 15% × sale; Supplier = cost; Reseller = sale − cost − platform.
+  const sale = Number(row.reseller_price ?? 0) * row.quantity;
+  const cost = Number(row.original_price ?? 0) * row.quantity;
+  const platform = +(sale * 0.15).toFixed(2);
+  const supplier = cost;
+  const reseller = +(sale - cost - platform).toFixed(2);
+
   return (
     <div>
       <button
@@ -389,30 +397,56 @@ function TimelineToggle({ orderId }: { orderId: string }) {
         onClick={() => setOpen((v) => !v)}
       >
         <History className="h-3 w-3" />
-        {open ? "Hide history" : "View history"}
+        {open ? "Hide timeline" : "View timeline"}
       </button>
       {open && (
-        <div className="mt-1 space-y-1 rounded border bg-muted/30 p-2 text-[11px]">
-          {q.isLoading && <div>Loading…</div>}
-          {q.data?.length === 0 && <div className="text-muted-foreground">No changes yet.</div>}
-          {q.data?.map((e) => (
-            <div key={e.id} className="border-l-2 border-primary/40 pl-2">
-              <div className="font-medium text-foreground">
-                {e.event_type === "status_change" && `Status: ${e.old_status ?? "—"} → ${e.new_status}`}
-                {e.event_type === "tracking_update" && `Tracking updated`}
-                {e.event_type === "status_and_tracking" && `Status: ${e.old_status ?? "—"} → ${e.new_status} + tracking`}
-              </div>
-              {e.tracking_id && (
-                <div className="text-muted-foreground">
-                  {e.tracking_id}
-                  {e.tracking_url ? ` · ${e.tracking_url}` : ""}
+        <div className="mt-1 space-y-2 rounded border bg-muted/30 p-2 text-[11px]">
+          <div className="space-y-1 rounded bg-background/60 p-2">
+            <div className="font-semibold uppercase tracking-wide text-foreground">Settlement</div>
+            <TimelineStep label="Escrow hold" amount={sale} at={row.created_at} done />
+            <TimelineStep label={`Courier delivered${row.courier_provider ? ` (${row.courier_provider})` : ""}`} at={row.delivered_at} done={!!row.delivered_at} />
+            <TimelineStep label={`Platform commission (15%)`} amount={platform} at={row.settled_at} done={!!row.settled_at} />
+            <TimelineStep label="Supplier credit" amount={supplier} at={row.settled_at} done={!!row.settled_at} />
+            <TimelineStep label="Reseller profit credit" amount={reseller} at={row.settled_at} done={!!row.settled_at} />
+          </div>
+          <div className="space-y-1">
+            <div className="font-semibold uppercase tracking-wide text-foreground">Status history</div>
+            {q.isLoading && <div>Loading…</div>}
+            {q.data?.length === 0 && <div className="text-muted-foreground">No changes yet.</div>}
+            {q.data?.map((e) => (
+              <div key={e.id} className="border-l-2 border-primary/40 pl-2">
+                <div className="font-medium text-foreground">
+                  {e.event_type === "status_change" && `Status: ${e.old_status ?? "—"} → ${e.new_status}`}
+                  {e.event_type === "tracking_update" && `Tracking updated`}
+                  {e.event_type === "status_and_tracking" && `Status: ${e.old_status ?? "—"} → ${e.new_status} + tracking`}
                 </div>
-              )}
-              <div className="text-muted-foreground">{new Date(e.created_at).toLocaleString()}</div>
-            </div>
-          ))}
+                {e.tracking_id && (
+                  <div className="text-muted-foreground">
+                    {e.tracking_id}
+                    {e.tracking_url ? ` · ${e.tracking_url}` : ""}
+                  </div>
+                )}
+                <div className="text-muted-foreground">{new Date(e.created_at).toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function TimelineStep({ label, amount, at, done }: { label: string; amount?: number; at: string | null; done: boolean }) {
+  return (
+    <div className="flex items-start gap-2 border-l-2 pl-2" style={{ borderColor: done ? "hsl(var(--primary))" : "hsl(var(--muted-foreground) / 0.3)" }}>
+      <span className={`mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full ${done ? "bg-primary" : "bg-muted-foreground/30"}`} />
+      <div className="flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className={done ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+          {amount != null && <span className="tabular-nums font-medium">{fmt(amount)}</span>}
+        </div>
+        <div className="text-muted-foreground">{at ? new Date(at).toLocaleString() : "pending"}</div>
+      </div>
     </div>
   );
 }
