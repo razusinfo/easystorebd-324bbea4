@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { parseLowStockThreshold } from "./admin-settings-core";
+import { parseLowStockThreshold, validateLowStockThreshold } from "./admin-settings-core";
 
 /** Read the current Low Stock Threshold from site_settings (public). */
 export const getLowStockThresholdSetting = createServerFn({ method: "GET" })
