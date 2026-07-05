@@ -3,6 +3,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Truck,
   Store, BarChart3, Palette, Wand2, LayoutTemplate, Smartphone,
   Megaphone, Tag, Settings, LogOut, ShieldCheck, Repeat2, Receipt, Bell, MessageCircle,
+  Send,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
