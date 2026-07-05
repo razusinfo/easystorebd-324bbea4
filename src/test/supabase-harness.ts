@@ -50,6 +50,7 @@ export function createSupabaseHarness(config: HarnessConfig) {
     const chain: any = {};
     chain.select = () => chain;
     chain.eq = () => chain;
+    chain.ilike = () => chain;
     chain.in = () => chain;
     chain.order = () => chain;
     chain.limit = () => chain;
