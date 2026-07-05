@@ -72,7 +72,7 @@ function HighlightedRequestCard() {
       return data;
     },
   });
-  if (!id || !q.data) return null;
+  if (!id || !q.data || q.data.status === "approved") return null;
   const r = q.data;
   const tone =
     r.status === "approved"
