@@ -1,8 +1,17 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
+import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createRouter, createRootRoute, RouterProvider } from "@tanstack/react-router";
+
+vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => () => ({}),
+  Link: ({ to, children, ...rest }: any) =>
+    React.createElement("a", { href: to, ...rest }, children),
+}));
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: { auth: { getUser: async () => ({ data: { user: null } }) }, from: () => ({}) },
+}));
+
 import {
   DEFAULT_LOW_STOCK_THRESHOLD,
   getLowStockThreshold,
