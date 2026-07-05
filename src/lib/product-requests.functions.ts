@@ -217,6 +217,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       request_id: z.string().uuid(),
       reseller_price: z.number().nonnegative().max(10_000_000),
       admin_notes: z.string().max(1000).optional().nullable(),
+      category: z.string().trim().max(120).optional().nullable().transform((v) => (v && v.length > 0 ? v : null)),
     }),
   )
   .handler(async ({ data, context }) => {
@@ -247,7 +248,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
 
     const { data: req, error: reqErr } = await supabaseAdmin
       .from("product_requests")
-      .select("id, requested_by, name, description, price, images, status")
+      .select("id, requested_by, name, description, price, images, status, category")
       .eq("id", data.request_id)
       .maybeSingle();
     if (reqErr) throw new Error(reqErr.message);
@@ -259,6 +260,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
 
     const images = (req.images as string[] | null) ?? [];
     const primaryImage = images[0] ?? null;
+    const finalCategory = data.category ?? (req as any).category ?? null;
 
     const { data: inserted, error: insErr } = await supabaseAdmin
       .from("reseller_products")
@@ -270,6 +272,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         image_url: primaryImage,
         price: req.price,
         reseller_price: data.reseller_price,
+        category: finalCategory,
         source: "request",
       })
       .select("id")
@@ -285,12 +288,14 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         status: "approved",
         reseller_price: data.reseller_price,
         admin_notes: data.admin_notes ?? null,
+        category: finalCategory,
         reviewed_by: context.userId,
         reviewed_at: new Date().toISOString(),
         published_reseller_product_id: inserted.id,
       })
       .eq("id", req.id);
     if (updErr) throw new Error(updErr.message);
+
 
     await logAttempt(true, req.id, {
       requested_by: req.requested_by,
@@ -411,3 +416,55 @@ export const rejectProductRequest = createServerFn({ method: "POST" })
 
     return { ok: true as const };
   });
+
+// Super-admin: edit a pending product request on behalf of the reseller.
+export const adminUpdateProductRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    productRequestInputSchema.extend({ id: z.string().uuid() }).parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { isAdmin, role: actorRole } = await resolveActorRole(context.supabase as never, context.userId);
+    if (!isAdmin) throw new Response("Forbidden: super_admin only", { status: 403 });
+
+    const { data: existing, error: readErr } = await supabaseAdmin
+      .from("product_requests")
+      .select("id, status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!existing) throw new Response("Not found", { status: 404 });
+    if (existing.status !== "pending") {
+      throw new Response(`Cannot edit a ${existing.status} request`, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from("product_requests")
+      .update({
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        images: data.images,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await supabaseAdmin.from("reseller_marketplace_audit_logs").insert({
+      actor_id: context.userId,
+      actor_role: actorRole,
+      action: "admin_update_product_request",
+      product_id: data.id,
+      success: true,
+      error: null,
+      metadata: {
+        name: data.name,
+        price: data.price,
+        category: data.category,
+        image_count: data.images.length,
+      } as never,
+    });
+    return { ok: true as const };
+  });
+
