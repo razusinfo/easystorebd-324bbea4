@@ -157,17 +157,7 @@ describe("Revoke reseller product (integration: RPC + notifications + audit)", (
 // ---------- revoked-product notification card (deep link + mark read) ----------
 describe("Revoked-product notification card", () => {
   function mount(ui: React.ReactElement) {
-    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const rootRoute = createRootRoute({ component: () => ui });
-    const router = createRouter({
-      routeTree: rootRoute,
-      history: { location: "/", push: vi.fn(), replace: vi.fn(), go: vi.fn(), back: vi.fn(), forward: vi.fn(), createHref: (p: any) => p, subscribe: vi.fn(() => () => {}), block: vi.fn(), notify: vi.fn(), destroy: vi.fn(), flush: vi.fn(), listen: vi.fn(() => () => {}) } as any,
-    });
-    return render(
-      <QueryClientProvider client={qc}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>,
-    );
+    return render(ui);
   }
 
   it("renders title, body, deep link '/my-products', and Mark-as-read button", () => {
