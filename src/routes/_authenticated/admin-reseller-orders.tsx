@@ -61,6 +61,10 @@ type Row = {
   tracking_id: string | null;
   tracking_url: string | null;
   created_at: string;
+  settled_at: string | null;
+  delivered_at: string | null;
+  courier_provider: string | null;
+  courier_status: string | null;
   reseller?: { full_name: string | null; email: string } | null;
   store_name?: string | null;
 };
