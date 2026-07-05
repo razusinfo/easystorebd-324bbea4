@@ -14,6 +14,12 @@ import {
 import { UICustomizer } from "@/components/admin/ui-customizer";
 import { approveProductRequest, rejectProductRequest } from "@/lib/product-requests.functions";
 import { getLowStockThresholdSetting, updateLowStockThresholdSetting } from "@/lib/admin-settings.functions";
+import {
+  LOW_STOCK_THRESHOLD_MAX,
+  LOW_STOCK_THRESHOLD_MIN,
+  applyLowStockThresholdSetting,
+  validateLowStockThreshold,
+} from "@/lib/admin-settings-core";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
@@ -823,26 +829,50 @@ function AdminSettingsPanel() {
   const [value, setValue] = useState<string>("");
   const current = q.data?.value ?? 3;
 
+  const validationError = useMemo(() => {
+    if (value === "") return null;
+    try {
+      validateLowStockThreshold(value);
+      return null;
+    } catch (e: any) {
+      return e?.message ?? "Invalid value";
+    }
+  }, [value]);
+
   const save = useMutation({
     mutationFn: async (v: number) => updateLowStockThresholdSetting({ data: { value: v } }),
     onSuccess: (r) => {
+      // Rewire in-process threshold so sorting + OOS badges update immediately.
+      applyLowStockThresholdSetting(r.value);
       toast.success(`Low Stock Threshold set to ${r.value}`);
+      setValue("");
       qc.invalidateQueries({ queryKey: ["admin", "low-stock-threshold"] });
+      // Force re-render / re-sort of reseller-products list consumers.
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      qc.invalidateQueries({ queryKey: ["storefront"] });
+      qc.invalidateQueries({ queryKey: ["my_products"] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to save"),
   });
+
+  const disabled =
+    save.isPending || value === "" || !!validationError || Number(value) === current;
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <h2 className="text-base font-semibold">Low Stock Threshold</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Products with stock at or below this number are treated as Out of Stock across the marketplace and pushed to the bottom of their category. Default: 3.
+          Products with stock at or below this number are treated as Out of Stock across the marketplace and pushed to the bottom of their category. Allowed range: {LOW_STOCK_THRESHOLD_MIN}–{LOW_STOCK_THRESHOLD_MAX}. Default: 3.
         </p>
         <div className="mt-3 flex items-center gap-2">
           <input
             type="number"
-            min={0}
+            min={LOW_STOCK_THRESHOLD_MIN}
+            max={LOW_STOCK_THRESHOLD_MAX}
+            step={1}
+            aria-label="Low Stock Threshold"
+            aria-invalid={validationError ? true : undefined}
             className="w-28 rounded-md border border-border bg-background px-3 py-2 text-sm"
             placeholder={String(current)}
             value={value}
@@ -850,13 +880,23 @@ function AdminSettingsPanel() {
           />
           <button
             className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-            disabled={save.isPending || value === "" || Number(value) === current}
-            onClick={() => save.mutate(Number(value))}
+            disabled={disabled}
+            onClick={() => {
+              try {
+                const v = validateLowStockThreshold(value);
+                save.mutate(v);
+              } catch (e: any) {
+                toast.error(e?.message ?? "Invalid value");
+              }
+            }}
           >
             {save.isPending ? "Saving…" : "Save"}
           </button>
           <span className="text-xs text-muted-foreground">Current: {current}</span>
         </div>
+        {validationError && (
+          <p role="alert" className="mt-2 text-xs text-destructive">{validationError}</p>
+        )}
       </div>
     </div>
   );

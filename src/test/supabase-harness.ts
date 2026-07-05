@@ -72,8 +72,16 @@ export function createSupabaseHarness(config: HarnessConfig) {
     return chain;
   }
 
-  const client = { from: vi.fn((table: string) => makeChain(table)) };
-  return { client, inserts, updates, audits };
+  const rpcCalls: Array<{ fn: string; args: any }> = [];
+  const client = {
+    from: vi.fn((table: string) => makeChain(table)),
+    rpc: vi.fn(async (fn: string, args: any) => {
+      rpcCalls.push({ fn, args });
+      const cfg = (config as any)[`rpc:${fn}`];
+      return cfg ?? { data: null, error: null };
+    }),
+  };
+  return { client, inserts, updates, audits, rpcCalls };
 }
 
 /** Convenience: a user-scoped supabase stub that returns a single role. */

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { parseLowStockThreshold } from "./admin-settings-core";
+import { parseLowStockThreshold, validateLowStockThreshold } from "./admin-settings-core";
 
 /** Read the current Low Stock Threshold from site_settings (public). */
 export const getLowStockThresholdSetting = createServerFn({ method: "GET" })
@@ -18,7 +18,7 @@ export const getLowStockThresholdSetting = createServerFn({ method: "GET" })
 /** Update the Low Stock Threshold. Super-admin only (enforced by RLS on site_settings). */
 export const updateLowStockThresholdSetting = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { value: number }) => ({ value: parseLowStockThreshold(d.value) }))
+  .inputValidator((d: { value: number }) => ({ value: validateLowStockThreshold(d.value) }))
   .handler(async ({ context, data }) => {
     const { error } = await context.supabase
       .from("site_settings")
