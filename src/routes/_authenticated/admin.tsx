@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   useAdminStores, useAdminProducts, useIsSuperAdmin, useModerateProduct, useAdminUsers,
   useAdminAuditLogs, useAssignRole, useRevokeRole,
+  useResellerMarketplaceAuditLogs,
   type AdminUserRow, type AppRole,
 } from "@/lib/eazystore-data";
 import { UICustomizer } from "@/components/admin/ui-customizer";
@@ -39,7 +40,7 @@ function Admin() {
   const moderate = useModerateProduct();
   const users = useAdminUsers();
   const auditLogs = useAdminAuditLogs();
-  const [tab, setTab] = useState<"pending" | "requests" | "stores" | "users" | "audit" | "customizer" | "settings">("pending");
+  const [tab, setTab] = useState<"pending" | "requests" | "stores" | "users" | "audit" | "marketplace" | "customizer" | "settings">("pending");
   const [q, setQ] = useState("");
   const [manageUser, setManageUser] = useState<AdminUserRow | null>(null);
 
@@ -180,6 +181,10 @@ function Admin() {
             <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold text-muted-foreground">
               {(auditLogs.data ?? []).length}
             </span>
+          </TabBtn>
+          <TabBtn active={tab === "marketplace"} onClick={() => setTab("marketplace")}>
+            <PackagePlus className="h-4 w-4" />
+            Marketplace audit
           </TabBtn>
           <TabBtn active={tab === "customizer"} onClick={() => setTab("customizer")}>
             <Palette className="h-4 w-4" />
@@ -379,6 +384,8 @@ function Admin() {
               ))
             )}
           </div>
+        ) : tab === "marketplace" ? (
+          <MarketplaceAuditPanel />
         ) : tab === "customizer" ? (
           <UICustomizer />
         ) : (
@@ -901,3 +908,137 @@ function AdminSettingsPanel() {
     </div>
   );
 }
+
+const RESELLER_AUDIT_ACTIONS = [
+  { value: "", label: "All actions" },
+  { value: "admin_revoke", label: "Admin delete" },
+  { value: "approve_request", label: "Approve request" },
+  { value: "reject_request", label: "Reject request" },
+  { value: "submit_request", label: "Submit request" },
+  { value: "update_product_request", label: "Update request" },
+  { value: "delete_product_request", label: "Delete request" },
+  { value: "stock_out", label: "Stock out" },
+  { value: "stock_restored", label: "Stock restored" },
+];
+
+const SINCE_OPTIONS = [
+  { value: "", label: "All time" },
+  { value: "1d", label: "Last 24h" },
+  { value: "7d", label: "Last 7 days" },
+  { value: "30d", label: "Last 30 days" },
+];
+
+function MarketplaceAuditPanel() {
+  const [action, setAction] = useState("");
+  const [sinceKey, setSinceKey] = useState("");
+  const [search, setSearch] = useState("");
+
+  const since = useMemo(() => {
+    if (!sinceKey) return undefined;
+    const days = sinceKey === "1d" ? 1 : sinceKey === "7d" ? 7 : 30;
+    return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  }, [sinceKey]);
+
+  const logs = useResellerMarketplaceAuditLogs({
+    action: action || undefined,
+    since,
+  });
+
+  const filtered = useMemo(() => {
+    const rows = logs.data ?? [];
+    const q = search.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => {
+      const meta = r.metadata ?? {};
+      const name = String((meta as Record<string, unknown>).name ?? "");
+      return (
+        name.toLowerCase().includes(q) ||
+        (r.actor_email ?? "").toLowerCase().includes(q) ||
+        (r.product_id ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [logs.data, search]);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={action}
+          onChange={(e) => setAction(e.target.value)}
+          className="rounded-lg border border-border bg-background px-3 py-2 text-xs"
+        >
+          {RESELLER_AUDIT_ACTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <select
+          value={sinceKey}
+          onChange={(e) => setSinceKey(e.target.value)}
+          className="rounded-lg border border-border bg-background px-3 py-2 text-xs"
+        >
+          {SINCE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search product name, actor, or id"
+            className="w-full rounded-lg border border-border bg-background py-2 pl-8 pr-3 text-xs"
+          />
+        </div>
+      </div>
+
+      {logs.isLoading ? (
+        <Center><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Center>
+      ) : logs.error ? (
+        <Empty title="Couldn't load audit logs" desc={(logs.error as Error).message} />
+      ) : filtered.length === 0 ? (
+        <Empty title="No entries" desc="No marketplace activity matches these filters." />
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((l) => {
+            const meta = (l.metadata ?? {}) as Record<string, unknown>;
+            const productName = String(meta.name ?? "");
+            const reason = String(meta.reason ?? "");
+            return (
+              <div key={l.id} className="rounded-2xl border border-border bg-card p-3.5 text-sm shadow-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                    l.action === "admin_revoke" ? "bg-rose-100 text-rose-800"
+                    : l.action.startsWith("approve") ? "bg-emerald-100 text-emerald-800"
+                    : l.action.startsWith("reject") ? "bg-amber-100 text-amber-800"
+                    : "bg-muted text-foreground"
+                  }`}>
+                    {l.action.replace(/_/g, " ")}
+                  </span>
+                  {l.actor_role && (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      {l.actor_role}
+                    </span>
+                  )}
+                  {!l.success && (
+                    <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800">FAILED</span>
+                  )}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {new Date(l.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <div className="mt-1.5 text-xs">
+                  <span className="font-semibold">{l.actor_email ?? l.actor_id?.slice(0, 8) ?? "system"}</span>
+                  <span className="text-muted-foreground"> · </span>
+                  <span className="font-semibold">{productName || l.product_id?.slice(0, 8) || "—"}</span>
+                </div>
+                {reason && <div className="mt-1 text-xs text-muted-foreground">Reason: {reason}</div>}
+                {l.error && <div className="mt-1 text-xs text-destructive">Error: {l.error}</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+

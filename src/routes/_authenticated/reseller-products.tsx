@@ -1035,6 +1035,10 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
       toast.success(`"${row.name}" deleted from the marketplace.`);
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["my-products"] });
+      qc.invalidateQueries({ queryKey: ["public-store"] });
+      qc.invalidateQueries({ queryKey: ["admin", "reseller-audit-logs"] });
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to delete"),
   });

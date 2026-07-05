@@ -9,6 +9,7 @@ import {
   adminListAuditLogs,
   adminAssignRole,
   adminRevokeRole,
+  adminListResellerAuditLogs,
 } from "@/lib/admin.functions";
 
 
@@ -555,6 +556,35 @@ export function useAdminAuditLogs() {
     queryFn: async (): Promise<AuditLogRow[]> => {
       const data = await adminListAuditLogs({ data: { limit: 200 } });
       return (data ?? []) as AuditLogRow[];
+    },
+  });
+}
+
+export type ResellerAuditLogRow = {
+  id: string;
+  actor_id: string | null;
+  actor_role: string | null;
+  action: string;
+  product_id: string | null;
+  success: boolean;
+  error: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  actor_email: string | null;
+};
+
+export function useResellerMarketplaceAuditLogs(filters: {
+  action?: string;
+  actorId?: string;
+  since?: string;
+} = {}) {
+  return useQuery({
+    queryKey: ["admin", "reseller-audit-logs", filters],
+    queryFn: async (): Promise<ResellerAuditLogRow[]> => {
+      const data = await adminListResellerAuditLogs({
+        data: { limit: 200, ...filters },
+      });
+      return (data ?? []) as ResellerAuditLogRow[];
     },
   });
 }
