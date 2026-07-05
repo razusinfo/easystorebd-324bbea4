@@ -178,7 +178,7 @@ export function EazyStoreBasicTemplate({
         imageUrl: p.image_url ?? null,
       }));
 
-  const accent = accentColor || "#5B21B6";
+  const accent = sanitizeHexColor(accentColor, "#5B21B6");
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
 
   const cartItems: CartItem[] = useStoreCart(storeId);
