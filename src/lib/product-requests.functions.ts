@@ -78,6 +78,7 @@ export const submitProductRequest = createServerFn({ method: "POST" })
         name: data.name,
         description: data.description,
         price: data.price,
+        category: data.category,
         images: data.images,
       })
       .select("id")
@@ -88,6 +89,7 @@ export const submitProductRequest = createServerFn({ method: "POST" })
         name: data.name,
         description: data.description,
         price: data.price,
+        category: data.category,
         images: data.images,
       }, error?.message ?? "insert failed");
       throw new Error(error?.message ?? "Failed to submit request");
@@ -97,6 +99,7 @@ export const submitProductRequest = createServerFn({ method: "POST" })
       name: data.name,
       description: data.description,
       price: data.price,
+      category: data.category,
       images: data.images,
       image_count: data.images.length,
     });
