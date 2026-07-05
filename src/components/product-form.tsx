@@ -746,6 +746,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                   />
                 </div>
               </Field>
+              <Field label="Live Preview">
+                <DescriptionPreview markdown={form.description} />
+              </Field>
+
 
             </div>
           </Section>
