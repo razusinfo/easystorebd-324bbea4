@@ -2,26 +2,54 @@
 // place orders on published stores, so this endpoint is intentionally public
 // (no auth middleware). The log lands in server-function logs, which is what
 // we use to debug RLS / missing-grant regressions.
+//
+// Because it is unauthenticated, every field is validated and length-capped
+// with zod to block log flooding and log-injection attempts.
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 export type OrderAttemptOutcome = "success" | "order_insert_failed" | "items_insert_failed";
 
-type LogInput = {
-  outcome: OrderAttemptOutcome;
-  store_id: string;
-  order_id?: string | null;
-  order_number?: string | null;
-  customer_user_id?: string | null;
-  role?: string | null;
-  item_count: number;
-  total: number;
-  error_kind?: string | null;
-  error_code?: string | null;
-  error_message?: string | null;
-};
+const OUTCOMES: readonly OrderAttemptOutcome[] = [
+  "success",
+  "order_insert_failed",
+  "items_insert_failed",
+] as const;
+
+const ERROR_KINDS = [
+  "rls_violation",
+  "missing_grant",
+  "validation",
+  "constraint",
+  "network",
+  "unknown",
+] as const;
+
+// Reject control characters that could corrupt log lines.
+const noControlChars = /^[^\u0000-\u001f\u007f]*$/;
+
+const uuid = z.string().uuid();
+const shortStr = (max: number) =>
+  z.string().max(max).regex(noControlChars, "control characters not allowed");
+
+const logSchema = z.object({
+  outcome: z.enum(OUTCOMES as unknown as [OrderAttemptOutcome, ...OrderAttemptOutcome[]]),
+  store_id: uuid,
+  order_id: uuid.nullish(),
+  order_number: shortStr(64).nullish(),
+  customer_user_id: uuid.nullish(),
+  role: shortStr(32).nullish(),
+  item_count: z.number().int().min(0).max(10_000),
+  total: z.number().min(0).max(1_000_000_000).finite(),
+  error_kind: z.enum(ERROR_KINDS).nullish(),
+  error_code: shortStr(32).nullish(),
+  error_message: shortStr(500).nullish(),
+});
+
+export type LogOrderAttemptInput = z.infer<typeof logSchema>;
 
 export const logOrderPlacementAttempt = createServerFn({ method: "POST" })
-  .inputValidator((input: LogInput) => input)
+  .inputValidator((input: unknown): LogOrderAttemptInput => logSchema.parse(input))
   .handler(async ({ data }) => {
     // Keep payload compact and PII-free (no name/phone/address).
     const payload = {

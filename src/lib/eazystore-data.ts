@@ -360,13 +360,22 @@ export function useMyProducts(storeId: string | undefined) {
     queryKey: ["products", "by-store", storeId],
     enabled: !!storeId,
     queryFn: async (): Promise<ProductRow[]> => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("store_id", storeId!)
-        .order("created_at", { ascending: false });
+      // Owner-scoped RPC returns full rows (including buying_price and
+      // reseller_price) after verifying the caller owns the store or is a
+      // super admin. Direct `.from("products").select("*")` is blocked for
+      // those two columns at the DB grant layer.
+      const { data, error } = await supabase.rpc("get_owner_products_full", {
+        _store_id: storeId!,
+      });
       if (error) throw error;
-      return (data ?? []) as ProductRow[];
+      const rows = (data ?? []) as ProductRow[];
+      return [...rows].sort((a, b) => {
+        const ao = (a as { is_out_of_stock?: boolean | null }).is_out_of_stock ? 1 : 0;
+        const bo = (b as { is_out_of_stock?: boolean | null }).is_out_of_stock ? 1 : 0;
+        if (ao !== bo) return ao - bo;
+        return (b.created_at ?? "").localeCompare(a.created_at ?? "");
+      });
+
     },
   });
 }
@@ -381,6 +390,12 @@ export type ProductsQueryParams = {
   categoryId?: string | "all";
 };
 
+// Safe column projection for owner list pages — excludes buying_price and
+// reseller_price (revoked at the DB layer). The edit form uses useMyProducts,
+// which goes through the owner-scoped RPC and still returns those fields.
+const OWNER_LIST_COLUMNS =
+  "id, store_id, name, price, regular_price, stock, status, image_url, gallery_urls, category_id, brand, condition, weight_kg, length_cm, width_cm, height_cm, sku, unit_name, product_serial, warranty, initial_sold_count, use_default_delivery, video_url, default_delivery_charge, specific_delivery_charges, short_description, description, is_out_of_stock, add_to_reseller, is_resellable, source_reseller_product_id, created_at, updated_at";
+
 export function useMyProductsPaged(params: ProductsQueryParams) {
   const { storeId, page, perPage, search, status, sku, categoryId } = params;
   return useQuery({
@@ -391,7 +406,7 @@ export function useMyProductsPaged(params: ProductsQueryParams) {
       const to = from + perPage - 1;
       let q = supabase
         .from("products")
-        .select("*", { count: "exact" })
+        .select(OWNER_LIST_COLUMNS, { count: "exact" })
         .eq("store_id", storeId!)
         .order("is_out_of_stock", { ascending: true })
         .order("created_at", { ascending: false });
@@ -410,6 +425,7 @@ export function useMyProductsPaged(params: ProductsQueryParams) {
     placeholderData: (prev) => prev,
   });
 }
+
 
 export function useMyProductsStats(storeId: string | undefined) {
   return useQuery({

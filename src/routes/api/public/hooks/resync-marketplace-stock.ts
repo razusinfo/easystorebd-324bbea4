@@ -2,21 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 
 // Cron endpoint: periodically resyncs approved marketplace product stock from
 // each requester's source product stock, and logs discrepancies. Auth: caller
-// must present Supabase publishable key in `apikey` header (matches the other
-// scheduled jobs in the project). No user session is required.
+// must present the server-only CRON_RESYNC_SECRET (never the Supabase
+// publishable/anon key, which ships in the browser bundle).
 export const Route = createFileRoute("/api/public/hooks/resync-marketplace-stock")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const expected =
-          process.env.SUPABASE_PUBLISHABLE_KEY ??
-          process.env.SUPABASE_ANON_KEY ??
-          "";
+        const expected = process.env.CRON_RESYNC_SECRET ?? "";
         const provided =
-          request.headers.get("apikey") ??
+          request.headers.get("x-cron-secret") ??
           request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
           "";
-        if (!expected || provided !== expected) {
+        if (!expected || provided.length === 0 || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
 

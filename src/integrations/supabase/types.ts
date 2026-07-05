@@ -1359,6 +1359,52 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
+      get_owner_products_full: {
+        Args: { _store_id: string }
+        Returns: {
+          add_to_reseller: boolean
+          brand: string | null
+          buying_price: number | null
+          category_id: string | null
+          condition: string
+          created_at: string
+          default_delivery_charge: number | null
+          description: string | null
+          gallery_urls: string[]
+          height_cm: number | null
+          id: string
+          image_url: string | null
+          initial_sold_count: number
+          is_out_of_stock: boolean | null
+          is_resellable: boolean | null
+          length_cm: number | null
+          name: string
+          price: number
+          product_serial: string | null
+          regular_price: number | null
+          reseller_price: number | null
+          short_description: string | null
+          sku: string | null
+          source_reseller_product_id: string | null
+          specific_delivery_charges: Json
+          status: Database["public"]["Enums"]["product_status"]
+          stock: number
+          store_id: string
+          unit_name: string | null
+          updated_at: string
+          use_default_delivery: boolean
+          video_url: string | null
+          warranty: string | null
+          weight_kg: number | null
+          width_cm: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
