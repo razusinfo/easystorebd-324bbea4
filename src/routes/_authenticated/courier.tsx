@@ -178,45 +178,13 @@ function CourierPage() {
                 </TableCell>
               </TableRow>
             ) : rows.length ? rows.map((o) => (
-              <TableRow key={o.id}>
-                <TableCell>
-                  <div className="font-medium">#{o.order_number}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString()}</div>
-                </TableCell>
-                <TableCell>
-                  <div className="font-medium">{o.customer_name}</div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3" />{o.customer_phone}
-                  </div>
-                </TableCell>
-                <TableCell className="max-w-xs">
-                  <div className="flex items-start gap-1 text-xs text-muted-foreground">
-                    <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-                    <span className="whitespace-pre-wrap">{o.customer_address || "—"}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right font-medium">{fmt(o.total)}</TableCell>
-                <TableCell>
-                  <Badge className={statusBadgeClass(o.status)}>{o.status}</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex flex-wrap justify-end gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => copyAddress(o)} title="Copy address">
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    {(o.status === "confirmed" || o.status === "processing") && (
-                      <Button size="sm" variant="secondary" onClick={() => setStatus(o.id, "shipped")}>
-                        <Send className="h-3 w-3 mr-1" />Mark shipped
-                      </Button>
-                    )}
-                    {o.status === "shipped" && (
-                      <Button size="sm" onClick={() => setStatus(o.id, "delivered")}>
-                        <CheckCircle2 className="h-3 w-3 mr-1" />Delivered
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
+              <OrderRowWithTimeline
+                key={o.id}
+                order={o}
+                onShip={() => setStatus(o.id, "shipped")}
+                onDeliver={() => setStatus(o.id, "delivered")}
+                onCopy={() => copyAddress(o)}
+              />
             )) : (
               <TableRow>
                 <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
