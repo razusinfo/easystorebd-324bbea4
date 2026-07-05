@@ -838,6 +838,50 @@ export type Database = {
         }
         Relationships: []
       }
+      reseller_order_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          new_status: string | null
+          old_status: string | null
+          order_id: string
+          tracking_id: string | null
+          tracking_url: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          new_status?: string | null
+          old_status?: string | null
+          order_id: string
+          tracking_id?: string | null
+          tracking_url?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          new_status?: string | null
+          old_status?: string | null
+          order_id?: string
+          tracking_id?: string | null
+          tracking_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "reseller_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reseller_orders: {
         Row: {
           created_at: string
