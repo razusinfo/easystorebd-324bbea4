@@ -459,7 +459,7 @@ function ResellerProductsPage() {
           )}
         </Card>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
           {filtered.map((p) => {
             const img = p.displayImage;
             const outOfStock = computeIsOutOfStock(p.stock);
@@ -490,22 +490,22 @@ function ResellerProductsPage() {
                     </div>
                   )}
                 </div>
-                <div className="space-y-1.5 p-2">
-                  <h3 className="line-clamp-2 text-xs font-semibold leading-tight">{p.name}</h3>
+                <div className="space-y-1 p-1.5">
+                  <h3 className="line-clamp-2 text-[11px] font-semibold leading-tight">{p.name}</h3>
                   <div className="flex items-baseline justify-between gap-1">
-                    <p className="text-[11px] font-medium line-through opacity-60">{fmt(p.price)}</p>
-                    <p className="text-sm font-bold text-primary">{fmt(p.displayPrice)}</p>
+                    <p className="text-[10px] font-medium line-through opacity-60">{fmt(p.price)}</p>
+                    <p className="text-xs font-bold text-primary">{fmt(p.displayPrice)}</p>
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-0.5">
                     {p.category && (
-                      <Badge variant="secondary" className="px-1.5 py-0 text-[9px]">{p.category}</Badge>
+                      <Badge variant="secondary" className="px-1 py-0 text-[8px]">{p.category}</Badge>
                     )}
                     {p.isCustom && (
-                      <Badge className="px-1.5 py-0 text-[9px]">My shop</Badge>
+                      <Badge className="px-1 py-0 text-[8px]">My shop</Badge>
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1">
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {userId && <EditResellerButton row={p} userId={userId} />}
