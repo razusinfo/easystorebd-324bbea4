@@ -1442,6 +1442,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      reconcile_reseller_stock: {
+        Args: { _rp_id: string }
+        Returns: {
+          copies_count: number
+          min_copy_stock: number
+          mismatch: boolean
+          reseller_product_id: string
+          source_stock: number
+          total_consumed: number
+        }[]
+      }
     }
     Enums: {
       app_role:
