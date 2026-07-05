@@ -77,6 +77,51 @@ export type Database = {
         }
         Relationships: []
       }
+      courier_partner_settings: {
+        Row: {
+          api_key: string | null
+          api_secret: string | null
+          base_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          partner: string
+          pickup_address: string | null
+          pickup_zone: string | null
+          status_mapping: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_key?: string | null
+          api_secret?: string | null
+          base_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          partner: string
+          pickup_address?: string | null
+          pickup_zone?: string | null
+          status_mapping?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_key?: string | null
+          api_secret?: string | null
+          base_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          partner?: string
+          pickup_address?: string | null
+          pickup_zone?: string | null
+          status_mapping?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       customer_addresses: {
         Row: {
           address_line: string
@@ -281,13 +326,69 @@ export type Database = {
           },
         ]
       }
+      order_tracking_events: {
+        Row: {
+          courier_provider: string | null
+          courier_status: string | null
+          created_at: string
+          event_type: string
+          id: string
+          new_status: string | null
+          note: string | null
+          old_status: string | null
+          order_id: string
+          source: string
+          tracking_id: string | null
+          tracking_url: string | null
+        }
+        Insert: {
+          courier_provider?: string | null
+          courier_status?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          new_status?: string | null
+          note?: string | null
+          old_status?: string | null
+          order_id: string
+          source?: string
+          tracking_id?: string | null
+          tracking_url?: string | null
+        }
+        Update: {
+          courier_provider?: string | null
+          courier_status?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          new_status?: string | null
+          note?: string | null
+          old_status?: string | null
+          order_id?: string
+          source?: string
+          tracking_id?: string | null
+          tracking_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_tracking_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          courier_provider: string | null
+          courier_status: string | null
           created_at: string
           customer_address: string | null
           customer_name: string
           customer_phone: string
           customer_user_id: string | null
+          delivered_at: string | null
           delivery_charge: number
           discount: number
           id: string
@@ -295,18 +396,24 @@ export type Database = {
           order_number: string
           payment_method: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          shipped_at: string | null
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
           subtotal: number
           total: number
+          tracking_id: string | null
+          tracking_url: string | null
           updated_at: string
         }
         Insert: {
+          courier_provider?: string | null
+          courier_status?: string | null
           created_at?: string
           customer_address?: string | null
           customer_name: string
           customer_phone: string
           customer_user_id?: string | null
+          delivered_at?: string | null
           delivery_charge?: number
           discount?: number
           id?: string
@@ -314,18 +421,24 @@ export type Database = {
           order_number: string
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          shipped_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
           subtotal?: number
           total?: number
+          tracking_id?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Update: {
+          courier_provider?: string | null
+          courier_status?: string | null
           created_at?: string
           customer_address?: string | null
           customer_name?: string
           customer_phone?: string
           customer_user_id?: string | null
+          delivered_at?: string | null
           delivery_charge?: number
           discount?: number
           id?: string
@@ -333,10 +446,13 @@ export type Database = {
           order_number?: string
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          shipped_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string
           subtotal?: number
           total?: number
+          tracking_id?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1537,6 +1653,46 @@ export type Database = {
             }
             Returns: undefined
           }
+      apply_courier_order_status: {
+        Args: {
+          _external_status: string
+          _order_id: string
+          _provider: string
+          _tracking_id?: string
+          _tracking_url?: string
+        }
+        Returns: {
+          courier_provider: string | null
+          courier_status: string | null
+          created_at: string
+          customer_address: string | null
+          customer_name: string
+          customer_phone: string
+          customer_user_id: string | null
+          delivered_at: string | null
+          delivery_charge: number
+          discount: number
+          id: string
+          notes: string | null
+          order_number: string
+          payment_method: string | null
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          shipped_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          store_id: string
+          subtotal: number
+          total: number
+          tracking_id: string | null
+          tracking_url: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       apply_order_stock_decrement: {
         Args: { _order_id: string }
         Returns: undefined
