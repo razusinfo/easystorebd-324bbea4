@@ -13,6 +13,7 @@ import { BdLoveTemplate } from "@/components/templates/bdlove-template";
 import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { FlipmartTemplate } from "@/components/templates/flipmart-template";
 import { FreshmartTemplate } from "@/components/templates/freshmart-template";
+import { isValidHexColor, sanitizeHexColor } from "@/lib/hex-color";
 import {
   MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview,
   SportyPulsePreview, LuxeNoirPreview,
