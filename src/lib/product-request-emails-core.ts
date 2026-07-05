@@ -75,11 +75,11 @@ export function buildSubmittedEmailPayload(
     html: shell(
       "EazyStore",
       "New product request",
-      `<p><strong>${requester}</strong> submitted a new product to review.</p>
+      `<p><strong>${escapeHtml(requester)}</strong> submitted a new product to review.</p>
        <ul style="line-height:1.7">
-         <li><strong>Product:</strong> ${input.productName}</li>
-         <li><strong>Requested price:</strong> ৳${input.price}</li>
-         <li><strong>Reseller:</strong> ${input.resellerEmail ?? "—"}</li>
+         <li><strong>Product:</strong> ${escapeHtml(input.productName)}</li>
+         <li><strong>Requested price:</strong> ৳${escapeHtml(String(input.price))}</li>
+         <li><strong>Reseller:</strong> ${escapeHtml(input.resellerEmail ?? "—")}</li>
        </ul>
        ${primaryButton(link, "Review pending requests")}`,
     ),
