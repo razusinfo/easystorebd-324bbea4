@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
-import { approveProductRequest, rejectProductRequest, adminUpdateProductRequest, IMAGE_URL_RE, MAX_IMAGES } from "@/lib/product-requests.functions";
+import { approveProductRequest, rejectProductRequest, adminUpdateProductRequest, adminRepairApprovedStock, IMAGE_URL_RE, MAX_IMAGES } from "@/lib/product-requests.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
