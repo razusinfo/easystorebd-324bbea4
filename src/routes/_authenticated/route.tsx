@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SupportChatWidget } from "@/components/support-chat-widget";
+import { HeaderNotificationsBell } from "@/components/header-notifications-bell";
 
 // Routes reachable BEFORE a store exists (avoid a redirect loop).
 const NO_STORE_ALLOWED = ["/onboarding", "/upgrade"];
