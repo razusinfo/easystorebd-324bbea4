@@ -23,6 +23,7 @@ const mainItems = [
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
   { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
   { title: "My Orders", url: "/my-orders", icon: Receipt, badge: "NEW" },
+  { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
   { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
