@@ -78,7 +78,7 @@ function AdminResellerOrdersPage() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, reseller_id, reseller_product_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, source, source_order_id, source_store_id, tracking_id, tracking_url, created_at")
+        .select("id, reseller_id, reseller_product_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, source, source_order_id, source_store_id, tracking_id, tracking_url, created_at, settled_at, delivered_at, courier_provider, courier_status")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
