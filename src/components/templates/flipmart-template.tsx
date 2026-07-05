@@ -107,7 +107,7 @@ export function FlipmartTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
   sliderRows = false, sectionTitles,
 }: Props) {
-  const accent = accentColor || "#2563eb";
+  const accent = sanitizeHexColor(accentColor, "#2563eb");
   const yellow = "#fbbf24";
   const rgb = hexToRgb(accent) ?? "37, 99, 235";
   const name = (store?.name ?? "FLIPMART").toUpperCase();
