@@ -100,7 +100,13 @@ function ThemesPage() {
     }
   };
 
-  const setActiveAccent = (color: string) => patchActiveSettings({ accentColor: color }, "Could not update color");
+  const setActiveAccent = (color: string) => {
+    if (!isValidHexColor(color)) {
+      toast.error("Accent color must be a hex value like #5B21B6");
+      return;
+    }
+    patchActiveSettings({ accentColor: sanitizeHexColor(color, "#5B21B6") }, "Could not update color");
+  };
   const setThemeMode = (mode: "light" | "dark") => patchActiveSettings({ themeMode: mode }, "Could not update theme mode");
   const setBuyNow = (enabled: boolean) => patchActiveSettings({ buyNowEnabled: enabled }, "Could not update setting");
 
