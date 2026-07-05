@@ -117,6 +117,9 @@ function CourierPage() {
             <p className="text-sm text-muted-foreground">Ship orders and track deliveries.</p>
           </div>
         </div>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/courier-settings"><Settings2 className="h-4 w-4 mr-1" />Partner settings</Link>
+        </Button>
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
