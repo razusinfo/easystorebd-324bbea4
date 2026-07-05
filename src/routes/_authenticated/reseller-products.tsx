@@ -871,7 +871,18 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
             toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
             return;
           }
-          setOpen(true);
+          let accepted = false;
+          try {
+            accepted = typeof window !== "undefined" && window.localStorage.getItem(agreementKey) === "1";
+          } catch {
+            accepted = false;
+          }
+          if (accepted) {
+            setOpen(true);
+          } else {
+            setAgreed(false);
+            setAgreementOpen(true);
+          }
         }}
         disabled={disabled}
         aria-disabled={disabled || undefined}
