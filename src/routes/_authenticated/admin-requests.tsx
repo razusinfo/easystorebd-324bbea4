@@ -652,8 +652,13 @@ function EditRequestDialog({
             <div className="space-y-1.5">
               <Label>Category</Label>
               <Select value={categoryKey || undefined} onValueChange={(v) => setCategoryKey(v)}>
-                <SelectTrigger><SelectValue placeholder="Choose or create" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={existingCategories.length === 0 ? "No categories yet — create one" : "Choose or create"} />
+                </SelectTrigger>
                 <SelectContent>
+                  {existingCategories.length === 0 && (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">No categories yet.</div>
+                  )}
                   {existingCategories.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
