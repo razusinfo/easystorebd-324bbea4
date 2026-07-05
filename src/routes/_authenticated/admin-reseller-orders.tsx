@@ -57,6 +57,8 @@ type Row = {
   source: string | null;
   source_order_id: string | null;
   source_store_id: string | null;
+  tracking_id: string | null;
+  tracking_url: string | null;
   created_at: string;
   reseller?: { full_name: string | null; email: string } | null;
   store_name?: string | null;
