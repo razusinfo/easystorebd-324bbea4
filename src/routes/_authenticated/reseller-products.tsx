@@ -295,10 +295,11 @@ function ResellerProductsPage() {
                 .join("")
                 .slice(0, 2)
                 .toUpperCase();
+              const deliveries = s.name === PRIMARY_SUPPLIER ? primaryDeliveries : 0;
               return (
                 <div
                   key={s.name}
-                  className={`inline-flex items-center gap-1.5 rounded-full border pl-1 pr-1 py-0.5 text-xs transition-colors ${
+                  className={`inline-flex items-center gap-1 rounded-lg border px-1 py-1 text-xs transition-colors ${
                     active ? "border-primary bg-primary/5" : "border-border bg-background hover:bg-muted"
                   }`}
                 >
@@ -306,8 +307,9 @@ function ResellerProductsPage() {
                     type="button"
                     onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
                     className="flex items-center gap-1.5"
+                    title={`View products from ${s.name}`}
                   >
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[9px] font-bold text-muted-foreground">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-[9px] font-bold text-muted-foreground">
                       {s.name === PRIMARY_SUPPLIER ? (
                         <img src={eazystoreLogo.url} alt={s.name} className="h-full w-full object-contain" />
                       ) : initials ? (
@@ -316,15 +318,26 @@ function ResellerProductsPage() {
                         <StoreIcon className="h-3 w-3" />
                       )}
                     </span>
-                    <span className="max-w-[120px] truncate font-medium">{s.name}</span>
-                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                    <span className="max-w-[110px] truncate text-[11px] font-semibold">{s.name}</span>
+                    <span
+                      className="inline-flex items-center gap-0.5 rounded-md bg-muted px-1 py-0.5 text-[10px] font-semibold text-muted-foreground"
+                      title="Products"
+                    >
+                      <Package className="h-2.5 w-2.5" />
                       {s.count}
+                    </span>
+                    <span
+                      className="inline-flex items-center gap-0.5 rounded-md bg-muted px-1 py-0.5 text-[10px] font-semibold text-muted-foreground"
+                      title="Deliveries"
+                    >
+                      <Truck className="h-2.5 w-2.5" />
+                      {deliveries}
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setInfoSupplier(s.name); }}
-                    className="ml-0.5 flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="ml-0.5 flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                     aria-label={`About ${s.name}`}
                   >
                     <Info className="h-3 w-3" />
