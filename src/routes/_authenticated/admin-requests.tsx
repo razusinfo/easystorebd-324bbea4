@@ -213,14 +213,63 @@ function AdminRequestsList() {
         </Card>
       ) : (
         <>
+          {pendingRows.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 p-2">
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                <span>
+                  {selected.size > 0
+                    ? `${selected.size} selected`
+                    : `Select all pending on this page (${pendingRows.length})`}
+                </span>
+              </label>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  disabled={selected.size === 0 || bulkApprove.isPending || bulkReject.isPending}
+                  onClick={() => {
+                    if (confirm(`Approve ${selected.size} request(s) at their submitted price?`)) bulkApprove.mutate();
+                  }}
+                >
+                  {bulkApprove.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Check className="mr-1.5 h-4 w-4" />}
+                  Bulk Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={selected.size === 0 || bulkApprove.isPending || bulkReject.isPending}
+                  onClick={() => {
+                    if (confirm(`Reject ${selected.size} request(s)?`)) bulkReject.mutate();
+                  }}
+                >
+                  {bulkReject.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <X className="mr-1.5 h-4 w-4" />}
+                  Bulk Reject
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="grid gap-4">
             {rows.map((r) => (
-              <RequestCard
-                key={r.id}
-                row={r}
-                resellerName={profiles.data?.[r.requested_by] ?? "Unknown"}
-                onDone={refresh}
-              />
+              <div key={r.id} className="flex items-start gap-2">
+                {r.status === "pending" ? (
+                  <div className="pt-4">
+                    <Checkbox
+                      checked={selected.has(r.id)}
+                      onCheckedChange={() => toggleOne(r.id)}
+                      aria-label={`Select ${r.name}`}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-4" />
+                )}
+                <div className="flex-1">
+                  <RequestCard
+                    row={r}
+                    resellerName={profiles.data?.[r.requested_by] ?? "Unknown"}
+                    onDone={refresh}
+                  />
+                </div>
+              </div>
             ))}
           </div>
 
