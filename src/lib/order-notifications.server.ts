@@ -287,14 +287,28 @@ export async function sendOrderStatusUpdate(
   const total = money(Number(order.reseller_price ?? 0) * order.quantity);
   const trackingId = tracking?.tracking_id ?? null;
   const trackingUrl = tracking?.tracking_url ?? null;
-  const trackingSmsSuffix = trackingId
-    ? ` Track: ${trackingId}${trackingUrl ? ` (${trackingUrl})` : ""}.`
-    : "";
 
-  const smsCustomer = `${brand}: Update on order #${shortId} (${order.product_name}). Status: ${label}.${
-    newStatus === "shipped" ? ` Expected in ${cfg.delivery_eta}.` : ""
-  }${trackingSmsSuffix} Thank you!`;
-  const smsReseller = `${brand} order #${shortId} for ${order.customer_name} is now "${label}".${trackingSmsSuffix}`;
+  const STATUS_BN: Record<string, string> = {
+    pending: "অপেক্ষমান",
+    confirmed: "নিশ্চিত",
+    processing: "প্রক্রিয়াধীন",
+    shipped: "প্রেরিত",
+    delivered: "ডেলিভারি সম্পন্ন",
+    cancelled: "বাতিল",
+  };
+  const labelBn = STATUS_BN[newStatus] ?? label;
+  const trackSuffixEn = trackingId ? ` Track: ${trackingId}${trackingUrl ? ` (${trackingUrl})` : ""}.` : "";
+  const trackSuffixBn = trackingId ? ` ট্র্যাকিং: ${trackingId}${trackingUrl ? ` (${trackingUrl})` : ""}.` : "";
+
+  const smsCustomer =
+    `${brand}: Order #${shortId} (${order.product_name}) — Status: ${label}.` +
+    (newStatus === "shipped" ? ` ETA ${cfg.delivery_eta}.` : "") +
+    trackSuffixEn +
+    `\n${brand}: অর্ডার #${shortId} — স্ট্যাটাস: ${labelBn}।` +
+    trackSuffixBn;
+  const smsReseller =
+    `${brand} order #${shortId} for ${order.customer_name} → "${label}".${trackSuffixEn}` +
+    `\n${brand} অর্ডার #${shortId} (${order.customer_name}) → "${labelBn}"।${trackSuffixBn}`;
 
   const jobs: Promise<unknown>[] = [];
 
@@ -305,40 +319,29 @@ export async function sendOrderStatusUpdate(
 
   if (cfg.email_enabled && cfg.statuses_email.includes(newStatus)) {
     const trackingBlock = trackingId
-      ? `<p style="margin:12px 0 0">Tracking ID: <strong>${escapeHtml(trackingId)}</strong>${
-          trackingUrl ? ` — <a href="${escapeHtml(trackingUrl)}">Track shipment</a>` : ""
+      ? `<p style="margin:12px 0 0">Tracking ID / ট্র্যাকিং আইডি: <strong>${escapeHtml(trackingId)}</strong>${
+          trackingUrl ? ` — <a href="${escapeHtml(trackingUrl)}">Track shipment / ট্র্যাক করুন</a>` : ""
         }</p>`
       : "";
+    const shippedNote =
+      newStatus === "shipped"
+        ? `<p style="margin:16px 0 0">Expected delivery / প্রত্যাশিত ডেলিভারি: <strong>${escapeHtml(cfg.delivery_eta)}</strong>.</p>`
+        : "";
     const html = baseTemplate(
       brand,
-      `Order ${label}`,
-      `<p style="margin:0 0 16px">Your order status has been updated to <strong>${escapeHtml(label)}</strong>.</p>
+      `Order ${label} / অর্ডার ${labelBn}`,
+      `<p style="margin:0 0 16px">Your order status has been updated to <strong>${escapeHtml(label)}</strong>.<br/>
+        আপনার অর্ডারের স্ট্যাটাস আপডেট হয়েছে: <strong>${escapeHtml(labelBn)}</strong>।</p>
        ${orderRowsHtml(order, total, brand)}
-       ${newStatus === "shipped" ? `<p style="margin:16px 0 0">Expected delivery: <strong>${escapeHtml(cfg.delivery_eta)}</strong>.</p>` : ""}
+       ${shippedNote}
        ${trackingBlock}`,
     );
     const from = `${cfg.from_name} <${cfg.from_email}>`;
     if (cfg.notify_customer && order.customer_email) {
-      jobs.push(
-        sendEmail({
-          from,
-          to: order.customer_email,
-          subject: `${brand} — Order #${shortId} ${label}`,
-          html,
-          replyTo: cfg.reply_to,
-        }),
-      );
+      jobs.push(sendEmail({ from, to: order.customer_email, subject: `${brand} — Order #${shortId} ${label} / ${labelBn}`, html, replyTo: cfg.reply_to }));
     }
     if (cfg.notify_reseller && resellerEmail) {
-      jobs.push(
-        sendEmail({
-          from,
-          to: resellerEmail,
-          subject: `[${brand}] Order #${shortId} is now ${label}`,
-          html,
-          replyTo: cfg.reply_to,
-        }),
-      );
+      jobs.push(sendEmail({ from, to: resellerEmail, subject: `[${brand}] Order #${shortId} → ${label} / ${labelBn}`, html, replyTo: cfg.reply_to }));
     }
   }
 
