@@ -5,13 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, createRootRoute, RouterProvider } from "@tanstack/react-router";
 import {
   DEFAULT_LOW_STOCK_THRESHOLD,
-  applyLowStockThresholdSetting,
   getLowStockThreshold,
   computeIsOutOfStock,
 } from "@/lib/stock-sync-core";
 import {
   InvalidLowStockThresholdError,
   LOW_STOCK_THRESHOLD_MAX,
+  applyLowStockThresholdSetting,
   parseLowStockThreshold,
   validateLowStockThreshold,
 } from "@/lib/admin-settings-core";
