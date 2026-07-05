@@ -132,15 +132,32 @@ export async function runCopyResellerProduct(
       if (!cat) throw new Error("Selected category does not belong to your store");
     }
 
+    // Server-side duplicate guard: a reseller product may only be linked to
+    // a given store once. Match by source_reseller_product_id (stable link)
+    // and fall back to name for legacy rows copied before the link column
+    // was populated.
     const { data: existing } = await adminSupabase
       .from("products")
       .select("id")
       .eq("store_id", store.id)
-      .eq("name", source.name)
+      .or(`source_reseller_product_id.eq.${source.id},name.eq.${source.name}`)
       .limit(1)
       .maybeSingle();
     if (existing) {
-      await logAttempt(true, source.id, "already_exists");
+      // Distinct audit action so ops can spot repeated add attempts.
+      await adminSupabase.from("reseller_marketplace_audit_logs").insert({
+        actor_id: userId,
+        actor_role: actorRole,
+        action: "duplicate_add_attempt",
+        product_id: source.id,
+        success: true,
+        error: "already_added_on_website",
+        metadata: {
+          existing_product_id: existing.id,
+          store_id: store.id,
+          reseller_product_id: source.id,
+        },
+      });
       return { ok: true, product_id: existing.id, skipped: true };
     }
 
