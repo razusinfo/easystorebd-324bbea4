@@ -49,6 +49,56 @@ function ResellerRequestsPage() {
   );
 }
 
+function HighlightedRequestCard() {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search).get("request");
+    setId(p);
+  }, []);
+  const q = useQuery({
+    queryKey: ["reseller-request-single", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_requests")
+        .select("id, name, price, status, admin_notes, reviewed_at, images")
+        .eq("id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  if (!id || !q.data) return null;
+  const r = q.data;
+  const tone =
+    r.status === "approved"
+      ? "border-green-500/40 bg-green-500/5"
+      : r.status === "rejected"
+        ? "border-destructive/40 bg-destructive/5"
+        : "border-primary/40 bg-primary/5";
+  const Icon = r.status === "approved" ? Check : r.status === "rejected" ? X : AlertCircle;
+  return (
+    <Card className={`ring-2 ring-primary/40 ${tone}`}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Icon className="h-5 w-5" /> Your request: {r.name}
+          <Badge variant="secondary" className="capitalize">{r.status}</Badge>
+        </CardTitle>
+        <CardDescription>
+          Submitted price ৳{Number(r.price).toLocaleString()}
+          {r.reviewed_at ? ` · Reviewed ${new Date(r.reviewed_at).toLocaleString()}` : ""}
+        </CardDescription>
+      </CardHeader>
+      {r.admin_notes ? (
+        <CardContent>
+          <p className="text-sm"><span className="font-semibold">Admin notes:</span> {r.admin_notes}</p>
+        </CardContent>
+      ) : null}
+    </Card>
+  );
+}
+
 function SubmitRequestForm() {
   const qc = useQueryClient();
   const submit = useServerFn(submitProductRequest);
