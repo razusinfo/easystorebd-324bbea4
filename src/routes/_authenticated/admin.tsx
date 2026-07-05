@@ -178,6 +178,10 @@ function Admin() {
             <Palette className="h-4 w-4" />
             UI Customizer
           </TabBtn>
+          <TabBtn active={tab === "settings"} onClick={() => setTab("settings")}>
+            <ShieldCheck className="h-4 w-4" />
+            Settings
+          </TabBtn>
         </div>
       </div>
 
