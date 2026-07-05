@@ -305,5 +305,21 @@ export const rejectProductRequest = createServerFn({ method: "POST" })
       admin_notes: data.admin_notes ?? null,
     });
 
+    // In-app notification to the reseller with a deep link back to their request.
+    try {
+      await supabaseAdmin.from("user_notifications").insert({
+        user_id: req.requested_by,
+        type: "product_request_rejected",
+        title: "Your product request was rejected",
+        body: data.admin_notes
+          ? `"${req.name}": ${data.admin_notes}`
+          : `"${req.name}" was not approved.`,
+        link: `/reseller-requests?request=${req.id}`,
+        related_id: req.id,
+      });
+    } catch (e) {
+      console.warn("[product-request in-app rejected]", (e as Error).message);
+    }
+
     return { ok: true as const };
   });
