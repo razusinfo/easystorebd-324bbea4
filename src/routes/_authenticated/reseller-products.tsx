@@ -200,6 +200,50 @@ function ResellerProductsPage() {
       </header>
       <MyRequestsStrip />
 
+      {suppliers.length > 0 && (
+        <section className="mb-5">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Suppliers</h2>
+            <span className="text-[11px] text-muted-foreground">
+              {suppliers.length} supplier{suppliers.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => { setSupplier(ALL); setTab(ALL); }}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                supplier === ALL
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background hover:bg-muted"
+              }`}
+            >
+              All · {merged.length}
+            </button>
+            {suppliers.map((s) => (
+              <button
+                key={s.name}
+                type="button"
+                onClick={() => { setSupplier(s.name); setTab(ALL); }}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  supplier === s.name
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                <StoreIcon className="h-3 w-3" />
+                {s.name}
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${supplier === s.name ? "bg-primary-foreground/20" : "bg-muted"}`}>
+                  {s.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+
+
 
       {(q.data?.length ?? 0) > 0 && (
         <Tabs value={tab} onValueChange={setTab} className="mb-4">
