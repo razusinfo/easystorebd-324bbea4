@@ -217,7 +217,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       published_reseller_product_id: inserted.id,
     });
 
-    // Fire-and-forget success email to the reseller.
+    // Fire-and-forget success email + in-app notification to the reseller.
     try {
       const { notifyRequestApproved } = await import("./product-request-emails.server");
       await notifyRequestApproved(supabaseAdmin as never, {
@@ -228,6 +228,18 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       });
     } catch (e) {
       console.warn("[product-request notify approved]", (e as Error).message);
+    }
+    try {
+      await supabaseAdmin.from("user_notifications").insert({
+        user_id: req.requested_by,
+        type: "product_request_approved",
+        title: "Your product request was approved",
+        body: `"${req.name}" is now live in the marketplace at ৳${data.reseller_price}.`,
+        link: `/reseller-products?highlight=${inserted.id}`,
+        related_id: req.id,
+      });
+    } catch (e) {
+      console.warn("[product-request in-app approved]", (e as Error).message);
     }
 
     return { ok: true as const, reseller_product_id: inserted.id };
@@ -292,6 +304,22 @@ export const rejectProductRequest = createServerFn({ method: "POST" })
       name: req.name,
       admin_notes: data.admin_notes ?? null,
     });
+
+    // In-app notification to the reseller with a deep link back to their request.
+    try {
+      await supabaseAdmin.from("user_notifications").insert({
+        user_id: req.requested_by,
+        type: "product_request_rejected",
+        title: "Your product request was rejected",
+        body: data.admin_notes
+          ? `"${req.name}": ${data.admin_notes}`
+          : `"${req.name}" was not approved.`,
+        link: `/reseller-requests?request=${req.id}`,
+        related_id: req.id,
+      });
+    } catch (e) {
+      console.warn("[product-request in-app rejected]", (e as Error).message);
+    }
 
     return { ok: true as const };
   });
