@@ -17,6 +17,7 @@ export const upsertLocalResellerProduct = createServerFn({ method: "POST" })
       price: z.number(),
       reseller_price: z.number().nullable().optional(),
       category: z.string().nullable().optional(),
+      stock: z.number().int().nonnegative().max(1_000_000).optional(),
     }),
   )
   .handler(async ({ data, context }) => {
