@@ -326,20 +326,7 @@ function ResellerProductsPage() {
         supplierName={infoSupplier}
         productCount={infoSupplier ? (suppliers.find((s) => s.name === infoSupplier)?.count ?? 0) : 0}
         deliveries={infoSupplier === PRIMARY_SUPPLIER ? primaryDeliveries : 0}
-        topCategories={useMemo(() => {
-          if (!infoSupplier) return [];
-          const counts = new Map<string, number>();
-          for (const r of merged) {
-            if (normalizeSupplier(r.source) !== infoSupplier) continue;
-            const c = (r.category ?? "").trim();
-            if (!c) continue;
-            counts.set(c, (counts.get(c) ?? 0) + 1);
-          }
-          return Array.from(counts.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3)
-            .map(([name]) => name);
-        }, [infoSupplier, merged])}
+        topCategories={infoSupplierCategories}
         onClose={() => setInfoSupplier(null)}
       />
 
