@@ -50,7 +50,7 @@ function ResetPasswordPage() {
     setInfo(null);
     const parsed = pwdSchema.safeParse(password);
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? "Invalid password");
+      setError(parsed.error.issues[0]?.message ?? "Invalid password");
       return;
     }
     if (password !== confirm) {

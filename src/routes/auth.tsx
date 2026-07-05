@@ -134,7 +134,7 @@ function AuthPage() {
       if (mode === "signup") {
         const parsed = signupSchema.safeParse({ fullName, email, password });
         if (!parsed.success) {
-          setError(parsed.error.errors[0]?.message ?? "Invalid input");
+          setError(parsed.error.issues[0]?.message ?? "Invalid input");
           return;
         }
         const { data, error } = await supabase.auth.signUp({
@@ -158,7 +158,7 @@ function AuthPage() {
       } else {
         const parsed = signinSchema.safeParse({ email, password });
         if (!parsed.success) {
-          setError(parsed.error.errors[0]?.message ?? "Invalid input");
+          setError(parsed.error.issues[0]?.message ?? "Invalid input");
           return;
         }
         const { error } = await supabase.auth.signInWithPassword({
@@ -287,7 +287,7 @@ function AuthPage() {
     setInfo(null);
     const parsed = phoneSchema.safeParse(phone);
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? "Invalid phone number");
+      setError(parsed.error.issues[0]?.message ?? "Invalid phone number");
       return;
     }
     if (isSignup && fullName.trim().length < 2) {
@@ -316,7 +316,7 @@ function AuthPage() {
     setInfo(null);
     const parsed = otpSchema.safeParse(otp);
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? "Invalid code");
+      setError(parsed.error.issues[0]?.message ?? "Invalid code");
       return;
     }
     setBusy(true);

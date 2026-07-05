@@ -110,7 +110,7 @@ function LoginPage() {
     setInfo(null);
     const parsed = signinSchema.safeParse({ email, password });
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? "Invalid input");
+      setError(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
     setBusy(true);
@@ -134,7 +134,7 @@ function LoginPage() {
     setOauthBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: window.location.href,
       });
       if (result.error) {
         setError(friendlyError(result.error.message ?? "Google sign-in failed"));
@@ -188,7 +188,7 @@ function LoginPage() {
     setInfo(null);
     const parsed = phoneSchema.safeParse(phone);
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? "Invalid phone number");
+      setError(parsed.error.issues[0]?.message ?? "Invalid phone number");
       return;
     }
     setBusy(true);
@@ -211,7 +211,7 @@ function LoginPage() {
     setInfo(null);
     const parsed = otpSchema.safeParse(otp);
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? "Invalid code");
+      setError(parsed.error.issues[0]?.message ?? "Invalid code");
       return;
     }
     setBusy(true);
