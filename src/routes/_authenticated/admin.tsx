@@ -14,6 +14,12 @@ import {
 import { UICustomizer } from "@/components/admin/ui-customizer";
 import { approveProductRequest, rejectProductRequest } from "@/lib/product-requests.functions";
 import { getLowStockThresholdSetting, updateLowStockThresholdSetting } from "@/lib/admin-settings.functions";
+import {
+  LOW_STOCK_THRESHOLD_MAX,
+  LOW_STOCK_THRESHOLD_MIN,
+  validateLowStockThreshold,
+} from "@/lib/admin-settings-core";
+import { applyLowStockThresholdSetting } from "@/lib/stock-sync-core";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
