@@ -274,6 +274,8 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         price: req.price,
         reseller_price: data.reseller_price,
         category: finalCategory,
+        stock: data.stock ?? 100,
+        is_out_of_stock: (data.stock ?? 100) <= 0,
         source: "request",
       })
       .select("id")
