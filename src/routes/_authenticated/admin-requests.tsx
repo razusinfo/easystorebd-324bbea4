@@ -283,6 +283,7 @@ function AdminRequestsList() {
                   <RequestCard
                     row={r}
                     resellerName={profiles.data?.[r.requested_by] ?? "Unknown"}
+                    existingCategories={existingCategories}
                     onDone={refresh}
                   />
                 </div>
