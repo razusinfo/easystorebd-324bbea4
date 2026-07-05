@@ -13,6 +13,7 @@ import {
 } from "@/lib/eazystore-data";
 import { UICustomizer } from "@/components/admin/ui-customizer";
 import { approveProductRequest, rejectProductRequest } from "@/lib/product-requests.functions";
+import { getLowStockThresholdSetting, updateLowStockThresholdSetting } from "@/lib/admin-settings.functions";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
@@ -32,7 +33,7 @@ function Admin() {
   const moderate = useModerateProduct();
   const users = useAdminUsers();
   const auditLogs = useAdminAuditLogs();
-  const [tab, setTab] = useState<"pending" | "requests" | "stores" | "users" | "audit" | "customizer">("pending");
+  const [tab, setTab] = useState<"pending" | "requests" | "stores" | "users" | "audit" | "customizer" | "settings">("pending");
   const [q, setQ] = useState("");
   const [manageUser, setManageUser] = useState<AdminUserRow | null>(null);
 
@@ -177,6 +178,10 @@ function Admin() {
           <TabBtn active={tab === "customizer"} onClick={() => setTab("customizer")}>
             <Palette className="h-4 w-4" />
             UI Customizer
+          </TabBtn>
+          <TabBtn active={tab === "settings"} onClick={() => setTab("settings")}>
+            <ShieldCheck className="h-4 w-4" />
+            Settings
           </TabBtn>
         </div>
       </div>
@@ -368,8 +373,10 @@ function Admin() {
               ))
             )}
           </div>
-        ) : (
+        ) : tab === "customizer" ? (
           <UICustomizer />
+        ) : (
+          <AdminSettingsPanel />
         )}
       </section>
 
@@ -806,3 +813,51 @@ function NotificationBell({ onOpenRequests }: { onOpenRequests: () => void }) {
   );
 }
 
+
+function AdminSettingsPanel() {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["admin", "low-stock-threshold"],
+    queryFn: () => getLowStockThresholdSetting(),
+  });
+  const [value, setValue] = useState<string>("");
+  const current = q.data?.value ?? 3;
+
+  const save = useMutation({
+    mutationFn: async (v: number) => updateLowStockThresholdSetting({ data: { value: v } }),
+    onSuccess: (r) => {
+      toast.success(`Low Stock Threshold set to ${r.value}`);
+      qc.invalidateQueries({ queryKey: ["admin", "low-stock-threshold"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to save"),
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="text-base font-semibold">Low Stock Threshold</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Products with stock at or below this number are treated as Out of Stock across the marketplace and pushed to the bottom of their category. Default: 3.
+        </p>
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            type="number"
+            min={0}
+            className="w-28 rounded-md border border-border bg-background px-3 py-2 text-sm"
+            placeholder={String(current)}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+          <button
+            className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            disabled={save.isPending || value === "" || Number(value) === current}
+            onClick={() => save.mutate(Number(value))}
+          >
+            {save.isPending ? "Saving…" : "Save"}
+          </button>
+          <span className="text-xs text-muted-foreground">Current: {current}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
