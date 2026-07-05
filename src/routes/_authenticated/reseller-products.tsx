@@ -327,11 +327,11 @@ function ResellerProductsPage() {
 
       {(q.data?.length ?? 0) > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative w-full max-w-[220px] sm:max-w-[240px]">
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products…"
+              placeholder="Search…"
               className="h-9 pr-8"
             />
             {search && (
@@ -345,19 +345,37 @@ function ResellerProductsPage() {
               </button>
             )}
           </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="h-9 w-[160px]">
-              <SelectValue placeholder="Sort" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="name">Name (A–Z)</SelectItem>
-              <SelectItem value="price-asc">Price: Low → High</SelectItem>
-              <SelectItem value="price-desc">Price: High → Low</SelectItem>
-              <SelectItem value="stock-desc">Stock: High → Low</SelectItem>
-              <SelectItem value="stock-asc">Stock: Low → High</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="ml-auto flex items-center gap-2">
+            <Select
+              value={supplier}
+              onValueChange={(v) => { setSupplier(v); setTab(ALL); }}
+            >
+              <SelectTrigger className="h-9 w-[180px]">
+                <SelectValue placeholder="Supplier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All suppliers ({merged.length})</SelectItem>
+                {suppliers.map((s) => (
+                  <SelectItem key={s.name} value={s.name}>
+                    {s.name} ({s.count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="h-9 w-[160px]">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="name">Name (A–Z)</SelectItem>
+                <SelectItem value="price-asc">Price: Low → High</SelectItem>
+                <SelectItem value="price-desc">Price: High → Low</SelectItem>
+                <SelectItem value="stock-desc">Stock: High → Low</SelectItem>
+                <SelectItem value="stock-asc">Stock: Low → High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
 
