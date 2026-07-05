@@ -334,6 +334,7 @@ function RequestCard({
   const [approveOpen, setApproveOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [resellerPrice, setResellerPrice] = useState<string>(String(row.price));
+  const [stock, setStock] = useState<string>("100");
   const [adminNotes, setAdminNotes] = useState("");
   const [rejectNotes, setRejectNotes] = useState("");
 
@@ -347,9 +348,11 @@ function RequestCard({
     mutationFn: async () => {
       const p = Number(resellerPrice);
       if (!Number.isFinite(p) || p < 0) throw new Error("Enter a valid reseller price");
+      const s = Number(stock);
+      if (!Number.isFinite(s) || s < 0 || !Number.isInteger(s)) throw new Error("Enter a valid stock quantity");
       const cat = categoryKey === NEW_KEY ? newCategory.trim() : categoryKey || null;
       return approveFn({
-        data: { request_id: row.id, reseller_price: p, admin_notes: adminNotes || null, category: cat || null },
+        data: { request_id: row.id, reseller_price: p, admin_notes: adminNotes || null, category: cat || null, stock: s },
       });
     },
     onSuccess: () => {
