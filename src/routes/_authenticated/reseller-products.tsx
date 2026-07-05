@@ -69,9 +69,13 @@ type DisplayRow = ResellerRow & {
   customSettingId: string | null;
 };
 
+const PRIMARY_SUPPLIER = "Sylheti Online Shop";
+
 function ResellerProductsPage() {
   const { t } = useI18n();
   const [tab, setTab] = useState<string>(ALL);
+  const [supplier, setSupplier] = useState<string>(ALL);
+
 
   const userQ = useQuery({
     queryKey: ["auth-user"],
@@ -120,27 +124,48 @@ function ResellerProductsPage() {
 
   const merged = q.data ?? [];
 
+  const suppliers = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const r of merged) {
+      const s = (r.source && r.source.trim()) || PRIMARY_SUPPLIER;
+      counts.set(s, (counts.get(s) ?? 0) + 1);
+    }
+    const list = Array.from(counts.entries()).map(([name, count]) => ({ name, count }));
+    list.sort((a, b) => {
+      if (a.name === PRIMARY_SUPPLIER) return -1;
+      if (b.name === PRIMARY_SUPPLIER) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    return list;
+  }, [merged]);
+
+  const bySupplier = useMemo(() => {
+    if (supplier === ALL) return merged;
+    return merged.filter((r) => ((r.source && r.source.trim()) || PRIMARY_SUPPLIER) === supplier);
+  }, [merged, supplier]);
+
   const categories = useMemo(() => {
     const set = new Set<string>();
     let hasUncat = false;
-    for (const r of merged) {
+    for (const r of bySupplier) {
       if (r.category && r.category.trim()) set.add(r.category.trim());
       else hasUncat = true;
     }
     return { list: Array.from(set).sort((a, b) => a.localeCompare(b)), hasUncat };
-  }, [merged]);
+  }, [bySupplier]);
 
   const filtered = useMemo(() => {
     const base =
       tab === ALL
-        ? merged
+        ? bySupplier
         : tab === UNCAT
-          ? merged.filter((r) => !r.category || !r.category.trim())
-          : merged.filter((r) => r.category === tab);
+          ? bySupplier.filter((r) => !r.category || !r.category.trim())
+          : bySupplier.filter((r) => r.category === tab);
     // In-stock first, out-of-stock pushed to the bottom of the (already-
     // filtered) category. Stable sort preserves prior ordering within groups.
     return sortOutOfStockToBottom(base);
-  }, [merged, tab]);
+  }, [bySupplier, tab]);
+
 
   // Deep link support: /reseller-products?highlight=<id> — scrolls to and
   // temporarily rings the matching card.
@@ -174,6 +199,50 @@ function ResellerProductsPage() {
         </div>
       </header>
       <MyRequestsStrip />
+
+      {suppliers.length > 0 && (
+        <section className="mb-5">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Suppliers</h2>
+            <span className="text-[11px] text-muted-foreground">
+              {suppliers.length} supplier{suppliers.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => { setSupplier(ALL); setTab(ALL); }}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                supplier === ALL
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background hover:bg-muted"
+              }`}
+            >
+              All · {merged.length}
+            </button>
+            {suppliers.map((s) => (
+              <button
+                key={s.name}
+                type="button"
+                onClick={() => { setSupplier(s.name); setTab(ALL); }}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  supplier === s.name
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background hover:bg-muted"
+                }`}
+              >
+                <StoreIcon className="h-3 w-3" />
+                {s.name}
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${supplier === s.name ? "bg-primary-foreground/20" : "bg-muted"}`}>
+                  {s.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+
 
 
       {(q.data?.length ?? 0) > 0 && (
