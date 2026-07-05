@@ -1287,48 +1287,7 @@ export type Database = {
       }
     }
     Views: {
-      site_settings_public: {
-        Row: {
-          contact_email: string | null
-          contact_phone: string | null
-          facebook_url: string | null
-          favicon_url: string | null
-          id: string | null
-          instagram_url: string | null
-          logo_url: string | null
-          primary_color: string | null
-          sidebar_categories: Json | null
-          updated_at: string | null
-          whatsapp_url: string | null
-        }
-        Insert: {
-          contact_email?: string | null
-          contact_phone?: string | null
-          facebook_url?: string | null
-          favicon_url?: string | null
-          id?: string | null
-          instagram_url?: string | null
-          logo_url?: string | null
-          primary_color?: string | null
-          sidebar_categories?: Json | null
-          updated_at?: string | null
-          whatsapp_url?: string | null
-        }
-        Update: {
-          contact_email?: string | null
-          contact_phone?: string | null
-          facebook_url?: string | null
-          favicon_url?: string | null
-          id?: string | null
-          instagram_url?: string | null
-          logo_url?: string | null
-          primary_color?: string | null
-          sidebar_categories?: Json | null
-          updated_at?: string | null
-          whatsapp_url?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_assign_role:
