@@ -75,6 +75,7 @@ describe("runApproveProductRequest", () => {
         { maybeSingle: { data: req, error: null } },
         { await: { data: null, error: null } }, // update
       ],
+      stores: { await: { data: [], error: null } },
       reseller_products: { single: { data: { id: "rp-9" }, error: null } },
       reseller_marketplace_audit_logs: { insertOk: true },
     });
@@ -93,6 +94,7 @@ describe("runApproveProductRequest", () => {
       reseller_price: 1800,
       source: "request",
       image_url: "https://x.com/1.jpg",
+      stock: 100,
     });
 
     const upd = h.updates.find((u) => u.table === "product_requests");
@@ -114,6 +116,46 @@ describe("runApproveProductRequest", () => {
         base_price: 1500,
         image_count: 1,
         published_reseller_product_id: "rp-9",
+        previous_stock: null,
+        requested_stock: 100,
+        source_product_id: null,
+        source_product_stock: null,
+        new_stock: 100,
+      },
+    });
+  });
+
+  it("uses the requester store product stock when approving a requested product", async () => {
+    const h = createSupabaseHarness({
+      product_requests: [
+        { maybeSingle: { data: req, error: null } },
+        { await: { data: null, error: null } },
+      ],
+      stores: { await: { data: [{ id: "store-1" }], error: null } },
+      products: { maybeSingle: { data: { id: "prod-1", stock: 15 }, error: null } },
+      reseller_products: { single: { data: { id: "rp-9" }, error: null } },
+      reseller_marketplace_audit_logs: { insertOk: true },
+    });
+
+    const res = await runApproveProductRequest(
+      { request_id: "req-1", reseller_price: 1800, admin_notes: "ok", stock: 0 },
+      { admin: h.client, userId: "u-admin", actorRole: "super_admin", isAdmin: true },
+    );
+
+    expect(res).toEqual({ ok: true, reseller_product_id: "rp-9" });
+    const rpInsert = h.inserts.find((i) => i.table === "reseller_products");
+    expect(rpInsert?.payload).toMatchObject({
+      original_product_id: "prod-1",
+      stock: 15,
+    });
+    expect(rpInsert?.payload.stock).toBeGreaterThan(0);
+    expect(h.audits[0]).toMatchObject({
+      action: "approve_product_request",
+      metadata: {
+        requested_stock: 0,
+        source_product_id: "prod-1",
+        source_product_stock: 15,
+        new_stock: 15,
       },
     });
   });

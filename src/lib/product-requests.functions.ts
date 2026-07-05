@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { resolveApprovalStock } from "./product-approval-stock";
 
 // Shared validation schemas (also exported for use in the UI and tests).
 export const IMAGE_URL_RE = /^https?:\/\/.+/i;
@@ -133,6 +134,56 @@ async function resolveActorRole(userSupabase: {
   return { role: roles[0] ?? "reseller", isAdmin: false, roles };
 }
 
+type SourceProductForApproval = {
+  id: string;
+  stock: number | null;
+  name: string | null;
+  store_id: string | null;
+};
+
+async function findRequesterSourceProductForApproval(
+  supabaseAdmin: {
+    from: (table: string) => any;
+  },
+  requestedBy: string,
+  requestedName: string,
+): Promise<SourceProductForApproval | null> {
+  const { data: stores, error: storeErr } = await supabaseAdmin
+    .from("stores")
+    .select("id")
+    .eq("owner_user_id", requestedBy);
+  if (storeErr) throw new Error(storeErr.message);
+
+  const storeIds = ((stores ?? []) as Array<{ id: string }>).map((s) => s.id).filter(Boolean);
+  if (storeIds.length === 0) return null;
+
+  const normalizedName = requestedName.trim();
+  if (!normalizedName) return null;
+
+  const { data: exact, error: exactErr } = await supabaseAdmin
+    .from("products")
+    .select("id, stock, name, store_id")
+    .in("store_id", storeIds)
+    .eq("name", normalizedName)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (exactErr) throw new Error(exactErr.message);
+  if (exact) return exact as SourceProductForApproval;
+
+  const { data: ciMatch, error: ciErr } = await supabaseAdmin
+    .from("products")
+    .select("id, stock, name, store_id")
+    .in("store_id", storeIds)
+    .ilike("name", normalizedName)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (ciErr) throw new Error(ciErr.message);
+
+  return (ciMatch as SourceProductForApproval | null) ?? null;
+}
+
 // Reseller: submit a new product request. Writes to `product_requests` and a
 // full audit-log entry capturing every submitted field.
 export const submitProductRequest = createServerFn({ method: "POST" })
@@ -262,11 +313,22 @@ export const approveProductRequest = createServerFn({ method: "POST" })
     const images = (req.images as string[] | null) ?? [];
     const primaryImage = images[0] ?? null;
     const finalCategory = data.category ?? (req as any).category ?? null;
+    const sourceProduct = await findRequesterSourceProductForApproval(
+      supabaseAdmin as never,
+      req.requested_by,
+      req.name,
+    );
+    const stockResolution = resolveApprovalStock({
+      adminStock: data.stock,
+      sourceProductId: sourceProduct?.id ?? null,
+      sourceStock: sourceProduct?.stock ?? null,
+    });
 
     const { data: inserted, error: insErr } = await supabaseAdmin
       .from("reseller_products")
       .insert({
         external_id: `req-${req.id}`,
+        original_product_id: sourceProduct?.id ?? null,
         name: req.name,
         description: req.description,
         image: primaryImage,
@@ -274,15 +336,38 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         price: req.price,
         reseller_price: data.reseller_price,
         category: finalCategory,
-        stock: data.stock ?? 100,
-        is_out_of_stock: (data.stock ?? 100) <= 0,
+        stock: stockResolution.finalStock,
         source: "request",
       })
-      .select("id")
+      .select("id, stock")
       .single();
     if (insErr || !inserted) {
-      await logAttempt(false, req.id, { reseller_price: data.reseller_price }, insErr?.message ?? "publish failed");
+      await logAttempt(false, req.id, {
+        reseller_price: data.reseller_price,
+        requested_stock: stockResolution.requestedStock,
+        source_product_id: stockResolution.sourceProductId,
+        source_product_stock: stockResolution.sourceStock,
+        intended_stock: stockResolution.finalStock,
+      }, insErr?.message ?? "publish failed");
       throw new Error(insErr?.message ?? "Failed to publish");
+    }
+
+    const { data: stockCheck, error: stockCheckErr } = await supabaseAdmin
+      .from("reseller_products")
+      .select("id, stock")
+      .eq("id", inserted.id)
+      .maybeSingle();
+    if (stockCheckErr) throw new Error(stockCheckErr.message);
+    if (!stockCheck || Number(stockCheck.stock ?? 0) !== stockResolution.finalStock) {
+      await logAttempt(false, req.id, {
+        reseller_price: data.reseller_price,
+        requested_stock: stockResolution.requestedStock,
+        source_product_id: stockResolution.sourceProductId,
+        source_product_stock: stockResolution.sourceStock,
+        intended_stock: stockResolution.finalStock,
+        actual_stock: stockCheck?.stock ?? null,
+      }, "stock consistency check failed");
+      throw new Error("Stock consistency check failed after approval");
     }
 
     const { error: updErr } = await supabaseAdmin
@@ -313,7 +398,10 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       image_count: images.length,
       published_reseller_product_id: inserted.id,
       previous_stock: null,
-      new_stock: data.stock ?? 100,
+      requested_stock: stockResolution.requestedStock,
+      source_product_id: stockResolution.sourceProductId,
+      source_product_stock: stockResolution.sourceStock,
+      new_stock: stockResolution.finalStock,
     });
 
 
@@ -493,7 +581,7 @@ export const adminRepairApprovedStock = createServerFn({ method: "POST" })
     // Find approved requests whose published reseller_products row has stock <= 0.
     const { data: reqs, error: reqErr } = await supabaseAdmin
       .from("product_requests")
-      .select("id, published_reseller_product_id")
+      .select("id, requested_by, name, published_reseller_product_id")
       .eq("status", "approved")
       .not("published_reseller_product_id", "is", null);
     if (reqErr) throw new Error(reqErr.message);
@@ -507,13 +595,35 @@ export const adminRepairApprovedStock = createServerFn({ method: "POST" })
       .in("id", ids);
     if (rpErr) throw new Error(rpErr.message);
 
+    const requestByProductId = new Map(
+      (reqs ?? []).map((r) => [r.published_reseller_product_id as string, r]),
+    );
     const stuck = (rps ?? []).filter((r) => (r.stock ?? 0) <= 0);
     let repaired = 0;
     for (const row of stuck) {
       const prev = row.stock ?? 0;
+      const req = requestByProductId.get(row.id);
+      const sourceProduct = req
+        ? await findRequesterSourceProductForApproval(
+          supabaseAdmin as never,
+          req.requested_by as string,
+          req.name as string,
+        )
+        : null;
+      const stockResolution = resolveApprovalStock({
+        adminStock: data.default_stock,
+        sourceProductId: sourceProduct?.id ?? null,
+        sourceStock: sourceProduct?.stock ?? null,
+        fallbackStock: data.default_stock,
+      });
+      if (stockResolution.finalStock <= 0) continue;
       const { error: uErr } = await supabaseAdmin
         .from("reseller_products")
-        .update({ stock: data.default_stock, is_out_of_stock: false, updated_at: new Date().toISOString() })
+        .update({
+          stock: stockResolution.finalStock,
+          original_product_id: stockResolution.sourceProductId,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", row.id);
       if (uErr) {
         console.warn("[repair-approved-stock]", row.id, uErr.message);
@@ -530,7 +640,10 @@ export const adminRepairApprovedStock = createServerFn({ method: "POST" })
         metadata: {
           name: row.name,
           previous_stock: prev,
-          new_stock: data.default_stock,
+          requested_stock: stockResolution.requestedStock,
+          source_product_id: stockResolution.sourceProductId,
+          source_product_stock: stockResolution.sourceStock,
+          new_stock: stockResolution.finalStock,
         } as never,
       });
     }

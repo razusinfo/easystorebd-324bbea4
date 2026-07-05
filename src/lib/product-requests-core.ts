@@ -3,6 +3,7 @@
 // stay thin and the business flow is unit-testable with a Supabase stub.
 
 import type { ProductRequestInput } from "./product-requests.functions";
+import { resolveApprovalStock } from "./product-approval-stock";
 
 type MinimalClient = {
   from: (table: string) => any;
@@ -89,7 +90,29 @@ export type ApproveInput = {
   request_id: string;
   reseller_price: number;
   admin_notes?: string | null;
+  stock?: number | null;
 };
+
+async function findRequesterSourceProductForApproval(
+  admin: MinimalClient,
+  requestedBy: string,
+  requestedName: string,
+): Promise<{ id: string; stock: number | null } | null> {
+  const { data: stores } = await admin.from("stores").select("id").eq("owner_user_id", requestedBy);
+  const storeIds = ((stores ?? []) as Array<{ id: string }>).map((s) => s.id).filter(Boolean);
+  if (storeIds.length === 0) return null;
+
+  const { data: product } = await admin
+    .from("products")
+    .select("id, stock")
+    .in("store_id", storeIds)
+    .eq("name", requestedName.trim())
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return product ?? null;
+}
 
 export async function runApproveProductRequest(
   input: ApproveInput,
@@ -118,17 +141,25 @@ export async function runApproveProductRequest(
 
   const images: string[] = req.images ?? [];
   const primary = images[0] ?? null;
+  const sourceProduct = await findRequesterSourceProductForApproval(ctx.admin, req.requested_by, req.name);
+  const stockResolution = resolveApprovalStock({
+    adminStock: input.stock ?? 100,
+    sourceProductId: sourceProduct?.id ?? null,
+    sourceStock: sourceProduct?.stock ?? null,
+  });
 
   const { data: inserted } = await ctx.admin
     .from("reseller_products")
     .insert({
       external_id: `req-${req.id}`,
+      original_product_id: sourceProduct?.id ?? null,
       name: req.name,
       description: req.description,
       image: primary,
       image_url: primary,
       price: req.price,
       reseller_price: input.reseller_price,
+      stock: stockResolution.finalStock,
       source: "request",
     })
     .select("id")
@@ -163,6 +194,11 @@ export async function runApproveProductRequest(
       images,
       image_count: images.length,
       published_reseller_product_id: inserted.id,
+      previous_stock: null,
+      requested_stock: stockResolution.requestedStock,
+      source_product_id: stockResolution.sourceProductId,
+      source_product_stock: stockResolution.sourceStock,
+      new_stock: stockResolution.finalStock,
     },
   });
 
