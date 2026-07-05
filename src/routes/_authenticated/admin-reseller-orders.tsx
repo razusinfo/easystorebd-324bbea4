@@ -111,6 +111,9 @@ function AdminResellerOrdersPage() {
 
   const [fReseller, setFReseller] = useState("");
   const [fProduct, setFProduct] = useState("");
+  const [fPhone, setFPhone] = useState("");
+  const [fStatus, setFStatus] = useState<"all" | Status>("all");
+  const [fTracking, setFTracking] = useState("");
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
 
@@ -118,6 +121,8 @@ function AdminResellerOrdersPage() {
     const rows = q.data ?? [];
     const rq = fReseller.trim().toLowerCase();
     const pq = fProduct.trim().toLowerCase();
+    const phq = fPhone.trim().toLowerCase();
+    const tq = fTracking.trim().toLowerCase();
     const from = fFrom ? new Date(fFrom).getTime() : null;
     const to = fTo ? new Date(fTo).getTime() + 86_400_000 : null;
     return rows.filter((r) => {
@@ -126,12 +131,16 @@ function AdminResellerOrdersPage() {
         if (!hay.includes(rq)) return false;
       }
       if (pq && !r.product_name.toLowerCase().includes(pq)) return false;
+      if (phq && !(r.customer_phone ?? "").toLowerCase().includes(phq)) return false;
+      if (fStatus !== "all" && r.status !== fStatus) return false;
+      if (tq && !(r.tracking_id ?? "").toLowerCase().includes(tq)) return false;
       const t = new Date(r.created_at).getTime();
       if (from != null && t < from) return false;
       if (to != null && t >= to) return false;
       return true;
     });
-  }, [q.data, fReseller, fProduct, fFrom, fTo]);
+  }, [q.data, fReseller, fProduct, fPhone, fStatus, fTracking, fFrom, fTo]);
+
 
   const totalProfit = filtered.reduce((s, r) => s + Number(r.profit_margin || 0), 0);
   const pendingShip = filtered.filter((r) => r.shipping_requested && r.status !== "delivered" && r.status !== "cancelled").length;
