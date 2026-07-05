@@ -205,7 +205,9 @@ function AdminRequestsList() {
               {f}
             </Button>
           ))}
+          <RepairStockButton />
         </div>
+
       </div>
 
       <div className="relative max-w-md">
