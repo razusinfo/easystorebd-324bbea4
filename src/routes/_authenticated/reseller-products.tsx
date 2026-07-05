@@ -610,8 +610,9 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       });
     },
     onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["reseller-already-added", storeId, row.id] });
       if (res.skipped) {
-        toast.success("এই পণ্যটি আগে থেকেই আপনার তালিকায় আছে / Already in your products");
+        toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
       } else {
         toast.success("আপনার শপে সফলভাবে যোগ করা হয়েছে! / Product added to your shop successfully!");
         qc.invalidateQueries({ queryKey: ["products"] });
