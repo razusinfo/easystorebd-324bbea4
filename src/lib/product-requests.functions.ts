@@ -305,6 +305,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       base_price: req.price,
       reseller_price: data.reseller_price,
       admin_notes: data.admin_notes ?? null,
+      category: finalCategory,
       images,
       image_count: images.length,
       published_reseller_product_id: inserted.id,
