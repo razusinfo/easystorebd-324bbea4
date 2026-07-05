@@ -72,8 +72,15 @@ function MyNotificationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["user_notifications", "me"] }),
   });
 
-  const rows = q.data ?? [];
-  const unread = rows.filter((r) => !r.read_at).length;
+  const [filter, setFilter] = useState<"all" | "unread" | "approved" | "rejected">("all");
+  const allRows = q.data ?? [];
+  const unread = allRows.filter((r) => !r.read_at).length;
+  const rows = allRows.filter((r) => {
+    if (filter === "unread") return !r.read_at;
+    if (filter === "approved") return r.type === "product_request_approved";
+    if (filter === "rejected") return r.type === "product_request_rejected";
+    return true;
+  });
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-6">
