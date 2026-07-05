@@ -133,18 +133,28 @@ export async function runCopyResellerProduct(
     }
 
     // Server-side duplicate guard: a reseller product may only be linked to
-    // a given store once. Match by source_reseller_product_id (stable link)
-    // and fall back to name for legacy rows copied before the link column
-    // was populated.
-    const { data: existing } = await adminSupabase
+    // a given store once. Match by source_reseller_product_id (stable link).
+    // Legacy rows without the link column fall back to name-match below.
+    let existing: { id: string } | null = null;
+    const linkedLookup = await adminSupabase
       .from("products")
       .select("id")
       .eq("store_id", store.id)
-      .or(`source_reseller_product_id.eq.${source.id},name.eq.${source.name}`)
+      .eq("source_reseller_product_id", source.id)
       .limit(1)
       .maybeSingle();
+    existing = (linkedLookup?.data as { id: string } | null) ?? null;
+    if (!existing) {
+      const nameLookup = await adminSupabase
+        .from("products")
+        .select("id")
+        .eq("store_id", store.id)
+        .eq("name", source.name)
+        .limit(1)
+        .maybeSingle();
+      existing = (nameLookup?.data as { id: string } | null) ?? null;
+    }
     if (existing) {
-      // Distinct audit action so ops can spot repeated add attempts.
       await adminSupabase.from("reseller_marketplace_audit_logs").insert({
         actor_id: userId,
         actor_role: actorRole,
