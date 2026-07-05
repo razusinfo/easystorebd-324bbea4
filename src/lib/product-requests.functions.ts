@@ -416,3 +416,55 @@ export const rejectProductRequest = createServerFn({ method: "POST" })
 
     return { ok: true as const };
   });
+
+// Super-admin: edit a pending product request on behalf of the reseller.
+export const adminUpdateProductRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    productRequestInputSchema.extend({ id: z.string().uuid() }).parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { isAdmin, role: actorRole } = await resolveActorRole(context.supabase as never, context.userId);
+    if (!isAdmin) throw new Response("Forbidden: super_admin only", { status: 403 });
+
+    const { data: existing, error: readErr } = await supabaseAdmin
+      .from("product_requests")
+      .select("id, status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!existing) throw new Response("Not found", { status: 404 });
+    if (existing.status !== "pending") {
+      throw new Response(`Cannot edit a ${existing.status} request`, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from("product_requests")
+      .update({
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        images: data.images,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await supabaseAdmin.from("reseller_marketplace_audit_logs").insert({
+      actor_id: context.userId,
+      actor_role: actorRole,
+      action: "admin_update_product_request",
+      product_id: data.id,
+      success: true,
+      error: null,
+      metadata: {
+        name: data.name,
+        price: data.price,
+        category: data.category,
+        image_count: data.images.length,
+      } as never,
+    });
+    return { ok: true as const };
+  });
+
