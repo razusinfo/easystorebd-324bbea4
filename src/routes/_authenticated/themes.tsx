@@ -391,6 +391,10 @@ function CustomizeDialog({
   };
 
   const onSave = async () => {
+    if (!isValidHexColor(accent)) {
+      toast.error("Accent color must be a hex value like #5B21B6");
+      return;
+    }
     try {
       const categoryName = categoryId ? categories.data?.find((c) => c.id === categoryId)?.name ?? null : null;
       await save.mutateAsync({
@@ -398,7 +402,7 @@ function CustomizeDialog({
         templateId: id,
         currentMap,
         settings: {
-          accentColor: accent,
+          accentColor: sanitizeHexColor(accent, "#5B21B6"),
           logoPath: logoPath ?? null,
           defaultCategoryId: categoryId,
           defaultCategoryName: categoryName,
