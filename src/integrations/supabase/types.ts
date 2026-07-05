@@ -349,6 +349,60 @@ export type Database = {
           },
         ]
       }
+      payout_requests: {
+        Row: {
+          account_name: string
+          account_number: string
+          admin_note: string | null
+          amount: number
+          bank_name: string | null
+          branch_name: string | null
+          created_at: string
+          id: string
+          method: Database["public"]["Enums"]["payout_method"]
+          processed_at: string | null
+          processed_by: string | null
+          reference: string | null
+          status: Database["public"]["Enums"]["payout_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          admin_note?: string | null
+          amount: number
+          bank_name?: string | null
+          branch_name?: string | null
+          created_at?: string
+          id?: string
+          method: Database["public"]["Enums"]["payout_method"]
+          processed_at?: string | null
+          processed_by?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          admin_note?: string | null
+          amount?: number
+          bank_name?: string | null
+          branch_name?: string | null
+          created_at?: string
+          id?: string
+          method?: Database["public"]["Enums"]["payout_method"]
+          processed_at?: string | null
+          processed_by?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       phone_otps: {
         Row: {
           attempts: number
@@ -1560,6 +1614,8 @@ export type Database = {
         | "delivered"
         | "cancelled"
       payment_status: "unpaid" | "paid" | "refunded"
+      payout_method: "bkash" | "nagad" | "bank"
+      payout_status: "pending" | "approved" | "paid" | "rejected"
       product_status: "pending" | "approved" | "rejected"
       reseller_order_status:
         | "pending"
@@ -1751,6 +1807,8 @@ export const Constants = {
         "cancelled",
       ],
       payment_status: ["unpaid", "paid", "refunded"],
+      payout_method: ["bkash", "nagad", "bank"],
+      payout_status: ["pending", "approved", "paid", "rejected"],
       product_status: ["pending", "approved", "rejected"],
       reseller_order_status: [
         "pending",

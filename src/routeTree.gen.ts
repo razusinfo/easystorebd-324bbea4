@@ -37,6 +37,7 @@ import { Route as AuthenticatedSmsSettingsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedResellerRequestsRouteImport } from './routes/_authenticated/reseller-requests'
 import { Route as AuthenticatedResellerProductsRouteImport } from './routes/_authenticated/reseller-products'
 import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authenticated/promo-codes'
+import { Route as AuthenticatedPayoutsRouteImport } from './routes/_authenticated/payouts'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMyOrdersRouteImport } from './routes/_authenticated/my-orders'
@@ -54,6 +55,7 @@ import { Route as AuthenticatedAdminResellerVisibilityRouteImport } from './rout
 import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
 import { Route as AuthenticatedAdminResellerAdoptersRouteImport } from './routes/_authenticated/admin-reseller-adopters'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
+import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin-payouts'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
 import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin-financial'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -224,6 +226,11 @@ const AuthenticatedPromoCodesRoute = AuthenticatedPromoCodesRouteImport.update({
   path: '/promo-codes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPayoutsRoute = AuthenticatedPayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -314,6 +321,12 @@ const AuthenticatedAdminRequestsRoute =
   AuthenticatedAdminRequestsRouteImport.update({
     id: '/admin-requests',
     path: '/admin-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminPayoutsRoute =
+  AuthenticatedAdminPayoutsRouteImport.update({
+    id: '/admin-payouts',
+    path: '/admin-payouts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminNotificationsRoute =
@@ -474,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -491,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/payouts': typeof AuthenticatedPayoutsRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/reseller-requests': typeof AuthenticatedResellerRequestsRoute
@@ -545,6 +560,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -562,6 +578,7 @@ export interface FileRoutesByTo {
   '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/payouts': typeof AuthenticatedPayoutsRoute
   '/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/reseller-requests': typeof AuthenticatedResellerRequestsRoute
@@ -618,6 +635,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/_authenticated/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -635,6 +653,7 @@ export interface FileRoutesById {
   '/_authenticated/my-orders': typeof AuthenticatedMyOrdersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
+  '/_authenticated/payouts': typeof AuthenticatedPayoutsRoute
   '/_authenticated/promo-codes': typeof AuthenticatedPromoCodesRoute
   '/_authenticated/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/_authenticated/reseller-requests': typeof AuthenticatedResellerRequestsRoute
@@ -692,6 +711,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-financial'
     | '/admin-notifications'
+    | '/admin-payouts'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -709,6 +729,7 @@ export interface FileRouteTypes {
     | '/my-orders'
     | '/onboarding'
     | '/orders'
+    | '/payouts'
     | '/promo-codes'
     | '/reseller-products'
     | '/reseller-requests'
@@ -763,6 +784,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-financial'
     | '/admin-notifications'
+    | '/admin-payouts'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -780,6 +802,7 @@ export interface FileRouteTypes {
     | '/my-orders'
     | '/onboarding'
     | '/orders'
+    | '/payouts'
     | '/promo-codes'
     | '/reseller-products'
     | '/reseller-requests'
@@ -835,6 +858,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admin-financial'
     | '/_authenticated/admin-notifications'
+    | '/_authenticated/admin-payouts'
     | '/_authenticated/admin-requests'
     | '/_authenticated/admin-reseller-adopters'
     | '/_authenticated/admin-reseller-orders'
@@ -852,6 +876,7 @@ export interface FileRouteTypes {
     | '/_authenticated/my-orders'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
+    | '/_authenticated/payouts'
     | '/_authenticated/promo-codes'
     | '/_authenticated/reseller-products'
     | '/_authenticated/reseller-requests'
@@ -1116,6 +1141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPromoCodesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/payouts': {
+      id: '/_authenticated/payouts'
+      path: '/payouts'
+      fullPath: '/payouts'
+      preLoaderRoute: typeof AuthenticatedPayoutsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/orders': {
       id: '/_authenticated/orders'
       path: '/orders'
@@ -1233,6 +1265,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-requests'
       fullPath: '/admin-requests'
       preLoaderRoute: typeof AuthenticatedAdminRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin-payouts': {
+      id: '/_authenticated/admin-payouts'
+      path: '/admin-payouts'
+      fullPath: '/admin-payouts'
+      preLoaderRoute: typeof AuthenticatedAdminPayoutsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin-notifications': {
@@ -1424,6 +1463,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAdminFinancialRoute: typeof AuthenticatedAdminFinancialRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
+  AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminResellerAdoptersRoute: typeof AuthenticatedAdminResellerAdoptersRoute
   AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
@@ -1441,6 +1481,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMyOrdersRoute: typeof AuthenticatedMyOrdersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
+  AuthenticatedPayoutsRoute: typeof AuthenticatedPayoutsRoute
   AuthenticatedPromoCodesRoute: typeof AuthenticatedPromoCodesRoute
   AuthenticatedResellerProductsRoute: typeof AuthenticatedResellerProductsRoute
   AuthenticatedResellerRequestsRoute: typeof AuthenticatedResellerRequestsRoute
@@ -1462,6 +1503,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAdminFinancialRoute: AuthenticatedAdminFinancialRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
+  AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
   AuthenticatedAdminResellerAdoptersRoute:
     AuthenticatedAdminResellerAdoptersRoute,
@@ -1481,6 +1523,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMyOrdersRoute: AuthenticatedMyOrdersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
+  AuthenticatedPayoutsRoute: AuthenticatedPayoutsRoute,
   AuthenticatedPromoCodesRoute: AuthenticatedPromoCodesRoute,
   AuthenticatedResellerProductsRoute: AuthenticatedResellerProductsRoute,
   AuthenticatedResellerRequestsRoute: AuthenticatedResellerRequestsRoute,
