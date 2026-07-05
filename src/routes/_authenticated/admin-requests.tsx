@@ -23,6 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MarketplaceStockReconciliationCard } from "@/components/admin/marketplace-stock-reconciliation-card";
 
 export const Route = createFileRoute("/_authenticated/admin-requests")({
   component: AdminRequestsPage,
@@ -234,6 +235,9 @@ function AdminRequestsList() {
         </div>
 
       </div>
+
+      <MarketplaceStockReconciliationCard />
+
 
       <div className="relative max-w-md">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
