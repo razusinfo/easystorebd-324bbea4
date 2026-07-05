@@ -438,15 +438,25 @@ function CustomizeDialog({
             <div className="mt-3 flex items-center gap-3">
               <input
                 type="color"
-                value={accent}
-                onChange={(e) => setAccent(e.target.value)}
+                value={sanitizeHexColor(accent, "#5B21B6")}
+                onChange={(e) => setAccent(sanitizeHexColor(e.target.value, "#5B21B6"))}
                 className="h-11 w-14 cursor-pointer rounded-md border border-border bg-transparent"
               />
               <input
                 type="text"
                 value={accent}
                 onChange={(e) => setAccent(e.target.value)}
-                className="h-11 w-32 rounded-md border border-border bg-transparent px-3 font-mono text-sm"
+                onBlur={(e) => {
+                  if (!isValidHexColor(e.target.value)) {
+                    setAccent(sanitizeHexColor(accent, "#5B21B6"));
+                  }
+                }}
+                aria-invalid={!isValidHexColor(accent)}
+                pattern="^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$"
+                title="Enter a hex color like #5B21B6"
+                className={`h-11 w-32 rounded-md border bg-transparent px-3 font-mono text-sm ${
+                  isValidHexColor(accent) ? "border-border" : "border-destructive"
+                }`}
               />
               <div className="flex gap-1.5">
                 {["#DC2626", "#0F172A", "#EC4899", "#4F46E5", "#F97316", "#059669", "#D97706"].map((c) => (
@@ -460,6 +470,11 @@ function CustomizeDialog({
                 ))}
               </div>
             </div>
+            {!isValidHexColor(accent) && (
+              <p role="alert" className="mt-1 text-xs text-destructive">
+                Accent color must be a hex value like <code>#5B21B6</code>.
+              </p>
+            )}
           </section>
 
           {/* Logo */}
