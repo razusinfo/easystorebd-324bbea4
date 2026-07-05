@@ -143,7 +143,7 @@ export async function runApproveProductRequest(
   const primary = images[0] ?? null;
   const sourceProduct = await findRequesterSourceProductForApproval(ctx.admin, req.requested_by, req.name);
   const stockResolution = resolveApprovalStock({
-    adminStock: input.stock ?? 100,
+    adminStock: input.stock,
     sourceProductId: sourceProduct?.id ?? null,
     sourceStock: sourceProduct?.stock ?? null,
   });
