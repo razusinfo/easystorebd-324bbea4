@@ -261,9 +261,9 @@ export async function sendOrderConfirmation(order: OrderCore): Promise<void> {
     const html = baseTemplate(
       brand,
       "Order confirmed 🎉",
-      `<p style="margin:0 0 16px">Hi ${order.customer_name}, thanks for your order! Here's your summary:</p>
+      `<p style="margin:0 0 16px">Hi ${escapeHtml(order.customer_name)}, thanks for your order! Here's your summary:</p>
        ${orderRowsHtml(order, total, brand)}
-       <p style="margin:16px 0 0">Estimated delivery: <strong>${cfg.delivery_eta}</strong>.</p>`,
+       <p style="margin:16px 0 0">Estimated delivery: <strong>${escapeHtml(cfg.delivery_eta)}</strong>.</p>`,
     );
     await sendEmail({
       from: `${cfg.from_name} <${cfg.from_email}>`,
