@@ -23,6 +23,7 @@ export type Adopter = {
   created_at: string;
   store_id: string | null;
   store_name: string | null;
+  store_slug: string | null;
   owner_user_id: string | null;
   owner_email: string | null;
   owner_name: string | null;
@@ -79,16 +80,16 @@ export const adminListResellerAdopters = createServerFn({ method: "POST" })
       new Set((adoptions ?? []).map((a) => a.store_id).filter(Boolean)),
     ) as string[];
 
-    let storeMap = new Map<string, { name: string | null; owner_user_id: string | null }>();
+    let storeMap = new Map<string, { name: string | null; slug: string | null; owner_user_id: string | null }>();
     let ownerMap = new Map<string, { email: string | null; full_name: string | null }>();
 
     if (storeIds.length) {
       const { data: stores } = await supabaseAdmin
         .from("stores")
-        .select("id, name, owner_user_id")
+        .select("id, name, slug, owner_user_id")
         .in("id", storeIds);
       storeMap = new Map(
-        (stores ?? []).map((s) => [s.id, { name: s.name, owner_user_id: s.owner_user_id }]),
+        (stores ?? []).map((s) => [s.id, { name: s.name, slug: s.slug, owner_user_id: s.owner_user_id }]),
       );
       const { data: users } = await supabaseAdmin.rpc("admin_list_users");
       ownerMap = new Map(
@@ -151,6 +152,7 @@ export const adminListResellerAdopters = createServerFn({ method: "POST" })
             created_at: a.created_at,
             store_id: a.store_id,
             store_name: store?.name ?? null,
+            store_slug: store?.slug ?? null,
             owner_user_id: store?.owner_user_id ?? null,
             owner_email: owner?.email ?? null,
             owner_name: owner?.full_name ?? null,
