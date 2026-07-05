@@ -517,6 +517,22 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const catsQ = useCategories(storeId);
   const categories = catsQ.data ?? [];
 
+  // Detect if this reseller product is already listed in the user's store.
+  const alreadyAddedQ = useQuery({
+    enabled: !!storeId && !!row.id,
+    queryKey: ["reseller-already-added", storeId, row.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", storeId)
+        .eq("source_reseller_product_id", row.id);
+      if (error) throw error;
+      return (count ?? 0) > 0;
+    },
+  });
+  const alreadyAdded = alreadyAddedQ.data === true;
+
   // Fetch original product's media (images + video). reseller_products.external_id
   // holds the original product's UUID.
   const mediaQ = useQuery({
@@ -594,8 +610,9 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       });
     },
     onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["reseller-already-added", storeId, row.id] });
       if (res.skipped) {
-        toast.success("এই পণ্যটি আগে থেকেই আপনার তালিকায় আছে / Already in your products");
+        toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
       } else {
         toast.success("আপনার শপে সফলভাবে যোগ করা হয়েছে! / Product added to your shop successfully!");
         qc.invalidateQueries({ queryKey: ["products"] });
@@ -621,14 +638,31 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       <Button
         type="button"
         size="sm"
+        variant={alreadyAdded ? "secondary" : "default"}
         className="mt-1 w-full gap-1.5"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (alreadyAdded) {
+            toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
+            return;
+          }
+          setOpen(true);
+        }}
         disabled={disabled}
         aria-disabled={disabled || undefined}
-        title={disabled ? t("outOfStockFromSupplier") : undefined}
+        title={
+          disabled
+            ? t("outOfStockFromSupplier")
+            : alreadyAdded
+              ? "Already on your website"
+              : undefined
+        }
       >
         <StoreIcon className="h-3.5 w-3.5" />{" "}
-        {disabled ? t("outOfStock") : t("addToMyShop")}
+        {disabled
+          ? t("outOfStock")
+          : alreadyAdded
+            ? "ওয়েবসাইটে আছে / Already added"
+            : t("addToMyShop")}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
