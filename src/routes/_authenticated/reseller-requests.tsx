@@ -8,7 +8,7 @@ import { Loader2, Upload, X, Send, ImageIcon, Check, AlertCircle } from "lucide-
 import { supabase } from "@/integrations/supabase/client";
 import { uploadProductImage } from "@/lib/eazystore-data";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
-import { submitProductRequest } from "@/lib/product-requests.functions";
+import { submitProductRequest, updateProductRequest, deleteProductRequest } from "@/lib/product-requests.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
