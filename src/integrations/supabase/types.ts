@@ -1008,6 +1008,7 @@ export type Database = {
           id: string
           instagram_url: string | null
           logo_url: string | null
+          low_stock_threshold: number
           primary_color: string
           sidebar_categories: Json
           updated_at: string
@@ -1023,6 +1024,7 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          low_stock_threshold?: number
           primary_color?: string
           sidebar_categories?: Json
           updated_at?: string
@@ -1038,6 +1040,7 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          low_stock_threshold?: number
           primary_color?: string
           sidebar_categories?: Json
           updated_at?: string
@@ -1326,6 +1329,10 @@ export type Database = {
           roles: string[]
           user_id: string
         }[]
+      }
+      admin_revoke_reseller_product: {
+        Args: { _reason?: string; _reseller_product_id: string }
+        Returns: undefined
       }
       admin_revoke_role:
         | {
