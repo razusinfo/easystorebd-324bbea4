@@ -861,6 +861,8 @@ export type Database = {
           source_order_item_id: string | null
           source_store_id: string | null
           status: Database["public"]["Enums"]["reseller_order_status"]
+          tracking_id: string | null
+          tracking_url: string | null
           updated_at: string
         }
         Insert: {
@@ -885,6 +887,8 @@ export type Database = {
           source_order_item_id?: string | null
           source_store_id?: string | null
           status?: Database["public"]["Enums"]["reseller_order_status"]
+          tracking_id?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -909,6 +913,8 @@ export type Database = {
           source_order_item_id?: string | null
           source_store_id?: string | null
           status?: Database["public"]["Enums"]["reseller_order_status"]
+          tracking_id?: string | null
+          tracking_url?: string | null
           updated_at?: string
         }
         Relationships: [

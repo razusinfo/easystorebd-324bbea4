@@ -39,7 +39,7 @@ function MyOrdersPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, product_name, customer_name, customer_phone, shipping_address, quantity, reseller_price, status, source, source_order_id, created_at")
+        .select("id, product_name, customer_name, customer_phone, shipping_address, quantity, reseller_price, status, source, source_order_id, tracking_id, tracking_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -103,6 +103,21 @@ function MyOrdersPage() {
                     <Badge variant={STATUS_COLORS[o.status] ?? "outline"}>
                       {forwarded ? `${o.status} · admin fulfilling` : o.status}
                     </Badge>
+                    {forwarded && (
+                      <div className="mt-1 text-[10px] text-muted-foreground">Read-only · updated by Super Admin</div>
+                    )}
+                    {o.tracking_id && (
+                      <div className="mt-1 text-xs">
+                        <span className="text-muted-foreground">Tracking: </span>
+                        {o.tracking_url ? (
+                          <a href={o.tracking_url} target="_blank" rel="noreferrer" className="text-primary underline">
+                            {o.tracking_id}
+                          </a>
+                        ) : (
+                          <span className="font-medium">{o.tracking_id}</span>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {new Date(o.created_at).toLocaleString()}

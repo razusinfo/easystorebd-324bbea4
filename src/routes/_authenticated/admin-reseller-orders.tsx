@@ -57,6 +57,8 @@ type Row = {
   source: string | null;
   source_order_id: string | null;
   source_store_id: string | null;
+  tracking_id: string | null;
+  tracking_url: string | null;
   created_at: string;
   reseller?: { full_name: string | null; email: string } | null;
   store_name?: string | null;
@@ -71,7 +73,7 @@ function AdminResellerOrdersPage() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, reseller_id, reseller_product_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, source, source_order_id, source_store_id, created_at")
+        .select("id, reseller_id, reseller_product_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, profit_margin, status, shipping_requested, notes, source, source_order_id, source_store_id, tracking_id, tracking_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
 
@@ -96,11 +98,11 @@ function AdminResellerOrdersPage() {
 
   const updateStatus = useServerFn(updateResellerOrderStatus);
   const upd = useMutation({
-    mutationFn: async (v: { id: string; status: Status }) => {
+    mutationFn: async (v: { id: string; status?: Status; tracking_id?: string | null; tracking_url?: string | null }) => {
       await updateStatus({ data: v });
     },
     onSuccess: () => {
-      toast.success("Status updated & customer notified");
+      toast.success("Saved & customer notified");
       qc.invalidateQueries({ queryKey: ["admin-reseller-orders"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -238,6 +240,10 @@ function AdminResellerOrdersPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <TrackingEditor
+                    row={r}
+                    onSave={(tracking_id, tracking_url) => upd.mutate({ id: r.id, tracking_id, tracking_url })}
+                  />
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {new Date(r.created_at).toLocaleString()}
@@ -266,6 +272,44 @@ function AdminResellerOrdersPage() {
           </TableBody>
         </Table>
       </Card>
+    </div>
+  );
+}
+
+function TrackingEditor({
+  row,
+  onSave,
+}: {
+  row: { tracking_id: string | null; tracking_url: string | null };
+  onSave: (tracking_id: string | null, tracking_url: string | null) => void;
+}) {
+  const [tid, setTid] = useState(row.tracking_id ?? "");
+  const [turl, setTurl] = useState(row.tracking_url ?? "");
+  const dirty = (tid || "") !== (row.tracking_id ?? "") || (turl || "") !== (row.tracking_url ?? "");
+  return (
+    <div className="mt-2 flex flex-col gap-1">
+      <Input
+        value={tid}
+        onChange={(e) => setTid(e.target.value)}
+        placeholder="Tracking ID"
+        className="h-7 text-xs"
+      />
+      <Input
+        value={turl}
+        onChange={(e) => setTurl(e.target.value)}
+        placeholder="Tracking URL (optional)"
+        className="h-7 text-xs"
+      />
+      {dirty && (
+        <Button
+          size="sm"
+          variant="secondary"
+          className="h-6 self-start px-2 text-[11px]"
+          onClick={() => onSave(tid.trim() || null, turl.trim() || null)}
+        >
+          Save tracking
+        </Button>
+      )}
     </div>
   );
 }
