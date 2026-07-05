@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
-import { approveProductRequest, rejectProductRequest, adminUpdateProductRequest, IMAGE_URL_RE, MAX_IMAGES } from "@/lib/product-requests.functions";
+import { approveProductRequest, rejectProductRequest, adminUpdateProductRequest, adminRepairApprovedStock, IMAGE_URL_RE, MAX_IMAGES } from "@/lib/product-requests.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +41,32 @@ type RequestRow = {
   reseller_price: number | null;
 };
 
+function RepairStockButton() {
+  const repairFn = useServerFn(adminRepairApprovedStock);
+  const m = useMutation({
+    mutationFn: () => repairFn({ data: {} }),
+    onSuccess: (r: { repaired: number; checked: number }) => {
+      toast.success(`Stock repair: ${r.repaired} fixed of ${r.checked} approved items checked.`);
+    },
+    onError: (e: Error) => toast.error(e.message || "Repair failed"),
+  });
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      disabled={m.isPending}
+      onClick={() => {
+        if (confirm("Backfill stock to 100 for approved reseller products currently stuck at 0?")) m.mutate();
+      }}
+    >
+      {m.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
+      Repair Stock
+    </Button>
+  );
+}
+
 function AdminRequestsPage() {
+
   const isAdmin = useIsSuperAdmin();
 
   if (isAdmin.isLoading) {
@@ -205,7 +230,9 @@ function AdminRequestsList() {
               {f}
             </Button>
           ))}
+          <RepairStockButton />
         </div>
+
       </div>
 
       <div className="relative max-w-md">

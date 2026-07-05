@@ -312,7 +312,10 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       images,
       image_count: images.length,
       published_reseller_product_id: inserted.id,
+      previous_stock: null,
+      new_stock: data.stock ?? 100,
     });
+
 
     // Fire-and-forget success email + in-app notification to the reseller.
     try {
@@ -471,4 +474,67 @@ export const adminUpdateProductRequest = createServerFn({ method: "POST" })
     });
     return { ok: true as const };
   });
+
+// Super-admin: one-click repair for approved reseller products stuck at stock 0.
+// Backfills reseller_products.stock to a safe default and records prev/new stock
+// in the audit log per row.
+export const adminRepairApprovedStock = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    z.object({
+      default_stock: z.number().int().positive().max(1_000_000).optional().default(100),
+    }).parse(raw ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { role: actorRole, isAdmin } = await resolveActorRole(context.supabase as never, context.userId);
+    if (!isAdmin) throw new Response("Forbidden: super_admin only", { status: 403 });
+
+    // Find approved requests whose published reseller_products row has stock <= 0.
+    const { data: reqs, error: reqErr } = await supabaseAdmin
+      .from("product_requests")
+      .select("id, published_reseller_product_id")
+      .eq("status", "approved")
+      .not("published_reseller_product_id", "is", null);
+    if (reqErr) throw new Error(reqErr.message);
+
+    const ids = (reqs ?? []).map((r) => r.published_reseller_product_id as string);
+    if (ids.length === 0) return { ok: true as const, repaired: 0, checked: 0 };
+
+    const { data: rps, error: rpErr } = await supabaseAdmin
+      .from("reseller_products")
+      .select("id, stock, name")
+      .in("id", ids);
+    if (rpErr) throw new Error(rpErr.message);
+
+    const stuck = (rps ?? []).filter((r) => (r.stock ?? 0) <= 0);
+    let repaired = 0;
+    for (const row of stuck) {
+      const prev = row.stock ?? 0;
+      const { error: uErr } = await supabaseAdmin
+        .from("reseller_products")
+        .update({ stock: data.default_stock, is_out_of_stock: false, updated_at: new Date().toISOString() })
+        .eq("id", row.id);
+      if (uErr) {
+        console.warn("[repair-approved-stock]", row.id, uErr.message);
+        continue;
+      }
+      repaired++;
+      await supabaseAdmin.from("reseller_marketplace_audit_logs").insert({
+        actor_id: context.userId,
+        actor_role: actorRole,
+        action: "repair_approved_stock",
+        product_id: row.id,
+        success: true,
+        error: null,
+        metadata: {
+          name: row.name,
+          previous_stock: prev,
+          new_stock: data.default_stock,
+        } as never,
+      });
+    }
+    return { ok: true as const, repaired, checked: rps?.length ?? 0 };
+  });
+
 
