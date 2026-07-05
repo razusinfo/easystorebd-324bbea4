@@ -13,6 +13,7 @@ import {
 } from "@/lib/eazystore-data";
 import { UICustomizer } from "@/components/admin/ui-customizer";
 import { approveProductRequest, rejectProductRequest } from "@/lib/product-requests.functions";
+import { getLowStockThresholdSetting, updateLowStockThresholdSetting } from "@/lib/admin-settings.functions";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
