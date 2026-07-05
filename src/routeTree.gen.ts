@@ -37,6 +37,7 @@ import { Route as AuthenticatedPromoCodesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMyOrdersRouteImport } from './routes/_authenticated/my-orders'
+import { Route as AuthenticatedMyNotificationsRouteImport } from './routes/_authenticated/my-notifications'
 import { Route as AuthenticatedMobileAppRouteImport } from './routes/_authenticated/mobile-app'
 import { Route as AuthenticatedManageShopRouteImport } from './routes/_authenticated/manage-shop'
 import { Route as AuthenticatedLandingPagesRouteImport } from './routes/_authenticated/landing-pages'
@@ -210,6 +211,12 @@ const AuthenticatedMyOrdersRoute = AuthenticatedMyOrdersRouteImport.update({
   path: '/my-orders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyNotificationsRoute =
+  AuthenticatedMyNotificationsRouteImport.update({
+    id: '/my-notifications',
+    path: '/my-notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMobileAppRoute = AuthenticatedMobileAppRouteImport.update({
   id: '/mobile-app',
   path: '/mobile-app',
@@ -392,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/my-notifications': typeof AuthenticatedMyNotificationsRoute
   '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
@@ -450,6 +458,7 @@ export interface FileRoutesByTo {
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/my-notifications': typeof AuthenticatedMyNotificationsRoute
   '/my-orders': typeof AuthenticatedMyOrdersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
@@ -510,6 +519,7 @@ export interface FileRoutesById {
   '/_authenticated/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/_authenticated/manage-shop': typeof AuthenticatedManageShopRoute
   '/_authenticated/mobile-app': typeof AuthenticatedMobileAppRoute
+  '/_authenticated/my-notifications': typeof AuthenticatedMyNotificationsRoute
   '/_authenticated/my-orders': typeof AuthenticatedMyOrdersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
@@ -571,6 +581,7 @@ export interface FileRouteTypes {
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
+    | '/my-notifications'
     | '/my-orders'
     | '/onboarding'
     | '/orders'
@@ -629,6 +640,7 @@ export interface FileRouteTypes {
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
+    | '/my-notifications'
     | '/my-orders'
     | '/onboarding'
     | '/orders'
@@ -688,6 +700,7 @@ export interface FileRouteTypes {
     | '/_authenticated/landing-pages'
     | '/_authenticated/manage-shop'
     | '/_authenticated/mobile-app'
+    | '/_authenticated/my-notifications'
     | '/_authenticated/my-orders'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
@@ -944,6 +957,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my-notifications': {
+      id: '/_authenticated/my-notifications'
+      path: '/my-notifications'
+      fullPath: '/my-notifications'
+      preLoaderRoute: typeof AuthenticatedMyNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mobile-app': {
       id: '/_authenticated/mobile-app'
       path: '/mobile-app'
@@ -1170,6 +1190,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLandingPagesRoute: typeof AuthenticatedLandingPagesRoute
   AuthenticatedManageShopRoute: typeof AuthenticatedManageShopRoute
   AuthenticatedMobileAppRoute: typeof AuthenticatedMobileAppRoute
+  AuthenticatedMyNotificationsRoute: typeof AuthenticatedMyNotificationsRoute
   AuthenticatedMyOrdersRoute: typeof AuthenticatedMyOrdersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
@@ -1201,6 +1222,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLandingPagesRoute: AuthenticatedLandingPagesRoute,
   AuthenticatedManageShopRoute: AuthenticatedManageShopRoute,
   AuthenticatedMobileAppRoute: AuthenticatedMobileAppRoute,
+  AuthenticatedMyNotificationsRoute: AuthenticatedMyNotificationsRoute,
   AuthenticatedMyOrdersRoute: AuthenticatedMyOrdersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
