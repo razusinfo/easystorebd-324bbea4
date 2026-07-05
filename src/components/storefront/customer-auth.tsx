@@ -39,7 +39,7 @@ export function CustomerAuth({ accentClass = "acc-bg" }: Props) {
   const [forgotBusy, setForgotBusy] = useState(false);
   const [loginMode, setLoginMode] = useState<"email" | "phone">("email");
   const [loginId, setLoginId] = useState("");
-  const resolveEmailForPhone = useServerFn(emailForPhone);
+  const phoneSignIn = useServerFn(signInWithPhone);
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault();
