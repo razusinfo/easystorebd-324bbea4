@@ -39,7 +39,7 @@ function MyOrdersPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("reseller_orders")
-        .select("id, product_name, customer_name, customer_phone, shipping_address, quantity, reseller_price, status, source, source_order_id, created_at")
+        .select("id, product_name, customer_name, customer_phone, shipping_address, quantity, reseller_price, status, source, source_order_id, tracking_id, tracking_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
