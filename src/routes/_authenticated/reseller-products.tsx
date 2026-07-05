@@ -75,6 +75,10 @@ function ResellerProductsPage() {
   const { t } = useI18n();
   const [tab, setTab] = useState<string>(ALL);
   const [supplier, setSupplier] = useState<string>(ALL);
+  const [search, setSearch] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("newest");
+
+
 
 
   const userQ = useQuery({
