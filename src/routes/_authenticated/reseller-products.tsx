@@ -288,7 +288,7 @@ function ResellerProductsPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-md bg-muted/50 px-2 py-1.5">
                       <p className="text-[10px] text-muted-foreground">Products</p>
                       <p className="text-sm font-bold">{s.count}</p>
@@ -296,10 +296,6 @@ function ResellerProductsPage() {
                     <div className="rounded-md bg-muted/50 px-2 py-1.5">
                       <p className="text-[10px] text-muted-foreground">Delivery</p>
                       <p className="text-sm font-bold">৳0</p>
-                    </div>
-                    <div className="rounded-md bg-muted/50 px-2 py-1.5">
-                      <p className="text-[10px] text-muted-foreground">Orders</p>
-                      <p className="text-sm font-bold">0</p>
                     </div>
                   </div>
                 </button>
