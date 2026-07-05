@@ -372,8 +372,10 @@ function Admin() {
               ))
             )}
           </div>
-        ) : (
+        ) : tab === "customizer" ? (
           <UICustomizer />
+        ) : (
+          <AdminSettingsPanel />
         )}
       </section>
 
