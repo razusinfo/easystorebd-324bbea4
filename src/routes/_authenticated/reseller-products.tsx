@@ -860,6 +860,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   });
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
         type="button"
