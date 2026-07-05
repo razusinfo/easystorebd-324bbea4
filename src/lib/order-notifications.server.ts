@@ -4,6 +4,8 @@
 // Config is read from public.notification_settings, with reseller branding
 // from public.stores / public.profiles.
 
+import { escapeHtml } from "@/lib/html-escape";
+
 type OrderCore = {
   id: string;
   product_name: string;
