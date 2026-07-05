@@ -248,6 +248,7 @@ function AdminResellerOrdersPage() {
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {new Date(r.created_at).toLocaleString()}
+                  <div className="mt-1"><TimelineToggle orderId={r.id} /></div>
                 </TableCell>
               </TableRow>
               {r.notes && (
