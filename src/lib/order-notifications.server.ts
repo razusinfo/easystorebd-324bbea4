@@ -278,17 +278,23 @@ export async function sendOrderConfirmation(order: OrderCore): Promise<void> {
 export async function sendOrderStatusUpdate(
   order: OrderCore,
   newStatus: string,
+  tracking?: { tracking_id?: string | null; tracking_url?: string | null } | null,
 ): Promise<void> {
   const cfg = await loadSettings();
   const { brand, resellerPhone, resellerEmail } = await getResellerBrand(order.reseller_id);
   const shortId = order.id.slice(0, 8).toUpperCase();
   const label = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
   const total = money(Number(order.reseller_price ?? 0) * order.quantity);
+  const trackingId = tracking?.tracking_id ?? null;
+  const trackingUrl = tracking?.tracking_url ?? null;
+  const trackingSmsSuffix = trackingId
+    ? ` Track: ${trackingId}${trackingUrl ? ` (${trackingUrl})` : ""}.`
+    : "";
 
   const smsCustomer = `${brand}: Update on order #${shortId} (${order.product_name}). Status: ${label}.${
     newStatus === "shipped" ? ` Expected in ${cfg.delivery_eta}.` : ""
-  } Thank you!`;
-  const smsReseller = `${brand} order #${shortId} for ${order.customer_name} is now "${label}".`;
+  }${trackingSmsSuffix} Thank you!`;
+  const smsReseller = `${brand} order #${shortId} for ${order.customer_name} is now "${label}".${trackingSmsSuffix}`;
 
   const jobs: Promise<unknown>[] = [];
 
@@ -298,12 +304,18 @@ export async function sendOrderStatusUpdate(
   }
 
   if (cfg.email_enabled && cfg.statuses_email.includes(newStatus)) {
+    const trackingBlock = trackingId
+      ? `<p style="margin:12px 0 0">Tracking ID: <strong>${escapeHtml(trackingId)}</strong>${
+          trackingUrl ? ` — <a href="${escapeHtml(trackingUrl)}">Track shipment</a>` : ""
+        }</p>`
+      : "";
     const html = baseTemplate(
       brand,
       `Order ${label}`,
       `<p style="margin:0 0 16px">Your order status has been updated to <strong>${escapeHtml(label)}</strong>.</p>
        ${orderRowsHtml(order, total, brand)}
-       ${newStatus === "shipped" ? `<p style="margin:16px 0 0">Expected delivery: <strong>${escapeHtml(cfg.delivery_eta)}</strong>.</p>` : ""}`,
+       ${newStatus === "shipped" ? `<p style="margin:16px 0 0">Expected delivery: <strong>${escapeHtml(cfg.delivery_eta)}</strong>.</p>` : ""}
+       ${trackingBlock}`,
     );
     const from = `${cfg.from_name} <${cfg.from_email}>`;
     if (cfg.notify_customer && order.customer_email) {
