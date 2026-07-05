@@ -248,7 +248,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
 
     const { data: req, error: reqErr } = await supabaseAdmin
       .from("product_requests")
-      .select("id, requested_by, name, description, price, images, status")
+      .select("id, requested_by, name, description, price, images, status, category")
       .eq("id", data.request_id)
       .maybeSingle();
     if (reqErr) throw new Error(reqErr.message);
@@ -260,6 +260,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
 
     const images = (req.images as string[] | null) ?? [];
     const primaryImage = images[0] ?? null;
+    const finalCategory = data.category ?? (req as any).category ?? null;
 
     const { data: inserted, error: insErr } = await supabaseAdmin
       .from("reseller_products")
@@ -271,6 +272,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         image_url: primaryImage,
         price: req.price,
         reseller_price: data.reseller_price,
+        category: finalCategory,
         source: "request",
       })
       .select("id")
@@ -286,12 +288,14 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         status: "approved",
         reseller_price: data.reseller_price,
         admin_notes: data.admin_notes ?? null,
+        category: finalCategory,
         reviewed_by: context.userId,
         reviewed_at: new Date().toISOString(),
         published_reseller_product_id: inserted.id,
       })
       .eq("id", req.id);
     if (updErr) throw new Error(updErr.message);
+
 
     await logAttempt(true, req.id, {
       requested_by: req.requested_by,
