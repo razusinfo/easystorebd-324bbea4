@@ -27,7 +27,8 @@ describe("runCopyResellerProduct (role-based)", () => {
       stores: { maybeSingle: { data: { id: "store-1" }, error: null } },
       product_categories: { maybeSingle: { data: { id: INPUT.category_id }, error: null } },
       products: [
-        { maybeSingle: { data: null, error: null } }, // dedup lookup
+        { maybeSingle: { data: null, error: null } }, // dedup lookup by link
+        { maybeSingle: { data: null, error: null } }, // dedup lookup by name
         { single: { data: { id: "new-product-id" }, error: null } }, // insert
       ],
       reseller_marketplace_audit_logs: {},
