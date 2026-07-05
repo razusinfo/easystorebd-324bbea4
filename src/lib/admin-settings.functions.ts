@@ -39,7 +39,7 @@ export const revokeResellerProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; reason?: string }) => ({
     id: String(d.id),
-    reason: d.reason ? String(d.reason).slice(0, 500) : null,
+    reason: d.reason ? String(d.reason).slice(0, 500) : undefined,
   }))
   .handler(async ({ context, data }) => {
     const { error } = await context.supabase.rpc("admin_revoke_reseller_product", {
