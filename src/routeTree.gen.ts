@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OfflineRouteImport } from './routes/offline'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -52,6 +53,8 @@ import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as AuthenticatedProductsIndexRouteImport } from './routes/_authenticated/products.index'
 import { Route as SSlugTeamRouteImport } from './routes/s.$slug.team'
@@ -65,6 +68,8 @@ import { Route as AccountOrdersIdRouteImport } from './routes/account.orders.$id
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
 import { Route as AuthenticatedCategoriesNewRouteImport } from './routes/_authenticated/categories_.new'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$productId'
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
@@ -84,6 +89,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const OfflineRoute = OfflineRouteImport.update({
   id: '/offline',
   path: '/offline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -295,6 +305,18 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SSlugIndexRoute = SSlugIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -363,6 +385,17 @@ const AuthenticatedCategoriesNewRoute =
     path: '/categories/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SSlugPProductIdRoute = SSlugPProductIdRouteImport.update({
   id: '/p/$productId',
   path: '/p/$productId',
@@ -398,9 +431,12 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
@@ -435,6 +471,8 @@ export interface FileRoutesByFullPath {
   '/r/$id': typeof RIdRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
@@ -459,9 +497,12 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
@@ -495,6 +536,8 @@ export interface FileRoutesByTo {
   '/demo/prestige': typeof DemoPrestigeRoute
   '/r/$id': typeof RIdRoute
   '/account': typeof AccountIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
@@ -522,9 +565,12 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
@@ -559,6 +605,8 @@ export interface FileRoutesById {
   '/r/$id': typeof RIdRoute
   '/s/$slug': typeof SSlugRouteWithChildren
   '/account/': typeof AccountIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/categories_/new': typeof AuthenticatedCategoriesNewRoute
   '/_authenticated/orders_/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
@@ -586,9 +634,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/install'
     | '/login'
+    | '/mcp'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/admin-notifications'
     | '/admin-requests'
@@ -623,6 +674,8 @@ export interface FileRouteTypes {
     | '/r/$id'
     | '/s/$slug'
     | '/account/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/categories/new'
     | '/orders/$id'
     | '/products/new'
@@ -647,9 +700,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/install'
     | '/login'
+    | '/mcp'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/admin-notifications'
     | '/admin-requests'
@@ -683,6 +739,8 @@ export interface FileRouteTypes {
     | '/demo/prestige'
     | '/r/$id'
     | '/account'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/categories/new'
     | '/orders/$id'
     | '/products/new'
@@ -709,9 +767,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/install'
     | '/login'
+    | '/mcp'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/admin-notifications'
     | '/_authenticated/admin-requests'
@@ -746,6 +807,8 @@ export interface FileRouteTypes {
     | '/r/$id'
     | '/s/$slug'
     | '/account/'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/categories_/new'
     | '/_authenticated/orders_/$id'
     | '/_authenticated/products/new'
@@ -773,13 +836,18 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   InstallRoute: typeof InstallRoute
   LoginRoute: typeof LoginRoute
+  McpRoute: typeof McpRoute
   OfflineRoute: typeof OfflineRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DemoBdloveRoute: typeof DemoBdloveRoute
   DemoPrestigeRoute: typeof DemoPrestigeRoute
   RIdRoute: typeof RIdRoute
   SSlugRoute: typeof SSlugRouteWithChildren
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
   ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
@@ -806,6 +874,13 @@ declare module '@tanstack/react-router' {
       path: '/offline'
       fullPath: '/offline'
       preLoaderRoute: typeof OfflineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1088,6 +1163,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/s/$slug/': {
       id: '/s/$slug/'
       path: '/'
@@ -1178,6 +1267,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/categories/new'
       preLoaderRoute: typeof AuthenticatedCategoriesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/s/$slug/p/$productId': {
       id: '/s/$slug/p/$productId'
@@ -1351,13 +1454,19 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   InstallRoute: InstallRoute,
   LoginRoute: LoginRoute,
+  McpRoute: McpRoute,
   OfflineRoute: OfflineRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   DemoBdloveRoute: DemoBdloveRoute,
   DemoPrestigeRoute: DemoPrestigeRoute,
   RIdRoute: RIdRoute,
   SSlugRoute: SSlugRouteWithChildren,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
   ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
   ApiPublicResellerProductsUser_idRoute: ApiPublicResellerProductsUser_idRoute,
