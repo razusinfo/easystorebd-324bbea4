@@ -218,6 +218,7 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       reseller_price: z.number().nonnegative().max(10_000_000),
       admin_notes: z.string().max(1000).optional().nullable(),
       category: z.string().trim().max(120).optional().nullable().transform((v) => (v && v.length > 0 ? v : null)),
+      stock: z.number().int().nonnegative().max(1_000_000).optional().default(100),
     }),
   )
   .handler(async ({ data, context }) => {
@@ -273,6 +274,8 @@ export const approveProductRequest = createServerFn({ method: "POST" })
         price: req.price,
         reseller_price: data.reseller_price,
         category: finalCategory,
+        stock: data.stock ?? 100,
+        is_out_of_stock: (data.stock ?? 100) <= 0,
         source: "request",
       })
       .select("id")
