@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Check, X, ImageIcon, ShieldAlert } from "lucide-react";
+import { Loader2, Check, X, ImageIcon, ShieldAlert, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
