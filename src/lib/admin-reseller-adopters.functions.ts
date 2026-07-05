@@ -152,6 +152,7 @@ export const adminListResellerAdopters = createServerFn({ method: "POST" })
             created_at: a.created_at,
             store_id: a.store_id,
             store_name: store?.name ?? null,
+            store_slug: store?.slug ?? null,
             owner_user_id: store?.owner_user_id ?? null,
             owner_email: owner?.email ?? null,
             owner_name: owner?.full_name ?? null,
