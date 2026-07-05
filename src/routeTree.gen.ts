@@ -49,6 +49,7 @@ import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin-support'
+import { Route as AuthenticatedAdminResellerVisibilityRouteImport } from './routes/_authenticated/admin-reseller-visibility'
 import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
@@ -283,6 +284,12 @@ const AuthenticatedAdminSupportRoute =
     path: '/admin-support',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminResellerVisibilityRoute =
+  AuthenticatedAdminResellerVisibilityRouteImport.update({
+    id: '/admin-reseller-visibility',
+    path: '/admin-reseller-visibility',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminResellerOrdersRoute =
   AuthenticatedAdminResellerOrdersRouteImport.update({
     id: '/admin-reseller-orders',
@@ -448,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
+  '/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
@@ -515,6 +523,7 @@ export interface FileRoutesByTo {
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
+  '/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
@@ -584,6 +593,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
+  '/_authenticated/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
   '/_authenticated/admin-support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
@@ -654,6 +664,7 @@ export interface FileRouteTypes {
     | '/admin-notifications'
     | '/admin-requests'
     | '/admin-reseller-orders'
+    | '/admin-reseller-visibility'
     | '/admin-support'
     | '/analytics'
     | '/categories'
@@ -721,6 +732,7 @@ export interface FileRouteTypes {
     | '/admin-notifications'
     | '/admin-requests'
     | '/admin-reseller-orders'
+    | '/admin-reseller-visibility'
     | '/admin-support'
     | '/analytics'
     | '/categories'
@@ -789,6 +801,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-notifications'
     | '/_authenticated/admin-requests'
     | '/_authenticated/admin-reseller-orders'
+    | '/_authenticated/admin-reseller-visibility'
     | '/_authenticated/admin-support'
     | '/_authenticated/analytics'
     | '/_authenticated/categories'
@@ -1149,6 +1162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-reseller-visibility': {
+      id: '/_authenticated/admin-reseller-visibility'
+      path: '/admin-reseller-visibility'
+      fullPath: '/admin-reseller-visibility'
+      preLoaderRoute: typeof AuthenticatedAdminResellerVisibilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin-reseller-orders': {
       id: '/_authenticated/admin-reseller-orders'
       path: '/admin-reseller-orders'
@@ -1346,6 +1366,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
+  AuthenticatedAdminResellerVisibilityRoute: typeof AuthenticatedAdminResellerVisibilityRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
@@ -1380,6 +1401,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
   AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
   AuthenticatedAdminResellerOrdersRoute: AuthenticatedAdminResellerOrdersRoute,
+  AuthenticatedAdminResellerVisibilityRoute:
+    AuthenticatedAdminResellerVisibilityRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
