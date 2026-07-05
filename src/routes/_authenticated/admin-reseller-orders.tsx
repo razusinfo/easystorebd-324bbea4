@@ -315,3 +315,72 @@ function TrackingEditor({
     </div>
   );
 }
+
+type OrderEvent = {
+  id: string;
+  event_type: string;
+  old_status: string | null;
+  new_status: string | null;
+  tracking_id: string | null;
+  tracking_url: string | null;
+  created_at: string;
+};
+
+function TimelineToggle({ orderId }: { orderId: string }) {
+  const [open, setOpen] = useState(false);
+  const q = useQuery({
+    queryKey: ["reseller-order-events", orderId],
+    enabled: open,
+    queryFn: async (): Promise<OrderEvent[]> => {
+      const { data, error } = await (supabase as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (k: string, v: string) => {
+              order: (c: string, o: { ascending: boolean }) => Promise<{ data: OrderEvent[] | null; error: { message: string } | null }>;
+            };
+          };
+        };
+      })
+        .from("reseller_order_events")
+        .select("id, event_type, old_status, new_status, tracking_id, tracking_url, created_at")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  });
+  return (
+    <div>
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <History className="h-3 w-3" />
+        {open ? "Hide history" : "View history"}
+      </button>
+      {open && (
+        <div className="mt-1 space-y-1 rounded border bg-muted/30 p-2 text-[11px]">
+          {q.isLoading && <div>Loading…</div>}
+          {q.data?.length === 0 && <div className="text-muted-foreground">No changes yet.</div>}
+          {q.data?.map((e) => (
+            <div key={e.id} className="border-l-2 border-primary/40 pl-2">
+              <div className="font-medium text-foreground">
+                {e.event_type === "status_change" && `Status: ${e.old_status ?? "—"} → ${e.new_status}`}
+                {e.event_type === "tracking_update" && `Tracking updated`}
+                {e.event_type === "status_and_tracking" && `Status: ${e.old_status ?? "—"} → ${e.new_status} + tracking`}
+              </div>
+              {e.tracking_id && (
+                <div className="text-muted-foreground">
+                  {e.tracking_id}
+                  {e.tracking_url ? ` · ${e.tracking_url}` : ""}
+                </div>
+              )}
+              <div className="text-muted-foreground">{new Date(e.created_at).toLocaleString()}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
