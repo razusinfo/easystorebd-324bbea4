@@ -103,9 +103,9 @@ export function buildApprovedEmailPayload(input: ApprovedInput): ResendPayload {
     html: shell(
       "EazyStore",
       "🎉 Your product is live!",
-      `<p>Great news — your requested product <strong>${input.productName}</strong> has been approved and is now live in the Reseller Marketplace.</p>
+      `<p>Great news — your requested product <strong>${escapeHtml(input.productName)}</strong> has been approved and is now live in the Reseller Marketplace.</p>
        <ul style="line-height:1.7">
-         <li><strong>Reseller price:</strong> ৳${input.resellerPrice}</li>
+         <li><strong>Reseller price:</strong> ৳${escapeHtml(String(input.resellerPrice))}</li>
        </ul>
        ${primaryButton(link, "Open Reseller Products")}
        <p style="margin-top:12px;color:#64748b;font-size:12px">Add it to your shop to start selling.</p>`,
