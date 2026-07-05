@@ -272,9 +272,44 @@ function ResellerProductsPage() {
 
 
 
+      {(q.data?.length ?? 0) > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[200px]">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search products…"
+              className="h-9 pr-8"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="h-9 w-[160px]">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="name">Name (A–Z)</SelectItem>
+              <SelectItem value="price-asc">Price: Low → High</SelectItem>
+              <SelectItem value="price-desc">Price: High → Low</SelectItem>
+              <SelectItem value="stock-desc">Stock: High → Low</SelectItem>
+              <SelectItem value="stock-asc">Stock: Low → High</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {(q.data?.length ?? 0) > 0 && (
-        <Tabs value={tab} onValueChange={setTab} className="mb-4">
+        <Tabs value={tab} onValueChange={setTab} className="mb-3">
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
             <TabsTrigger value={ALL}>All</TabsTrigger>
             {categories.list.map((c) => (
@@ -286,20 +321,49 @@ function ResellerProductsPage() {
       )}
 
       {q.isLoading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-64 animate-pulse rounded-xl bg-muted" />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-lg border bg-card">
+              <div className="aspect-square animate-pulse bg-muted" />
+              <div className="space-y-1.5 p-2">
+                <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+                <div className="h-6 w-full animate-pulse rounded bg-muted" />
+              </div>
+            </div>
           ))}
         </div>
       ) : q.error ? (
         <p className="text-sm text-destructive">Failed to load: {(q.error as Error).message}</p>
       ) : filtered.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center gap-2 p-10 text-center">
+        <Card className="flex flex-col items-center justify-center gap-2 p-8 text-center">
           <Package className="h-8 w-8 text-muted-foreground" />
-          <p className="font-medium">No reseller products in this category</p>
+          <p className="font-medium">
+            {search
+              ? `No products match "${search}"`
+              : supplier !== ALL
+                ? `No products from ${supplier} yet`
+                : "No reseller products in this category"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {search || supplier !== ALL
+              ? "Try clearing filters or picking another supplier."
+              : "Check back soon or request a product from the Sylheti team."}
+          </p>
+          {(search || supplier !== ALL || tab !== ALL) && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => { setSearch(""); setSupplier(ALL); setTab(ALL); }}
+            >
+              Clear filters
+            </Button>
+          )}
         </Card>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtered.map((p) => {
             const img = p.displayImage;
             const outOfStock = computeIsOutOfStock(p.stock);
@@ -319,45 +383,32 @@ function ResellerProductsPage() {
                     <img src={img} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="grid h-full w-full place-items-center text-muted-foreground">
-                      <Package className="h-8 w-8" />
+                      <Package className="h-6 w-6" />
                     </div>
                   )}
                   {outOfStock && (
-                    <div className="pointer-events-none absolute inset-0 flex items-start justify-center bg-black/30 pt-3">
-                      <span className="rounded-full bg-rose-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-lg">
+                    <div className="pointer-events-none absolute inset-0 flex items-start justify-center bg-black/30 pt-2">
+                      <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-lg">
                         {t("outOfStock")}
                       </span>
                     </div>
                   )}
                 </div>
-                <div className="space-y-2 p-3">
-                  <h3 className="line-clamp-2 text-sm font-semibold">{p.name}</h3>
-                  {p.displayDescription && (
-                    <p className="line-clamp-2 text-[11px] text-muted-foreground">{p.displayDescription}</p>
-                  )}
-                  <div className="flex items-baseline justify-between gap-2">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Original</p>
-                      <p className="text-sm font-medium line-through opacity-70">{fmt(p.price)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                        {p.isCustom ? "Your price" : "Reseller"}
-                      </p>
-                      <p className="text-base font-bold text-primary">{fmt(p.displayPrice)}</p>
-                    </div>
+                <div className="space-y-1.5 p-2">
+                  <h3 className="line-clamp-2 text-xs font-semibold leading-tight">{p.name}</h3>
+                  <div className="flex items-baseline justify-between gap-1">
+                    <p className="text-[11px] font-medium line-through opacity-60">{fmt(p.price)}</p>
+                    <p className="text-sm font-bold text-primary">{fmt(p.displayPrice)}</p>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {p.category && (
-                      <Badge variant="secondary" className="text-[10px]">{p.category}</Badge>
+                      <Badge variant="secondary" className="px-1.5 py-0 text-[9px]">{p.category}</Badge>
                     )}
                     {p.isCustom && (
-                      <Badge className="text-[10px]">My shop</Badge>
-                    )}
-                    {outOfStock && (
-                      <Badge variant="destructive" className="text-[10px]">{t("outOfStock")}</Badge>
+                      <Badge className="px-1.5 py-0 text-[9px]">My shop</Badge>
                     )}
                   </div>
+
                   <div className="flex flex-wrap gap-2">
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
