@@ -370,11 +370,12 @@ export function useMyProducts(storeId: string | undefined) {
       if (error) throw error;
       const rows = (data ?? []) as ProductRow[];
       return [...rows].sort((a, b) => {
-        const ao = a.is_out_of_stock ? 1 : 0;
-        const bo = b.is_out_of_stock ? 1 : 0;
+        const ao = (a as { is_out_of_stock?: boolean | null }).is_out_of_stock ? 1 : 0;
+        const bo = (b as { is_out_of_stock?: boolean | null }).is_out_of_stock ? 1 : 0;
         if (ao !== bo) return ao - bo;
         return (b.created_at ?? "").localeCompare(a.created_at ?? "");
       });
+
     },
   });
 }
