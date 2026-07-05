@@ -77,10 +77,10 @@ function AdminRequestsList() {
   const [page, setPage] = useState(0);
 
   // Debounce search input.
-  useState(() => {
-    const t = setTimeout(() => setSearch(searchInput.trim()), 300);
+  useEffect(() => {
+    const t = setTimeout(() => { setSearch(searchInput.trim()); setPage(0); }, 300);
     return () => clearTimeout(t);
-  });
+  }, [searchInput]);
   // Reset to first page when filters change.
   const resetPage = () => setPage(0);
 
