@@ -52,8 +52,7 @@ function AdminSupportPage() {
   const usersQ = useQuery({
     queryKey: ["support_users_list"],
     queryFn: async (): Promise<UserInfo[]> => {
-      const { data, error } = await supabase.rpc("admin_list_users");
-      if (error) throw error;
+      const data = await listUsers();
       return (data ?? []).map((u) => ({
         user_id: u.user_id,
         email: u.email,
