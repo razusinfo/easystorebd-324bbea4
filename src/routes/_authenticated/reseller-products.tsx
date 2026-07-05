@@ -213,7 +213,8 @@ function ResellerProductsPage() {
             return (
               <Card
                 key={p.id}
-                className={`overflow-hidden ${outOfStock ? "opacity-60 grayscale" : ""}`}
+                data-rp-id={p.id}
+                className={`overflow-hidden transition-shadow ${outOfStock ? "opacity-60 grayscale" : ""} ${highlightId === p.id ? "ring-2 ring-primary shadow-lg" : ""}`}
                 aria-disabled={outOfStock || undefined}
               >
                 <div className="relative aspect-square bg-muted">
