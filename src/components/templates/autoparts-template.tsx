@@ -70,20 +70,21 @@ export function AutoPartsTemplate({
         discount: 20, available: p.stock, sold: Math.floor(p.stock / 2),
       }));
   const featuredHeading = defaultCategoryName || "Auto Safety & Security";
-  const rgb = hexToRgb(accentColor);
-  const overrideCss = accentColor && rgb ? `
-    .autoparts-scope .bg-red-600 { background-color: ${accentColor} !important; }
-    .autoparts-scope .hover\\:bg-red-700:hover { background-color: ${accentColor} !important; filter: brightness(0.9); }
-    .autoparts-scope .text-red-600 { color: ${accentColor} !important; }
-    .autoparts-scope .hover\\:text-red-600:hover { color: ${accentColor} !important; }
-    .autoparts-scope .border-red-500 { border-color: ${accentColor} !important; }
-    .autoparts-scope .border-red-600 { border-color: ${accentColor} !important; }
+  const safeAccent = isValidHexColor(accentColor) ? sanitizeHexColor(accentColor) : "";
+  const rgb = hexToRgb(safeAccent);
+  const overrideCss = safeAccent && rgb ? `
+    .autoparts-scope .bg-red-600 { background-color: ${safeAccent} !important; }
+    .autoparts-scope .hover\\:bg-red-700:hover { background-color: ${safeAccent} !important; filter: brightness(0.9); }
+    .autoparts-scope .text-red-600 { color: ${safeAccent} !important; }
+    .autoparts-scope .hover\\:text-red-600:hover { color: ${safeAccent} !important; }
+    .autoparts-scope .border-red-500 { border-color: ${safeAccent} !important; }
+    .autoparts-scope .border-red-600 { border-color: ${safeAccent} !important; }
     .autoparts-scope .border-red-300 { border-color: rgba(${rgb}, 0.4) !important; }
     .autoparts-scope .border-red-200 { border-color: rgba(${rgb}, 0.3) !important; }
     .autoparts-scope .bg-red-50 { background-color: rgba(${rgb}, 0.08) !important; }
     .autoparts-scope .from-red-50 { --tw-gradient-from: rgba(${rgb}, 0.08) !important; }
     .autoparts-scope .to-rose-50 { --tw-gradient-to: rgba(${rgb}, 0.05) !important; }
-    .autoparts-scope .focus\\:border-red-500:focus { border-color: ${accentColor} !important; }
+    .autoparts-scope .focus\\:border-red-500:focus { border-color: ${safeAccent} !important; }
   ` : "";
 
   return (
