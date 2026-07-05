@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2, Trash2, Link2, AlertTriangle, Truck, ShieldCheck } from "lucide-react";
+import { Package, Copy, Check, Pencil, Store as StoreIcon, PlusCircle, X, Upload, Loader2, Trash2, Link2, AlertTriangle, Truck, ShieldCheck, Info } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -86,6 +86,7 @@ function ResellerProductsPage() {
   const [supplier, setSupplier] = useState<string>(ALL);
   const [search, setSearch] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [infoSupplier, setInfoSupplier] = useState<string | null>(null);
 
 
 
@@ -167,6 +168,21 @@ function ResellerProductsPage() {
     });
     return list;
   }, [merged]);
+
+  const infoSupplierCategories = useMemo(() => {
+    if (!infoSupplier) return [];
+    const counts = new Map<string, number>();
+    for (const r of merged) {
+      if (normalizeSupplier(r.source) !== infoSupplier) continue;
+      const c = (r.category ?? "").trim();
+      if (!c) continue;
+      counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([name]) => name);
+  }, [infoSupplier, merged]);
 
   const bySupplier = useMemo(() => {
     if (supplier === ALL) return merged;
@@ -270,7 +286,7 @@ function ResellerProductsPage() {
               All · {merged.length}
             </button>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-wrap gap-1.5">
             {suppliers.map((s) => {
               const active = supplier === s.name;
               const initials = s.name
@@ -280,49 +296,55 @@ function ResellerProductsPage() {
                 .slice(0, 2)
                 .toUpperCase();
               return (
-                <button
+                <div
                   key={s.name}
-                  type="button"
-                  onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
-                  className={`rounded-xl border bg-card p-3 text-left transition-all hover:shadow-sm ${
-                    active ? "border-primary ring-2 ring-primary/20" : "border-border"
+                  className={`inline-flex items-center gap-1.5 rounded-full border pl-1 pr-1 py-0.5 text-xs transition-colors ${
+                    active ? "border-primary bg-primary/5" : "border-border bg-background hover:bg-muted"
                   }`}
                 >
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                  <button
+                    type="button"
+                    onClick={() => { setSupplier(s.name); setTab(ALL); setSearch(""); }}
+                    className="flex items-center gap-1.5"
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[9px] font-bold text-muted-foreground">
                       {s.name === PRIMARY_SUPPLIER ? (
                         <img src={eazystoreLogo.url} alt={s.name} className="h-full w-full object-contain" />
                       ) : initials ? (
                         initials
                       ) : (
-                        <StoreIcon className="h-5 w-5" />
+                        <StoreIcon className="h-3 w-3" />
                       )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{s.name}</p>
-                      <span className="mt-0.5 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        Standard
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-md bg-muted/50 px-2 py-1.5">
-                      <p className="text-[10px] text-muted-foreground">Products</p>
-                      <p className="text-sm font-bold">{s.count}</p>
-                    </div>
-                    <div className="rounded-md bg-muted/50 px-2 py-1.5">
-                      <p className="text-[10px] text-muted-foreground">Delivery</p>
-                      <p className="text-sm font-bold">
-                        {s.name === PRIMARY_SUPPLIER ? primaryDeliveries : 0}
-                      </p>
-                    </div>
-                  </div>
-                </button>
+                    </span>
+                    <span className="max-w-[120px] truncate font-medium">{s.name}</span>
+                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      {s.count}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setInfoSupplier(s.name); }}
+                    className="ml-0.5 flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label={`About ${s.name}`}
+                  >
+                    <Info className="h-3 w-3" />
+                  </button>
+                </div>
               );
             })}
           </div>
         </section>
       )}
+
+      <SupplierInfoDialog
+        open={infoSupplier !== null}
+        supplierName={infoSupplier}
+        productCount={infoSupplier ? (suppliers.find((s) => s.name === infoSupplier)?.count ?? 0) : 0}
+        deliveries={infoSupplier === PRIMARY_SUPPLIER ? primaryDeliveries : 0}
+        topCategories={infoSupplierCategories}
+        onClose={() => setInfoSupplier(null)}
+      />
+
 
 
 
@@ -1431,3 +1453,90 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
     </Dialog>
   );
 }
+
+function SupplierInfoDialog({
+  open,
+  supplierName,
+  productCount,
+  deliveries,
+  topCategories,
+  onClose,
+}: {
+  open: boolean;
+  supplierName: string | null;
+  productCount: number;
+  deliveries: number;
+  topCategories: string[];
+  onClose: () => void;
+}) {
+  const name = supplierName ?? "";
+  const isPrimary = name === PRIMARY_SUPPLIER;
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Supplier Info</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-sm font-bold text-muted-foreground">
+              {isPrimary ? (
+                <img src={eazystoreLogo.url} alt={name} className="h-full w-full object-contain" />
+              ) : initials ? (
+                initials
+              ) : (
+                <StoreIcon className="h-5 w-5" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-base font-semibold">{name}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+                  <ShieldCheck className="h-3 w-3" /> Verified
+                </span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  Platform Courier
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-md bg-muted/50 px-2.5 py-2">
+              <p className="text-[10px] text-muted-foreground">Products</p>
+              <p className="text-sm font-bold">{productCount}</p>
+            </div>
+            <div className="rounded-md bg-muted/50 px-2.5 py-2">
+              <p className="text-[10px] text-muted-foreground">Deliveries</p>
+              <p className="text-sm font-bold">{deliveries}</p>
+            </div>
+          </div>
+          {topCategories.length > 0 && (
+            <div>
+              <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Top Categories</p>
+              <div className="flex flex-wrap gap-1">
+                {topCategories.map((c) => (
+                  <span key={c} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="rounded-md border border-dashed p-2.5 text-[11px] text-muted-foreground">
+            For supplier privacy, direct contact details are hidden. All orders, payments and delivery are handled through the platform.
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
