@@ -1337,17 +1337,28 @@ function Field({
   );
 }
 
-function ToolbarBtn({ children }: { children: React.ReactNode }) {
+function ToolbarBtn({
+  children,
+  onClick,
+  title,
+}: {
+  children: React.ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  title?: string;
+}) {
   return (
     <button
       type="button"
+      title={title}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
       className="inline-flex h-7 w-7 items-center justify-center rounded-sm hover:bg-foreground/5"
-      tabIndex={-1}
     >
       {children}
     </button>
   );
 }
+
 
 
 function flattenCategories(nodes: CategoryNode[], depth = 0): { id: string; name: string; depth: number }[] {
