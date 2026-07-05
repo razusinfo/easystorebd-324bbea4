@@ -106,8 +106,32 @@ function AdminResellerOrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const totalProfit = (q.data ?? []).reduce((s, r) => s + Number(r.profit_margin || 0), 0);
-  const pendingShip = (q.data ?? []).filter((r) => r.shipping_requested && r.status !== "delivered" && r.status !== "cancelled").length;
+  const [fReseller, setFReseller] = useState("");
+  const [fProduct, setFProduct] = useState("");
+  const [fFrom, setFFrom] = useState("");
+  const [fTo, setFTo] = useState("");
+
+  const filtered = useMemo(() => {
+    const rows = q.data ?? [];
+    const rq = fReseller.trim().toLowerCase();
+    const pq = fProduct.trim().toLowerCase();
+    const from = fFrom ? new Date(fFrom).getTime() : null;
+    const to = fTo ? new Date(fTo).getTime() + 86_400_000 : null;
+    return rows.filter((r) => {
+      if (rq) {
+        const hay = `${r.reseller?.full_name ?? ""} ${r.reseller?.email ?? ""} ${r.store_name ?? ""}`.toLowerCase();
+        if (!hay.includes(rq)) return false;
+      }
+      if (pq && !r.product_name.toLowerCase().includes(pq)) return false;
+      const t = new Date(r.created_at).getTime();
+      if (from != null && t < from) return false;
+      if (to != null && t >= to) return false;
+      return true;
+    });
+  }, [q.data, fReseller, fProduct, fFrom, fTo]);
+
+  const totalProfit = filtered.reduce((s, r) => s + Number(r.profit_margin || 0), 0);
+  const pendingShip = filtered.filter((r) => r.shipping_requested && r.status !== "delivered" && r.status !== "cancelled").length;
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -127,6 +151,31 @@ function AdminResellerOrdersPage() {
           </Card>
         </div>
       </header>
+
+      <Card className="p-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div>
+          <Label className="text-xs">Sold By (reseller / store)</Label>
+          <Input value={fReseller} onChange={(e) => setFReseller(e.target.value)} placeholder="name, email or store" />
+        </div>
+        <div>
+          <Label className="text-xs">Source Product</Label>
+          <Input value={fProduct} onChange={(e) => setFProduct(e.target.value)} placeholder="product name" />
+        </div>
+        <div>
+          <Label className="text-xs">Forwarded from</Label>
+          <Input type="date" value={fFrom} onChange={(e) => setFFrom(e.target.value)} />
+        </div>
+        <div>
+          <Label className="text-xs">Forwarded to</Label>
+          <Input type="date" value={fTo} onChange={(e) => setFTo(e.target.value)} />
+        </div>
+        <div className="flex items-end">
+          <Button variant="outline" size="sm" onClick={() => { setFReseller(""); setFProduct(""); setFFrom(""); setFTo(""); }}>
+            Clear filters
+          </Button>
+        </div>
+      </Card>
+
 
       <Card className="overflow-x-auto">
         <Table>
