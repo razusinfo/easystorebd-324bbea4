@@ -159,16 +159,39 @@ function ResellerProductsPage() {
   }, [bySupplier]);
 
   const filtered = useMemo(() => {
-    const base =
+    let base =
       tab === ALL
         ? bySupplier
         : tab === UNCAT
           ? bySupplier.filter((r) => !r.category || !r.category.trim())
           : bySupplier.filter((r) => r.category === tab);
-    // In-stock first, out-of-stock pushed to the bottom of the (already-
-    // filtered) category. Stable sort preserves prior ordering within groups.
-    return sortOutOfStockToBottom(base);
-  }, [bySupplier, tab]);
+
+    const term = search.trim().toLowerCase();
+    if (term) {
+      base = base.filter(
+        (r) =>
+          r.name.toLowerCase().includes(term) ||
+          (r.description ?? "").toLowerCase().includes(term) ||
+          (r.category ?? "").toLowerCase().includes(term),
+      );
+    }
+
+    const sorted = [...base];
+    if (sortBy === "price-asc") {
+      sorted.sort((a, b) => (a.displayPrice ?? Infinity) - (b.displayPrice ?? Infinity));
+    } else if (sortBy === "price-desc") {
+      sorted.sort((a, b) => (b.displayPrice ?? -Infinity) - (a.displayPrice ?? -Infinity));
+    } else if (sortBy === "stock-desc") {
+      sorted.sort((a, b) => (b.stock ?? 0) - (a.stock ?? 0));
+    } else if (sortBy === "stock-asc") {
+      sorted.sort((a, b) => (a.stock ?? 0) - (b.stock ?? 0));
+    } else if (sortBy === "name") {
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    // Out-of-stock always pushed to the bottom regardless of sort.
+    return sortOutOfStockToBottom(sorted);
+  }, [bySupplier, tab, search, sortBy]);
+
 
 
   // Deep link support: /reseller-products?highlight=<id> — scrolls to and
