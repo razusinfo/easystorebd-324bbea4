@@ -39,6 +39,9 @@ function ResellerRequestsPage() {
 
       <SubmitRequestForm />
 
+      <Separator />
+      <MyRequestsList />
+
       {isAdmin.data ? (
         <>
           <Separator />
