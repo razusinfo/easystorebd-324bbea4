@@ -44,7 +44,7 @@ describe("runSubmitProductRequest", () => {
       reseller_marketplace_audit_logs: { insertOk: true },
     });
     const res = await runSubmitProductRequest(
-      { name: "Blender", description: "5-speed", price: 1500, images: ["https://x.com/1.jpg"] },
+      { name: "Blender", description: "5-speed", price: 1500, category: null, images: ["https://x.com/1.jpg"] },
       { admin: h.client, userId: "u-1", actorRole: "reseller", isAdmin: false },
     );
     expect(res).toEqual({ ok: true, id: "req-1" });
