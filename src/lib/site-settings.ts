@@ -51,7 +51,7 @@ export function useSiteSettings() {
     queryFn: async (): Promise<SiteSettings> => {
       const { data, error } = await supabase
         .from("site_settings")
-        .select("*")
+        .select("id,logo_url,favicon_url,primary_color,sidebar_categories,whatsapp_url,contact_email,contact_phone,facebook_url,instagram_url,updated_at")
         .eq("id", SETTINGS_ID)
         .maybeSingle();
       if (error) throw error;
@@ -68,7 +68,7 @@ export function useUpdateSiteSettings() {
       const { data, error } = await supabase
         .from("site_settings")
         .upsert(payload, { onConflict: "id" })
-        .select()
+        .select("id,logo_url,favicon_url,primary_color,sidebar_categories,whatsapp_url,contact_email,contact_phone,facebook_url,instagram_url,updated_at")
         .maybeSingle();
       if (error) throw error;
       return normalize(data);
