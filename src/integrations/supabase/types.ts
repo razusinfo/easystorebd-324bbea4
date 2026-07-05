@@ -1365,6 +1365,42 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_ledger: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string | null
+          entry_type: string
+          id: string
+          metadata: Json | null
+          related_order_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          description?: string | null
+          entry_type: string
+          id?: string
+          metadata?: Json | null
+          related_order_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          entry_type?: string
+          id?: string
+          metadata?: Json | null
+          related_order_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
