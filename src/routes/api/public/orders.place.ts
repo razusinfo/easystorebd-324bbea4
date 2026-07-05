@@ -76,6 +76,18 @@ export const Route = createFileRoute("/api/public/orders/place")({
         if (prodErr) return json({ error: prodErr.message }, 500);
         if (!prod) return json({ error: "Product not found" }, 404);
 
+        // Verify the reseller actually sells this product. Without this check
+        // any caller with the webhook secret could place orders on behalf of
+        // arbitrary reseller accounts. `!left` above returns the product even
+        // when there is no matching user_reseller_settings row, so we must
+        // explicitly assert the linkage exists here.
+        const linked = Array.isArray(prod.user_reseller_settings)
+          ? prod.user_reseller_settings.some((r) => r?.user_id === o.reseller_id)
+          : false;
+        if (!linked) {
+          return json({ error: "Reseller is not authorized to sell this product" }, 403);
+        }
+
         const custom = (prod.user_reseller_settings as
           | Array<{ custom_price: number | null }>
           | null)?.[0] ?? null;
