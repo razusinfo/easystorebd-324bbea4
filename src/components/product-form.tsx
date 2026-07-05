@@ -303,10 +303,13 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           .filter((s) => s.zone && Number.isFinite(s.charge)),
 
         videoUrl: form.videoUrl.trim() || null,
-        addToReseller: form.addToReseller,
-        resellerPrice: form.addToReseller && form.resellerPrice !== ""
-          ? Number(form.resellerPrice)
-          : null,
+        // Only super admins can directly publish to the marketplace. Regular
+        // resellers instead submit a product_request (below) for review.
+        addToReseller: isSuperAdmin ? form.addToReseller : false,
+        resellerPrice:
+          isSuperAdmin && form.addToReseller && form.resellerPrice !== ""
+            ? Number(form.resellerPrice)
+            : null,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
