@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.admin_revoke_reseller_product(uuid, text) TO authenticated;
