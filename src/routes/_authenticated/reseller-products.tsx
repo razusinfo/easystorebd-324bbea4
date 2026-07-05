@@ -21,6 +21,7 @@ import { submitProductRequest } from "@/lib/product-requests.functions";
 import { revokeResellerProduct } from "@/lib/admin-settings.functions";
 import { useI18n } from "@/lib/i18n";
 import { sortOutOfStockToBottom, computeIsOutOfStock } from "@/lib/stock-sync-core";
+import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 
 
 
