@@ -275,3 +275,41 @@ function AdminResellerOrdersPage() {
     </div>
   );
 }
+
+function TrackingEditor({
+  row,
+  onSave,
+}: {
+  row: { tracking_id: string | null; tracking_url: string | null };
+  onSave: (tracking_id: string | null, tracking_url: string | null) => void;
+}) {
+  const [tid, setTid] = useState(row.tracking_id ?? "");
+  const [turl, setTurl] = useState(row.tracking_url ?? "");
+  const dirty = (tid || "") !== (row.tracking_id ?? "") || (turl || "") !== (row.tracking_url ?? "");
+  return (
+    <div className="mt-2 flex flex-col gap-1">
+      <Input
+        value={tid}
+        onChange={(e) => setTid(e.target.value)}
+        placeholder="Tracking ID"
+        className="h-7 text-xs"
+      />
+      <Input
+        value={turl}
+        onChange={(e) => setTurl(e.target.value)}
+        placeholder="Tracking URL (optional)"
+        className="h-7 text-xs"
+      />
+      {dirty && (
+        <Button
+          size="sm"
+          variant="secondary"
+          className="h-6 self-start px-2 text-[11px]"
+          onClick={() => onSave(tid.trim() || null, turl.trim() || null)}
+        >
+          Save tracking
+        </Button>
+      )}
+    </div>
+  );
+}
