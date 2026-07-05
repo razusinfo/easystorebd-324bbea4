@@ -3,12 +3,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Check, X, ImageIcon, ShieldAlert, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Check, X, ImageIcon, ShieldAlert, Search, ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
-import { approveProductRequest, rejectProductRequest } from "@/lib/product-requests.functions";
+import { approveProductRequest, rejectProductRequest, adminUpdateProductRequest, IMAGE_URL_RE, MAX_IMAGES } from "@/lib/product-requests.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
