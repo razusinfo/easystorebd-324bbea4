@@ -1209,8 +1209,12 @@ export function usePublicProductDetail(slug: string | undefined, productId: stri
       if (sErr) throw sErr;
       if (!store) return null;
 
+      // Explicit safe column list — never expose reseller_price or buying_price
+      // to the public product detail page, even if a caller requests them.
       const { data: product, error: pErr } = await supabase
-        .from("products").select("*")
+        .from("products").select(
+          "id, store_id, name, price, regular_price, stock, status, image_url, gallery_urls, category_id, brand, condition, weight_kg, length_cm, width_cm, height_cm, sku, unit_name, product_serial, warranty, initial_sold_count, use_default_delivery, video_url, default_delivery_charge, specific_delivery_charges, short_description, description, is_out_of_stock, created_at, updated_at",
+        )
         .eq("id", productId!).eq("store_id", store.id).eq("status", "approved").maybeSingle();
       if (pErr) throw pErr;
       if (!product) return null;

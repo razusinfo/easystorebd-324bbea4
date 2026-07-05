@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
+import { useQuery } from "@tanstack/react-query";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
 
@@ -25,6 +26,7 @@ const mainItems = [
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
   { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
+  { title: "Notifications", url: "/my-notifications", icon: Bell },
 ];
 
 
@@ -48,24 +50,54 @@ export function AppSidebar() {
 
   const isActive = (path: string) => pathname === path;
 
+  // Unread notifications for the signed-in user — powers the sidebar badge.
+  const unreadQ = useQuery({
+    queryKey: ["user_notifications", "unread-count"],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      const uid = u.user?.id;
+      if (!uid) return 0;
+      const { count, error } = await supabase
+        .from("user_notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", uid)
+        .is("read_at", null);
+      if (error) return 0;
+      return count ?? 0;
+    },
+  });
+  const unreadCount = unreadQ.data ?? 0;
+
   async function signOut() {
     await supabase.auth.signOut();
     window.location.assign("/");
   }
 
-  const renderItem = (item: { title: string; url: string; icon: any; badge?: string }) => (
+  const renderItem = (item: { title: string; url: string; icon: any; badge?: string | number }) => (
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild isActive={isActive(item.url)}>
         <Link to={item.url} className="flex items-center gap-2">
-          <item.icon className="h-4 w-4 shrink-0" />
+          <div className="relative">
+            <item.icon className="h-4 w-4 shrink-0" />
+            {collapsed && typeof item.badge === "number" && item.badge > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+            )}
+          </div>
           {!collapsed && (
             <>
               <span className="flex-1 truncate">{item.title}</span>
-              {item.badge && (
+              {item.badge != null && (typeof item.badge === "string" ? (
                 <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
                   {item.badge}
                 </span>
-              )}
+              ) : item.badge > 0 ? (
+                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              ) : null)}
             </>
           )}
         </Link>
@@ -91,7 +123,11 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>
+              {mainItems
+                .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
+                .map(renderItem)}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 

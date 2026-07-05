@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SupportChatWidget } from "@/components/support-chat-widget";
+import { HeaderNotificationsBell } from "@/components/header-notifications-bell";
 
 // Routes reachable BEFORE a store exists (avoid a redirect loop).
 const NO_STORE_ALLOWED = ["/onboarding", "/upgrade"];
@@ -48,6 +49,9 @@ function AuthenticatedLayout() {
         <SidebarInset className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur">
             <SidebarTrigger />
+            <div className="ml-auto flex items-center gap-1">
+              <HeaderNotificationsBell />
+            </div>
           </header>
           <main className="min-w-0 flex-1 overflow-x-hidden">
             <div className="mx-auto w-full max-w-7xl">
