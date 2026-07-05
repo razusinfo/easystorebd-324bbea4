@@ -301,9 +301,9 @@ export async function sendOrderStatusUpdate(
     const html = baseTemplate(
       brand,
       `Order ${label}`,
-      `<p style="margin:0 0 16px">Your order status has been updated to <strong>${label}</strong>.</p>
+      `<p style="margin:0 0 16px">Your order status has been updated to <strong>${escapeHtml(label)}</strong>.</p>
        ${orderRowsHtml(order, total, brand)}
-       ${newStatus === "shipped" ? `<p style="margin:16px 0 0">Expected delivery: <strong>${cfg.delivery_eta}</strong>.</p>` : ""}`,
+       ${newStatus === "shipped" ? `<p style="margin:16px 0 0">Expected delivery: <strong>${escapeHtml(cfg.delivery_eta)}</strong>.</p>` : ""}`,
     );
     const from = `${cfg.from_name} <${cfg.from_email}>`;
     if (cfg.notify_customer && order.customer_email) {
