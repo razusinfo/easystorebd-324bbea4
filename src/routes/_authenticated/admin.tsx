@@ -384,6 +384,8 @@ function Admin() {
               ))
             )}
           </div>
+        ) : tab === "marketplace" ? (
+          <MarketplaceAuditPanel />
         ) : tab === "customizer" ? (
           <UICustomizer />
         ) : (
