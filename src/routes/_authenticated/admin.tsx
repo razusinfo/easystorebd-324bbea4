@@ -182,6 +182,10 @@ function Admin() {
               {(auditLogs.data ?? []).length}
             </span>
           </TabBtn>
+          <TabBtn active={tab === "marketplace"} onClick={() => setTab("marketplace")}>
+            <PackagePlus className="h-4 w-4" />
+            Marketplace audit
+          </TabBtn>
           <TabBtn active={tab === "customizer"} onClick={() => setTab("customizer")}>
             <Palette className="h-4 w-4" />
             UI Customizer
