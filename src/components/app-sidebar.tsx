@@ -28,6 +28,7 @@ const mainItems = [
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
   
   { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
+  { title: "Courier Settings", url: "/courier-settings", icon: Settings },
   { title: "Notifications", url: "/my-notifications", icon: Bell },
 ];
 

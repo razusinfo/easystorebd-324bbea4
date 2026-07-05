@@ -47,6 +47,7 @@ import { Route as AuthenticatedManageShopRouteImport } from './routes/_authentic
 import { Route as AuthenticatedLandingPagesRouteImport } from './routes/_authenticated/landing-pages'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
+import { Route as AuthenticatedCourierSettingsRouteImport } from './routes/_authenticated/courier-settings'
 import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticated/courier'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
@@ -80,6 +81,7 @@ import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$product
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
 import { Route as ApiPublicHooksResyncMarketplaceStockRouteImport } from './routes/api/public/hooks/resync-marketplace-stock'
+import { Route as ApiPublicHooksOrderCourierStatusRouteImport } from './routes/api/public/hooks/order-courier-status'
 import { Route as ApiPublicHooksCourierStatusRouteImport } from './routes/api/public/hooks/courier-status'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
 import { Route as AuthenticatedCategoriesIdEditRouteImport } from './routes/_authenticated/categories_.$id.edit'
@@ -279,6 +281,12 @@ const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCourierSettingsRoute =
+  AuthenticatedCourierSettingsRouteImport.update({
+    id: '/courier-settings',
+    path: '/courier-settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCourierRoute = AuthenticatedCourierRouteImport.update({
   id: '/courier',
   path: '/courier',
@@ -460,6 +468,12 @@ const ApiPublicHooksResyncMarketplaceStockRoute =
     path: '/api/public/hooks/resync-marketplace-stock',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksOrderCourierStatusRoute =
+  ApiPublicHooksOrderCourierStatusRouteImport.update({
+    id: '/api/public/hooks/order-courier-status',
+    path: '/api/public/hooks/order-courier-status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCourierStatusRoute =
   ApiPublicHooksCourierStatusRouteImport.update({
     id: '/api/public/hooks/courier-status',
@@ -503,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/courier': typeof AuthenticatedCourierRoute
+  '/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
@@ -549,6 +564,7 @@ export interface FileRoutesByFullPath {
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
+  '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -577,6 +593,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/courier': typeof AuthenticatedCourierRoute
+  '/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
@@ -622,6 +639,7 @@ export interface FileRoutesByTo {
   '/categories/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
+  '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -653,6 +671,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/courier': typeof AuthenticatedCourierRoute
+  '/_authenticated/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/landing-pages': typeof AuthenticatedLandingPagesRoute
@@ -699,6 +718,7 @@ export interface FileRoutesById {
   '/_authenticated/categories_/$id/edit': typeof AuthenticatedCategoriesIdEditRoute
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
+  '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -730,6 +750,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/categories'
     | '/courier'
+    | '/courier-settings'
     | '/customers'
     | '/dashboard'
     | '/landing-pages'
@@ -776,6 +797,7 @@ export interface FileRouteTypes {
     | '/categories/$id/edit'
     | '/products/$productId/edit'
     | '/api/public/hooks/courier-status'
+    | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -804,6 +826,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/categories'
     | '/courier'
+    | '/courier-settings'
     | '/customers'
     | '/dashboard'
     | '/landing-pages'
@@ -849,6 +872,7 @@ export interface FileRouteTypes {
     | '/categories/$id/edit'
     | '/products/$productId/edit'
     | '/api/public/hooks/courier-status'
+    | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -879,6 +903,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics'
     | '/_authenticated/categories'
     | '/_authenticated/courier'
+    | '/_authenticated/courier-settings'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
     | '/_authenticated/landing-pages'
@@ -925,6 +950,7 @@ export interface FileRouteTypes {
     | '/_authenticated/categories_/$id/edit'
     | '/_authenticated/products/$productId/edit'
     | '/api/public/hooks/courier-status'
+    | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -952,6 +978,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
   ApiPublicHooksCourierStatusRoute: typeof ApiPublicHooksCourierStatusRoute
+  ApiPublicHooksOrderCourierStatusRoute: typeof ApiPublicHooksOrderCourierStatusRoute
   ApiPublicHooksResyncMarketplaceStockRoute: typeof ApiPublicHooksResyncMarketplaceStockRoute
   ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
@@ -1225,6 +1252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCustomersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/courier-settings': {
+      id: '/_authenticated/courier-settings'
+      path: '/courier-settings'
+      fullPath: '/courier-settings'
+      preLoaderRoute: typeof AuthenticatedCourierSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/courier': {
       id: '/_authenticated/courier'
       path: '/courier'
@@ -1456,6 +1490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksResyncMarketplaceStockRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/order-courier-status': {
+      id: '/api/public/hooks/order-courier-status'
+      path: '/api/public/hooks/order-courier-status'
+      fullPath: '/api/public/hooks/order-courier-status'
+      preLoaderRoute: typeof ApiPublicHooksOrderCourierStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/courier-status': {
       id: '/api/public/hooks/courier-status'
       path: '/api/public/hooks/courier-status'
@@ -1493,6 +1534,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedCourierRoute: typeof AuthenticatedCourierRoute
+  AuthenticatedCourierSettingsRoute: typeof AuthenticatedCourierSettingsRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLandingPagesRoute: typeof AuthenticatedLandingPagesRoute
@@ -1535,6 +1577,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedCourierRoute: AuthenticatedCourierRoute,
+  AuthenticatedCourierSettingsRoute: AuthenticatedCourierSettingsRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLandingPagesRoute: AuthenticatedLandingPagesRoute,
@@ -1643,6 +1686,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
   ApiPublicHooksCourierStatusRoute: ApiPublicHooksCourierStatusRoute,
+  ApiPublicHooksOrderCourierStatusRoute: ApiPublicHooksOrderCourierStatusRoute,
   ApiPublicHooksResyncMarketplaceStockRoute:
     ApiPublicHooksResyncMarketplaceStockRoute,
   ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
