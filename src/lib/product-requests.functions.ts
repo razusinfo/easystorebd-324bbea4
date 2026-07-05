@@ -617,13 +617,13 @@ export const adminRepairApprovedStock = createServerFn({ method: "POST" })
         fallbackStock: data.default_stock,
       });
       if (stockResolution.finalStock <= 0) continue;
-      const updatePayload: Record<string, unknown> = {
+      const updatePayload = {
         stock: stockResolution.finalStock,
         updated_at: new Date().toISOString(),
+        ...(stockResolution.sourceProductId
+          ? { original_product_id: stockResolution.sourceProductId }
+          : {}),
       };
-      if (stockResolution.sourceProductId) {
-        updatePayload.original_product_id = stockResolution.sourceProductId;
-      }
       const { error: uErr } = await supabaseAdmin
         .from("reseller_products")
         .update(updatePayload)
