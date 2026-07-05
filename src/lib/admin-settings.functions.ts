@@ -44,8 +44,8 @@ export const revokeResellerProduct = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { error } = await context.supabase.rpc("admin_revoke_reseller_product", {
       _reseller_product_id: data.id,
-      _reason: data.reason,
-    });
+      _reason: data.reason ?? null,
+    } as any);
     if (error) throw error;
     return { ok: true };
   });
