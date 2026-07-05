@@ -556,3 +556,157 @@ function StatusBadge({ status }: { status: string }) {
     status === "approved" ? "default" : status === "rejected" ? "destructive" : "secondary";
   return <Badge variant={variant as "default" | "destructive" | "secondary"}>{status}</Badge>;
 }
+
+function EditRequestDialog({
+  open, onOpenChange, row, existingCategories, onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  row: RequestRow;
+  existingCategories: string[];
+  onSaved: () => void;
+}) {
+  const NEW_KEY = "__new__";
+  const updateFn = useServerFn(adminUpdateProductRequest);
+  const [name, setName] = useState(row.name);
+  const [description, setDescription] = useState(row.description ?? "");
+  const [price, setPrice] = useState(String(row.price));
+  const [categoryKey, setCategoryKey] = useState<string>(
+    row.category && existingCategories.includes(row.category) ? row.category : row.category ? NEW_KEY : "",
+  );
+  const [newCategory, setNewCategory] = useState<string>(
+    row.category && !existingCategories.includes(row.category) ? row.category : "",
+  );
+  const [images, setImages] = useState<string[]>(row.images ?? []);
+  const [newImage, setNewImage] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setName(row.name);
+    setDescription(row.description ?? "");
+    setPrice(String(row.price));
+    setCategoryKey(row.category && existingCategories.includes(row.category) ? row.category : row.category ? NEW_KEY : "");
+    setNewCategory(row.category && !existingCategories.includes(row.category) ? row.category : "");
+    setImages(row.images ?? []);
+    setNewImage("");
+  }, [open, row, existingCategories]);
+
+  const addImage = () => {
+    const u = newImage.trim();
+    if (!u) return;
+    if (!IMAGE_URL_RE.test(u)) { toast.error("Must be an http(s) URL"); return; }
+    if (images.length >= MAX_IMAGES) { toast.error(`Max ${MAX_IMAGES} images`); return; }
+    setImages((prev) => [...prev, u]);
+    setNewImage("");
+  };
+  const removeImage = (i: number) => setImages((prev) => prev.filter((_, idx) => idx !== i));
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const p = Number(price);
+      if (!name.trim() || name.trim().length < 2) throw new Error("Name too short");
+      if (!Number.isFinite(p) || p < 0) throw new Error("Invalid price");
+      const cat = categoryKey === NEW_KEY ? newCategory.trim() : categoryKey || null;
+      return updateFn({
+        data: {
+          id: row.id,
+          name: name.trim(),
+          description: description.trim() || null,
+          price: p,
+          category: cat || null,
+          images,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Request updated.");
+      onSaved();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit product request</DialogTitle>
+          <DialogDescription>Update details before approving. Same fields as Add Product.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Name *</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Description</Label>
+            <Textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Base price *</Label>
+              <Input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Category</Label>
+              <Select value={categoryKey || undefined} onValueChange={(v) => setCategoryKey(v)}>
+                <SelectTrigger><SelectValue placeholder="Choose or create" /></SelectTrigger>
+                <SelectContent>
+                  {existingCategories.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                  <SelectItem value={NEW_KEY}>+ New category…</SelectItem>
+                </SelectContent>
+              </Select>
+              {categoryKey === NEW_KEY && (
+                <Input
+                  placeholder="New category name"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                />
+              )}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Images ({images.length}/{MAX_IMAGES})</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="https://…"
+                value={newImage}
+                onChange={(e) => setNewImage(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addImage(); } }}
+              />
+              <Button type="button" variant="outline" onClick={addImage}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {images.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {images.map((u, i) => (
+                  <div key={`${u}-${i}`} className="relative">
+                    <img src={u} alt="" className="h-16 w-16 rounded border object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-destructive text-destructive-foreground"
+                      aria-label="Remove image"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={() => save.mutate()} disabled={save.isPending}>
+            {save.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
