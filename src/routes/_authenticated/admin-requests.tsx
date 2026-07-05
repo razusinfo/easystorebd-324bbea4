@@ -429,6 +429,9 @@ function RequestCard({
                 <Button size="sm" onClick={() => setApproveOpen(true)}>
                   <Check className="mr-1.5 h-4 w-4" /> Approve
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setEditOpen(true)}>
+                  <Pencil className="mr-1.5 h-4 w-4" /> Edit
+                </Button>
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
