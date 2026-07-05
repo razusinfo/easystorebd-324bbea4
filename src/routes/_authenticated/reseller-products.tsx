@@ -826,7 +826,8 @@ function useMyRequests() {
 
 function MyRequestsStrip() {
   const rq = useMyRequests();
-  const rows = rq.data ?? [];
+  // Hide approved requests — once approved, the product appears in the marketplace list above.
+  const rows = (rq.data ?? []).filter((r) => r.status !== "approved");
   if (rows.length === 0) return null;
   return (
     <div className="mb-4 space-y-2">
