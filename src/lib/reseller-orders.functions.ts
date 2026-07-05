@@ -23,7 +23,11 @@ export const updateResellerOrderStatus = createServerFn({ method: "POST" })
     if (rerr) throw new Error(rerr.message);
     if (!isAdmin) throw new Error("Forbidden");
 
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      status?: (typeof STATUSES)[number];
+      tracking_id?: string | null;
+      tracking_url?: string | null;
+    } = {};
     if (data.status !== undefined) patch.status = data.status;
     if (data.tracking_id !== undefined) patch.tracking_id = data.tracking_id || null;
     if (data.tracking_url !== undefined) patch.tracking_url = data.tracking_url || null;
@@ -35,6 +39,10 @@ export const updateResellerOrderStatus = createServerFn({ method: "POST" })
       .from("reseller_orders")
       .update(patch)
       .eq("id", data.id)
+      .select(
+        "id, product_name, quantity, reseller_price, customer_name, customer_phone, customer_email, reseller_id, status, tracking_id, tracking_url",
+      )
+      .single();
       .select(
         "id, product_name, quantity, reseller_price, customer_name, customer_phone, customer_email, reseller_id, status, tracking_id, tracking_url",
       )
