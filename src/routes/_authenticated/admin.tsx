@@ -32,7 +32,7 @@ function Admin() {
   const moderate = useModerateProduct();
   const users = useAdminUsers();
   const auditLogs = useAdminAuditLogs();
-  const [tab, setTab] = useState<"pending" | "requests" | "stores" | "users" | "audit" | "customizer">("pending");
+  const [tab, setTab] = useState<"pending" | "requests" | "stores" | "users" | "audit" | "customizer" | "settings">("pending");
   const [q, setQ] = useState("");
   const [manageUser, setManageUser] = useState<AdminUserRow | null>(null);
 
