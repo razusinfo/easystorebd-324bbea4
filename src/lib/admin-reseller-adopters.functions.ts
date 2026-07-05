@@ -80,16 +80,16 @@ export const adminListResellerAdopters = createServerFn({ method: "POST" })
       new Set((adoptions ?? []).map((a) => a.store_id).filter(Boolean)),
     ) as string[];
 
-    let storeMap = new Map<string, { name: string | null; owner_user_id: string | null }>();
+    let storeMap = new Map<string, { name: string | null; slug: string | null; owner_user_id: string | null }>();
     let ownerMap = new Map<string, { email: string | null; full_name: string | null }>();
 
     if (storeIds.length) {
       const { data: stores } = await supabaseAdmin
         .from("stores")
-        .select("id, name, owner_user_id")
+        .select("id, name, slug, owner_user_id")
         .in("id", storeIds);
       storeMap = new Map(
-        (stores ?? []).map((s) => [s.id, { name: s.name, owner_user_id: s.owner_user_id }]),
+        (stores ?? []).map((s) => [s.id, { name: s.name, slug: s.slug, owner_user_id: s.owner_user_id }]),
       );
       const { data: users } = await supabaseAdmin.rpc("admin_list_users");
       ownerMap = new Map(
