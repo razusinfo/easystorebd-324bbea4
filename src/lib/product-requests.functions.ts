@@ -312,7 +312,10 @@ export const approveProductRequest = createServerFn({ method: "POST" })
       images,
       image_count: images.length,
       published_reseller_product_id: inserted.id,
+      previous_stock: null,
+      new_stock: data.stock ?? 100,
     });
+
 
     // Fire-and-forget success email + in-app notification to the reseller.
     try {
