@@ -23,6 +23,7 @@ export type Adopter = {
   created_at: string;
   store_id: string | null;
   store_name: string | null;
+  store_slug: string | null;
   owner_user_id: string | null;
   owner_email: string | null;
   owner_name: string | null;
