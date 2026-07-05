@@ -187,22 +187,22 @@ function RootComponent() {
     }
   }, []);
 
-  // Reset per-user cache/state on identity changes so a new user never sees
-  // the previous user's data. Filter to real identity transitions to avoid
-  // thrashing on TOKEN_REFRESHED / INITIAL_SESSION.
+  // Reset per-user cache on real identity transitions (a different user signs
+  // in, or the previous user signs out). Preserve shopper-facing browser state
+  // like the persisted cart and theme so signing in mid-checkout doesn't wipe
+  // it. USER_UPDATED (profile/email edits) is intentionally ignored.
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+    let lastUserId: string | null | undefined;
+    supabase.auth.getSession().then(({ data }) => {
+      lastUserId = data.session?.user?.id ?? null;
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
+      const nextUserId = session?.user?.id ?? null;
+      if (nextUserId === lastUserId) return;
+      lastUserId = nextUserId;
       queryClient.cancelQueries();
       queryClient.clear();
-      try {
-        // Drop non-auth per-user browser state; keep Supabase's own auth keys.
-        for (const key of Object.keys(localStorage)) {
-          if (key.startsWith("sb-") || key === "bongo.lang") continue;
-          localStorage.removeItem(key);
-        }
-        sessionStorage.clear();
-      } catch { /* ignore */ }
       router.invalidate();
     });
     return () => sub.subscription.unsubscribe();
