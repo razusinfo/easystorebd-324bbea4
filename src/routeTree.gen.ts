@@ -55,6 +55,7 @@ import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_
 import { Route as AuthenticatedAdminResellerAdoptersRouteImport } from './routes/_authenticated/admin-reseller-adopters'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
+import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin-financial'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -321,6 +322,12 @@ const AuthenticatedAdminNotificationsRoute =
     path: '/admin-notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminFinancialRoute =
+  AuthenticatedAdminFinancialRouteImport.update({
+    id: '/admin-financial',
+    path: '/admin-financial',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -465,6 +472,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
@@ -535,6 +543,7 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
@@ -607,6 +616,7 @@ export interface FileRoutesById {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
@@ -680,6 +690,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
+    | '/admin-financial'
     | '/admin-notifications'
     | '/admin-requests'
     | '/admin-reseller-adopters'
@@ -750,6 +761,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/admin'
+    | '/admin-financial'
     | '/admin-notifications'
     | '/admin-requests'
     | '/admin-reseller-adopters'
@@ -821,6 +833,7 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
+    | '/_authenticated/admin-financial'
     | '/_authenticated/admin-notifications'
     | '/_authenticated/admin-requests'
     | '/_authenticated/admin-reseller-adopters'
@@ -1229,6 +1242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-financial': {
+      id: '/_authenticated/admin-financial'
+      path: '/admin-financial'
+      fullPath: '/admin-financial'
+      preLoaderRoute: typeof AuthenticatedAdminFinancialRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -1402,6 +1422,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminFinancialRoute: typeof AuthenticatedAdminFinancialRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminResellerAdoptersRoute: typeof AuthenticatedAdminResellerAdoptersRoute
@@ -1439,6 +1460,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminFinancialRoute: AuthenticatedAdminFinancialRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
   AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
   AuthenticatedAdminResellerAdoptersRoute:

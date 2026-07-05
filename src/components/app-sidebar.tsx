@@ -150,6 +150,7 @@ export function AppSidebar() {
                 {renderItem({ title: "Product Adopters", url: "/admin-reseller-adopters", icon: Users, badge: "NEW" })}
                 {renderItem({ title: "Notifications", url: "/admin-notifications", icon: Bell })}
                 {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
+                {renderItem({ title: "Financial Overview", url: "/admin-financial", icon: Wallet, badge: "NEW" })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
