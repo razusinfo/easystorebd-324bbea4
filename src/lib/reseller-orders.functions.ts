@@ -43,10 +43,6 @@ export const updateResellerOrderStatus = createServerFn({ method: "POST" })
         "id, product_name, quantity, reseller_price, customer_name, customer_phone, customer_email, reseller_id, status, tracking_id, tracking_url",
       )
       .single();
-      .select(
-        "id, product_name, quantity, reseller_price, customer_name, customer_phone, customer_email, reseller_id, status, tracking_id, tracking_url",
-      )
-      .single();
     if (uerr) throw new Error(uerr.message);
 
     // Fire-and-forget notification (don't block on SMS)
