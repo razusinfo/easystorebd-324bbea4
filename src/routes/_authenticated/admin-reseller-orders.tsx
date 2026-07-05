@@ -240,6 +240,10 @@ function AdminResellerOrdersPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <TrackingEditor
+                    row={r}
+                    onSave={(tracking_id, tracking_url) => upd.mutate({ id: r.id, tracking_id, tracking_url })}
+                  />
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {new Date(r.created_at).toLocaleString()}
