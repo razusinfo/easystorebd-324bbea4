@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
 import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
+import { sanitizeHexColor } from "@/lib/hex-color";
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CustomerAuth } from "@/components/storefront/customer-auth";
@@ -106,7 +107,7 @@ export function FlipmartTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
   sliderRows = false, sectionTitles,
 }: Props) {
-  const accent = accentColor || "#2563eb";
+  const accent = sanitizeHexColor(accentColor, "#2563eb");
   const yellow = "#fbbf24";
   const rgb = hexToRgb(accent) ?? "37, 99, 235";
   const name = (store?.name ?? "FLIPMART").toUpperCase();

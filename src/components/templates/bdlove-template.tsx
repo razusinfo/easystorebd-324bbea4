@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
+import { sanitizeHexColor } from "@/lib/hex-color";
 
 type Props = {
   store?: Partial<StoreRow> & { name: string };
@@ -70,7 +71,7 @@ export function BdLoveTemplate({
       }));
 
   const activeCat = defaultCategoryName || "All Products";
-  const accent = accentColor || "#5B21B6"; // purple
+  const accent = sanitizeHexColor(accentColor, "#5B21B6");
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
 
   const style = `

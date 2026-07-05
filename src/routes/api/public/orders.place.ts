@@ -4,7 +4,7 @@ import { z } from "zod";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-webhook-secret, authorization",
   "Access-Control-Max-Age": "86400",
 } as const;
 
@@ -34,6 +34,21 @@ export const Route = createFileRoute("/api/public/orders/place")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       POST: async ({ request }) => {
+        // Authenticate the caller. This endpoint places real orders and
+        // triggers paid SMS + transactional email notifications; without a
+        // shared secret any internet user could fabricate orders and use the
+        // platform's sending reputation to spam arbitrary phones/emails.
+        const secret = process.env.RESELLER_WEBHOOK_SECRET;
+        if (!secret) {
+          return json({ error: "Orders API not configured" }, 500);
+        }
+        const provided =
+          request.headers.get("x-webhook-secret") ??
+          (request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "");
+        if (!provided || provided !== secret) {
+          return json({ error: "Unauthorized" }, 401);
+        }
+
         let body: unknown;
         try {
           body = await request.json();
@@ -60,6 +75,18 @@ export const Route = createFileRoute("/api/public/orders/place")({
 
         if (prodErr) return json({ error: prodErr.message }, 500);
         if (!prod) return json({ error: "Product not found" }, 404);
+
+        // Verify the reseller actually sells this product. Without this check
+        // any caller with the webhook secret could place orders on behalf of
+        // arbitrary reseller accounts. `!left` above returns the product even
+        // when there is no matching user_reseller_settings row, so we must
+        // explicitly assert the linkage exists here.
+        const linked = Array.isArray(prod.user_reseller_settings)
+          ? prod.user_reseller_settings.some((r) => r?.user_id === o.reseller_id)
+          : false;
+        if (!linked) {
+          return json({ error: "Reseller is not authorized to sell this product" }, 403);
+        }
 
         const custom = (prod.user_reseller_settings as
           | Array<{ custom_price: number | null }>

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
 import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
+import { sanitizeHexColor } from "@/lib/hex-color";
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { CustomerAuth } from "@/components/storefront/customer-auth";
@@ -82,7 +83,7 @@ function useCountdown(targetHours = 12) {
 export function FreshmartTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
-  const accent = accentColor || "#166534";
+  const accent = sanitizeHexColor(accentColor, "#166534");
   const yellow = "#fbbf24";
   const rgb = hexToRgb(accent) ?? "22, 101, 52";
   const name = (store?.name ?? "FRESHMART").toUpperCase();

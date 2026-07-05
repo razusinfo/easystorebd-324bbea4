@@ -5,6 +5,7 @@ import { useSiteSettings } from "@/lib/site-settings";
 import { Search, ShoppingCart, Globe, ChevronDown, Store as StoreIcon, Menu, X, Twitter, Youtube, Instagram, Facebook } from "lucide-react";
 import type { StoreRow, ProductRow, FooterSettings } from "@/lib/eazystore-data";
 import { DEFAULT_FOOTER, productGridClass, logoStyle, logoAlignClass } from "@/lib/eazystore-data";
+import { sanitizeHexColor } from "@/lib/hex-color";
 
 
 import { useCartStore, useStoreCart, cartCount, type CartItem } from "@/lib/cart-store";
@@ -178,7 +179,7 @@ export function EazyStoreBasicTemplate({
         imageUrl: p.image_url ?? null,
       }));
 
-  const accent = accentColor || "#5B21B6";
+  const accent = sanitizeHexColor(accentColor, "#5B21B6");
   const rgb = hexToRgb(accent) ?? "91, 33, 182";
 
   const cartItems: CartItem[] = useStoreCart(storeId);
