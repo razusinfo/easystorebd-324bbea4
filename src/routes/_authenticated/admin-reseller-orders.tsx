@@ -56,6 +56,7 @@ type Row = {
 
 function AdminResellerOrdersPage() {
   const qc = useQueryClient();
+  const listUsers = useServerFn(adminListUsers);
 
   const q = useQuery({
     queryKey: ["admin-reseller-orders"],
@@ -67,8 +68,8 @@ function AdminResellerOrdersPage() {
       if (error) throw error;
 
       const rows = (data ?? []) as Row[];
-      // Fetch reseller names via admin_list_users (super_admin only).
-      const { data: users } = await supabase.rpc("admin_list_users");
+      // Fetch reseller names via server fn (super_admin only).
+      const users = await listUsers().catch(() => [] as Array<{ user_id: string; full_name: string | null; email: string }>);
       const map = new Map<string, { full_name: string | null; email: string }>();
       for (const u of users ?? []) map.set(u.user_id, { full_name: u.full_name, email: u.email });
       return rows.map((r) => ({ ...r, reseller: map.get(r.reseller_id) ?? null }));
