@@ -103,24 +103,6 @@ export function AppSidebar() {
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
-    <SidebarMenuItem key={item.title}>
-      <SidebarMenuButton asChild isActive={isActive(item.url)}>
-        <Link to={item.url} className="flex items-center gap-2">
-          <item.icon className="h-4 w-4 shrink-0" />
-          {!collapsed && (
-            <>
-              <span className="flex-1 truncate">{item.title}</span>
-              {item.badge && (
-                <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
-                  {item.badge}
-                </span>
-              )}
-            </>
-          )}
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
 
   return (
     <Sidebar collapsible="icon">
