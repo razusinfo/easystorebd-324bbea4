@@ -1006,3 +1006,55 @@ function RequestProductDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   );
 }
 
+
+function AdminRevokeButton({ row }: { row: DisplayRow }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const m = useMutation({
+    mutationFn: async () =>
+      revokeResellerProduct({ data: { id: row.id, reason: reason.trim() || undefined } }),
+    onSuccess: () => {
+      toast.success(`"${row.name}" removed from the marketplace.`);
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to revoke"),
+  });
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        type="button"
+        size="sm"
+        variant="destructive"
+        className="mt-1 gap-1.5"
+        onClick={() => setOpen(true)}
+      >
+        <X className="h-3.5 w-3.5" /> Revoke
+      </Button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Remove "{row.name}" from marketplace?</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          This unlists the product from every reseller shop that added it and notifies the affected resellers. This cannot be undone.
+        </p>
+        <div className="space-y-1">
+          <Label>Reason (optional, shared with resellers)</Label>
+          <Textarea
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g. Quality standards not met"
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="destructive" disabled={m.isPending} onClick={() => m.mutate()}>
+            {m.isPending ? "Revoking…" : "Revoke product"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
