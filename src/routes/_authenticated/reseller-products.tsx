@@ -1083,38 +1083,32 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
           </div>
         </DialogHeader>
         <div className="space-y-3">
-          <div className="rounded-lg bg-muted/60 p-3">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-              <div className="space-y-0.5">
-                <p className="text-sm font-semibold">Single Supplier Policy</p>
-                <p className="text-xs text-muted-foreground">
-                  You can only connect with <span className="font-semibold">1 supplier</span> at a time. All products you add must come from this supplier. Switching requires admin approval.
-                </p>
-              </div>
-            </div>
+          <div className="rounded-lg bg-muted/60 p-3 space-y-1">
+            <p className="text-sm font-semibold">Terms and Conditions for Resellers</p>
+            <p className="text-xs text-muted-foreground">
+              It is the reseller's responsibility to provide the customer's correct address and phone number when placing an order. The reseller shall be held liable if delivery fails due to incorrect information.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Resellers may set their own selling prices; however, it is recommended to maintain our designated <span className="font-semibold">'Minimum Retail Price' (MRP)</span>. An advance charge of <span className="font-semibold">৳80</span> is collected for each shipment; this amount is refunded upon successful delivery of the product. We accept responsibility for any issues arising during delivery or related to the courier service; however, the reseller bears the responsibility if the delivery is delayed due to any personal error on the customer's part.
+            </p>
           </div>
-          <div className="rounded-lg bg-muted/60 p-3">
-            <div className="flex items-start gap-2">
-              <Truck className="mt-0.5 h-4 w-4 shrink-0 text-sky-500" />
-              <div className="space-y-0.5">
-                <p className="text-sm font-semibold">Platform Courier Only</p>
-                <p className="text-xs text-muted-foreground">
-                  All resell orders are fulfilled by the supplier and delivered via the <span className="font-semibold">platform courier</span>. You cannot use your own courier.
-                </p>
-              </div>
-            </div>
+          <div className="rounded-lg bg-muted/60 p-3 space-y-1">
+            <p className="text-sm font-semibold">Return and Refund Policy</p>
+            <p className="text-xs text-muted-foreground">
+              If the product is damaged or defective, we will replace it or issue a refund, provided an <span className="font-semibold">unboxing video</span> is submitted as proof.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Any complaints must be reported within <span className="font-semibold">24/48 hours</span> of product delivery; complaints made after this period will not be accepted.
+            </p>
           </div>
-          <div className="rounded-lg bg-muted/60 p-3">
-            <div className="flex items-start gap-2">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-              <div className="space-y-0.5">
-                <p className="text-sm font-semibold">Advance Return Charge</p>
-                <p className="text-xs text-muted-foreground">
-                  A refundable charge of <span className="font-semibold">৳60</span> is secured per forwarded shipment. It is returned after successful delivery.
-                </p>
-              </div>
-            </div>
+          <div className="rounded-lg bg-muted/60 p-3 space-y-1">
+            <p className="text-sm font-semibold">Confidentiality and Conduct</p>
+            <p className="text-xs text-muted-foreground">
+              No promotional activities may be conducted that tarnish the reputation of our company's name or branding.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Engagement in any <span className="font-semibold">fraudulent activity</span> will result in the immediate cancellation of the reseller status.
+            </p>
           </div>
           <label className="flex items-start gap-2 pt-1">
             <Checkbox
@@ -1123,10 +1117,11 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
               className="mt-0.5"
             />
             <span className="text-xs text-muted-foreground">
-              I understand and agree to the <span className="font-semibold text-foreground">supplier connection terms</span> and <span className="font-semibold text-foreground">reselling policies</span> outlined above.
+              I have read and agree to the <span className="font-semibold text-foreground">Terms and Conditions</span>, <span className="font-semibold text-foreground">Return &amp; Refund Policy</span>, and <span className="font-semibold text-foreground">Confidentiality</span> guidelines outlined above.
             </span>
           </label>
         </div>
+
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => setAgreementOpen(false)}>
             Cancel
