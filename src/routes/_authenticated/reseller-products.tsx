@@ -1032,11 +1032,11 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
     mutationFn: async () =>
       revokeResellerProduct({ data: { id: row.id, reason: reason.trim() || undefined } }),
     onSuccess: () => {
-      toast.success(`"${row.name}" removed from the marketplace.`);
+      toast.success(`"${row.name}" deleted from the marketplace.`);
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["reseller_products"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to revoke"),
+    onError: (e: any) => toast.error(e?.message ?? "Failed to delete"),
   });
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -1047,14 +1047,14 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
         className="mt-1 gap-1.5"
         onClick={() => setOpen(true)}
       >
-        <X className="h-3.5 w-3.5" /> Revoke
+        <Trash2 className="h-3.5 w-3.5" /> Delete
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Remove "{row.name}" from marketplace?</DialogTitle>
+          <DialogTitle>Delete "{row.name}" from marketplace?</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          This unlists the product from every reseller shop that added it and notifies the affected resellers. This cannot be undone.
+          This permanently removes the product from the reseller marketplace, unlists it from every reseller shop that added it, and notifies the affected resellers. This cannot be undone.
         </p>
         <div className="space-y-1">
           <Label>Reason (optional, shared with resellers)</Label>
@@ -1068,9 +1068,10 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="destructive" disabled={m.isPending} onClick={() => m.mutate()}>
-            {m.isPending ? "Revoking…" : "Revoke product"}
+            {m.isPending ? "Deleting…" : "Delete product"}
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
