@@ -124,6 +124,51 @@ function AdminRequestsList() {
     qc.invalidateQueries({ queryKey: ["pending-product-requests"] });
   };
 
+  // Bulk selection (pending only).
+  const approveFn = useServerFn(approveProductRequest);
+  const rejectFn = useServerFn(rejectProductRequest);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  useEffect(() => { setSelected(new Set()); }, [filter, search, page]);
+  const pendingRows = useMemo(() => rows.filter((r) => r.status === "pending"), [rows]);
+  const allSelected = pendingRows.length > 0 && pendingRows.every((r) => selected.has(r.id));
+  const toggleAll = () => {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(pendingRows.map((r) => r.id)));
+  };
+  const toggleOne = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const runBulk = async (action: "approve" | "reject") => {
+    const targets = pendingRows.filter((r) => selected.has(r.id));
+    if (targets.length === 0) return;
+    let ok = 0, fail = 0;
+    for (const r of targets) {
+      try {
+        if (action === "approve") {
+          await approveFn({ data: { request_id: r.id, reseller_price: Number(r.price), admin_notes: null } });
+        } else {
+          await rejectFn({ data: { request_id: r.id, admin_notes: null } });
+        }
+        ok++;
+      } catch (e) {
+        fail++;
+        console.warn("[bulk]", (e as Error).message);
+      }
+    }
+    toast[fail === 0 ? "success" : "error"](
+      `Bulk ${action}: ${ok} succeeded${fail ? `, ${fail} failed` : ""}.`
+    );
+    setSelected(new Set());
+    refresh();
+  };
+  const bulkApprove = useMutation({ mutationFn: () => runBulk("approve") });
+  const bulkReject = useMutation({ mutationFn: () => runBulk("reject") });
+
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
