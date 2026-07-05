@@ -1086,10 +1086,10 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
           <div className="rounded-lg bg-muted/60 p-3 space-y-1">
             <p className="text-sm font-semibold">Terms and Conditions for Resellers</p>
             <p className="text-xs text-muted-foreground">
-              It is the reseller's responsibility to provide the customer's correct address and phone number when placing an order. The reseller shall be held liable if delivery fails due to incorrect information.
+              It is the reseller's responsibility to provide the customer's correct address and phone number when placing an order. The reseller shall bear the liability if product delivery fails due to incorrect information.
             </p>
             <p className="text-xs text-muted-foreground">
-              Resellers may set their own selling prices; however, it is recommended to maintain our designated <span className="font-semibold">'Minimum Retail Price' (MRP)</span>. An advance charge of <span className="font-semibold">৳80</span> is collected for each shipment; this amount is refunded upon successful delivery of the product. We accept responsibility for any issues arising during delivery or related to the courier service; however, the reseller bears the responsibility if the delivery is delayed due to any personal error on the customer's part.
+              An advance fee of <span className="font-semibold">80 Taka</span> is charged for each shipment; this amount is refunded after the product is successfully delivered.
             </p>
           </div>
           <div className="rounded-lg bg-muted/60 p-3 space-y-1">
