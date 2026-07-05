@@ -272,8 +272,14 @@ function ResellerProductsPage() {
                   }`}
                 >
                   <div className="mb-3 flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-bold text-muted-foreground">
-                      {initials || <StoreIcon className="h-5 w-5" />}
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-xs font-bold text-muted-foreground">
+                      {s.name === PRIMARY_SUPPLIER ? (
+                        <img src={eazystoreLogo.url} alt={s.name} className="h-full w-full object-contain" />
+                      ) : initials ? (
+                        initials
+                      ) : (
+                        <StoreIcon className="h-5 w-5" />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{s.name}</p>
