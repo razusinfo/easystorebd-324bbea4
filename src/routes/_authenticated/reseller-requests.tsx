@@ -300,3 +300,222 @@ function PendingRequestsList() {
     </Card>
   );
 }
+
+type MyReq = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  category: string | null;
+  images: string[] | null;
+  status: string;
+  admin_notes: string | null;
+  created_at: string;
+};
+
+function MyRequestsList() {
+  const qc = useQueryClient();
+  const updateFn = useServerFn(updateProductRequest);
+  const deleteFn = useServerFn(deleteProductRequest);
+  const [editing, setEditing] = useState<MyReq | null>(null);
+
+  const q = useQuery({
+    queryKey: ["my-product-requests"],
+    queryFn: async (): Promise<MyReq[]> => {
+      const { data: u } = await supabase.auth.getUser();
+      const uid = u.user?.id;
+      if (!uid) return [];
+      const { data, error } = await supabase
+        .from("product_requests")
+        .select("id, name, description, price, category, images, status, admin_notes, created_at")
+        .eq("requested_by", uid)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as MyReq[];
+    },
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Request deleted");
+      qc.invalidateQueries({ queryKey: ["my-product-requests"] });
+      qc.invalidateQueries({ queryKey: ["pending-product-requests"] });
+      qc.invalidateQueries({ queryKey: ["admin-product-requests"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rows = q.data ?? [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          My Requests
+          <Badge variant="secondary">{rows.length}</Badge>
+        </CardTitle>
+        <CardDescription>Pending requests can be edited or deleted until a super admin reviews them.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {q.isLoading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+          </div>
+        ) : rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">You haven't submitted any requests yet.</p>
+        ) : (
+          <ul className="divide-y">
+            {rows.map((r) => {
+              const first = r.images?.[0];
+              const pending = r.status === "pending";
+              return (
+                <li key={r.id} className="flex items-start gap-3 py-3">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md border bg-muted">
+                    {first ? (
+                      <img src={first} alt={r.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                        <ImageIcon className="h-5 w-5" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate font-medium">{r.name}</span>
+                          <Badge variant={r.status === "approved" ? "default" : r.status === "rejected" ? "destructive" : "secondary"} className="capitalize">{r.status}</Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          ৳ {Number(r.price).toLocaleString()}
+                          {r.category ? <> · {r.category}</> : null}
+                          {" · "}{new Date(r.created_at).toLocaleString()}
+                        </div>
+                        {r.admin_notes ? (
+                          <p className="mt-1 text-xs"><span className="font-semibold">Admin:</span> {r.admin_notes}</p>
+                        ) : null}
+                      </div>
+                      {pending && (
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setEditing(r)}>
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm(`Delete request "${r.name}"?`)) del.mutate(r.id);
+                            }}
+                            disabled={del.isPending}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {editing ? (
+          <EditRequestDialog
+            request={editing}
+            onClose={() => setEditing(null)}
+            onSave={async (values) => {
+              try {
+                await updateFn({ data: { id: editing.id, ...values } });
+                toast.success("Request updated");
+                setEditing(null);
+                qc.invalidateQueries({ queryKey: ["my-product-requests"] });
+                qc.invalidateQueries({ queryKey: ["pending-product-requests"] });
+                qc.invalidateQueries({ queryKey: ["admin-product-requests"] });
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
+            }}
+          />
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EditRequestDialog({
+  request,
+  onClose,
+  onSave,
+}: {
+  request: MyReq;
+  onClose: () => void;
+  onSave: (values: {
+    name: string;
+    description: string | null;
+    price: number;
+    category: string | null;
+    images: string[];
+  }) => Promise<void>;
+}) {
+  const [name, setName] = useState(request.name);
+  const [price, setPrice] = useState(String(request.price));
+  const [category, setCategory] = useState(request.category ?? "");
+  const [description, setDescription] = useState(request.description ?? "");
+  const [images] = useState<string[]>(request.images ?? []);
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    const p = Number(price);
+    if (!name.trim()) return toast.error("Name is required");
+    if (!Number.isFinite(p) || p < 0) return toast.error("Enter a valid price");
+    setSaving(true);
+    try {
+      await onSave({
+        name: name.trim(),
+        description: description.trim() || null,
+        price: p,
+        category: category.trim() || null,
+        images,
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-lg bg-background p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <h3 className="mb-3 text-lg font-semibold">Edit request</h3>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="e-name">Product Name *</Label>
+            <Input id="e-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="e-price">Price *</Label>
+              <Input id="e-price" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="e-cat">Category</Label>
+              <Input id="e-cat" value={category} onChange={(e) => setCategory(e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="e-desc">Description</Label>
+            <Textarea id="e-desc" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={submit} disabled={saving}>
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Save
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
