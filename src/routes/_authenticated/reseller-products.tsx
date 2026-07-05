@@ -69,9 +69,13 @@ type DisplayRow = ResellerRow & {
   customSettingId: string | null;
 };
 
+const PRIMARY_SUPPLIER = "Sylheti Online Shop";
+
 function ResellerProductsPage() {
   const { t } = useI18n();
   const [tab, setTab] = useState<string>(ALL);
+  const [supplier, setSupplier] = useState<string>(ALL);
+
 
   const userQ = useQuery({
     queryKey: ["auth-user"],
