@@ -193,15 +193,20 @@ async function sendEmail(opts: {
 }
 
 function baseTemplate(brand: string, heading: string, bodyHtml: string): string {
+  // brand + heading are HTML-escaped so a malicious shop name or subject
+  // cannot inject markup. bodyHtml is treated as already-safe HTML built by
+  // the caller (which itself escapes every user-controlled value).
+  const safeBrand = escapeHtml(brand);
+  const safeHeading = escapeHtml(heading);
   return `<!doctype html><html><body style="margin:0;padding:0;background:#f6f7fb;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7fb;padding:24px 0">
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-        <tr><td style="padding:20px 24px;background:#0f172a;color:#fff;font-weight:700;font-size:16px">${brand}</td></tr>
+        <tr><td style="padding:20px 24px;background:#0f172a;color:#fff;font-weight:700;font-size:16px">${safeBrand}</td></tr>
         <tr><td style="padding:24px">
-          <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a">${heading}</h1>
+          <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a">${safeHeading}</h1>
           ${bodyHtml}
-          <p style="margin-top:24px;font-size:12px;color:#64748b">Thank you for shopping with ${brand}.</p>
+          <p style="margin-top:24px;font-size:12px;color:#64748b">Thank you for shopping with ${safeBrand}.</p>
         </td></tr>
       </table>
     </td></tr>
