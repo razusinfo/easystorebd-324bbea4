@@ -17,9 +17,9 @@ import { getLowStockThresholdSetting, updateLowStockThresholdSetting } from "@/l
 import {
   LOW_STOCK_THRESHOLD_MAX,
   LOW_STOCK_THRESHOLD_MIN,
+  applyLowStockThresholdSetting,
   validateLowStockThreshold,
 } from "@/lib/admin-settings-core";
-import { applyLowStockThresholdSetting } from "@/lib/stock-sync-core";
 
 
 const ASSIGNABLE_ROLES: AppRole[] = [
