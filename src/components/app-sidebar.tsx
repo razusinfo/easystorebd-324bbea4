@@ -151,9 +151,9 @@ export function AppSidebar() {
                 {renderItem({ title: "Orders to Fulfill", url: "/admin-reseller-orders", icon: Truck, badge: "NEW" })}
                 {renderItem({ title: "Product Adopters", url: "/admin-reseller-adopters", icon: Users, badge: "NEW" })}
                 {renderItem({ title: "Notifications", url: "/admin-notifications", icon: Bell })}
-                {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
                 {renderItem({ title: "Financial Overview", url: "/admin-financial", icon: Wallet, badge: "NEW" })}
                 {renderItem({ title: "Payout Requests", url: "/admin-payouts", icon: Send, badge: "NEW" })}
+                {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
