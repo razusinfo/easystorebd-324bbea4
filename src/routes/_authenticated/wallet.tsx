@@ -136,7 +136,7 @@ function WalletPage() {
         </div>
         <div className="flex gap-2">
           <Button asChild variant="default">
-            <Link to="/payouts"><Send className="h-4 w-4 mr-2" /> Payouts</Link>
+            <Link to="/payouts"><Send className="h-4 w-4 mr-2" /> Payout Request</Link>
           </Button>
           <Button
             variant="outline"
