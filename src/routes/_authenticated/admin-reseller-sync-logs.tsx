@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
 type LogRow = {
   id: string;
   received_at: string;
@@ -28,7 +29,7 @@ type LogRow = {
   external_id: string | null;
   source: string | null;
   error: string | null;
-  payload: unknown;
+  payload: JsonValue;
 };
 
 const filtersSchema = z.object({
