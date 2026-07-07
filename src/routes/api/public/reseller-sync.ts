@@ -1,80 +1,90 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-// Webhook endpoint for the external Product Sales site to upsert products into
-// our `reseller_products` table. Authenticate with a shared secret sent in
-// the `x-webhook-secret` header (or `Authorization: Bearer <secret>`).
+const payloadSchema = z.object({
+  id: z.string().min(1, "id required"),
+  name: z.string().trim().min(1, "name required").max(500),
+  description: z.string().max(20000).optional().nullable(),
+  image: z.string().url("image must be a valid URL").nullable().optional(),
+  price: z.coerce.number().nonnegative("price must be >= 0"),
+  reseller_price: z.coerce.number().nonnegative("reseller_price must be >= 0"),
+  stock: z.coerce.number().int().nonnegative().default(0),
+  source: z.string().trim().min(1, "source required").max(100),
+  supplier_name: z.string().trim().min(1).max(200).optional(),
+  category: z.string().trim().max(200).optional().nullable(),
+  media: z.array(z.object({ url: z.string().url() }).passthrough()).max(20).optional(),
+});
+
+function timingSafeEq(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
 export const Route = createFileRoute("/api/public/reseller-sync")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env.RESELLER_WEBHOOK_SECRET;
-        if (!secret) {
-          return new Response("Webhook not configured", { status: 500 });
-        }
-        const provided =
-          request.headers.get("x-webhook-secret") ??
-          (request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "");
-        if (provided !== secret) {
-          return new Response("Unauthorized", { status: 401 });
+        const secret = process.env.RESELLER_WEBHOOK_SECRET ?? "";
+        const provided = request.headers.get("x-webhook-secret") ?? "";
+        if (!secret || !timingSafeEq(provided, secret)) {
+          return Response.json({ ok: false, error: "Invalid webhook secret" }, { status: 401 });
         }
 
-        let body: Record<string, unknown>;
+        let raw: unknown;
         try {
-          body = (await request.json()) as Record<string, unknown>;
+          raw = await request.json();
         } catch {
-          return new Response("Invalid JSON", { status: 400 });
+          return Response.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
         }
 
-        const externalId = String(body.id ?? body.external_id ?? "").trim();
-        const name = String(body.name ?? "").trim();
-        if (!externalId || !name) {
-          return new Response("Missing id or name", { status: 400 });
+        const parsed = payloadSchema.safeParse(raw);
+        if (!parsed.success) {
+          return Response.json(
+            {
+              ok: false,
+              error: "Payload validation failed",
+              issues: parsed.error.issues.map((i) => ({
+                path: i.path,
+                message: i.message,
+              })),
+            },
+            { status: 400 },
+          );
         }
+        const p = parsed.data;
 
-        const priceNum = Number(body.price ?? 0);
-        const resellerPriceRaw = body.reseller_price;
-        const resellerPrice =
-          resellerPriceRaw === null || resellerPriceRaw === undefined || resellerPriceRaw === ""
-            ? null
-            : Number(resellerPriceRaw);
-
-        // Stock: honor the webhook value when provided; otherwise seed to a
-        // safe default so the marketplace card doesn't render as "Out of
-        // Stock" the moment the product is synced. External sources that
-        // don't track stock can still update it later via the same webhook.
-        const stockRaw = body.stock;
-        const parsedStock = stockRaw === null || stockRaw === undefined || stockRaw === ""
-          ? null
-          : Number(stockRaw);
-        const stockNum =
-          parsedStock != null && Number.isFinite(parsedStock) && parsedStock >= 0
-            ? Math.trunc(parsedStock)
-            : 100;
+        const firstMediaUrl = p.media?.[0]?.url ?? null;
+        const imageUrl = p.image ?? firstMediaUrl ?? null;
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin
+        const { data, error } = await supabaseAdmin
           .from("reseller_products")
           .upsert(
             {
-              external_id: externalId,
-              name,
-              description: (body.description as string | null) ?? null,
-              image: (body.image as string | null) ?? null,
-              price: Number.isFinite(priceNum) ? priceNum : 0,
-              reseller_price: resellerPrice != null && Number.isFinite(resellerPrice) ? resellerPrice : null,
-              stock: stockNum,
-              source: (body.source as string | null) ?? "product-sales",
-              payload: body as never,
+              external_id: p.id,
+              name: p.name,
+              description: p.description ?? null,
+              image: imageUrl,
+              image_url: imageUrl,
+              price: p.price,
+              reseller_price: p.reseller_price,
+              stock: p.stock,
+              category: p.category ?? null,
+              source: p.supplier_name ?? p.source,
+              payload: p as never,
               updated_at: new Date().toISOString(),
             },
             { onConflict: "external_id" },
-          );
+          )
+          .select("id")
+          .single();
 
         if (error) {
-          console.error("[reseller-sync] upsert failed", error);
-          return new Response(`Upsert failed: ${error.message}`, { status: 500 });
+          return Response.json({ ok: false, error: error.message }, { status: 500 });
         }
-        return Response.json({ ok: true, external_id: externalId });
+        return Response.json({ ok: true, id: data.id });
       },
     },
   },
