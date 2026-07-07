@@ -72,11 +72,24 @@ type DisplayRow = ResellerRow & {
 };
 
 const PRIMARY_SUPPLIER = "Sylheti Online Shop";
+const NUSRAT_SUPPLIER = "Nusrat Telecom";
 // Internal sync sources that all represent the primary shop, not an external supplier.
 const INTERNAL_SOURCES = new Set(["trigger", "internal", "sylheti", "sylheti online shop"]);
+// External sources pushed by HisabNikas-24 → surfaced under the Nusrat Telecom supplier.
+const NUSRAT_SOURCES = new Set([
+  "hisabnikas",
+  "hisabnikas-24",
+  "hisab-nikas",
+  "hisab-nikas-24",
+  "hisab nikas",
+  "hisab nikas-24",
+  "nusrat",
+  "nusrat telecom",
+]);
 function normalizeSupplier(source: string | null | undefined): string {
   const s = (source ?? "").trim();
   if (!s || INTERNAL_SOURCES.has(s.toLowerCase())) return PRIMARY_SUPPLIER;
+  if (NUSRAT_SOURCES.has(s.toLowerCase())) return NUSRAT_SUPPLIER;
   return s;
 }
 
