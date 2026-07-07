@@ -15,6 +15,12 @@ function toNonNegativeInteger(value: unknown): number | null {
   return Math.trunc(n);
 }
 
+/**
+ * On approval, we intentionally hold back a small buffer from the supplier's
+ * stated stock so the marketplace never oversells while syncs are in flight.
+ */
+export const APPROVAL_STOCK_BUFFER = 5;
+
 export function resolveApprovalStock(input: {
   adminStock: number | null | undefined;
   sourceProductId?: string | null;
@@ -23,10 +29,12 @@ export function resolveApprovalStock(input: {
 }): ApprovalStockResolution {
   const requestedStock = toNonNegativeInteger(input.adminStock) ?? input.fallbackStock ?? 100;
   const sourceStock = toNonNegativeInteger(input.sourceStock);
+  const baseStock = sourceStock ?? requestedStock;
+  const finalStock = Math.max(0, baseStock - APPROVAL_STOCK_BUFFER);
 
   return {
     requestedStock,
-    finalStock: sourceStock ?? requestedStock,
+    finalStock,
     sourceProductId: input.sourceProductId ?? null,
     sourceStock,
   };
