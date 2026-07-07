@@ -1,0 +1,2 @@
+ALTER TABLE public.reseller_sync_webhook_logs REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.reseller_sync_webhook_logs;
