@@ -8,7 +8,9 @@ const payloadSchema = z.object({
   image: z.string().url("image must be a valid URL").nullable().optional(),
   price: z.coerce.number().nonnegative("price must be >= 0"),
   reseller_price: z.coerce.number().nonnegative("reseller_price must be >= 0"),
-  stock: z.coerce.number().int().nonnegative().default(0),
+  // Suppliers that don't track stock send 0 or omit it — treat as "unlimited"
+  // so items don't display as out of stock on the marketplace.
+  stock: z.coerce.number().int().nonnegative().optional().transform((v) => (v && v > 0 ? v : 9999)),
   source: z.string().trim().min(1, "source required").max(100),
   supplier_name: z.string().trim().min(1).max(200).optional(),
   category: z.string().trim().max(200).optional().nullable(),
