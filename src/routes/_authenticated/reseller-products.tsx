@@ -510,12 +510,16 @@ function ResellerProductsPage() {
                       <Package className="h-6 w-6" />
                     </div>
                   )}
-                  {outOfStock && (
+                  {outOfStock ? (
                     <div className="pointer-events-none absolute inset-0 flex items-start justify-center bg-black/30 pt-2">
                       <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-lg">
                         {t("outOfStock")}
                       </span>
                     </div>
+                  ) : (
+                    <span className="pointer-events-none absolute right-1.5 top-1.5 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                      স্টক আছে: {p.stock ?? 0}
+                    </span>
                   )}
                 </div>
                 <div className="space-y-1 p-1.5">
