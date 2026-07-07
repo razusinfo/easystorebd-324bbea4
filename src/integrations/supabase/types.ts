@@ -1245,6 +1245,42 @@ export type Database = {
           },
         ]
       }
+      reseller_sync_webhook_logs: {
+        Row: {
+          error: string | null
+          external_id: string | null
+          http_status: number
+          id: string
+          payload: Json | null
+          received_at: string
+          secret_valid: boolean
+          source: string | null
+          source_ip: string | null
+        }
+        Insert: {
+          error?: string | null
+          external_id?: string | null
+          http_status: number
+          id?: string
+          payload?: Json | null
+          received_at?: string
+          secret_valid?: boolean
+          source?: string | null
+          source_ip?: string | null
+        }
+        Update: {
+          error?: string | null
+          external_id?: string | null
+          http_status?: number
+          id?: string
+          payload?: Json | null
+          received_at?: string
+          secret_valid?: boolean
+          source?: string | null
+          source_ip?: string | null
+        }
+        Relationships: []
+      }
       reseller_wallets: {
         Row: {
           balance: number
