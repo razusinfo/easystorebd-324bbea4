@@ -792,6 +792,211 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
   );
 }
 
+// Super-admin edit for a marketplace reseller product. Exposes the same
+// fields a supplier fills when the product is first added, plus reseller-
+// specific price/stock. Writes directly to reseller_products (super_admin
+// RLS policy allows it) and flags overrides so the source-product sync
+// trigger will not overwrite manual edits.
+function AdminEditResellerButton({ row }: { row: DisplayRow }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(row.name ?? "");
+  const [description, setDescription] = useState(row.description ?? "");
+  const [imageUrl, setImageUrl] = useState(row.image_url ?? row.image ?? "");
+  const [price, setPrice] = useState<string>(row.price != null ? String(row.price) : "");
+  const [resellerPrice, setResellerPrice] = useState<string>(
+    row.reseller_price != null ? String(row.reseller_price) : "",
+  );
+  const [category, setCategory] = useState<string>(row.category ?? "");
+  const [stock, setStock] = useState<string>(row.stock != null ? String(row.stock) : "");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setName(row.name ?? "");
+    setDescription(row.description ?? "");
+    setImageUrl(row.image_url ?? row.image ?? "");
+    setPrice(row.price != null ? String(row.price) : "");
+    setResellerPrice(row.reseller_price != null ? String(row.reseller_price) : "");
+    setCategory(row.category ?? "");
+    setStock(row.stock != null ? String(row.stock) : "");
+  }, [open, row]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const trimmedName = name.trim();
+      if (trimmedName.length < 2) throw new Error("Name must be at least 2 characters");
+      const priceNum = price.trim() === "" ? null : Number(price);
+      const rpNum = resellerPrice.trim() === "" ? null : Number(resellerPrice);
+      const stockNum = stock.trim() === "" ? null : Math.max(0, Math.floor(Number(stock)));
+      if (priceNum != null && !Number.isFinite(priceNum)) throw new Error("Invalid price");
+      if (rpNum != null && !Number.isFinite(rpNum)) throw new Error("Invalid reseller price");
+      if (stockNum != null && !Number.isFinite(stockNum)) throw new Error("Invalid stock");
+
+      const trimmedImg = imageUrl.trim() || null;
+      const baseImg = row.image_url ?? row.image ?? null;
+      const basePrice = row.reseller_price ?? null;
+
+      const payload: Record<string, unknown> = {
+        name: trimmedName,
+        description: description.trim() || null,
+        image_url: trimmedImg,
+        image: trimmedImg,
+        price: priceNum,
+        reseller_price: rpNum,
+        category: category.trim() || null,
+        stock: stockNum,
+        updated_at: new Date().toISOString(),
+      };
+      if (trimmedImg !== baseImg) payload.image_overridden = true;
+      if (rpNum !== basePrice) payload.price_overridden = true;
+
+      const { error } = await supabase
+        .from("reseller_products")
+        .update(payload)
+        .eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Product updated");
+      qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  async function onPickFile(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { publicUrl } = await uploadProductImage(file);
+      setImageUrl(publicUrl);
+    } catch (e) {
+      toast.error(`Upload failed: ${(e as Error).message}`);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="flex-1 gap-1.5"
+        onClick={() => setOpen(true)}
+      >
+        <Pencil className="h-3.5 w-3.5" /> Edit
+      </Button>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit marketplace product</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label htmlFor="admin-rp-name">Name</Label>
+            <Input id="admin-rp-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="admin-rp-desc">Description</Label>
+            <Textarea
+              id="admin-rp-desc"
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="admin-rp-price">Original Price</Label>
+              <Input
+                id="admin-rp-price"
+                type="number"
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="admin-rp-rprice">Reseller Price</Label>
+              <Input
+                id="admin-rp-rprice"
+                type="number"
+                step="0.01"
+                value={resellerPrice}
+                onChange={(e) => setResellerPrice(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="admin-rp-cat">Category</Label>
+              <Input
+                id="admin-rp-cat"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="admin-rp-stock">Stock</Label>
+              <Input
+                id="admin-rp-stock"
+                type="number"
+                min="0"
+                step="1"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="admin-rp-img">Image URL</Label>
+            <Input
+              id="admin-rp-img"
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://..."
+            />
+            <div className="flex items-center gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => onPickFile(e.target.files)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+              >
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {uploading ? "Uploading…" : "Upload image"}
+              </Button>
+            </div>
+            {imageUrl && (
+              <img src={imageUrl} alt="preview" className="mt-2 h-24 w-24 rounded-md object-cover" />
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button type="button" onClick={() => save.mutate()} disabled={save.isPending || uploading}>
+            {save.isPending ? "Saving…" : "Save changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 type MediaItem = { url: string; kind: "image" | "video" };
 
 function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeId: string; disabled?: boolean }) {
