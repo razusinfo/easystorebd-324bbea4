@@ -838,7 +838,7 @@ function AdminEditResellerButton({ row }: { row: DisplayRow }) {
       const baseImg = row.image_url ?? row.image ?? null;
       const basePrice = row.reseller_price ?? null;
 
-      const payload: Record<string, unknown> = {
+      const payload = {
         name: trimmedName,
         description: description.trim() || null,
         image_url: trimmedImg,
@@ -848,9 +848,11 @@ function AdminEditResellerButton({ row }: { row: DisplayRow }) {
         category: category.trim() || null,
         stock: stockNum,
         updated_at: new Date().toISOString(),
-      };
-      if (trimmedImg !== baseImg) payload.image_overridden = true;
-      if (rpNum !== basePrice) payload.price_overridden = true;
+        image_overridden: trimmedImg !== baseImg ? true : undefined,
+        price_overridden: rpNum !== basePrice ? true : undefined,
+      } satisfies Partial<
+        Database["public"]["Tables"]["reseller_products"]["Update"]
+      >;
 
       const { error } = await supabase
         .from("reseller_products")
