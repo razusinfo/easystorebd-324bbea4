@@ -567,12 +567,18 @@ function ResellerProductsPage() {
                   <div className="mt-auto flex flex-col gap-1 pt-1">
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {(userId || isSuperAdmin.data) && (
-                      <div className="flex w-full gap-1">
-                        {isSuperAdmin.data
-                          ? <AdminEditResellerButton row={p} />
-                          : userId && <EditResellerButton row={p} userId={userId} />}
-                        {isSuperAdmin.data && <AdminRevokeButton row={p} />}
-                      </div>
+                      <details className="group w-full sm:open:!block [&:not([open])>div]:hidden sm:[&:not([open])>div]:!flex" open>
+                        <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-1.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted sm:hidden">
+                          <span>আরো অপশন / More</span>
+                          <span className="transition-transform group-open:rotate-180">▾</span>
+                        </summary>
+                        <div className="mt-1 flex w-full gap-1">
+                          {isSuperAdmin.data
+                            ? <AdminEditResellerButton row={p} />
+                            : userId && <EditResellerButton row={p} userId={userId} />}
+                          {isSuperAdmin.data && <AdminRevokeButton row={p} />}
+                        </div>
+                      </details>
                     )}
                   </div>
 
@@ -586,6 +592,8 @@ function ResellerProductsPage() {
     </div>
   );
 }
+
+
 
 function CopyLinkButton({
   url,
