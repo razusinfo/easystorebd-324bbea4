@@ -1460,7 +1460,7 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
         type="button"
         size="sm"
         variant="destructive"
-        className="mt-1 gap-1.5"
+        className="flex-1 gap-1.5"
         onClick={() => setOpen(true)}
       >
         <Trash2 className="h-3.5 w-3.5" /> Delete
