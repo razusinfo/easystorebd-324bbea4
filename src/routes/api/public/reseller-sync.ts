@@ -44,13 +44,48 @@ function timingSafeEq(a: string, b: string) {
   return out === 0;
 }
 
+function clientIp(request: Request): string | null {
+  const cf = request.headers.get("cf-connecting-ip");
+  if (cf) return cf;
+  const real = request.headers.get("x-real-ip");
+  if (real) return real;
+  const fwd = (request.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim();
+  return fwd || null;
+}
+
+type LogRow = {
+  source_ip: string | null;
+  secret_valid: boolean;
+  http_status: number;
+  external_id: string | null;
+  source: string | null;
+  error: string | null;
+  payload: unknown;
+};
+
+async function writeLog(row: LogRow) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await (supabaseAdmin as any).from("reseller_sync_webhook_logs").insert(row);
+  } catch (e) {
+    console.warn("[reseller-sync] failed to write webhook log:", (e as Error).message);
+  }
+}
+
 export const Route = createFileRoute("/api/public/reseller-sync")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const ip = clientIp(request);
         const secret = process.env.RESELLER_WEBHOOK_SECRET ?? "";
         const provided = request.headers.get("x-webhook-secret") ?? "";
-        if (!secret || !timingSafeEq(provided, secret)) {
+        const secretValid = !!secret && timingSafeEq(provided, secret);
+        if (!secretValid) {
+          await writeLog({
+            source_ip: ip, secret_valid: false, http_status: 401,
+            external_id: null, source: null,
+            error: "Invalid webhook secret", payload: null,
+          });
           return Response.json({ ok: false, error: "Invalid webhook secret" }, { status: 401 });
         }
 
@@ -58,20 +93,26 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
         try {
           raw = await request.json();
         } catch {
+          await writeLog({
+            source_ip: ip, secret_valid: true, http_status: 400,
+            external_id: null, source: null,
+            error: "Invalid JSON body", payload: null,
+          });
           return Response.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
         }
 
         const parsed = payloadSchema.safeParse(raw);
         if (!parsed.success) {
+          const issues = parsed.error.issues.map((i) => ({ path: i.path, message: i.message }));
+          await writeLog({
+            source_ip: ip, secret_valid: true, http_status: 400,
+            external_id: (raw as any)?.id ?? null,
+            source: (raw as any)?.supplier_name ?? (raw as any)?.source ?? null,
+            error: "Payload validation failed: " + JSON.stringify(issues),
+            payload: raw,
+          });
           return Response.json(
-            {
-              ok: false,
-              error: "Payload validation failed",
-              issues: parsed.error.issues.map((i) => ({
-                path: i.path,
-                message: i.message,
-              })),
-            },
+            { ok: false, error: "Payload validation failed", issues },
             { status: 400 },
           );
         }
@@ -129,8 +170,21 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
           .single();
 
         if (error) {
+          await writeLog({
+            source_ip: ip, secret_valid: true, http_status: 500,
+            external_id: p.id, source: supplierSource,
+            error: `Upsert failed: ${error.message}`, payload: raw,
+          });
           return Response.json({ ok: false, error: error.message }, { status: 500 });
         }
+
+        await writeLog({
+          source_ip: ip, secret_valid: true, http_status: 200,
+          external_id: p.id, source: supplierSource,
+          error: rehost.status === "failed" ? `image_rehost_failed: ${rehost.error}` : null,
+          payload: raw,
+        });
+
         return Response.json({
           ok: true,
           id: data.id,
@@ -143,4 +197,3 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
     },
   },
 });
-
