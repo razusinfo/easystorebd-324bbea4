@@ -922,8 +922,18 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         },
       });
     },
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["reseller-already-added", storeId, row.id] });
+    onSuccess: async (res) => {
+      // Await the refetch so the button label ("Add My Site" → "Already added"
+      // / "Your Product") updates the moment the mutation resolves. Poll a few
+      // times to survive brief write-then-read replica lag.
+      const key = ["reseller-already-added", storeId, row.id, row.external_id];
+      const readState = () =>
+        qc.getQueryData<{ added: boolean; isOwn: boolean }>(key);
+      for (let attempt = 0; attempt < 4; attempt++) {
+        await qc.refetchQueries({ queryKey: key, exact: true });
+        if (readState()?.added) break;
+        await new Promise((r) => setTimeout(r, 400));
+      }
       if (res.skipped) {
         toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
       } else {
