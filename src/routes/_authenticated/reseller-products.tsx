@@ -326,6 +326,8 @@ function ResellerProductsPage() {
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-[11px] font-bold text-muted-foreground">
                       {s.name === PRIMARY_SUPPLIER ? (
                         <img src={eazystoreLogo.url} alt={s.name} className="h-full w-full object-contain" />
+                      ) : s.name === NUSRAT_SUPPLIER ? (
+                        <img src={nusratLogo.url} alt={s.name} className="h-full w-full object-cover" />
                       ) : initials ? (
                         initials
                       ) : (
