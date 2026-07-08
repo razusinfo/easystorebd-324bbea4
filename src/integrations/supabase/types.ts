@@ -1778,7 +1778,6 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
-      can_manage_reseller_sync: { Args: { _user_id: string }; Returns: boolean }
       get_owner_products_full: {
         Args: { _store_id: string }
         Returns: {
