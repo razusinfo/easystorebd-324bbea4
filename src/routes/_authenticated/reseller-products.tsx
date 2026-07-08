@@ -494,10 +494,6 @@ function ResellerProductsPage() {
           {filtered.map((p) => {
             const img = p.displayImage;
             const outOfStock = computeIsOutOfStock(p.stock);
-            const shareUrl =
-              typeof window !== "undefined"
-                ? `${window.location.origin}/r/${p.external_id}`
-                : `/r/${p.external_id}`;
             return (
               <Card
                 key={p.id}
