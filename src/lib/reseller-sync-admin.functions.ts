@@ -53,12 +53,12 @@ export const saveCategoryMapping = createServerFn({ method: "POST" })
       notes: data.notes,
     };
     if (data.id) {
-      const { error } = await supabaseAdmin.from("reseller_category_mappings" as never).update(payload).eq("id", data.id);
+      const { error } = await (supabaseAdmin as any).from("reseller_category_mappings").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { ok: true, id: data.id };
     }
-    const { data: inserted, error } = await supabaseAdmin
-      .from("reseller_category_mappings" as never)
+    const { data: inserted, error } = await (supabaseAdmin as any)
+      .from("reseller_category_mappings")
       .insert(payload)
       .select("id")
       .single();
