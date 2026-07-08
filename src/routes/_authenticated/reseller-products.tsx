@@ -543,8 +543,12 @@ function ResellerProductsPage() {
                   <div className="flex flex-wrap gap-1">
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
-                    {userId && <EditResellerButton row={p} userId={userId} />}
-                    {isSuperAdmin.data && <AdminRevokeButton row={p} />}
+                    {(userId || isSuperAdmin.data) && (
+                      <div className="mt-1 flex w-full gap-1">
+                        {userId && <EditResellerButton row={p} userId={userId} />}
+                        {isSuperAdmin.data && <AdminRevokeButton row={p} />}
+                      </div>
+                    )}
                   </div>
 
                 </div>
