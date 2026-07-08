@@ -550,7 +550,9 @@ function ResellerProductsPage() {
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {(userId || isSuperAdmin.data) && (
                       <div className="mt-1 flex w-full gap-1">
-                        {userId && <EditResellerButton row={p} userId={userId} />}
+                        {isSuperAdmin.data
+                          ? <AdminEditResellerButton row={p} />
+                          : userId && <EditResellerButton row={p} userId={userId} />}
                         {isSuperAdmin.data && <AdminRevokeButton row={p} />}
                       </div>
                     )}
