@@ -494,10 +494,6 @@ function ResellerProductsPage() {
           {filtered.map((p) => {
             const img = p.displayImage;
             const outOfStock = computeIsOutOfStock(p.stock);
-            const shareUrl =
-              typeof window !== "undefined"
-                ? `${window.location.origin}/r/${p.external_id}`
-                : `/r/${p.external_id}`;
             return (
               <Card
                 key={p.id}
@@ -541,7 +537,6 @@ function ResellerProductsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-1">
-                    <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {(userId || isSuperAdmin.data) && (
                       <div className="mt-1 flex w-full gap-1">
@@ -805,20 +800,29 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const categories = catsQ.data ?? [];
 
   // Detect if this reseller product is already listed in the user's store.
+  // - "own"      → the original product itself (external_id) belongs to this store.
+  // - "added"    → a resold copy exists with source_reseller_product_id = row.id.
   const alreadyAddedQ = useQuery({
     enabled: !!storeId && !!row.id,
-    queryKey: ["reseller-already-added", storeId, row.id],
+    queryKey: ["reseller-already-added", storeId, row.id, row.external_id],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const orFilter = row.external_id
+        ? `source_reseller_product_id.eq.${row.id},id.eq.${row.external_id}`
+        : `source_reseller_product_id.eq.${row.id}`;
+      const { data, error } = await supabase
         .from("products")
-        .select("id", { count: "exact", head: true })
+        .select("id, source_reseller_product_id")
         .eq("store_id", storeId)
-        .eq("source_reseller_product_id", row.id);
+        .or(orFilter);
       if (error) throw error;
-      return (count ?? 0) > 0;
+      const rows = data ?? [];
+      const isOwn = rows.some((r) => r.id === row.external_id);
+      const added = rows.length > 0;
+      return { added, isOwn };
     },
   });
-  const alreadyAdded = alreadyAddedQ.data === true;
+  const alreadyAdded = alreadyAddedQ.data?.added === true;
+  const isOwnProduct = alreadyAddedQ.data?.isOwn === true;
 
   // Fetch original product's media (images + video). reseller_products.external_id
   // holds the original product's UUID.
@@ -926,9 +930,13 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       <Button
         type="button"
         size="sm"
-        variant={alreadyAdded ? "secondary" : "default"}
+        variant={isOwnProduct ? "outline" : alreadyAdded ? "secondary" : "default"}
         className="mt-1 w-full gap-1.5"
         onClick={() => {
+          if (isOwnProduct) {
+            toast.info("এটি আপনার নিজের প্রডাক্ট / This is your own product");
+            return;
+          }
           if (alreadyAdded) {
             toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
             return;
@@ -966,9 +974,11 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
           ? "Adding…"
           : disabled
             ? t("outOfStock")
-            : alreadyAdded
-              ? "ওয়েবসাইটে আছে / Already added"
-              : "Add My Site"}
+            : isOwnProduct
+              ? "Your Product"
+              : alreadyAdded
+                ? "ওয়েবসাইটে আছে / Already added"
+                : "Add My Site"}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
