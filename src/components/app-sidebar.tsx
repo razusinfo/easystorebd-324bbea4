@@ -46,12 +46,13 @@ const growthItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isAdmin = useIsSuperAdmin();
 
   const isActive = (path: string) => pathname === path;
+  const handleNavClick = () => { if (isMobile) setOpenMobile(false); };
 
   // Unread notifications for the signed-in user — powers the sidebar badge.
   const unreadQ = useQuery({
@@ -80,7 +81,7 @@ export function AppSidebar() {
   const renderItem = (item: { title: string; url: string; icon: any; badge?: string | number }) => (
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild isActive={isActive(item.url)}>
-        <Link to={item.url} className="flex items-center gap-2">
+        <Link to={item.url} onClick={handleNavClick} className="flex items-center gap-2">
           <div className="relative">
             <item.icon className="h-4 w-4 shrink-0" />
             {collapsed && typeof item.badge === "number" && item.badge > 0 && (
@@ -111,7 +112,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <Link to="/dashboard" onClick={handleNavClick} className="flex items-center gap-2">
           <img
             src={eazystoreLogo.url}
             alt="EazyStore"
