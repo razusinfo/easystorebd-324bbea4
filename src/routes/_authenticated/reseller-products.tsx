@@ -500,7 +500,7 @@ function ResellerProductsPage() {
           )}
         </Card>
       ) : (
-        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {filtered.map((p) => {
             const img = p.displayImage;
             const outOfStock = computeIsOutOfStock(p.stock);
@@ -508,7 +508,7 @@ function ResellerProductsPage() {
               <Card
                 key={p.id}
                 data-rp-id={p.id}
-                className={`overflow-hidden transition-shadow ${outOfStock ? "opacity-60 grayscale" : ""} ${highlightId === p.id ? "ring-2 ring-primary shadow-lg" : ""}`}
+                className={`flex flex-col overflow-hidden transition-shadow ${outOfStock ? "opacity-60 grayscale" : ""} ${highlightId === p.id ? "ring-2 ring-primary shadow-lg" : ""}`}
                 aria-disabled={outOfStock || undefined}
               >
                 <div className="relative aspect-square bg-muted">
@@ -516,7 +516,7 @@ function ResellerProductsPage() {
                     <img src={img} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="grid h-full w-full place-items-center text-muted-foreground">
-                      <Package className="h-6 w-6" />
+                      <Package className="h-8 w-8" />
                     </div>
                   )}
                   {outOfStock ? (
@@ -527,29 +527,31 @@ function ResellerProductsPage() {
                     </div>
                   ) : (
                     <span className="pointer-events-none absolute right-1.5 top-1.5 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow">
-                      স্টক আছে: {p.stock ?? 0}
+                      স্টক: {p.stock ?? 0}
+                    </span>
+                  )}
+                  {p.category && (
+                    <span className="pointer-events-none absolute left-1.5 top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white shadow backdrop-blur-sm">
+                      {p.category}
+                    </span>
+                  )}
+                  {p.isCustom && (
+                    <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow">
+                      My shop
                     </span>
                   )}
                 </div>
-                <div className="space-y-1 p-1.5">
-                  <h3 className="line-clamp-2 text-[11px] font-semibold leading-tight">{p.name}</h3>
+                <div className="flex flex-1 flex-col gap-1.5 p-2">
+                  <h3 className="line-clamp-2 min-h-[2.25rem] text-[12px] font-semibold leading-tight sm:text-[13px]">{p.name}</h3>
                   <div className="flex items-baseline justify-between gap-1">
-                    <p className="text-[10px] font-medium line-through opacity-60">{fmt(p.price)}</p>
-                    <p className="text-xs font-bold text-primary">{fmt(p.displayPrice)}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-0.5">
-                    {p.category && (
-                      <Badge variant="secondary" className="px-1 py-0 text-[8px]">{p.category}</Badge>
-                    )}
-                    {p.isCustom && (
-                      <Badge className="px-1 py-0 text-[8px]">My shop</Badge>
-                    )}
+                    <p className="text-[11px] font-medium line-through opacity-60">{fmt(p.price)}</p>
+                    <p className="text-sm font-bold text-primary">{fmt(p.displayPrice)}</p>
                   </div>
 
-                  <div className="flex flex-wrap gap-1">
+                  <div className="mt-auto flex flex-col gap-1 pt-1">
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {(userId || isSuperAdmin.data) && (
-                      <div className="mt-1 flex w-full gap-1">
+                      <div className="flex w-full gap-1">
                         {isSuperAdmin.data
                           ? <AdminEditResellerButton row={p} />
                           : userId && <EditResellerButton row={p} userId={userId} />}
@@ -563,6 +565,7 @@ function ResellerProductsPage() {
             );
           })}
         </div>
+
       )}
     </div>
   );
