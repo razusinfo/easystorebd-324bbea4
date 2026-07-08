@@ -76,6 +76,7 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
           );
         }
         const p = parsed.data;
+        const rawObj = (raw && typeof raw === "object") ? (raw as Record<string, unknown>) : {};
 
         const mediaUrls = (p.media ?? []).map((m) => m.url).filter(Boolean);
         const candidates: string[] = [];
@@ -84,62 +85,41 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { rehostImageFromCandidates, resolveCategory } = await import(
+          "@/lib/reseller-sync-core.server"
+        );
 
-        // Suppliers ship short-lived signed URLs. Rehost into our own bucket so
-        // the image keeps working after their token expires. Try candidates in
-        // order (primary image, then each media URL) until one succeeds.
-        let imageUrl: string | null = candidates[0] ?? null;
-        let rehostError: string | null = null;
-        for (const src of candidates) {
-          try {
-            const res = await fetch(src, { headers: { "User-Agent": "EazyStore-Sync/1.0" } });
-            if (!res.ok) {
-              rehostError = `fetch ${res.status} ${src.slice(0, 120)}`;
-              continue;
-            }
-            const buf = new Uint8Array(await res.arrayBuffer());
-            const ct = res.headers.get("content-type") || "image/jpeg";
-            const ext = ct.includes("png") ? "png" : ct.includes("webp") ? "webp" : "jpg";
-            const path = `${p.id}/${Date.now()}.${ext}`;
-            const { error: upErr } = await supabaseAdmin.storage
-              .from("reseller-images")
-              .upload(path, buf, { contentType: ct, upsert: true });
-            if (upErr) {
-              rehostError = `upload ${upErr.message}`;
-              continue;
-            }
-            const { data: signed, error: signErr } = await supabaseAdmin.storage
-              .from("reseller-images")
-              .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10 years
-            if (signErr || !signed?.signedUrl) {
-              rehostError = `sign ${signErr?.message ?? "no url"}`;
-              continue;
-            }
-            imageUrl = signed.signedUrl;
-            rehostError = null;
-            break;
-          } catch (e) {
-            rehostError = `exception ${(e as Error).message}`;
-          }
-        }
-        if (rehostError) {
-          console.warn(`[reseller-sync] rehost failed for ${p.id}: ${rehostError}`);
+        const supplierSource = p.supplier_name ?? p.source;
+        const rehost = await rehostImageFromCandidates(supabaseAdmin as never, p.id, candidates);
+        if (rehost.status === "failed") {
+          console.warn(`[reseller-sync] image rehost failed for ${p.id}: ${rehost.error}`);
         }
 
-        const { data, error } = await supabaseAdmin
+        const categoryRes = await resolveCategory(
+          supabaseAdmin as never,
+          rawObj,
+          supplierSource,
+          p.category ?? null,
+        );
+
+        const { data, error } = await (supabaseAdmin as any)
           .from("reseller_products")
           .upsert(
             {
               external_id: p.id,
               name: p.name,
               description: p.description ?? null,
-              image: imageUrl,
-              image_url: imageUrl,
+              image: rehost.imageUrl,
+              image_url: rehost.imageUrl,
               price: p.price,
               reseller_price: p.reseller_price,
               stock: p.stock,
-              category: p.category ?? null,
-              source: p.supplier_name ?? p.source,
+              category: categoryRes.category,
+              category_missing_reason: categoryRes.missingReason,
+              image_sync_status: rehost.status,
+              image_sync_error: rehost.error,
+              image_sync_attempted_at: rehost.attempted_at,
+              source: supplierSource,
               payload: p as never,
               updated_at: new Date().toISOString(),
             },
@@ -151,8 +131,16 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
         if (error) {
           return Response.json({ ok: false, error: error.message }, { status: 500 });
         }
-        return Response.json({ ok: true, id: data.id });
+        return Response.json({
+          ok: true,
+          id: data.id,
+          image_sync_status: rehost.status,
+          image_sync_error: rehost.error,
+          category: categoryRes.category,
+          category_missing_reason: categoryRes.missingReason,
+        });
       },
     },
   },
 });
+
