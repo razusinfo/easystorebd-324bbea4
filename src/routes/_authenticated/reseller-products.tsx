@@ -850,9 +850,7 @@ function AdminEditResellerButton({ row }: { row: DisplayRow }) {
         updated_at: new Date().toISOString(),
         image_overridden: trimmedImg !== baseImg ? true : undefined,
         price_overridden: rpNum !== basePrice ? true : undefined,
-      } satisfies Partial<
-        Database["public"]["Tables"]["reseller_products"]["Update"]
-      >;
+      } as never;
 
       const { error } = await supabase
         .from("reseller_products")
