@@ -1,21 +1,41 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-const payloadSchema = z.object({
-  id: z.string().min(1, "id required"),
-  name: z.string().trim().min(1, "name required").max(500),
-  description: z.string().max(20000).optional().nullable(),
-  image: z.string().url("image must be a valid URL").nullable().optional(),
-  price: z.coerce.number().nonnegative("price must be >= 0"),
-  reseller_price: z.coerce.number().nonnegative("reseller_price must be >= 0"),
-  // Suppliers that don't track stock send 0 or omit it — treat as "unlimited"
-  // so items don't display as out of stock on the marketplace.
-  stock: z.coerce.number().int().nonnegative().optional().transform((v) => (v && v > 0 ? v : 9999)),
-  source: z.string().trim().min(1, "source required").max(100),
-  supplier_name: z.string().trim().min(1).max(200).optional(),
-  category: z.string().trim().max(200).optional().nullable(),
-  media: z.array(z.object({ url: z.string().url() }).passthrough()).max(20).optional(),
-});
+// Suppliers send category as either a plain string, an object like
+// { name: "..." } / { title: "..." }, or under aliases (category_name).
+const categoryField = z
+  .union([
+    z.string(),
+    z.object({ name: z.string().optional(), title: z.string().optional(), label: z.string().optional() }).passthrough(),
+  ])
+  .nullable()
+  .optional()
+  .transform((v) => {
+    if (!v) return null;
+    if (typeof v === "string") return v.trim() || null;
+    const s = (v.name ?? v.title ?? v.label ?? "").toString().trim();
+    return s || null;
+  });
+
+const payloadSchema = z
+  .object({
+    id: z.string().min(1, "id required"),
+    name: z.string().trim().min(1, "name required").max(500),
+    description: z.string().max(20000).optional().nullable(),
+    image: z.string().url("image must be a valid URL").nullable().optional(),
+    price: z.coerce.number().nonnegative("price must be >= 0"),
+    reseller_price: z.coerce.number().nonnegative("reseller_price must be >= 0"),
+    // Suppliers that don't track stock send 0 or omit it — treat as "unlimited"
+    // so items don't display as out of stock on the marketplace.
+    stock: z.coerce.number().int().nonnegative().optional().transform((v) => (v && v > 0 ? v : 9999)),
+    source: z.string().trim().min(1, "source required").max(100),
+    supplier_name: z.string().trim().min(1).max(200).optional(),
+    category: categoryField,
+    category_name: categoryField,
+    media: z.array(z.object({ url: z.string().url() }).passthrough()).max(20).optional(),
+  })
+  .passthrough()
+  .transform((v) => ({ ...v, category: v.category ?? v.category_name ?? null }));
 
 function timingSafeEq(a: string, b: string) {
   if (a.length !== b.length) return false;
@@ -57,36 +77,55 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
         }
         const p = parsed.data;
 
-        const firstMediaUrl = p.media?.[0]?.url ?? null;
-        const originalImageUrl = p.image ?? firstMediaUrl ?? null;
+        const mediaUrls = (p.media ?? []).map((m) => m.url).filter(Boolean);
+        const candidates: string[] = [];
+        for (const u of [p.image ?? null, ...mediaUrls]) {
+          if (u && !candidates.includes(u)) candidates.push(u);
+        }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // Suppliers ship short-lived signed URLs. Rehost the primary image
-        // into our own bucket so it keeps working after their token expires.
-        let imageUrl: string | null = originalImageUrl;
-        if (originalImageUrl) {
+        // Suppliers ship short-lived signed URLs. Rehost into our own bucket so
+        // the image keeps working after their token expires. Try candidates in
+        // order (primary image, then each media URL) until one succeeds.
+        let imageUrl: string | null = candidates[0] ?? null;
+        let rehostError: string | null = null;
+        for (const src of candidates) {
           try {
-            const res = await fetch(originalImageUrl);
-            if (res.ok) {
-              const buf = new Uint8Array(await res.arrayBuffer());
-              const ct = res.headers.get("content-type") || "image/jpeg";
-              const ext = ct.includes("png") ? "png" : ct.includes("webp") ? "webp" : "jpg";
-              const path = `${p.id}/${Date.now()}.${ext}`;
-              const { error: upErr } = await supabaseAdmin.storage
-                .from("reseller-images")
-                .upload(path, buf, { contentType: ct, upsert: true });
-              if (!upErr) {
-                const { data: signed } = await supabaseAdmin.storage
-                  .from("reseller-images")
-                  .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10 years
-                if (signed?.signedUrl) imageUrl = signed.signedUrl;
-              }
+            const res = await fetch(src, { headers: { "User-Agent": "EazyStore-Sync/1.0" } });
+            if (!res.ok) {
+              rehostError = `fetch ${res.status} ${src.slice(0, 120)}`;
+              continue;
             }
-          } catch {
-            // fall back to the supplier's URL
+            const buf = new Uint8Array(await res.arrayBuffer());
+            const ct = res.headers.get("content-type") || "image/jpeg";
+            const ext = ct.includes("png") ? "png" : ct.includes("webp") ? "webp" : "jpg";
+            const path = `${p.id}/${Date.now()}.${ext}`;
+            const { error: upErr } = await supabaseAdmin.storage
+              .from("reseller-images")
+              .upload(path, buf, { contentType: ct, upsert: true });
+            if (upErr) {
+              rehostError = `upload ${upErr.message}`;
+              continue;
+            }
+            const { data: signed, error: signErr } = await supabaseAdmin.storage
+              .from("reseller-images")
+              .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10 years
+            if (signErr || !signed?.signedUrl) {
+              rehostError = `sign ${signErr?.message ?? "no url"}`;
+              continue;
+            }
+            imageUrl = signed.signedUrl;
+            rehostError = null;
+            break;
+          } catch (e) {
+            rehostError = `exception ${(e as Error).message}`;
           }
         }
+        if (rehostError) {
+          console.warn(`[reseller-sync] rehost failed for ${p.id}: ${rehostError}`);
+        }
+
         const { data, error } = await supabaseAdmin
           .from("reseller_products")
           .upsert(
