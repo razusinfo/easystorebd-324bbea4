@@ -1506,6 +1506,7 @@ function SupplierInfoDialog({
 }) {
   const name = supplierName ?? "";
   const isPrimary = name === PRIMARY_SUPPLIER;
+  const isNusrat = name === NUSRAT_SUPPLIER;
   const initials = name
     .split(/\s+/)
     .map((w) => w[0])
@@ -1523,6 +1524,8 @@ function SupplierInfoDialog({
             <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-sm font-bold text-muted-foreground">
               {isPrimary ? (
                 <img src={eazystoreLogo.url} alt={name} className="h-full w-full object-contain" />
+              ) : isNusrat ? (
+                <img src={nusratLogo.url} alt={name} className="h-full w-full object-cover" />
               ) : initials ? (
                 initials
               ) : (
