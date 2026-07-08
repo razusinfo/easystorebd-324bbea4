@@ -1,21 +1,41 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-const payloadSchema = z.object({
-  id: z.string().min(1, "id required"),
-  name: z.string().trim().min(1, "name required").max(500),
-  description: z.string().max(20000).optional().nullable(),
-  image: z.string().url("image must be a valid URL").nullable().optional(),
-  price: z.coerce.number().nonnegative("price must be >= 0"),
-  reseller_price: z.coerce.number().nonnegative("reseller_price must be >= 0"),
-  // Suppliers that don't track stock send 0 or omit it — treat as "unlimited"
-  // so items don't display as out of stock on the marketplace.
-  stock: z.coerce.number().int().nonnegative().optional().transform((v) => (v && v > 0 ? v : 9999)),
-  source: z.string().trim().min(1, "source required").max(100),
-  supplier_name: z.string().trim().min(1).max(200).optional(),
-  category: z.string().trim().max(200).optional().nullable(),
-  media: z.array(z.object({ url: z.string().url() }).passthrough()).max(20).optional(),
-});
+// Suppliers send category as either a plain string, an object like
+// { name: "..." } / { title: "..." }, or under aliases (category_name).
+const categoryField = z
+  .union([
+    z.string(),
+    z.object({ name: z.string().optional(), title: z.string().optional(), label: z.string().optional() }).passthrough(),
+  ])
+  .nullable()
+  .optional()
+  .transform((v) => {
+    if (!v) return null;
+    if (typeof v === "string") return v.trim() || null;
+    const s = (v.name ?? v.title ?? v.label ?? "").toString().trim();
+    return s || null;
+  });
+
+const payloadSchema = z
+  .object({
+    id: z.string().min(1, "id required"),
+    name: z.string().trim().min(1, "name required").max(500),
+    description: z.string().max(20000).optional().nullable(),
+    image: z.string().url("image must be a valid URL").nullable().optional(),
+    price: z.coerce.number().nonnegative("price must be >= 0"),
+    reseller_price: z.coerce.number().nonnegative("reseller_price must be >= 0"),
+    // Suppliers that don't track stock send 0 or omit it — treat as "unlimited"
+    // so items don't display as out of stock on the marketplace.
+    stock: z.coerce.number().int().nonnegative().optional().transform((v) => (v && v > 0 ? v : 9999)),
+    source: z.string().trim().min(1, "source required").max(100),
+    supplier_name: z.string().trim().min(1).max(200).optional(),
+    category: categoryField,
+    category_name: categoryField,
+    media: z.array(z.object({ url: z.string().url() }).passthrough()).max(20).optional(),
+  })
+  .passthrough()
+  .transform((v) => ({ ...v, category: v.category ?? v.category_name ?? null }));
 
 function timingSafeEq(a: string, b: string) {
   if (a.length !== b.length) return false;
