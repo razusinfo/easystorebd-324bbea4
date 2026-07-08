@@ -45,12 +45,12 @@ function timingSafeEq(a: string, b: string) {
 }
 
 function clientIp(request: Request): string | null {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-real-ip") ??
-    (request.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim() ||
-    null
-  );
+  const cf = request.headers.get("cf-connecting-ip");
+  if (cf) return cf;
+  const real = request.headers.get("x-real-ip");
+  if (real) return real;
+  const fwd = (request.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim();
+  return fwd || null;
 }
 
 type LogRow = {
