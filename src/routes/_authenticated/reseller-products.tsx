@@ -543,8 +543,12 @@ function ResellerProductsPage() {
                   <div className="flex flex-wrap gap-1">
                     <CopyLinkButton url={shareUrl} row={p} storeId={storeId} />
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
-                    {userId && <EditResellerButton row={p} userId={userId} />}
-                    {isSuperAdmin.data && <AdminRevokeButton row={p} />}
+                    {(userId || isSuperAdmin.data) && (
+                      <div className="mt-1 flex w-full gap-1">
+                        {userId && <EditResellerButton row={p} userId={userId} />}
+                        {isSuperAdmin.data && <AdminRevokeButton row={p} />}
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -705,7 +709,7 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
         type="button"
         variant="outline"
         size="sm"
-        className="mt-1 w-full gap-1.5"
+        className="flex-1 gap-1.5"
         onClick={() => setOpen(true)}
       >
         <Pencil className="h-3.5 w-3.5" /> Edit
@@ -957,7 +961,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
           ? t("outOfStock")
           : alreadyAdded
             ? "ওয়েবসাইটে আছে / Already added"
-            : t("addToMyShop")}
+            : "Add My Site"}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -1456,7 +1460,7 @@ function AdminRevokeButton({ row }: { row: DisplayRow }) {
         type="button"
         size="sm"
         variant="destructive"
-        className="mt-1 gap-1.5"
+        className="flex-1 gap-1.5"
         onClick={() => setOpen(true)}
       >
         <Trash2 className="h-3.5 w-3.5" /> Delete
