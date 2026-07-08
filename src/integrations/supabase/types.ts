@@ -1874,10 +1874,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      order_accepts_new_items: {
-        Args: { _caller: string; _order_id: string }
-        Returns: boolean
-      }
       reconcile_reseller_stock: {
         Args: { _rp_id: string }
         Returns: {
