@@ -930,7 +930,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       <Button
         type="button"
         size="sm"
-        variant={alreadyAdded ? "secondary" : "default"}
+        variant={isOwnProduct ? "outline" : alreadyAdded ? "secondary" : "default"}
         className="mt-1 w-full gap-1.5"
         onClick={() => {
           if (isOwnProduct) {
