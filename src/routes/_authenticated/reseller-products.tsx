@@ -800,55 +800,110 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
 function AdminEditResellerButton({ row }: { row: DisplayRow }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(row.name ?? "");
-  const [description, setDescription] = useState(row.description ?? "");
-  const [imageUrl, setImageUrl] = useState(row.image_url ?? row.image ?? "");
-  const [price, setPrice] = useState<string>(row.price != null ? String(row.price) : "");
-  const [resellerPrice, setResellerPrice] = useState<string>(
-    row.reseller_price != null ? String(row.reseller_price) : "",
-  );
-  const [category, setCategory] = useState<string>(row.category ?? "");
-  const [stock, setStock] = useState<string>(row.stock != null ? String(row.stock) : "");
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+
+  const initial = {
+    name: row.name ?? "",
+    description: row.description ?? "",
+    imageUrl: row.image_url ?? row.image ?? "",
+    price: row.price != null ? String(row.price) : "",
+    resellerPrice: row.reseller_price != null ? String(row.reseller_price) : "",
+    category: row.category ?? "",
+    stock: row.stock != null ? String(row.stock) : "",
+  };
+
+  const [name, setName] = useState(initial.name);
+  const [description, setDescription] = useState(initial.description);
+  const [imageUrl, setImageUrl] = useState(initial.imageUrl);
+  const [price, setPrice] = useState(initial.price);
+  const [resellerPrice, setResellerPrice] = useState(initial.resellerPrice);
+  const [category, setCategory] = useState(initial.category);
+  const [stock, setStock] = useState(initial.stock);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    setName(row.name ?? "");
-    setDescription(row.description ?? "");
-    setImageUrl(row.image_url ?? row.image ?? "");
-    setPrice(row.price != null ? String(row.price) : "");
-    setResellerPrice(row.reseller_price != null ? String(row.reseller_price) : "");
-    setCategory(row.category ?? "");
-    setStock(row.stock != null ? String(row.stock) : "");
+    setName(initial.name);
+    setDescription(initial.description);
+    setImageUrl(initial.imageUrl);
+    setPrice(initial.price);
+    setResellerPrice(initial.resellerPrice);
+    setCategory(initial.category);
+    setStock(initial.stock);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, row]);
 
+  // ---- Validation -------------------------------------------------------
+  const trimmedName = name.trim();
+  const trimmedImg = imageUrl.trim();
+  const trimmedCat = category.trim();
+  const priceNum = price.trim() === "" ? null : Number(price);
+  const rpNum = resellerPrice.trim() === "" ? null : Number(resellerPrice);
+  const stockNum = stock.trim() === "" ? null : Number(stock);
+
+  const isValidHttpUrl = (v: string) => {
+    try {
+      const u = new URL(v);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  const errors: Record<string, string> = {};
+  if (trimmedName.length < 2) errors.name = "Name must be at least 2 characters";
+  else if (trimmedName.length > 200) errors.name = "Name too long (max 200)";
+  if (description.length > 4000) errors.description = "Description too long (max 4000)";
+  if (priceNum != null && (!Number.isFinite(priceNum) || priceNum < 0)) {
+    errors.price = "Enter a valid non-negative price";
+  } else if (priceNum != null && priceNum > 10_000_000) {
+    errors.price = "Price too large";
+  }
+  if (rpNum != null && (!Number.isFinite(rpNum) || rpNum < 0)) {
+    errors.resellerPrice = "Enter a valid non-negative price";
+  } else if (rpNum != null && priceNum != null && rpNum < priceNum) {
+    errors.resellerPrice = "Reseller price should be ≥ original price";
+  }
+  if (stockNum != null && (!Number.isFinite(stockNum) || stockNum < 0 || !Number.isInteger(stockNum))) {
+    errors.stock = "Stock must be a non-negative whole number";
+  }
+  if (trimmedCat.length > 80) errors.category = "Category too long (max 80)";
+  if (trimmedImg.length > 0 && !isValidHttpUrl(trimmedImg)) {
+    errors.imageUrl = "Enter a valid http(s) URL";
+  }
+  const isValid = Object.keys(errors).length === 0;
+
+  const isDirty =
+    trimmedName !== initial.name.trim() ||
+    description !== initial.description ||
+    trimmedImg !== initial.imageUrl.trim() ||
+    price.trim() !== initial.price.trim() ||
+    resellerPrice.trim() !== initial.resellerPrice.trim() ||
+    trimmedCat !== initial.category.trim() ||
+    stock.trim() !== initial.stock.trim();
+
+  // ---- Save -------------------------------------------------------------
   const save = useMutation({
     mutationFn: async () => {
-      const trimmedName = name.trim();
-      if (trimmedName.length < 2) throw new Error("Name must be at least 2 characters");
-      const priceNum = price.trim() === "" ? null : Number(price);
-      const rpNum = resellerPrice.trim() === "" ? null : Number(resellerPrice);
-      const stockNum = stock.trim() === "" ? null : Math.max(0, Math.floor(Number(stock)));
-      if (priceNum != null && !Number.isFinite(priceNum)) throw new Error("Invalid price");
-      if (rpNum != null && !Number.isFinite(rpNum)) throw new Error("Invalid reseller price");
-      if (stockNum != null && !Number.isFinite(stockNum)) throw new Error("Invalid stock");
+      if (!isValid) throw new Error("Please fix the highlighted fields");
 
-      const trimmedImg = imageUrl.trim() || null;
+      const cleanImg = trimmedImg || null;
+      const cleanCat = trimmedCat || null;
       const baseImg = row.image_url ?? row.image ?? null;
       const basePrice = row.reseller_price ?? null;
 
       const payload = {
         name: trimmedName,
         description: description.trim() || null,
-        image_url: trimmedImg,
-        image: trimmedImg,
+        image_url: cleanImg,
+        image: cleanImg,
         price: priceNum,
         reseller_price: rpNum,
-        category: category.trim() || null,
-        stock: stockNum,
+        category: cleanCat,
+        stock: stockNum != null ? Math.floor(stockNum) : null,
         updated_at: new Date().toISOString(),
-        image_overridden: trimmedImg !== baseImg ? true : undefined,
+        image_overridden: cleanImg !== baseImg ? true : undefined,
         price_overridden: rpNum !== basePrice ? true : undefined,
       } as never;
 
@@ -857,10 +912,56 @@ function AdminEditResellerButton({ row }: { row: DisplayRow }) {
         .update(payload)
         .eq("id", row.id);
       if (error) throw error;
+
+      // ---- Audit log: diff of changed fields ---------------------------
+      const before: Record<string, unknown> = {
+        name: row.name,
+        description: row.description,
+        image_url: row.image_url ?? row.image,
+        price: row.price,
+        reseller_price: row.reseller_price,
+        category: row.category,
+        stock: row.stock,
+      };
+      const after: Record<string, unknown> = {
+        name: trimmedName,
+        description: description.trim() || null,
+        image_url: cleanImg,
+        price: priceNum,
+        reseller_price: rpNum,
+        category: cleanCat,
+        stock: stockNum != null ? Math.floor(stockNum) : null,
+      };
+      const changed: Record<string, { from: unknown; to: unknown }> = {};
+      for (const k of Object.keys(after)) {
+        if (before[k] !== after[k]) changed[k] = { from: before[k] ?? null, to: after[k] ?? null };
+      }
+      if (Object.keys(changed).length > 0) {
+        const { data: authData } = await supabase.auth.getUser();
+        const actorId = authData.user?.id ?? null;
+        await supabase.from("reseller_marketplace_audit_logs").insert({
+          actor_id: actorId,
+          actor_role: "super_admin",
+          action: "admin_edit",
+          product_id: row.id,
+          success: true,
+          metadata: {
+            reseller_product_id: row.id,
+            changed_fields: Object.keys(changed),
+            diff: changed,
+          },
+        } as never);
+      }
     },
     onSuccess: () => {
       toast.success("Product updated");
+      // Ensure every surface that reads reseller marketplace data refreshes.
       qc.invalidateQueries({ queryKey: ["reseller_products"] });
+      qc.invalidateQueries({ queryKey: ["reseller-already-added"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["my-products"] });
+      qc.invalidateQueries({ queryKey: ["public-store"] });
+      qc.invalidateQueries({ queryKey: ["admin", "reseller-audit-logs"] });
       setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -881,119 +982,178 @@ function AdminEditResellerButton({ row }: { row: DisplayRow }) {
     }
   }
 
+  const requestClose = () => {
+    if (isDirty) setConfirmDiscardOpen(true);
+    else setOpen(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="flex-1 gap-1.5"
-        onClick={() => setOpen(true)}
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          if (v) setOpen(true);
+          else requestClose();
+        }}
       >
-        <Pencil className="h-3.5 w-3.5" /> Edit
-      </Button>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit marketplace product</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="admin-rp-name">Name</Label>
-            <Input id="admin-rp-name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="admin-rp-desc">Description</Label>
-            <Textarea
-              id="admin-rp-desc"
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="flex-1 gap-1.5"
+          onClick={() => setOpen(true)}
+        >
+          <Pencil className="h-3.5 w-3.5" /> Edit
+        </Button>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit marketplace product</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="admin-rp-price">Original Price</Label>
+              <Label htmlFor="admin-rp-name">Name</Label>
               <Input
-                id="admin-rp-price"
-                type="number"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                id="admin-rp-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                aria-invalid={!!errors.name}
               />
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="admin-rp-rprice">Reseller Price</Label>
-              <Input
-                id="admin-rp-rprice"
-                type="number"
-                step="0.01"
-                value={resellerPrice}
-                onChange={(e) => setResellerPrice(e.target.value)}
+              <Label htmlFor="admin-rp-desc">Description</Label>
+              <Textarea
+                id="admin-rp-desc"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                aria-invalid={!!errors.description}
               />
+              {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="admin-rp-price">Original Price</Label>
+                <Input
+                  id="admin-rp-price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  aria-invalid={!!errors.price}
+                />
+                {errors.price && <p className="text-xs text-destructive">{errors.price}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="admin-rp-rprice">Reseller Price</Label>
+                <Input
+                  id="admin-rp-rprice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={resellerPrice}
+                  onChange={(e) => setResellerPrice(e.target.value)}
+                  aria-invalid={!!errors.resellerPrice}
+                />
+                {errors.resellerPrice && <p className="text-xs text-destructive">{errors.resellerPrice}</p>}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="admin-rp-cat">Category</Label>
+                <Input
+                  id="admin-rp-cat"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  aria-invalid={!!errors.category}
+                />
+                {errors.category && <p className="text-xs text-destructive">{errors.category}</p>}
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="admin-rp-stock">Stock</Label>
+                <Input
+                  id="admin-rp-stock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  aria-invalid={!!errors.stock}
+                />
+                {errors.stock && <p className="text-xs text-destructive">{errors.stock}</p>}
+              </div>
+            </div>
             <div className="space-y-1">
-              <Label htmlFor="admin-rp-cat">Category</Label>
+              <Label htmlFor="admin-rp-img">Image URL</Label>
               <Input
-                id="admin-rp-cat"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                id="admin-rp-img"
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://..."
+                aria-invalid={!!errors.imageUrl}
               />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="admin-rp-stock">Stock</Label>
-              <Input
-                id="admin-rp-stock"
-                type="number"
-                min="0"
-                step="1"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-              />
+              {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl}</p>}
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => onPickFile(e.target.files)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploading}
+                  onClick={() => fileRef.current?.click()}
+                >
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  {uploading ? "Uploading…" : "Upload image"}
+                </Button>
+              </div>
+              {imageUrl && !errors.imageUrl && (
+                <img src={imageUrl} alt="preview" className="mt-2 h-24 w-24 rounded-md object-cover" />
+              )}
             </div>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="admin-rp-img">Image URL</Label>
-            <Input
-              id="admin-rp-img"
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://..."
-            />
-            <div className="flex items-center gap-2">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => onPickFile(e.target.files)}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploading}
-                onClick={() => fileRef.current?.click()}
-              >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                {uploading ? "Uploading…" : "Upload image"}
-              </Button>
-            </div>
-            {imageUrl && (
-              <img src={imageUrl} alt="preview" className="mt-2 h-24 w-24 rounded-md object-cover" />
-            )}
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button type="button" onClick={() => save.mutate()} disabled={save.isPending || uploading}>
-            {save.isPending ? "Saving…" : "Save changes"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={requestClose}>Cancel</Button>
+            <Button
+              type="button"
+              onClick={() => save.mutate()}
+              disabled={save.isPending || uploading || !isValid || !isDirty}
+            >
+              {save.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes to this marketplace product. Closing the
+              dialog will discard them.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep editing</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmDiscardOpen(false);
+                setOpen(false);
+              }}
+            >
+              Discard changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
