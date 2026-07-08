@@ -217,7 +217,9 @@ function RootComponent() {
       <ThemeProvider>
         <I18nProvider>
           <SiteSettingsInjector />
+          <PullToRefresh />
           <Outlet />
+
         </I18nProvider>
       </ThemeProvider>
     </QueryClientProvider>
