@@ -812,23 +812,34 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   // Detect if this reseller product is already listed in the user's store.
   // - "own"      → the original product itself (external_id) belongs to this store.
   // - "added"    → a resold copy exists with source_reseller_product_id = row.id.
+  // external_id is only merged into the OR filter when it looks like a UUID so
+  // PostgREST does not reject the query for non-UUID legacy sources.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const externalIdIsUuid = !!row.external_id && UUID_RE.test(row.external_id);
   const alreadyAddedQ = useQuery({
     enabled: !!storeId && !!row.id,
     queryKey: ["reseller-already-added", storeId, row.id, row.external_id],
+    staleTime: 0,
     queryFn: async () => {
-      const orFilter = row.external_id
+      const orFilter = externalIdIsUuid
         ? `source_reseller_product_id.eq.${row.id},id.eq.${row.external_id}`
         : `source_reseller_product_id.eq.${row.id}`;
       const { data, error } = await supabase
         .from("products")
-        .select("id, source_reseller_product_id")
+        .select("id, source_reseller_product_id, store_id")
         .eq("store_id", storeId)
-        .or(orFilter);
+        .or(orFilter)
+        .limit(50);
       if (error) throw error;
-      const rows = data ?? [];
-      const isOwn = rows.some((r) => r.id === row.external_id);
-      const added = rows.length > 0;
-      return { added, isOwn };
+      // Defence in depth: even though we already filter by store_id, only
+      // count rows that actually belong to the current store.
+      const rows = (data ?? []).filter((r) => r.store_id === storeId);
+      const isOwn =
+        externalIdIsUuid && rows.some((r) => r.id === row.external_id);
+      const addedByCopy = rows.some(
+        (r) => r.source_reseller_product_id === row.id,
+      );
+      return { added: isOwn || addedByCopy, isOwn };
     },
   });
   const alreadyAdded = alreadyAddedQ.data?.added === true;
