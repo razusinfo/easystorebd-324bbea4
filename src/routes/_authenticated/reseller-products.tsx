@@ -943,6 +943,12 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       setOpen(false);
     },
     onError: (e: unknown) => {
+      // Rollback: refetch the "already added" state so the trigger button
+      // returns to its true label ("Add My Site" / "Already added" / "Your
+      // Product") instead of getting stuck on the loading label.
+      qc.invalidateQueries({
+        queryKey: ["reseller-already-added", storeId, row.id, row.external_id],
+      });
       if (e instanceof Response && e.status === 403) {
         toast.error("অনুমতি নেই (403) / You are not allowed to add this product");
         return;
