@@ -1269,6 +1269,29 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={confirmReaddOpen} onOpenChange={setConfirmReaddOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Product Already Added</AlertDialogTitle>
+          <AlertDialogDescription>
+            "{row.name}" এই পণ্যটি ইতিমধ্যেই আপনার ওয়েবসাইটে রয়েছে। আপনি কি
+            আবার একটি নতুন কপি যোগ করতে চান? / This product is already in your
+            store. Add another copy?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>বাতিল / Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              setConfirmReaddOpen(false);
+              openAddFlow();
+            }}
+          >
+            আবার যোগ করুন / Add again
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
