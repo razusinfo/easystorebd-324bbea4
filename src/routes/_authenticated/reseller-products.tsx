@@ -12,6 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -788,6 +798,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const [open, setOpen] = useState(false);
   const [agreementOpen, setAgreementOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [confirmReaddOpen, setConfirmReaddOpen] = useState(false);
   const supplierName = normalizeSupplier(row.source);
   const agreementKey = `reseller-agreement-accepted:${supplierName}`;
   const [categoryId, setCategoryId] = useState<string>("");
@@ -802,23 +813,34 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   // Detect if this reseller product is already listed in the user's store.
   // - "own"      → the original product itself (external_id) belongs to this store.
   // - "added"    → a resold copy exists with source_reseller_product_id = row.id.
+  // external_id is only merged into the OR filter when it looks like a UUID so
+  // PostgREST does not reject the query for non-UUID legacy sources.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const externalIdIsUuid = !!row.external_id && UUID_RE.test(row.external_id);
   const alreadyAddedQ = useQuery({
     enabled: !!storeId && !!row.id,
     queryKey: ["reseller-already-added", storeId, row.id, row.external_id],
+    staleTime: 0,
     queryFn: async () => {
-      const orFilter = row.external_id
+      const orFilter = externalIdIsUuid
         ? `source_reseller_product_id.eq.${row.id},id.eq.${row.external_id}`
         : `source_reseller_product_id.eq.${row.id}`;
       const { data, error } = await supabase
         .from("products")
-        .select("id, source_reseller_product_id")
+        .select("id, source_reseller_product_id, store_id")
         .eq("store_id", storeId)
-        .or(orFilter);
+        .or(orFilter)
+        .limit(50);
       if (error) throw error;
-      const rows = data ?? [];
-      const isOwn = rows.some((r) => r.id === row.external_id);
-      const added = rows.length > 0;
-      return { added, isOwn };
+      // Defence in depth: even though we already filter by store_id, only
+      // count rows that actually belong to the current store.
+      const rows = (data ?? []).filter((r) => r.store_id === storeId);
+      const isOwn =
+        externalIdIsUuid && rows.some((r) => r.id === row.external_id);
+      const addedByCopy = rows.some(
+        (r) => r.source_reseller_product_id === row.id,
+      );
+      return { added: isOwn || addedByCopy, isOwn };
     },
   });
   const alreadyAdded = alreadyAddedQ.data?.added === true;
@@ -900,8 +922,18 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         },
       });
     },
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["reseller-already-added", storeId, row.id] });
+    onSuccess: async (res) => {
+      // Await the refetch so the button label ("Add My Site" → "Already added"
+      // / "Your Product") updates the moment the mutation resolves. Poll a few
+      // times to survive brief write-then-read replica lag.
+      const key = ["reseller-already-added", storeId, row.id, row.external_id];
+      const readState = () =>
+        qc.getQueryData<{ added: boolean; isOwn: boolean }>(key);
+      for (let attempt = 0; attempt < 4; attempt++) {
+        await qc.refetchQueries({ queryKey: key, exact: true });
+        if (readState()?.added) break;
+        await new Promise((r) => setTimeout(r, 400));
+      }
       if (res.skipped) {
         toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
       } else {
@@ -911,6 +943,12 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       setOpen(false);
     },
     onError: (e: unknown) => {
+      // Rollback: refetch the "already added" state so the trigger button
+      // returns to its true label ("Add My Site" / "Already added" / "Your
+      // Product") instead of getting stuck on the loading label.
+      qc.invalidateQueries({
+        queryKey: ["reseller-already-added", storeId, row.id, row.external_id],
+      });
       if (e instanceof Response && e.status === 403) {
         toast.error("অনুমতি নেই (403) / You are not allowed to add this product");
         return;
@@ -923,6 +961,24 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       toast.error(msg || "যোগ করা যায়নি / Failed to add");
     },
   });
+
+  const openAddFlow = () => {
+    let accepted = false;
+    try {
+      accepted =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(agreementKey) === "1";
+    } catch {
+      accepted = false;
+    }
+    if (accepted) {
+      setOpen(true);
+    } else {
+      setAgreed(false);
+      setAgreementOpen(true);
+    }
+  };
+
 
   return (
     <>
@@ -937,22 +993,13 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
             toast.info("এটি আপনার নিজের প্রডাক্ট / This is your own product");
             return;
           }
+          // Confirm before re-adding an already-listed product to prevent
+          // accidental duplicate resells.
           if (alreadyAdded) {
-            toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
+            setConfirmReaddOpen(true);
             return;
           }
-          let accepted = false;
-          try {
-            accepted = typeof window !== "undefined" && window.localStorage.getItem(agreementKey) === "1";
-          } catch {
-            accepted = false;
-          }
-          if (accepted) {
-            setOpen(true);
-          } else {
-            setAgreed(false);
-            setAgreementOpen(true);
-          }
+          openAddFlow();
         }}
         disabled={disabled || add.isPending}
         aria-disabled={disabled || add.isPending || undefined}
@@ -1222,6 +1269,29 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={confirmReaddOpen} onOpenChange={setConfirmReaddOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Product Already Added</AlertDialogTitle>
+          <AlertDialogDescription>
+            "{row.name}" এই পণ্যটি ইতিমধ্যেই আপনার ওয়েবসাইটে রয়েছে। আপনি কি
+            আবার একটি নতুন কপি যোগ করতে চান? / This product is already in your
+            store. Add another copy?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>বাতিল / Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              setConfirmReaddOpen(false);
+              openAddFlow();
+            }}
+          >
+            আবার যোগ করুন / Add again
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
