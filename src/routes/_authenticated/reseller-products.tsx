@@ -933,6 +933,10 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         variant={alreadyAdded ? "secondary" : "default"}
         className="mt-1 w-full gap-1.5"
         onClick={() => {
+          if (isOwnProduct) {
+            toast.info("এটি আপনার নিজের প্রডাক্ট / This is your own product");
+            return;
+          }
           if (alreadyAdded) {
             toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
             return;
