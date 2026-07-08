@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Truck,
@@ -53,6 +54,14 @@ export function AppSidebar() {
 
   const isActive = (path: string) => pathname === path;
   const handleNavClick = () => { if (isMobile) setOpenMobile(false); };
+
+  // Auto-hide mobile sidebar on any route change (covers link clicks, browser
+  // back/forward, and programmatic navigations).
+  useEffect(() => {
+    if (isMobile) setOpenMobile(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, isMobile]);
+
 
   // Unread notifications for the signed-in user — powers the sidebar badge.
   const unreadQ = useQuery({
