@@ -16,12 +16,16 @@ export const listCategoryMappings = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("reseller_category_mappings" as never)
+    const { data, error } = await (supabaseAdmin as any)
+      .from("reseller_category_mappings")
       .select("id, source, payload_path, fallback_value, priority, notes, created_at, updated_at")
       .order("priority", { ascending: true });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []) as Array<{
+      id: string; source: string | null; payload_path: string | null;
+      fallback_value: string | null; priority: number; notes: string | null;
+      created_at: string; updated_at: string;
+    }>;
   });
 
 const mappingInput = z.object({
