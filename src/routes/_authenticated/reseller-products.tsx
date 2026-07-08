@@ -970,9 +970,11 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
           ? "Adding…"
           : disabled
             ? t("outOfStock")
-            : alreadyAdded
-              ? "ওয়েবসাইটে আছে / Already added"
-              : "Add My Site"}
+            : isOwnProduct
+              ? "Your Product"
+              : alreadyAdded
+                ? "ওয়েবসাইটে আছে / Already added"
+                : "Add My Site"}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
