@@ -81,7 +81,7 @@ export function AppSidebar() {
   const renderItem = (item: { title: string; url: string; icon: any; badge?: string | number }) => (
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild isActive={isActive(item.url)}>
-        <Link to={item.url} className="flex items-center gap-2">
+        <Link to={item.url} onClick={handleNavClick} className="flex items-center gap-2">
           <div className="relative">
             <item.icon className="h-4 w-4 shrink-0" />
             {collapsed && typeof item.badge === "number" && item.badge > 0 && (
