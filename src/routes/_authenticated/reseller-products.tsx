@@ -23,6 +23,7 @@ import { revokeResellerProduct } from "@/lib/admin-settings.functions";
 import { useI18n } from "@/lib/i18n";
 import { sortOutOfStockToBottom, computeIsOutOfStock } from "@/lib/stock-sync-core";
 import eazystoreLogo from "@/assets/sylheti-online-shop-logo.png.asset.json";
+import nusratLogo from "@/assets/nusrat-telecom-logo.png.asset.json";
 
 
 
@@ -325,6 +326,8 @@ function ResellerProductsPage() {
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-[11px] font-bold text-muted-foreground">
                       {s.name === PRIMARY_SUPPLIER ? (
                         <img src={eazystoreLogo.url} alt={s.name} className="h-full w-full object-contain" />
+                      ) : s.name === NUSRAT_SUPPLIER ? (
+                        <img src={nusratLogo.url} alt={s.name} className="h-full w-full object-cover" />
                       ) : initials ? (
                         initials
                       ) : (
@@ -1503,6 +1506,7 @@ function SupplierInfoDialog({
 }) {
   const name = supplierName ?? "";
   const isPrimary = name === PRIMARY_SUPPLIER;
+  const isNusrat = name === NUSRAT_SUPPLIER;
   const initials = name
     .split(/\s+/)
     .map((w) => w[0])
@@ -1520,6 +1524,8 @@ function SupplierInfoDialog({
             <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-sm font-bold text-muted-foreground">
               {isPrimary ? (
                 <img src={eazystoreLogo.url} alt={name} className="h-full w-full object-contain" />
+              ) : isNusrat ? (
+                <img src={nusratLogo.url} alt={name} className="h-full w-full object-cover" />
               ) : initials ? (
                 initials
               ) : (
