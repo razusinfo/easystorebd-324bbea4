@@ -15,6 +15,8 @@ import { ThemeProvider } from "@/lib/theme";
 import { useSiteSettings, useSignedSiteAsset } from "@/lib/site-settings";
 import { registerPwa } from "@/lib/pwa-register";
 import { supabase } from "@/integrations/supabase/client";
+import { PullToRefresh } from "@/components/pull-to-refresh";
+
 
 function NotFoundComponent() {
   return (
@@ -215,7 +217,9 @@ function RootComponent() {
       <ThemeProvider>
         <I18nProvider>
           <SiteSettingsInjector />
+          <PullToRefresh />
           <Outlet />
+
         </I18nProvider>
       </ThemeProvider>
     </QueryClientProvider>
