@@ -975,22 +975,13 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
             toast.info("এটি আপনার নিজের প্রডাক্ট / This is your own product");
             return;
           }
+          // Confirm before re-adding an already-listed product to prevent
+          // accidental duplicate resells.
           if (alreadyAdded) {
-            toast.info("এই পণ্যটি আগে থেকেই আপনার ওয়েবসাইটে আছে / This product is already on your website");
+            setConfirmReaddOpen(true);
             return;
           }
-          let accepted = false;
-          try {
-            accepted = typeof window !== "undefined" && window.localStorage.getItem(agreementKey) === "1";
-          } catch {
-            accepted = false;
-          }
-          if (accepted) {
-            setOpen(true);
-          } else {
-            setAgreed(false);
-            setAgreementOpen(true);
-          }
+          openAddFlow();
         }}
         disabled={disabled || add.isPending}
         aria-disabled={disabled || add.isPending || undefined}
