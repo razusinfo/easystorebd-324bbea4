@@ -800,20 +800,29 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const categories = catsQ.data ?? [];
 
   // Detect if this reseller product is already listed in the user's store.
+  // - "own"      → the original product itself (external_id) belongs to this store.
+  // - "added"    → a resold copy exists with source_reseller_product_id = row.id.
   const alreadyAddedQ = useQuery({
     enabled: !!storeId && !!row.id,
-    queryKey: ["reseller-already-added", storeId, row.id],
+    queryKey: ["reseller-already-added", storeId, row.id, row.external_id],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const orFilter = row.external_id
+        ? `source_reseller_product_id.eq.${row.id},id.eq.${row.external_id}`
+        : `source_reseller_product_id.eq.${row.id}`;
+      const { data, error } = await supabase
         .from("products")
-        .select("id", { count: "exact", head: true })
+        .select("id, source_reseller_product_id")
         .eq("store_id", storeId)
-        .eq("source_reseller_product_id", row.id);
+        .or(orFilter);
       if (error) throw error;
-      return (count ?? 0) > 0;
+      const rows = data ?? [];
+      const isOwn = rows.some((r) => r.id === row.external_id);
+      const added = rows.length > 0;
+      return { added, isOwn };
     },
   });
-  const alreadyAdded = alreadyAddedQ.data === true;
+  const alreadyAdded = alreadyAddedQ.data?.added === true;
+  const isOwnProduct = alreadyAddedQ.data?.isOwn === true;
 
   // Fetch original product's media (images + video). reseller_products.external_id
   // holds the original product's UUID.
