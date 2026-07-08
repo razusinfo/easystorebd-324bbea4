@@ -77,36 +77,55 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
         }
         const p = parsed.data;
 
-        const firstMediaUrl = p.media?.[0]?.url ?? null;
-        const originalImageUrl = p.image ?? firstMediaUrl ?? null;
+        const mediaUrls = (p.media ?? []).map((m) => m.url).filter(Boolean);
+        const candidates: string[] = [];
+        for (const u of [p.image ?? null, ...mediaUrls]) {
+          if (u && !candidates.includes(u)) candidates.push(u);
+        }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // Suppliers ship short-lived signed URLs. Rehost the primary image
-        // into our own bucket so it keeps working after their token expires.
-        let imageUrl: string | null = originalImageUrl;
-        if (originalImageUrl) {
+        // Suppliers ship short-lived signed URLs. Rehost into our own bucket so
+        // the image keeps working after their token expires. Try candidates in
+        // order (primary image, then each media URL) until one succeeds.
+        let imageUrl: string | null = candidates[0] ?? null;
+        let rehostError: string | null = null;
+        for (const src of candidates) {
           try {
-            const res = await fetch(originalImageUrl);
-            if (res.ok) {
-              const buf = new Uint8Array(await res.arrayBuffer());
-              const ct = res.headers.get("content-type") || "image/jpeg";
-              const ext = ct.includes("png") ? "png" : ct.includes("webp") ? "webp" : "jpg";
-              const path = `${p.id}/${Date.now()}.${ext}`;
-              const { error: upErr } = await supabaseAdmin.storage
-                .from("reseller-images")
-                .upload(path, buf, { contentType: ct, upsert: true });
-              if (!upErr) {
-                const { data: signed } = await supabaseAdmin.storage
-                  .from("reseller-images")
-                  .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10 years
-                if (signed?.signedUrl) imageUrl = signed.signedUrl;
-              }
+            const res = await fetch(src, { headers: { "User-Agent": "EazyStore-Sync/1.0" } });
+            if (!res.ok) {
+              rehostError = `fetch ${res.status} ${src.slice(0, 120)}`;
+              continue;
             }
-          } catch {
-            // fall back to the supplier's URL
+            const buf = new Uint8Array(await res.arrayBuffer());
+            const ct = res.headers.get("content-type") || "image/jpeg";
+            const ext = ct.includes("png") ? "png" : ct.includes("webp") ? "webp" : "jpg";
+            const path = `${p.id}/${Date.now()}.${ext}`;
+            const { error: upErr } = await supabaseAdmin.storage
+              .from("reseller-images")
+              .upload(path, buf, { contentType: ct, upsert: true });
+            if (upErr) {
+              rehostError = `upload ${upErr.message}`;
+              continue;
+            }
+            const { data: signed, error: signErr } = await supabaseAdmin.storage
+              .from("reseller-images")
+              .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10 years
+            if (signErr || !signed?.signedUrl) {
+              rehostError = `sign ${signErr?.message ?? "no url"}`;
+              continue;
+            }
+            imageUrl = signed.signedUrl;
+            rehostError = null;
+            break;
+          } catch (e) {
+            rehostError = `exception ${(e as Error).message}`;
           }
         }
+        if (rehostError) {
+          console.warn(`[reseller-sync] rehost failed for ${p.id}: ${rehostError}`);
+        }
+
         const { data, error } = await supabaseAdmin
           .from("reseller_products")
           .upsert(
