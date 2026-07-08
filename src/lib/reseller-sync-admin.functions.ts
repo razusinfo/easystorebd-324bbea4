@@ -87,10 +87,10 @@ export const listResellerSyncStatus = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from("reseller_products")
       .select(
-        "id, external_id, name, source, category, image_url, image_sync_status, image_sync_error, image_sync_attempted_at, category_missing_reason, updated_at" as never,
+        "id, external_id, name, source, category, image_url, image_sync_status, image_sync_error, image_sync_attempted_at, category_missing_reason, updated_at",
       )
       .order("updated_at", { ascending: false })
       .limit(500);
