@@ -962,6 +962,24 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
     },
   });
 
+  const openAddFlow = () => {
+    let accepted = false;
+    try {
+      accepted =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(agreementKey) === "1";
+    } catch {
+      accepted = false;
+    }
+    if (accepted) {
+      setOpen(true);
+    } else {
+      setAgreed(false);
+      setAgreementOpen(true);
+    }
+  };
+
+
   return (
     <>
     <Dialog open={open} onOpenChange={setOpen}>
