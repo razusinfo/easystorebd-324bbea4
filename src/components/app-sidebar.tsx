@@ -3,7 +3,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Truck,
   Store, BarChart3, Palette, Wand2, LayoutTemplate, Smartphone,
   Megaphone, Tag, Settings, LogOut, ShieldCheck, Repeat2, Receipt, Bell, MessageCircle,
-  Send, Wallet,
+  Send, Wallet, RefreshCcw,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -154,6 +154,7 @@ export function AppSidebar() {
                 {renderItem({ title: "Payout Requests", url: "/admin-payouts", icon: Send, badge: "NEW" })}
                 {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
                 {renderItem({ title: "Notifications", url: "/admin-notifications", icon: Bell })}
+                {renderItem({ title: "Sync Status", url: "/admin-reseller-sync-status", icon: RefreshCcw, badge: "NEW" })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
