@@ -946,8 +946,9 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
             setAgreementOpen(true);
           }
         }}
-        disabled={disabled}
-        aria-disabled={disabled || undefined}
+        disabled={disabled || add.isPending}
+        aria-disabled={disabled || add.isPending || undefined}
+        aria-busy={add.isPending || undefined}
         title={
           disabled
             ? t("outOfStockFromSupplier")
@@ -956,12 +957,18 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
               : undefined
         }
       >
-        <StoreIcon className="h-3.5 w-3.5" />{" "}
-        {disabled
-          ? t("outOfStock")
-          : alreadyAdded
-            ? "ওয়েবসাইটে আছে / Already added"
-            : "Add My Site"}
+        {add.isPending ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <StoreIcon className="h-3.5 w-3.5" />
+        )}{" "}
+        {add.isPending
+          ? "Adding…"
+          : disabled
+            ? t("outOfStock")
+            : alreadyAdded
+              ? "ওয়েবসাইটে আছে / Already added"
+              : "Add My Site"}
       </Button>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
