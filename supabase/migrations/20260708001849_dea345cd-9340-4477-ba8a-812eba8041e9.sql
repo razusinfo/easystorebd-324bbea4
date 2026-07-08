@@ -1,0 +1,19 @@
+
+DROP POLICY IF EXISTS "Store owners update store order requests" ON public.order_requests;
+CREATE POLICY "Store owners update store order requests"
+  ON public.order_requests
+  FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM public.stores s WHERE s.id = order_requests.store_id AND s.owner_user_id = auth.uid()))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.stores s WHERE s.id = order_requests.store_id AND s.owner_user_id = auth.uid()));
+
+DROP POLICY IF EXISTS "Read reseller-images" ON storage.objects;
+CREATE POLICY "Read reseller-images"
+  ON storage.objects
+  FOR SELECT
+  USING (
+    bucket_id = 'reseller-images'
+    AND EXISTS (
+      SELECT 1 FROM public.reseller_products rp
+      WHERE rp.external_id = split_part(storage.objects.name, '/', 1)
+    )
+  );
