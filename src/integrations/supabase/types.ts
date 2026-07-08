@@ -972,6 +972,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reseller_category_mappings: {
+        Row: {
+          created_at: string
+          fallback_value: string | null
+          id: string
+          notes: string | null
+          payload_path: string | null
+          priority: number
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fallback_value?: string | null
+          id?: string
+          notes?: string | null
+          payload_path?: string | null
+          priority?: number
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fallback_value?: string | null
+          id?: string
+          notes?: string | null
+          payload_path?: string | null
+          priority?: number
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reseller_marketplace_audit_logs: {
         Row: {
           action: string
@@ -1177,12 +1210,16 @@ export type Database = {
       reseller_products: {
         Row: {
           category: string | null
+          category_missing_reason: string | null
           created_at: string
           description: string | null
           external_id: string
           id: string
           image: string | null
           image_overridden: boolean
+          image_sync_attempted_at: string | null
+          image_sync_error: string | null
+          image_sync_status: string
           image_url: string | null
           is_out_of_stock: boolean | null
           name: string
@@ -1197,12 +1234,16 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          category_missing_reason?: string | null
           created_at?: string
           description?: string | null
           external_id: string
           id?: string
           image?: string | null
           image_overridden?: boolean
+          image_sync_attempted_at?: string | null
+          image_sync_error?: string | null
+          image_sync_status?: string
           image_url?: string | null
           is_out_of_stock?: boolean | null
           name: string
@@ -1217,12 +1258,16 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          category_missing_reason?: string | null
           created_at?: string
           description?: string | null
           external_id?: string
           id?: string
           image?: string | null
           image_overridden?: boolean
+          image_sync_attempted_at?: string | null
+          image_sync_error?: string | null
+          image_sync_status?: string
           image_url?: string | null
           is_out_of_stock?: boolean | null
           name?: string
@@ -1733,6 +1778,7 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
+      can_manage_reseller_sync: { Args: { _user_id: string }; Returns: boolean }
       get_owner_products_full: {
         Args: { _store_id: string }
         Returns: {
