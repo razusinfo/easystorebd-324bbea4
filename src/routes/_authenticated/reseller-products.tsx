@@ -23,6 +23,7 @@ import { revokeResellerProduct } from "@/lib/admin-settings.functions";
 import { useI18n } from "@/lib/i18n";
 import { sortOutOfStockToBottom, computeIsOutOfStock } from "@/lib/stock-sync-core";
 import eazystoreLogo from "@/assets/sylheti-online-shop-logo.png.asset.json";
+import nusratLogo from "@/assets/nusrat-telecom-logo.png.asset.json";
 
 
 
