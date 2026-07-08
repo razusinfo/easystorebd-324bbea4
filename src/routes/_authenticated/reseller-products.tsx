@@ -458,20 +458,36 @@ function ResellerProductsPage() {
       )}
 
       {q.isLoading ? (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {Array.from({ length: 10 }).map((_, i) => (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="overflow-hidden rounded-lg border bg-card">
-              <div className="aspect-square animate-pulse bg-muted" />
-              <div className="space-y-1.5 p-2">
-                <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
+              <div className="aspect-square animate-pulse bg-gradient-to-br from-muted to-muted/60" />
+              <div className="space-y-2 p-2">
+                <div className="h-3 w-4/5 animate-pulse rounded bg-muted" />
                 <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
-                <div className="h-6 w-full animate-pulse rounded bg-muted" />
+                <div className="mt-2 h-7 w-full animate-pulse rounded bg-muted" />
+                <div className="flex gap-1">
+                  <div className="h-6 flex-1 animate-pulse rounded bg-muted/70" />
+                  <div className="h-6 flex-1 animate-pulse rounded bg-muted/70" />
+                </div>
               </div>
             </div>
           ))}
         </div>
       ) : q.error ? (
-        <p className="text-sm text-destructive">Failed to load: {(q.error as Error).message}</p>
+        <Card className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <AlertTriangle className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-semibold">প্রডাক্ট লোড করা যায়নি</p>
+            <p className="text-xs text-muted-foreground break-all">{(q.error as Error).message}</p>
+          </div>
+          <Button type="button" size="sm" variant="outline" onClick={() => q.refetch()}>
+            আবার চেষ্টা করুন / Retry
+          </Button>
+        </Card>
+
       ) : filtered.length === 0 ? (
         <Card className="flex flex-col items-center justify-center gap-2 p-8 text-center">
           <Package className="h-8 w-8 text-muted-foreground" />
@@ -551,12 +567,18 @@ function ResellerProductsPage() {
                   <div className="mt-auto flex flex-col gap-1 pt-1">
                     {storeId && <AddToMyShopButton row={p} storeId={storeId} disabled={outOfStock} />}
                     {(userId || isSuperAdmin.data) && (
-                      <div className="flex w-full gap-1">
-                        {isSuperAdmin.data
-                          ? <AdminEditResellerButton row={p} />
-                          : userId && <EditResellerButton row={p} userId={userId} />}
-                        {isSuperAdmin.data && <AdminRevokeButton row={p} />}
-                      </div>
+                      <details className="group w-full sm:open:!block [&:not([open])>div]:hidden sm:[&:not([open])>div]:!flex" open>
+                        <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-1.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted sm:hidden">
+                          <span>আরো অপশন / More</span>
+                          <span className="transition-transform group-open:rotate-180">▾</span>
+                        </summary>
+                        <div className="mt-1 flex w-full gap-1">
+                          {isSuperAdmin.data
+                            ? <AdminEditResellerButton row={p} />
+                            : userId && <EditResellerButton row={p} userId={userId} />}
+                          {isSuperAdmin.data && <AdminRevokeButton row={p} />}
+                        </div>
+                      </details>
                     )}
                   </div>
 
@@ -570,6 +592,8 @@ function ResellerProductsPage() {
     </div>
   );
 }
+
+
 
 function CopyLinkButton({
   url,
