@@ -709,7 +709,7 @@ function EditResellerButton({ row, userId }: { row: DisplayRow; userId: string }
         type="button"
         variant="outline"
         size="sm"
-        className="mt-1 w-full gap-1.5"
+        className="flex-1 gap-1.5"
         onClick={() => setOpen(true)}
       >
         <Pencil className="h-3.5 w-3.5" /> Edit
