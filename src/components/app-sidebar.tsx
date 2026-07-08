@@ -46,12 +46,13 @@ const growthItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isAdmin = useIsSuperAdmin();
 
   const isActive = (path: string) => pathname === path;
+  const handleNavClick = () => { if (isMobile) setOpenMobile(false); };
 
   // Unread notifications for the signed-in user — powers the sidebar badge.
   const unreadQ = useQuery({
