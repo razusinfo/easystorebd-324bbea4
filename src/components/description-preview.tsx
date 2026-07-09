@@ -3,14 +3,21 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 
 /**
- * Renders a live preview of markdown-ish text used by the Product Description
- * editor. Uses `marked` for parsing and DOMPurify to strip any unsafe HTML
- * (while allowing the <u> tags the toolbar inserts for underline).
+ * Renders a live preview of the Product Description. The editor now emits
+ * sanitized HTML (WYSIWYG). Legacy products may still contain markdown-only
+ * strings, so we detect that shape and route through `marked` first.
  */
 export function DescriptionPreview({ markdown }: { markdown: string }) {
   const html = useMemo(() => {
-    const raw = marked.parse(markdown || "", { async: false, breaks: true }) as string;
-    return DOMPurify.sanitize(raw, { ADD_TAGS: ["u"] });
+    const src = markdown || "";
+    const looksLikeHtml = /<[a-z][\s\S]*>/i.test(src);
+    const raw = looksLikeHtml
+      ? src
+      : (marked.parse(src, { async: false, breaks: true }) as string);
+    return DOMPurify.sanitize(raw, {
+      ADD_TAGS: ["u"],
+      ADD_ATTR: ["target", "rel"],
+    });
   }, [markdown]);
 
   if (!markdown.trim()) {
