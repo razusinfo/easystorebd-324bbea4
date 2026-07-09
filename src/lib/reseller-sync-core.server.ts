@@ -65,6 +65,60 @@ export async function rehostImageFromCandidates(
   return { imageUrl: unique[0] ?? null, status: "failed", error: lastError, attempted_at };
 }
 
+export type RehostAllResult = {
+  imageUrls: string[];
+  status: "ok" | "partial" | "failed" | "skipped";
+  error: string | null;
+  attempted_at: string;
+};
+
+// Rehost every candidate URL. Returns all that succeeded, in original order.
+export async function rehostAllImages(
+  supabaseAdmin: SupabaseAdmin,
+  externalId: string,
+  candidates: string[],
+): Promise<RehostAllResult> {
+  const attempted_at = new Date().toISOString();
+  const unique = Array.from(new Set(candidates.filter(Boolean)));
+  if (unique.length === 0) {
+    return { imageUrls: [], status: "skipped", error: "no image URLs provided", attempted_at };
+  }
+  const successes: string[] = [];
+  const errors: string[] = [];
+  for (const src of unique) {
+    try {
+      const res = await fetch(src, { headers: { "User-Agent": "EazyStore-Sync/1.0" } });
+      if (!res.ok) { errors.push(`fetch ${res.status} — ${src.slice(0, 100)}`); continue; }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      if (buf.byteLength === 0) { errors.push(`empty — ${src.slice(0, 100)}`); continue; }
+      const ct = res.headers.get("content-type") || "image/jpeg";
+      const ext = ct.includes("png") ? "png" : ct.includes("webp") ? "webp" : ct.includes("gif") ? "gif" : "jpg";
+      const path = `${externalId}/${Date.now()}-${successes.length}.${ext}`;
+      const { error: upErr } = await supabaseAdmin.storage
+        .from("reseller-images")
+        .upload(path, buf, { contentType: ct, upsert: true });
+      if (upErr) { errors.push(`upload ${upErr.message}`); continue; }
+      const { data: signed, error: signErr } = await supabaseAdmin.storage
+        .from("reseller-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signErr || !signed?.signedUrl) { errors.push(`sign ${signErr?.message ?? "no url"}`); continue; }
+      successes.push(signed.signedUrl);
+    } catch (e) {
+      errors.push(`exception ${(e as Error).message}`);
+    }
+  }
+  const status: RehostAllResult["status"] =
+    successes.length === 0 ? "failed"
+    : successes.length === unique.length ? "ok"
+    : "partial";
+  return {
+    imageUrls: successes,
+    status,
+    error: errors.length ? errors.join("; ") : null,
+    attempted_at,
+  };
+}
+
 // Dotted-path getter, e.g. getByPath({a:{b:"x"}}, "a.b") === "x".
 export function getByPath(obj: unknown, path: string): unknown {
   if (!obj || !path) return undefined;
