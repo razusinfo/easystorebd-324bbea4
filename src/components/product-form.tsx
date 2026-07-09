@@ -688,10 +688,11 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
               <Field label="Product Description">
                 <RichTextEditor
                   value={form.description}
-                  onChange={(html) => set("description", html)}
+                  onChange={(html: string) => set("description", html)}
                   placeholder="Write something..."
                 />
               </Field>
+
 
               <Field label="Live Preview">
                 <DescriptionPreview markdown={form.description} />
