@@ -684,70 +684,13 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 />
               </Field>
               <Field label="Product Description">
-                <div className="rounded-md border border-input bg-background">
-                  <div className="flex flex-wrap items-center gap-0.5 border-b border-input px-2 py-1.5 text-foreground/70">
-                    <select
-                      className="mr-1 h-7 rounded-sm border border-input bg-background px-2 text-xs"
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        const map: Record<string, string> = { h1: "# ", h2: "## ", h3: "### ", p: "" };
-                        applyDescLinePrefix(map[v] ?? "");
-                        e.currentTarget.value = "p";
-                      }}
-                      defaultValue="p"
-                    >
-                      <option value="p">Normal</option>
-                      <option value="h1">Heading 1</option>
-                      <option value="h2">Heading 2</option>
-                      <option value="h3">Heading 3</option>
-                    </select>
-                    <ToolbarBtn title="Bold" onClick={() => wrapDesc("**", "**")}><Bold className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Italic" onClick={() => wrapDesc("*", "*")}><Italic className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Underline" onClick={() => wrapDesc("<u>", "</u>")}><Underline className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Quote" onClick={() => applyDescLinePrefix("> ")}><Quote className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <span className="mx-1 h-4 w-px bg-border" />
-                    <ToolbarBtn title="Underline text" onClick={() => wrapDesc("<u>", "</u>")}><span className="text-xs font-bold underline">A</span></ToolbarBtn>
-                    <ToolbarBtn title="Numbered list" onClick={() => applyDescLinePrefix("1. ")}><ListOrdered className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Bulleted list" onClick={() => applyDescLinePrefix("- ")}><List className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <span className="mx-1 h-4 w-px bg-border" />
-                    <ToolbarBtn title="Insert link" onClick={() => {
-                      const url = window.prompt("Enter URL");
-                      if (url) wrapDesc("[", `](${url})`);
-                    }}><Link2 className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Insert image" onClick={() => {
-                      const url = window.prompt("Enter image URL");
-                      if (url) insertDesc(`![image](${url})`);
-                    }}><ImageIcon className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Clear formatting" onClick={() => {
-                      const ta = descRef.current;
-                      if (!ta) return;
-                      const { selectionStart: s, selectionEnd: e } = ta;
-                      if (s === e) return;
-                      const sel = form.description.slice(s, e);
-                      const cleaned = sel
-                        .replace(/<\/?[^>]+>/g, "")
-                        .replace(/^\s*(?:[-*+]|\d+\.|>)\s+/gm, "")
-                        .replace(/^#{1,6}\s+/gm, "")
-                        .replace(/(\*\*|__)(.*?)\1/g, "$2")
-                        .replace(/(\*|_)(.*?)\1/g, "$2")
-                        .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1");
-                      const next = form.description.slice(0, s) + cleaned + form.description.slice(e);
-                      set("description", next);
-                      requestAnimationFrame(() => {
-                        ta.focus();
-                        ta.setSelectionRange(s, s + cleaned.length);
-                      });
-                    }}><Eraser className="h-3.5 w-3.5" /></ToolbarBtn>
-                  </div>
-                  <Textarea
-                    ref={descRef}
-                    placeholder="Write something..."
-                    value={form.description}
-                    onChange={(e) => set("description", e.target.value)}
-                    className="min-h-[140px] rounded-none border-0 focus-visible:ring-0"
-                  />
-                </div>
+                <RichTextEditor
+                  value={form.description}
+                  onChange={(html) => set("description", html)}
+                  placeholder="Write something..."
+                />
               </Field>
+
               <Field label="Live Preview">
                 <DescriptionPreview markdown={form.description} />
               </Field>
