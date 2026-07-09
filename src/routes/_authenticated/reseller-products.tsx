@@ -56,6 +56,7 @@ type ResellerRow = {
   price_overridden: boolean | null;
   image_overridden: boolean | null;
   stock: number;
+  gallery_urls?: string[] | null;
 };
 
 const ALL = "__all__";
