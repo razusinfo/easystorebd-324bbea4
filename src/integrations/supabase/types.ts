@@ -1214,6 +1214,7 @@ export type Database = {
           created_at: string
           description: string | null
           external_id: string
+          gallery_urls: string[]
           id: string
           image: string | null
           image_overridden: boolean
@@ -1238,6 +1239,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           external_id: string
+          gallery_urls?: string[]
           id?: string
           image?: string | null
           image_overridden?: boolean
@@ -1262,6 +1264,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           external_id?: string
+          gallery_urls?: string[]
           id?: string
           image?: string | null
           image_overridden?: boolean

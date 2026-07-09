@@ -56,6 +56,7 @@ type ResellerRow = {
   price_overridden: boolean | null;
   image_overridden: boolean | null;
   stock: number;
+  gallery_urls?: string[] | null;
 };
 
 const ALL = "__all__";
@@ -137,7 +138,7 @@ function ResellerProductsPage() {
       const { data, error } = await supabase
         .from("reseller_products")
         .select(
-          "id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden, stock, user_reseller_settings(id, custom_price, custom_description, custom_image, user_id)",
+          "id, external_id, name, description, image_url, image, price, reseller_price, category, source, updated_at, price_overridden, image_overridden, stock, gallery_urls, user_reseller_settings(id, custom_price, custom_description, custom_image, user_id)",
         )
         .eq("user_reseller_settings.user_id", userId as string)
         .order("updated_at", { ascending: false });
@@ -1258,6 +1259,9 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       };
       pushImg(data?.image_url ?? row.image_url ?? row.image);
       (data?.gallery_urls ?? []).forEach(pushImg);
+      // Also include gallery images the supplier pushed via the webhook
+      // (rehosted into our own bucket, stored on reseller_products directly).
+      (row.gallery_urls ?? []).forEach(pushImg);
       if (data?.video_url && !seen.has(data.video_url)) {
         seen.add(data.video_url);
         items.push({ url: data.video_url, kind: "video" });
