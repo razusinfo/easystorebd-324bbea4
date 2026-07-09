@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Bold, Check, ChevronDown, ChevronUp, Copy, Eraser, ImageIcon, Italic, Link2,
-  List, ListOrdered, Loader2, Plus, Quote, Trash2, Underline, Upload, Video, X,
+  Check, ChevronDown, ChevronUp, Copy, ImageIcon, Link2, Loader2, Plus, Trash2, Upload, Video, X,
 } from "lucide-react";
+
+
 
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,6 +27,8 @@ import { syncResellerProduct } from "@/lib/reseller-sync.functions";
 import { upsertLocalResellerProduct } from "@/lib/reseller-local.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
 import { DescriptionPreview } from "@/components/description-preview";
+import { RichTextEditor } from "@/components/rich-text-editor";
+
 
 
 
@@ -138,64 +141,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
-  // --- Rich-text-ish helpers for the Product Description textarea ---
-  const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const wrapDesc = (before: string, after: string) => {
-    const ta = descRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    setForm((prev) => {
-      const text = prev.description;
-      const selected = text.slice(start, end);
-      const next = text.slice(0, start) + before + selected + after + text.slice(end);
-      requestAnimationFrame(() => {
-        ta.focus();
-        const cursor = start + before.length + selected.length;
-        ta.setSelectionRange(cursor, cursor);
-      });
-      return { ...prev, description: next };
-    });
-  };
-  const insertDesc = (snippet: string) => {
-    const ta = descRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    setForm((prev) => {
-      const text = prev.description;
-      const next = text.slice(0, start) + snippet + text.slice(end);
-      requestAnimationFrame(() => {
-        ta.focus();
-        const cursor = start + snippet.length;
-        ta.setSelectionRange(cursor, cursor);
-      });
-      return { ...prev, description: next };
-    });
-  };
-  const applyDescLinePrefix = (prefix: string) => {
-    const ta = descRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    setForm((prev) => {
-      const text = prev.description;
-      const lineStart = text.lastIndexOf("\n", Math.max(start - 1, 0)) + 1;
-      const lineEndIdx = text.indexOf("\n", end);
-      const lineEnd = lineEndIdx === -1 ? text.length : lineEndIdx;
-      const block = text.slice(lineStart, lineEnd);
-      const stripped = block.replace(/^(?:#{1,6}\s+|>\s+|[-*+]\s+|\d+\.\s+)/gm, "");
-      const prefixed = prefix
-        ? stripped.split("\n").map((l) => prefix + l).join("\n")
-        : stripped;
-      const next = text.slice(0, lineStart) + prefixed + text.slice(lineEnd);
-      requestAnimationFrame(() => {
-        ta.focus();
-        ta.setSelectionRange(lineStart, lineStart + prefixed.length);
-      });
-      return { ...prev, description: next };
-    });
-  };
+  // Product Description now uses <RichTextEditor/> (WYSIWYG) — no textarea ref
+  // or markdown helpers needed here.
+
+
 
 
   const editing = useMemo<ProductRow | undefined>(
@@ -684,70 +633,14 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 />
               </Field>
               <Field label="Product Description">
-                <div className="rounded-md border border-input bg-background">
-                  <div className="flex flex-wrap items-center gap-0.5 border-b border-input px-2 py-1.5 text-foreground/70">
-                    <select
-                      className="mr-1 h-7 rounded-sm border border-input bg-background px-2 text-xs"
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        const map: Record<string, string> = { h1: "# ", h2: "## ", h3: "### ", p: "" };
-                        applyDescLinePrefix(map[v] ?? "");
-                        e.currentTarget.value = "p";
-                      }}
-                      defaultValue="p"
-                    >
-                      <option value="p">Normal</option>
-                      <option value="h1">Heading 1</option>
-                      <option value="h2">Heading 2</option>
-                      <option value="h3">Heading 3</option>
-                    </select>
-                    <ToolbarBtn title="Bold" onClick={() => wrapDesc("**", "**")}><Bold className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Italic" onClick={() => wrapDesc("*", "*")}><Italic className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Underline" onClick={() => wrapDesc("<u>", "</u>")}><Underline className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Quote" onClick={() => applyDescLinePrefix("> ")}><Quote className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <span className="mx-1 h-4 w-px bg-border" />
-                    <ToolbarBtn title="Underline text" onClick={() => wrapDesc("<u>", "</u>")}><span className="text-xs font-bold underline">A</span></ToolbarBtn>
-                    <ToolbarBtn title="Numbered list" onClick={() => applyDescLinePrefix("1. ")}><ListOrdered className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Bulleted list" onClick={() => applyDescLinePrefix("- ")}><List className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <span className="mx-1 h-4 w-px bg-border" />
-                    <ToolbarBtn title="Insert link" onClick={() => {
-                      const url = window.prompt("Enter URL");
-                      if (url) wrapDesc("[", `](${url})`);
-                    }}><Link2 className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Insert image" onClick={() => {
-                      const url = window.prompt("Enter image URL");
-                      if (url) insertDesc(`![image](${url})`);
-                    }}><ImageIcon className="h-3.5 w-3.5" /></ToolbarBtn>
-                    <ToolbarBtn title="Clear formatting" onClick={() => {
-                      const ta = descRef.current;
-                      if (!ta) return;
-                      const { selectionStart: s, selectionEnd: e } = ta;
-                      if (s === e) return;
-                      const sel = form.description.slice(s, e);
-                      const cleaned = sel
-                        .replace(/<\/?[^>]+>/g, "")
-                        .replace(/^\s*(?:[-*+]|\d+\.|>)\s+/gm, "")
-                        .replace(/^#{1,6}\s+/gm, "")
-                        .replace(/(\*\*|__)(.*?)\1/g, "$2")
-                        .replace(/(\*|_)(.*?)\1/g, "$2")
-                        .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1");
-                      const next = form.description.slice(0, s) + cleaned + form.description.slice(e);
-                      set("description", next);
-                      requestAnimationFrame(() => {
-                        ta.focus();
-                        ta.setSelectionRange(s, s + cleaned.length);
-                      });
-                    }}><Eraser className="h-3.5 w-3.5" /></ToolbarBtn>
-                  </div>
-                  <Textarea
-                    ref={descRef}
-                    placeholder="Write something..."
-                    value={form.description}
-                    onChange={(e) => set("description", e.target.value)}
-                    className="min-h-[140px] rounded-none border-0 focus-visible:ring-0"
-                  />
-                </div>
+                <RichTextEditor
+                  value={form.description}
+                  onChange={(html: string) => set("description", html)}
+                  placeholder="Write something..."
+                />
               </Field>
+
+
               <Field label="Live Preview">
                 <DescriptionPreview markdown={form.description} />
               </Field>
