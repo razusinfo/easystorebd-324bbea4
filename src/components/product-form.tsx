@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Check, ChevronDown, ChevronUp, Copy, Loader2, Plus, Trash2, Upload, Video, X,
+  Check, ChevronDown, ChevronUp, Copy, ImageIcon, Link2, Loader2, Plus, Trash2, Upload, Video, X,
 } from "lucide-react";
+
 
 
 import { toast } from "sonner";
