@@ -1245,7 +1245,9 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   // holds the original product's UUID.
   const mediaQ = useQuery({
     enabled: open && !!row.external_id,
-    queryKey: ["reseller-product-media", row.external_id],
+    queryKey: ["reseller-product-media", row.external_id, row.id],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     queryFn: async (): Promise<MediaItem[]> => {
       const { data } = await supabase
         .from("products")
@@ -1269,6 +1271,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       return items;
     },
   });
+
   const media = mediaQ.data ?? [];
 
   useEffect(() => {
