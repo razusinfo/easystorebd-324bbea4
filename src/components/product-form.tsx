@@ -141,64 +141,10 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
-  // --- Rich-text-ish helpers for the Product Description textarea ---
-  const descRef = useRef<HTMLTextAreaElement | null>(null);
-  const wrapDesc = (before: string, after: string) => {
-    const ta = descRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    setForm((prev) => {
-      const text = prev.description;
-      const selected = text.slice(start, end);
-      const next = text.slice(0, start) + before + selected + after + text.slice(end);
-      requestAnimationFrame(() => {
-        ta.focus();
-        const cursor = start + before.length + selected.length;
-        ta.setSelectionRange(cursor, cursor);
-      });
-      return { ...prev, description: next };
-    });
-  };
-  const insertDesc = (snippet: string) => {
-    const ta = descRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    setForm((prev) => {
-      const text = prev.description;
-      const next = text.slice(0, start) + snippet + text.slice(end);
-      requestAnimationFrame(() => {
-        ta.focus();
-        const cursor = start + snippet.length;
-        ta.setSelectionRange(cursor, cursor);
-      });
-      return { ...prev, description: next };
-    });
-  };
-  const applyDescLinePrefix = (prefix: string) => {
-    const ta = descRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    setForm((prev) => {
-      const text = prev.description;
-      const lineStart = text.lastIndexOf("\n", Math.max(start - 1, 0)) + 1;
-      const lineEndIdx = text.indexOf("\n", end);
-      const lineEnd = lineEndIdx === -1 ? text.length : lineEndIdx;
-      const block = text.slice(lineStart, lineEnd);
-      const stripped = block.replace(/^(?:#{1,6}\s+|>\s+|[-*+]\s+|\d+\.\s+)/gm, "");
-      const prefixed = prefix
-        ? stripped.split("\n").map((l) => prefix + l).join("\n")
-        : stripped;
-      const next = text.slice(0, lineStart) + prefixed + text.slice(lineEnd);
-      requestAnimationFrame(() => {
-        ta.focus();
-        ta.setSelectionRange(lineStart, lineStart + prefixed.length);
-      });
-      return { ...prev, description: next };
-    });
-  };
+  // Product Description now uses <RichTextEditor/> (WYSIWYG) — no textarea ref
+  // or markdown helpers needed here.
+
+
 
 
   const editing = useMemo<ProductRow | undefined>(
