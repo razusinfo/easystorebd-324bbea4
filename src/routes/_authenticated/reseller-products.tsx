@@ -1557,12 +1557,21 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
                           onChange={() => toggleMedia(m.url)}
                         />
                         {m.kind === "image" ? (
-                          <img src={m.url} alt="" className="aspect-square w-full object-cover" />
+                          <img
+                            src={m.url}
+                            alt=""
+                            className="aspect-square w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            width={160}
+                            height={160}
+                          />
                         ) : (
                           <video
                             src={m.url}
                             className="aspect-square w-full bg-black object-cover"
                             muted
+                            preload="metadata"
                           />
                         )}
                         <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[9px] text-white">
@@ -1575,7 +1584,46 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
                 <p className="text-[11px] text-muted-foreground">
                   {selectedMedia.length} / {media.length} নির্বাচিত / selected
                 </p>
+                {selectedMedia.filter((m) => m.kind === "image").length > 0 && (
+                  <div className="rounded-md border bg-muted/30 p-2">
+                    <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">
+                      ইম্পোর্ট অর্ডার প্রিভিউ / Import order preview
+                    </p>
+                    <div className="flex gap-1.5 overflow-x-auto">
+                      {selectedMedia
+                        .filter((m) => m.kind === "image")
+                        .map((m, idx) => (
+                          <div
+                            key={m.url}
+                            className="relative h-14 w-14 shrink-0 overflow-hidden rounded border"
+                            title={idx === 0 ? "Primary image" : `Gallery #${idx}`}
+                          >
+                            <img
+                              src={m.url}
+                              alt=""
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                              width={56}
+                              height={56}
+                            />
+                            <span
+                              className={`absolute left-0 top-0 rounded-br px-1 text-[9px] font-bold text-white ${
+                                idx === 0 ? "bg-primary" : "bg-black/60"
+                              }`}
+                            >
+                              {idx === 0 ? "1★" : idx + 1}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      ★ = প্রাইমারি ছবি (দোকান কার্ড ও ইনভয়েসে) / Primary image (shown on shop card & invoice)
+                    </p>
+                  </div>
+                )}
               </>
+
             )}
           </div>
         </div>
