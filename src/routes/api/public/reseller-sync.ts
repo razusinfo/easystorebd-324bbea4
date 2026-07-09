@@ -126,15 +126,17 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { rehostImageFromCandidates, resolveCategory } = await import(
+        const { rehostAllImages, resolveCategory } = await import(
           "@/lib/reseller-sync-core.server"
         );
 
         const supplierSource = p.supplier_name ?? p.source;
-        const rehost = await rehostImageFromCandidates(supabaseAdmin as never, p.id, candidates);
+        const rehost = await rehostAllImages(supabaseAdmin as never, p.id, candidates);
         if (rehost.status === "failed") {
           console.warn(`[reseller-sync] image rehost failed for ${p.id}: ${rehost.error}`);
         }
+        const primaryImage = rehost.imageUrls[0] ?? null;
+        const galleryImages = rehost.imageUrls.slice(1);
 
         const categoryRes = await resolveCategory(
           supabaseAdmin as never,
@@ -150,8 +152,9 @@ export const Route = createFileRoute("/api/public/reseller-sync")({
               external_id: p.id,
               name: p.name,
               description: p.description ?? null,
-              image: rehost.imageUrl,
-              image_url: rehost.imageUrl,
+              image: primaryImage,
+              image_url: primaryImage,
+              gallery_urls: galleryImages,
               price: p.price,
               reseller_price: p.reseller_price,
               stock: p.stock,
