@@ -61,7 +61,7 @@ export async function runCopyResellerProduct(
     const { data: source, error: srcErr } = await adminSupabase
       .from("reseller_products")
       .select(
-        "id, external_id, original_product_id, name, description, image, image_url, price, reseller_price, category, stock",
+        "id, external_id, original_product_id, name, description, image, image_url, gallery_urls, price, reseller_price, category, stock",
       )
       .eq("id", input.reseller_product_id)
       .maybeSingle();
