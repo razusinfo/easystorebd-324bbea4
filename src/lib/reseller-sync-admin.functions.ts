@@ -110,17 +110,17 @@ export const retryImageRehost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { rehostImageFromCandidates } = await import("./reseller-sync-core.server");
+    const { rehostAllImages } = await import("./reseller-sync-core.server");
 
     const { data: row, error: readErr } = await supabaseAdmin
       .from("reseller_products")
-      .select("id, external_id, image, image_url, payload")
+      .select("id, external_id, image, image_url, gallery_urls, payload")
       .eq("id", data.reseller_product_id)
       .maybeSingle();
     if (readErr) throw new Error(readErr.message);
     if (!row) throw new Response("Not found", { status: 404 });
 
-    // Collect all candidates: current stored url, original payload.image, and payload.media[].
+    // Collect all candidates: original payload.image, payload.media[], then stored fallbacks.
     const payload = ((row as any).payload ?? {}) as Record<string, unknown>;
     const media = Array.isArray((payload as any).media) ? ((payload as any).media as Array<{ url?: string }>) : [];
     const candidates: string[] = [];
@@ -133,21 +133,25 @@ export const retryImageRehost = createServerFn({ method: "POST" })
       if (typeof u === "string" && u && !candidates.includes(u)) candidates.push(u);
     }
 
-    const result = await rehostImageFromCandidates(supabaseAdmin as never, (row as any).external_id, candidates);
+    const result = await rehostAllImages(supabaseAdmin as never, (row as any).external_id, candidates);
+    const primary = result.imageUrls[0] ?? null;
+    const gallery = result.imageUrls.slice(1);
     const update: Record<string, unknown> = {
       image_sync_status: result.status,
       image_sync_error: result.error,
       image_sync_attempted_at: result.attempted_at,
       updated_at: new Date().toISOString(),
     };
-    if (result.status === "ok" && result.imageUrl) {
-      update.image = result.imageUrl;
-      update.image_url = result.imageUrl;
+    if (result.imageUrls.length > 0) {
+      update.image = primary;
+      update.image_url = primary;
+      update.gallery_urls = gallery;
     }
     const { error: updErr } = await supabaseAdmin
       .from("reseller_products")
       .update(update as never)
       .eq("id", data.reseller_product_id);
     if (updErr) throw new Error(updErr.message);
-    return { ok: true, status: result.status, error: result.error, imageUrl: result.imageUrl };
+    return { ok: true, status: result.status, error: result.error, imageUrl: primary, gallery };
+  });
   });
