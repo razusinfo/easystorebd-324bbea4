@@ -185,6 +185,127 @@ describe("runCopyResellerProduct (role-based)", () => {
       actor_role: "reseller",
     });
   });
+
+  it("multi-image supplier: preserves selection order → primary is first checked, gallery is remainder", async () => {
+    // Simulates the end-to-end path: supplier pushes 4 images via webhook →
+    // rehostAllImages stores them on reseller_products (or products.gallery_urls).
+    // Reseller opens 'Add to My Shop', deselects one, and confirms. The insert
+    // that lands on public.products (and therefore the order_items.image
+    // snapshot used by invoices) must reflect the user's selection in order.
+    const ORIGINAL_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+    const IMG_1 = "https://cdn.example.com/hero.jpg";
+    const IMG_2 = "https://cdn.example.com/back.jpg";
+    const IMG_3 = "https://cdn.example.com/side.jpg";
+    const IMG_4 = "https://cdn.example.com/box.jpg";
+
+    const sourceWithGallery = {
+      ...sourceRow,
+      original_product_id: ORIGINAL_ID,
+      image_url: IMG_1,
+      gallery_urls: [IMG_2, IMG_3, IMG_4],
+    };
+    const originalProduct = {
+      category_id: null,
+      warranty: null,
+      product_serial: null,
+      sku: null,
+      brand: null,
+      condition: "new",
+      short_description: null,
+      image_url: IMG_1,
+      video_url: null,
+      gallery_urls: [IMG_2, IMG_3, IMG_4],
+    };
+
+    const { client: admin, inserts } = createSupabaseHarness({
+      reseller_products: { maybeSingle: { data: sourceWithGallery, error: null } },
+      stores: { maybeSingle: { data: { id: "store-1" }, error: null } },
+      product_categories: { maybeSingle: { data: { id: INPUT.category_id }, error: null } },
+      products: [
+        { maybeSingle: { data: originalProduct, error: null } },
+        { maybeSingle: { data: null, error: null } },
+        { maybeSingle: { data: null, error: null } },
+        { single: { data: { id: "new-product-id" }, error: null } },
+      ],
+      reseller_marketplace_audit_logs: {},
+    });
+
+    // Reseller deselects IMG_2 in the dialog, keeps IMG_1, IMG_3, IMG_4.
+    const selected = [IMG_1, IMG_3, IMG_4];
+
+    await runCopyResellerProduct(
+      { ...INPUT, selected_media: selected },
+      {
+        userSupabase: userClientWithRole("reseller") as never,
+        adminSupabase: admin as never,
+        userId: "reseller-user",
+      },
+    );
+
+    const productInsert = inserts.find((i) => i.table === "products")!;
+    // Primary image = first checked → drives shop card + order_items.image snapshot for invoices.
+    expect(productInsert.payload.image_url).toBe(IMG_1);
+    // Gallery preserves supplier order minus the deselected image; primary is not duplicated.
+    expect(productInsert.payload.gallery_urls).toEqual([IMG_3, IMG_4]);
+    // Deselected image is fully absent from the copy.
+    const blob = JSON.stringify(productInsert.payload);
+    expect(blob).not.toContain(IMG_2);
+  });
+
+  it("multi-image supplier: deselecting the primary promotes the next checked image", async () => {
+    const ORIGINAL_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbc";
+    const IMG_1 = "https://cdn.example.com/a.jpg";
+    const IMG_2 = "https://cdn.example.com/b.jpg";
+    const IMG_3 = "https://cdn.example.com/c.jpg";
+
+    const sourceWithGallery = {
+      ...sourceRow,
+      original_product_id: ORIGINAL_ID,
+      image_url: IMG_1,
+      gallery_urls: [IMG_2, IMG_3],
+    };
+    const originalProduct = {
+      category_id: null,
+      warranty: null,
+      product_serial: null,
+      sku: null,
+      brand: null,
+      condition: "new",
+      short_description: null,
+      image_url: IMG_1,
+      video_url: null,
+      gallery_urls: [IMG_2, IMG_3],
+    };
+
+    const { client: admin, inserts } = createSupabaseHarness({
+      reseller_products: { maybeSingle: { data: sourceWithGallery, error: null } },
+      stores: { maybeSingle: { data: { id: "store-1" }, error: null } },
+      product_categories: { maybeSingle: { data: { id: INPUT.category_id }, error: null } },
+      products: [
+        { maybeSingle: { data: originalProduct, error: null } },
+        { maybeSingle: { data: null, error: null } },
+        { maybeSingle: { data: null, error: null } },
+        { single: { data: { id: "new-product-id" }, error: null } },
+      ],
+      reseller_marketplace_audit_logs: {},
+    });
+
+    // Reseller deselects the primary; IMG_2 must be promoted.
+    await runCopyResellerProduct(
+      { ...INPUT, selected_media: [IMG_2, IMG_3] },
+      {
+        userSupabase: userClientWithRole("reseller") as never,
+        adminSupabase: admin as never,
+        userId: "reseller-user",
+      },
+    );
+
+    const productInsert = inserts.find((i) => i.table === "products")!;
+    expect(productInsert.payload.image_url).toBe(IMG_2);
+    expect(productInsert.payload.gallery_urls).toEqual([IMG_3]);
+    expect(JSON.stringify(productInsert.payload)).not.toContain(IMG_1);
+  });
 });
+
 
 
