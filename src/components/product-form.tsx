@@ -26,6 +26,8 @@ import { syncResellerProduct } from "@/lib/reseller-sync.functions";
 import { upsertLocalResellerProduct } from "@/lib/reseller-local.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
 import { DescriptionPreview } from "@/components/description-preview";
+import { RichTextEditor } from "@/components/rich-text-editor";
+
 
 
 
