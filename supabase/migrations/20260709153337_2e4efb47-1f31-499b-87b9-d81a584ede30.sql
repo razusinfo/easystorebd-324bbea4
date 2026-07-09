@@ -1,0 +1,1 @@
+ALTER TABLE public.reseller_products ADD COLUMN IF NOT EXISTS gallery_urls text[] NOT NULL DEFAULT ARRAY[]::text[];
