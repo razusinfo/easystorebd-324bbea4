@@ -1259,6 +1259,9 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       };
       pushImg(data?.image_url ?? row.image_url ?? row.image);
       (data?.gallery_urls ?? []).forEach(pushImg);
+      // Also include gallery images the supplier pushed via the webhook
+      // (rehosted into our own bucket, stored on reseller_products directly).
+      (row.gallery_urls ?? []).forEach(pushImg);
       if (data?.video_url && !seen.has(data.video_url)) {
         seen.add(data.video_url);
         items.push({ url: data.video_url, kind: "video" });
