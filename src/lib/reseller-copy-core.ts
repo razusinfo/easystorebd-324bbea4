@@ -173,9 +173,13 @@ export async function runCopyResellerProduct(
 
     const sellingPrice = input.custom_price != null ? Number(input.custom_price) : Number(price);
 
-    // Assemble media set from original product (fallback to reseller_products image).
+    // Assemble media set from original product; fall back to reseller_products
+    // (which now stores rehosted supplier gallery images).
+    const sourceGallery = Array.isArray((source as any).gallery_urls) ? (source as any).gallery_urls as string[] : [];
     const originalPrimary = original?.image_url ?? source.image_url ?? source.image ?? null;
-    const originalGallery = Array.isArray(original?.gallery_urls) ? original!.gallery_urls! : [];
+    const originalGallery = Array.isArray(original?.gallery_urls) && original!.gallery_urls!.length > 0
+      ? original!.gallery_urls!
+      : sourceGallery;
     const originalVideo = original?.video_url ?? null;
 
     const allMedia = [
