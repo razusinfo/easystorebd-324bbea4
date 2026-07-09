@@ -530,7 +530,7 @@ function ResellerProductsPage() {
               >
                 <div className="relative aspect-square bg-muted">
                   {img ? (
-                    <img src={img} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
+                    <img src={img} alt={p.name} className="h-full w-full object-cover" loading="lazy" decoding="async" width={320} height={320} />
                   ) : (
                     <div className="grid h-full w-full place-items-center text-muted-foreground">
                       <Package className="h-8 w-8" />
