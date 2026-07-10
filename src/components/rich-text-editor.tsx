@@ -56,9 +56,17 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Prop
     if (!el) return;
     const incoming = value ?? "";
     if (incoming === lastEmitted.current) return;
-    el.innerHTML = sanitize(incoming);
+    const html = toEditableHtml(incoming);
+    el.innerHTML = html;
+    // Persist the converted HTML so subsequent saves store HTML, not markdown.
     lastEmitted.current = incoming;
-    setIsEmpty(!stripHtml(incoming).trim());
+    setIsEmpty(!stripHtml(html).trim());
+    // If we converted markdown → HTML, emit once so the parent state matches
+    // what's now in the editor (prevents "corruption" on next save).
+    if (html !== incoming) {
+      lastEmitted.current = html;
+      onChange(html);
+    }
   }, [value]);
 
   const emit = () => {
