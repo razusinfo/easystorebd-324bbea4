@@ -90,10 +90,7 @@ function PublicProductDetailPage() {
     setCartOpen(true);
   }
 
-  const descriptionBullets = (product.description ?? "")
-    .split(/\r?\n/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const descriptionHtml = descriptionToHtml(product.description);
 
   return (
     <main className="min-h-screen bg-neutral-100">
