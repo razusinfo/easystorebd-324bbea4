@@ -11,6 +11,7 @@ import { usePublicProductDetail } from "@/lib/eazystore-data";
 import { useCartStore } from "@/lib/cart-store";
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
+import { descriptionToHtml } from "@/lib/description-html";
 
 export const Route = createFileRoute("/s/$slug/p/$productId")({
   head: ({ params }) => ({
