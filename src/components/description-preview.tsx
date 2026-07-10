@@ -1,24 +1,13 @@
 import { useMemo } from "react";
-import { marked } from "marked";
-import DOMPurify from "dompurify";
+import { descriptionToHtml } from "@/lib/description-html";
 
 /**
  * Renders a live preview of the Product Description. The editor now emits
  * sanitized HTML (WYSIWYG). Legacy products may still contain markdown-only
- * strings, so we detect that shape and route through `marked` first.
+ * strings, so we route those through `marked` first via `descriptionToHtml`.
  */
 export function DescriptionPreview({ markdown }: { markdown: string }) {
-  const html = useMemo(() => {
-    const src = markdown || "";
-    const looksLikeHtml = /<[a-z][\s\S]*>/i.test(src);
-    const raw = looksLikeHtml
-      ? src
-      : (marked.parse(src, { async: false, breaks: true }) as string);
-    return DOMPurify.sanitize(raw, {
-      ADD_TAGS: ["u"],
-      ADD_ATTR: ["target", "rel"],
-    });
-  }, [markdown]);
+  const html = useMemo(() => descriptionToHtml(markdown), [markdown]);
 
   if (!markdown.trim()) {
     return (
