@@ -422,12 +422,11 @@ function PublicProductDetailPage() {
         {/* Product details */}
         <div className="mt-4 rounded-lg bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-neutral-800">Product details of {product.name}</h2>
-          {descriptionBullets.length > 0 ? (
-            <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-neutral-700">
-              {descriptionBullets.map((b, i) => (
-                <li key={i}>{b.replace(/^[-*•]\s*/, "")}</li>
-              ))}
-            </ul>
+          {descriptionHtml ? (
+            <div
+              className="prose prose-sm max-w-none text-neutral-700 [&_a]:text-primary [&_a]:underline [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5"
+              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+            />
           ) : product.short_description ? (
             <p className="text-sm leading-relaxed text-neutral-700">{product.short_description}</p>
           ) : (
