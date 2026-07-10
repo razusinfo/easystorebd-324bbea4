@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
+import { marked } from "marked";
 import {
   Bold, Eraser, ImageIcon, Italic, Link2,
   List, ListOrdered, Quote, Underline,
@@ -21,6 +22,20 @@ const ALLOWED_ATTR = ["href", "src", "alt", "title", "target", "rel", "style"];
 
 function sanitize(html: string) {
   return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
+}
+
+/**
+ * Legacy descriptions may be stored as raw markdown (e.g. "**bold**",
+ * "- item"). Convert to HTML on load so the WYSIWYG shows formatted text
+ * instead of literal markdown characters.
+ */
+function toEditableHtml(incoming: string): string {
+  if (!incoming) return "";
+  const looksLikeHtml = /<[a-z][\s\S]*>/i.test(incoming);
+  const raw = looksLikeHtml
+    ? incoming
+    : (marked.parse(incoming, { async: false, breaks: true }) as string);
+  return sanitize(raw);
 }
 
 /**
