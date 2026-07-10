@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
+import { marked } from "marked";
 import {
   Bold, Eraser, ImageIcon, Italic, Link2,
   List, ListOrdered, Quote, Underline,
@@ -24,6 +25,20 @@ function sanitize(html: string) {
 }
 
 /**
+ * Legacy descriptions may be stored as raw markdown (e.g. "**bold**",
+ * "- item"). Convert to HTML on load so the WYSIWYG shows formatted text
+ * instead of literal markdown characters.
+ */
+function toEditableHtml(incoming: string): string {
+  if (!incoming) return "";
+  const looksLikeHtml = /<[a-z][\s\S]*>/i.test(incoming);
+  const raw = looksLikeHtml
+    ? incoming
+    : (marked.parse(incoming, { async: false, breaks: true }) as string);
+  return sanitize(raw);
+}
+
+/**
  * Lightweight WYSIWYG editor built on contentEditable + document.execCommand.
  * - Stores sanitized HTML in `value` / emits via `onChange`.
  * - Toolbar buttons apply formatting to the current selection (or at cursor).
@@ -41,9 +56,17 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Prop
     if (!el) return;
     const incoming = value ?? "";
     if (incoming === lastEmitted.current) return;
-    el.innerHTML = sanitize(incoming);
+    const html = toEditableHtml(incoming);
+    el.innerHTML = html;
+    // Persist the converted HTML so subsequent saves store HTML, not markdown.
     lastEmitted.current = incoming;
-    setIsEmpty(!stripHtml(incoming).trim());
+    setIsEmpty(!stripHtml(html).trim());
+    // If we converted markdown → HTML, emit once so the parent state matches
+    // what's now in the editor (prevents "corruption" on next save).
+    if (html !== incoming) {
+      lastEmitted.current = html;
+      onChange(html);
+    }
   }, [value]);
 
   const emit = () => {
