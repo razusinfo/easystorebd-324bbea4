@@ -16,6 +16,7 @@ import {
   clampStep,
   completedCount,
   isStepDone,
+  sanitizeLovableHostname,
 } from "@/lib/platform-domain-setup-logic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
