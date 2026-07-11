@@ -660,7 +660,7 @@ export function useCreateStore() {
         .insert({
           owner_user_id: user.id,
           name: input.name,
-          category: input.category as never,
+          category: input.category,
           template: input.template as never,
           phone: input.phone?.trim() || null,
           address: input.address?.trim() || null,
