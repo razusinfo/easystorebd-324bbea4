@@ -83,6 +83,16 @@ function AdminOrderRoutingPage() {
   const [priority, setPriority] = useState<number>(100);
   const [notes, setNotes] = useState("");
 
+  // Audit log filters
+  const [fReason, setFReason] = useState<string>("all");
+  const [fSupplier, setFSupplier] = useState<string>("all");
+  const [fCategory, setFCategory] = useState<string>("all");
+  const [fFrom, setFFrom] = useState<string>("");
+  const [fTo, setFTo] = useState<string>("");
+  const [fQuery, setFQuery] = useState<string>("");
+  const [detailRow, setDetailRow] = useState<AuditRow | null>(null);
+
+
   const users = useQuery({
     queryKey: ["admin_list_users_min"],
     queryFn: async () => {
