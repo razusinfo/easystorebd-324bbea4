@@ -39,16 +39,22 @@ const setUnknownTenantStatus = createIsomorphicFn()
     setResponseStatus(404);
   });
 
+type LoaderData = {
+  tenant: TenantResult;
+  host: string | null;
+  suggestions: Array<{ slug: string; name: string }>;
+};
+
 export const Route = createFileRoute("/")({
-  loader: async (): Promise<{ tenant: TenantResult }> => {
-    const { tenant, redirectUnknown } = await resolveTenant();
+  loader: async (): Promise<LoaderData> => {
+    const { tenant, redirectUnknown, host, suggestions } = await resolveTenant();
     if (tenant.kind === "unknown-sub" || tenant.kind === "unknown-custom") {
       if (redirectUnknown) {
         throw redirect({ href: "https://easystorebd.com/" });
       }
-      try { setUnknownTenantStatus(); } catch { /* no-op */ }
+      try { await setUnknownTenantStatus(); } catch { /* no-op */ }
     }
-    return { tenant };
+    return { tenant, host, suggestions };
   },
   head: ({ loaderData }) => {
     const tenant = loaderData?.tenant;
@@ -84,11 +90,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const { tenant } = Route.useLoaderData();
+  const { tenant, host, suggestions } = Route.useLoaderData();
 
-  // Client-side fallback: host-based slug when SSR resolver returned apex
-  // (e.g. loader ran before host was available or during hydration on a
-  // subdomain that was cached as apex).
   const clientSlug =
     typeof window !== "undefined"
       ? getStorefrontSlugFromHost(window.location.hostname)
@@ -98,10 +101,10 @@ function Landing() {
     return <StorefrontView slug={tenant.slug} />;
   }
   if (tenant.kind === "unknown-sub") {
-    return <UnknownTenant kind="unknown-sub" attempted={tenant.attempted} />;
+    return <UnknownTenant kind="unknown-sub" attempted={tenant.attempted} host={host} suggestions={suggestions} />;
   }
   if (tenant.kind === "unknown-custom") {
-    return <UnknownTenant kind="unknown-custom" host={tenant.host} />;
+    return <UnknownTenant kind="unknown-custom" host={tenant.host} suggestions={suggestions} />;
   }
   if (clientSlug) {
     return <StorefrontView slug={clientSlug} />;
