@@ -159,6 +159,16 @@ function PlatformDomainSetupPage() {
     onError: (e) => toast.error((e as Error).message),
   });
 
+  // Auto re-check DNS propagation on Step 5 until wildcard goes live.
+  // Default ON per user request — polls every 30s, backs off when the tab
+  // is hidden, and stops once the wildcard is confirmed live.
+  const AUTO_INTERVAL_MS = 30_000;
+  const [autoRecheck, setAutoRecheck] = useState(true);
+  const [nextCheckAt, setNextCheckAt] = useState<number | null>(null);
+  const [tick, setTick] = useState(0);
+  const verifyRef = useRef(verifyMut);
+  verifyRef.current = verifyMut;
+
   const setup = setupQuery.data;
   // Persisted current_step comes from Supabase, so a reload resumes on the
   // same step. clampStep guards against stale/corrupt values.
