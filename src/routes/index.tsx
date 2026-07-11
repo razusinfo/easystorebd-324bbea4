@@ -34,9 +34,8 @@ import { createIsomorphicFn } from "@tanstack/react-start";
 
 const setUnknownTenantStatus = createIsomorphicFn()
   .client(() => {})
-  .server(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { setResponseStatus } = require("@tanstack/react-start/server") as typeof import("@tanstack/react-start/server");
+  .server(async () => {
+    const { setResponseStatus } = await import("@tanstack/react-start/server");
     setResponseStatus(404);
   });
 
