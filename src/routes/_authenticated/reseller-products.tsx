@@ -1204,6 +1204,39 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
 
   const catsQ = useCategories(storeId);
   const categories = catsQ.data ?? [];
+  const createCat = useCreateCategory(storeId);
+  const [createCatOpen, setCreateCatOpen] = useState(false);
+  const [createCatMode, setCreateCatMode] = useState<"root" | "sub">("root");
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatParent, setNewCatParent] = useState<string>("");
+
+  const openCreateCategory = (mode: "root" | "sub") => {
+    setCreateCatMode(mode);
+    setNewCatName("");
+    setNewCatParent(mode === "sub" ? categoryId || "" : "");
+    setCreateCatOpen(true);
+  };
+
+  const submitCreateCategory = async () => {
+    const name = newCatName.trim();
+    if (!name) {
+      toast.error("নাম আবশ্যক / Name required");
+      return;
+    }
+    const parent_id = createCatMode === "sub" ? newCatParent || null : null;
+    if (createCatMode === "sub" && !parent_id) {
+      toast.error("প্যারেন্ট ক্যাটাগরি নির্বাচন করুন / Choose a parent category");
+      return;
+    }
+    try {
+      const created = await createCat.mutateAsync({ name, parent_id });
+      setCategoryId(created.id);
+      setCreateCatOpen(false);
+      toast.success("ক্যাটাগরি তৈরি হয়েছে / Category created");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create category");
+    }
+  };
 
   // Detect if this reseller product is already listed in the user's store.
   // - "own"      → the original product itself (external_id) belongs to this store.
