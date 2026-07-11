@@ -14,7 +14,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus, RefreshCcw } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Trash2, Plus, RefreshCcw, RotateCw, Search, X, Info } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin-order-routing")({
   component: AdminOrderRoutingPage,
