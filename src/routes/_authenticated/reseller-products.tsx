@@ -1317,7 +1317,8 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   useEffect(() => {
     if (open) {
       setCategoryId("");
-      setExcluded(new Set());
+      setItems([]);
+      mediaInitedRef.current = false;
       setPrice(
         row.displayPrice != null
           ? String(row.displayPrice)
@@ -1328,20 +1329,94 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
     }
   }, [open, row]);
 
+  // Initialize the editable media list from the fetched supplier media once
+  // the query resolves. Subsequent edits (remove/reorder/upload) stay local.
+  useEffect(() => {
+    if (open && !mediaInitedRef.current && !mediaQ.isLoading && !mediaQ.isFetching) {
+      setItems(mediaQ.data ?? []);
+      mediaInitedRef.current = true;
+    }
+  }, [open, mediaQ.isLoading, mediaQ.isFetching, mediaQ.data]);
+
   const trimmedName = row.name?.trim() ?? "";
   const parsedPrice = Number(price);
   const priceValid = price.trim() !== "" && Number.isFinite(parsedPrice) && parsedPrice >= 0;
-  const selectedMedia = media.filter((m) => !excluded.has(m.url));
   const canSubmit =
     !!categoryId && priceValid && trimmedName.length > 0 && categories.length > 0;
 
-  const toggleMedia = (url: string) => {
-    setExcluded((prev) => {
-      const next = new Set(prev);
-      if (next.has(url)) next.delete(url);
-      else next.add(url);
+  const removeMedia = (url: string) => {
+    setItems((prev) => prev.filter((m) => m.url !== url));
+  };
+
+  const moveItem = (from: number, to: number) => {
+    setItems((prev) => {
+      if (from === to || from < 0 || to < 0 || from >= prev.length || to >= prev.length) return prev;
+      const next = prev.slice();
+      const [m] = next.splice(from, 1);
+      next.splice(to, 0, m);
       return next;
     });
+  };
+
+  const onPickMediaFiles = async (files: FileList | null) => {
+    const list = files ? Array.from(files) : [];
+    if (list.length === 0) return;
+    setUploadingMedia(true);
+    try {
+      const uploaded = await Promise.all(
+        list.map(async (f) => {
+          const { publicUrl } = await uploadProductImage(f);
+          return { url: publicUrl, kind: "image" as const };
+        }),
+      );
+      setItems((prev) => {
+        const seen = new Set(prev.map((m) => m.url));
+        return [...prev, ...uploaded.filter((m) => !seen.has(m.url))];
+      });
+      toast.success(`${uploaded.length} ছবি যোগ হয়েছে / image(s) added`);
+    } catch (e) {
+      toast.error(`Upload failed: ${(e as Error).message}`);
+    } finally {
+      setUploadingMedia(false);
+      if (mediaFileRef.current) mediaFileRef.current.value = "";
+    }
+  };
+
+  // Long-press-then-drag reorder (pointer events; works on desktop + touch).
+  const startDrag = (idx: number, e: React.PointerEvent) => {
+    if (longPressRef.current) window.clearTimeout(longPressRef.current);
+    dragActiveRef.current = false;
+    const target = e.currentTarget as HTMLElement;
+    longPressRef.current = window.setTimeout(() => {
+      dragActiveRef.current = true;
+      setDragIdx(idx);
+      setOverIdx(idx);
+      try { target.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    }, 250);
+  };
+  const moveDrag = (e: React.PointerEvent) => {
+    if (!dragActiveRef.current) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+    const tile = el?.closest?.("[data-media-idx]") as HTMLElement | null;
+    if (tile) {
+      const raw = tile.dataset.mediaIdx;
+      if (raw != null) {
+        const target = Number(raw);
+        if (!Number.isNaN(target)) setOverIdx(target);
+      }
+    }
+  };
+  const endDrag = () => {
+    if (longPressRef.current) {
+      window.clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    if (dragActiveRef.current && dragIdx != null && overIdx != null) {
+      moveItem(dragIdx, overIdx);
+    }
+    dragActiveRef.current = false;
+    setDragIdx(null);
+    setOverIdx(null);
   };
 
   const add = useMutation({
@@ -1358,8 +1433,12 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
           reseller_product_id: row.id,
           category_id: categoryId,
           custom_price: parsedPrice,
-          // If media list is empty (older products), send null → copy defaults.
-          selected_media: media.length > 0 ? selectedMedia.map((m) => m.url) : null,
+          // When the supplier had media OR the reseller uploaded/reordered
+          // media, send the ordered URL list. Empty list = "no media".
+          // When both are empty (legacy products, nothing uploaded), send
+          // null → server copies defaults.
+          selected_media:
+            items.length > 0 || media.length > 0 ? items.map((m) => m.url) : null,
         },
       });
     },
