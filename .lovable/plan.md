@@ -1,73 +1,72 @@
+# Splash Logo — Tests, Cache Headers, Audit, Preview
 
-## What's already built (skip)
+## 1. Automated cache-invalidation tests
 
-- **Domain setup wizard** — `admin-platform-domain-setup.tsx` (5-step Cloudflare + wildcard flow).
-- **Custom domain mapping UI + real-time SSL status** — `domain-settings.tsx` polls `custom_domains` for Verifying/Setting up/Live and shows DNS instructions.
-- **Subdomain host parser** — `src/lib/storefront-host.ts` + SSR host detection in `routes/index.tsx`.
+New file `src/lib/splash-cache.ts` extracting the `primeSplashCache` helper (currently inline in `manage-shop.tsx`) so it can be unit-tested in isolation.
 
-So this plan focuses on the two missing pieces: **central tenant resolver with cache** and **unknown-subdomain fallback**.
+New file `src/lib/splash-cache.test.ts` (Vitest, jsdom) covering:
+- Writes cache entry under `storefront_logo_cache:<slug>` immediately.
+- Writes additional entries for subdomain host (`slug.easystorebd.com`) and custom domain host when those toggles are enabled.
+- Skips subdomain / custom-domain entries when their toggle is off.
+- Overwrites previously cached URL for the same key (invalidation).
+- Removes entries when logo path is cleared (`null`).
+- No-op when `localStorage` is unavailable (SSR guard).
 
-## What to build
+Refactor `manage-shop.tsx` save flow to call the shared helper.
 
-### 1. Central tenant resolver (`src/lib/tenant-resolver.functions.ts`)
+## 2. Cache-control + invalidation headers
 
-One server function that, given a `host`, returns a single normalized `TenantResult`:
+New public server route `src/routes/api/public/splash-logo.$.ts` that streams a signed storage object for splash logos with:
+- `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400` — short browser TTL, longer edge TTL, SWR for instant next-load feel while still allowing quick invalidation.
+- Strong `ETag` derived from the storage object's `updated_at` + path; returns `304` on `If-None-Match` match.
+- `Vary: Accept-Encoding`.
+- Query param `?v=<updated_at_ms>` supported for hard cache-bust after save.
+
+Reseller code (`storefront-view.tsx`, `manage-shop.tsx` prime) switches to referencing this proxy URL (`/api/public/splash-logo/<store_id>?v=<ts>`) instead of raw signed URLs when caching, so a save automatically busts the cache via the new `?v=` param while CDN still serves cached bytes for other visitors.
+
+## 3. Audit log entries
+
+Migration adds a lightweight `public.splash_logo_audit_logs` table:
 
 ```text
-{ kind: "apex" }                              // easystorebd.com / www
-{ kind: "subdomain", slug, store }            // <slug>.easystorebd.com → resolved store
-{ kind: "custom", slug, store, domain }       // custom domain → resolved store
-{ kind: "unknown-sub", attempted: "<slug>" }  // subdomain has no matching store
-{ kind: "unknown-custom", host }              // host not recognized at all
+id, store_id, actor_id, action ('upload'|'change'|'remove'),
+old_path, new_path, affected_scopes text[]   -- e.g. ['subdomain','custom_domain']
+host_snapshot text, created_at
 ```
 
-Resolution order inside the handler:
-1. Strip port, lowercase host.
-2. If `host` matches a `STOREFRONT_APEX_DOMAINS` apex or a reserved sub (`www`, `app`, `admin`…), return `apex`.
-3. If it's `<slug>.<apex>`: look up `stores` by `slug` → `subdomain` or `unknown-sub`.
-4. Otherwise treat as custom domain: look up `custom_domains` (status=`active`) joined to `stores` → `custom` or `unknown-custom`.
+RLS: super_admin sees all; store owner sees own rows. GRANTs per project rules.
 
-**Cache:** in-module `Map<host, { result, expiresAt }>` with 60 s TTL for hits, 10 s TTL for misses. Keyed by host only. Simple LRU cap (e.g. 500 entries). Runs per Worker instance; that's the intended edge cache — no external dependency.
+`manage-shop.tsx` save flow inserts an audit row (via a small `createServerFn`) whenever `splash.logo_path`, `on_subdomain`, or `on_custom_domain` changes, computing:
+- `action` = upload/change/remove from old vs new path.
+- `affected_scopes` from the toggled-on flags.
+- `host_snapshot` from `window.location.host`.
 
-### 2. Wire the resolver into `routes/index.tsx`
+## 4. Splash preview page
 
-Replace the current `getSubdomainSlug` with `resolveTenant`:
+New route `src/routes/_authenticated/splash-preview.tsx`:
+- Loads current store's `shop_settings.splash` and store slug + custom domain.
+- Renders side-by-side device frames (mobile + desktop) for each enabled scope:
+  - Slug preview: `slug.easystorebd.com`
+  - Custom-domain preview (if set + enabled)
+  - Fallback shop-logo preview when splash disabled/missing
+- Each frame reuses the same splash markup/CSS as `__root.tsx` (extracted into `src/components/splash-frame.tsx`) so preview is pixel-accurate.
+- Toggle buttons to simulate dark background, slow-3G (delays image load), and "cold cache" (bypass localStorage).
+- Deep-link button "Open live storefront" per scope.
 
-- Loader calls `resolveTenant({ data: { host } })` (host from `getRequestHost()` server-side; fall back to `window.location.hostname` client-side via a small isomorphic helper).
-- Landing component branches on `result.kind`:
-  - `apex` → existing marketing landing.
-  - `subdomain` / `custom` → `<StorefrontView slug={result.slug} />`.
-  - `unknown-sub` / `unknown-custom` → new `<UnknownTenant />` component (see #3).
+Manage-shop adds a "Preview splash" link to the new page next to the splash section.
 
-### 3. Unknown-subdomain fallback (`src/components/unknown-tenant.tsx`)
+## Technical details
 
-Full-page component (not a redirect — a redirect across apex→subdomain loses the host and confuses users). Shows:
-
-- EasyStore logo + wordmark.
-- "Store `<attempted>` doesn't exist" headline in Bangla + English.
-- Two CTAs: **Go to easystorebd.com** (external link to apex) and **Browse stores** (link to a new `/stores` public listing route).
-- Sets `<meta name="robots" content="noindex">` via `head()` on the route (guard on loader data kind).
-
-Also add a minimal `src/routes/stores.tsx` that server-fetches published stores via a public server fn (publishable client + narrow `TO anon` policy on `stores.is_public=true` — already exists) and renders a simple grid of storefront links using `buildSubdomainStorefrontUrl`.
-
-### 4. Wildcard splat safety net
-
-Keep the existing `src/routes/$.tsx` (or add one) to catch unmatched paths **on a resolved storefront** and forward to `StorefrontView` for slug-based product URLs. Nothing to change if it already exists — verify only.
-
-## Files touched
-
-- **New:** `src/lib/tenant-resolver.functions.ts`, `src/lib/tenant-resolver.server.ts` (cache + DB helpers), `src/components/unknown-tenant.tsx`, `src/routes/stores.tsx`.
-- **Edit:** `src/routes/index.tsx` (swap loader + branch on tenant kind).
-- **No DB migration** — `stores`, `custom_domains` already exist.
-
-## Technical notes
-
-- Handler-only imports for cache map & Supabase client to stay compatible with `?tss-serverfn-split` (helpers live in `.server.ts`).
-- Cache lives inside the `.server.ts` module scope; per-Worker warm cache is enough at current traffic.
-- Public reads use the **publishable-key** server client (not `supabaseAdmin`) with the existing `TO anon` SELECT policies on `stores` and `custom_domains`.
-- SSR host detection uses `getRequestHost()` inside the handler; client fallback stays for hydration parity.
-- `unknown-sub` renders 200 (not 404) so branded pages don't get de-indexed as errors, but sets `robots: noindex`.
-
-## Out of scope
-
-Wizard and domain-mapping dashboard — already shipped. No changes there unless you want tweaks.
+- Files added:
+  - `src/lib/splash-cache.ts`, `src/lib/splash-cache.test.ts`
+  - `src/routes/api/public/splash-logo.$.ts`
+  - `src/lib/splash-audit.functions.ts` (server fn wrapping insert)
+  - `src/components/splash-frame.tsx`
+  - `src/routes/_authenticated/splash-preview.tsx`
+  - Supabase migration for `splash_logo_audit_logs` (+ GRANTs, RLS, index on `store_id, created_at desc`).
+- Files edited:
+  - `src/routes/_authenticated/manage-shop.tsx` — use shared cache helper, call audit fn, add preview link.
+  - `src/components/storefront-view.tsx` — cache proxy URL instead of raw signed URL.
+  - `src/routes/__root.tsx` — extract splash markup into `SplashFrame` (kept as inline `<script>` for FOUC-free boot; component version used only by preview page).
+- No schema change to `stores.shop_settings` (already has `splash` sub-object).
+- Vitest already configured (see `client-bundle-guard.test.ts`); new test uses `@testing-library/jsdom` style `localStorage` mock — no new deps expected.
