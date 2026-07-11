@@ -336,6 +336,41 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
     finally { setUploadingFav(false); }
   }
 
+  async function pickSplash(f: File) {
+    if (!f.type.startsWith("image/")) return toast.error("Please choose an image.");
+    if (f.size > 2 * 1024 * 1024) return toast.error("Splash logo must be ≤ 2MB.");
+    setLocalSplash(URL.createObjectURL(f));
+    setUploadingSplash(true);
+    try {
+      const old = splashPath;
+      const p = await uploadStoreLogo(f);
+      setSplashPath(p);
+      if (old && old !== p) await deleteStoreLogo(old);
+    } catch (e: any) { toast.error(e?.message ?? "Upload failed."); }
+    finally { setUploadingSplash(false); }
+  }
+
+  async function primeSplashCache(logoSignedUrl: string | null, splashSignedUrl: string | null) {
+    if (typeof window === "undefined") return;
+    const currentSlug = store.slug || slugifyStoreName(store.name);
+    const subHost = `${currentSlug}.easystorebd.com`;
+    const custom = store.custom_domain || null;
+    const set = (k: string, v: string | null) => {
+      try {
+        if (v) localStorage.setItem("storefront_logo_cache:" + k, v);
+      } catch { /* ignore */ }
+    };
+    // Slug key always uses the storefront logo.
+    set(currentSlug, logoSignedUrl);
+    // Host keys respect splash toggles.
+    if (splashOnSub && splashSignedUrl) set(subHost, splashSignedUrl);
+    else set(subHost, logoSignedUrl);
+    if (custom) {
+      if (splashOnCd && splashSignedUrl) set(custom.toLowerCase(), splashSignedUrl);
+      else set(custom.toLowerCase(), logoSignedUrl);
+    }
+  }
+
   async function saveAll() {
     try {
       const merged = {
@@ -358,6 +393,11 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
           per_hour_order_limit: orderLimit === "" ? null : Number(orderLimit),
           vat_percent: vat === "" ? null : Number(vat),
         },
+        splash: {
+          logo_path: splashPath,
+          on_subdomain: splashOnSub,
+          on_custom_domain: splashOnCd,
+        },
       };
       await update.mutateAsync({
         id: store.id,
@@ -368,9 +408,13 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
         logo_url: logoPath,
         shop_settings: merged,
       });
+      // Immediately refresh browser splash caches so the next reload uses the
+      // updated logo without waiting for a storefront visit.
+      await primeSplashCache(signedLogo.data ?? null, signedSplash.data ?? null);
       toast.success("Shop settings updated.");
     } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
   }
+
 
   async function saveThemeColor() {
     try {
