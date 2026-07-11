@@ -322,18 +322,36 @@ function PublicProductDetailPage() {
                     {product.name}
                   </h1>
                   <div className="flex shrink-0 items-center gap-1">
-                    <button type="button" onClick={handleShare} className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" aria-label="Share">
+                    <button
+                      type="button"
+                      data-testid="share-btn"
+                      onClick={handleShare}
+                      className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100"
+                      aria-label="Share"
+                    >
                       <Share2 className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
+                      data-testid="wishlist-btn"
                       onClick={toggleWishlist}
+                      disabled={wishBusy}
                       aria-pressed={wished}
-                      className={`grid h-8 w-8 place-items-center rounded-full hover:bg-neutral-100 ${wished ? "text-rose-500" : "text-neutral-500"}`}
+                      aria-busy={wishBusy}
+                      className={`grid h-8 w-8 place-items-center rounded-full hover:bg-neutral-100 disabled:opacity-60 ${wished ? "text-rose-500" : "text-neutral-500"}`}
                       aria-label="Wishlist"
                     >
                       <Heart className={`h-4 w-4 ${wished ? "fill-current" : ""}`} />
                     </button>
+                    <span
+                      data-testid="wishlist-status"
+                      role="status"
+                      aria-live="polite"
+                      aria-atomic="true"
+                      className="sr-only"
+                    >
+                      {statusMsg}
+                    </span>
                   </div>
                 </div>
 
