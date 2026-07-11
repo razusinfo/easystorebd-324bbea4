@@ -181,6 +181,33 @@ function PlatformDomainSetupPage() {
   const isDone = isStepDone(setup, stepIdx);
   const canGoNext = canAdvance(setup, stepIdx);
   const blockedMsg = advanceBlockedMessage(stepIdx);
+  const wildcardLive = !!setup?.lovable_wildcard_connected;
+
+  // Poll DNS every AUTO_INTERVAL_MS on Step 5 while auto re-check is on and
+  // the wildcard isn't yet live. Also drive a 1s ticker so the countdown
+  // label ("পরবর্তী চেক: 24s") stays fresh without extra re-renders.
+  useEffect(() => {
+    if (stepIdx !== 4 || !autoRecheck || wildcardLive) {
+      setNextCheckAt(null);
+      return;
+    }
+    setNextCheckAt(Date.now() + AUTO_INTERVAL_MS);
+    const id = window.setInterval(() => {
+      if (document.hidden) return;
+      if (verifyRef.current.isPending) return;
+      verifyRef.current.mutate();
+      setNextCheckAt(Date.now() + AUTO_INTERVAL_MS);
+    }, AUTO_INTERVAL_MS);
+    const t = window.setInterval(() => setTick((n) => n + 1), 1000);
+    return () => {
+      window.clearInterval(id);
+      window.clearInterval(t);
+    };
+  }, [stepIdx, autoRecheck, wildcardLive]);
+
+  const secondsUntilNext =
+    nextCheckAt != null ? Math.max(0, Math.ceil((nextCheckAt - Date.now()) / 1000)) : null;
+  void tick; // referenced to keep the ticker driving re-renders
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4 md:p-6">
