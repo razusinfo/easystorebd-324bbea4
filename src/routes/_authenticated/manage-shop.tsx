@@ -26,6 +26,8 @@ import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { primeSplashCache } from "@/lib/splash-cache";
+import { recordSplashAudit } from "@/lib/splash-audit.functions";
 
 export const Route = createFileRoute("/_authenticated/manage-shop")({
   head: () => ({
