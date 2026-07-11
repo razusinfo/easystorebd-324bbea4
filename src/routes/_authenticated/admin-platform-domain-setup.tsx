@@ -43,7 +43,7 @@ function PlatformDomainSetupPage() {
   const setupQuery = useQuery({ queryKey: ["platform-domain-setup"], queryFn: () => getFn() });
 
   const updMut = useMutation({
-    mutationFn: (patch: Partial<Record<StepKey | "current_step", boolean | number>>) => updFn({ data: patch }),
+    mutationFn: (patch: Record<string, boolean | number>) => updFn({ data: patch as never }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["platform-domain-setup"] }),
     onError: (e) => toast.error((e as Error).message),
   });
