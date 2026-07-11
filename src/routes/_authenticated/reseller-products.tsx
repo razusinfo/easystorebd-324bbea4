@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMyStore, uploadProductImage, useIsSuperAdmin } from "@/lib/eazystore-data";
-import { useCategories } from "@/lib/categories-data";
+import { useCategories, useCreateCategory } from "@/lib/categories-data";
 import { copyResellerProductToMyStore } from "@/lib/reseller-copy.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
 import { revokeResellerProduct } from "@/lib/admin-settings.functions";
@@ -1204,6 +1204,39 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
 
   const catsQ = useCategories(storeId);
   const categories = catsQ.data ?? [];
+  const createCat = useCreateCategory(storeId);
+  const [createCatOpen, setCreateCatOpen] = useState(false);
+  const [createCatMode, setCreateCatMode] = useState<"root" | "sub">("root");
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatParent, setNewCatParent] = useState<string>("");
+
+  const openCreateCategory = (mode: "root" | "sub") => {
+    setCreateCatMode(mode);
+    setNewCatName("");
+    setNewCatParent(mode === "sub" ? categoryId || "" : "");
+    setCreateCatOpen(true);
+  };
+
+  const submitCreateCategory = async () => {
+    const name = newCatName.trim();
+    if (!name) {
+      toast.error("নাম আবশ্যক / Name required");
+      return;
+    }
+    const parent_id = createCatMode === "sub" ? newCatParent || null : null;
+    if (createCatMode === "sub" && !parent_id) {
+      toast.error("প্যারেন্ট ক্যাটাগরি নির্বাচন করুন / Choose a parent category");
+      return;
+    }
+    try {
+      const created = await createCat.mutateAsync({ name, parent_id });
+      setCategoryId(created.id);
+      setCreateCatOpen(false);
+      toast.success("ক্যাটাগরি তৈরি হয়েছে / Category created");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create category");
+    }
+  };
 
   // Detect if this reseller product is already listed in the user's store.
   // - "own"      → the original product itself (external_id) belongs to this store.
@@ -1464,12 +1497,30 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
                 )}
               </SelectContent>
             </Select>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => openCreateCategory("root")}
+                className="inline-flex items-center gap-1 rounded-md border border-dashed border-primary/40 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/5"
+              >
+                <PlusCircle className="h-3 w-3" /> নতুন ক্যাটাগরি / New Category
+              </button>
+              <button
+                type="button"
+                onClick={() => openCreateCategory("sub")}
+                disabled={categories.length === 0}
+                className="inline-flex items-center gap-1 rounded-md border border-dashed border-primary/40 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PlusCircle className="h-3 w-3" /> নতুন সাব-ক্যাটাগরি / New Sub Category
+              </button>
+            </div>
             {!categoryId && (
               <p className="text-[11px] text-destructive">
                 ক্যাটাগরি আবশ্যক / Category is required
               </p>
             )}
           </div>
+
 
           <div className="space-y-1">
             <Label htmlFor="ams-price">আপনার বিক্রয় মূল্য / Your Selling Price</Label>
@@ -1741,7 +1792,56 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    <Dialog open={createCatOpen} onOpenChange={setCreateCatOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {createCatMode === "sub"
+              ? "নতুন সাব-ক্যাটাগরি / New Sub Category"
+              : "নতুন ক্যাটাগরি / New Category"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          {createCatMode === "sub" && (
+            <div className="space-y-1">
+              <Label>প্যারেন্ট ক্যাটাগরি / Parent Category</Label>
+              <Select value={newCatParent} onValueChange={setNewCatParent}>
+                <SelectTrigger>
+                  <SelectValue placeholder="একটি প্যারেন্ট বেছে নিন / Choose a parent" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="space-y-1">
+            <Label htmlFor="new-cat-name">নাম / Name</Label>
+            <Input
+              id="new-cat-name"
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              placeholder="যেমন / e.g. Mobile Accessories"
+              autoFocus
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setCreateCatOpen(false)}>
+            বাতিল / Cancel
+          </Button>
+          <Button onClick={submitCreateCategory} disabled={createCat.isPending}>
+            {createCat.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "তৈরি করুন / Create"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
+
   );
 }
 
