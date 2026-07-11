@@ -1361,19 +1361,32 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const onPickMediaFiles = async (files: FileList | null) => {
     const list = files ? Array.from(files) : [];
     if (list.length === 0) return;
+    const { partitionMediaFiles, dedupeAgainstExisting } = await import("@/lib/media-upload-rules");
+    const { accepted, rejected } = partitionMediaFiles(list);
+    rejected.forEach((r) => toast.error(r.message));
+    if (accepted.length === 0) {
+      if (mediaFileRef.current) mediaFileRef.current.value = "";
+      return;
+    }
     setUploadingMedia(true);
     try {
       const uploaded = await Promise.all(
-        list.map(async (f) => {
+        accepted.map(async (f) => {
           const { publicUrl } = await uploadProductImage(f);
-          return { url: publicUrl, kind: "image" as const };
+          return { url: publicUrl, name: f.name };
         }),
       );
-      setItems((prev) => {
-        const seen = new Set(prev.map((m) => m.url));
-        return [...prev, ...uploaded.filter((m) => !seen.has(m.url))];
-      });
-      toast.success(`${uploaded.length} ছবি যোগ হয়েছে / image(s) added`);
+      const existingUrls = items.map((m) => m.url);
+      const { toAdd, duplicates } = dedupeAgainstExisting(existingUrls, uploaded);
+      if (duplicates.length > 0) {
+        toast.warning(
+          `একই ছবি আগে থেকেই আছে, বাদ দেওয়া হয়েছে / Duplicate skipped: ${duplicates.join(", ")}`,
+        );
+      }
+      if (toAdd.length > 0) {
+        setItems((prev) => [...prev, ...toAdd.map((u) => ({ url: u.url, kind: "image" as const }))]);
+        toast.success(`${toAdd.length} ছবি যোগ হয়েছে / image(s) added`);
+      }
     } catch (e) {
       toast.error(`Upload failed: ${(e as Error).message}`);
     } finally {
@@ -1381,6 +1394,7 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
       if (mediaFileRef.current) mediaFileRef.current.value = "";
     }
   };
+
 
   // Long-press-then-drag reorder (pointer events; works on desktop + touch).
   const startDrag = (idx: number, e: React.PointerEvent) => {
