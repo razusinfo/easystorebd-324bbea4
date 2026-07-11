@@ -30,7 +30,54 @@ function PublicProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [cartOpen, setCartOpen] = useState(false);
+  const [wished, setWished] = useState(false);
   const addToCart = useCartStore((s) => s.add);
+
+  const wishKey = `easystore_wishlist:${slug}`;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(wishKey);
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      setWished(list.includes(productId));
+    } catch { /* ignore */ }
+  }, [wishKey, productId]);
+
+  const toggleWishlist = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(wishKey);
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      const has = list.includes(productId);
+      const next = has ? list.filter((x) => x !== productId) : [...list, productId];
+      window.localStorage.setItem(wishKey, JSON.stringify(next));
+      setWished(!has);
+      toast.success(has ? "Wishlist থেকে সরানো হয়েছে" : "Wishlist এ যোগ হয়েছে");
+    } catch {
+      toast.error("Wishlist সেভ করা যায়নি");
+    }
+  };
+
+  const handleShare = async () => {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    const title = q.data?.product?.name ?? "Product";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+    } catch (e) {
+      const err = e as { name?: string };
+      if (err?.name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("লিংক কপি হয়েছে");
+    } catch {
+      toast.error("শেয়ার করা যায়নি");
+    }
+  };
 
   if (q.isLoading) {
     return (
