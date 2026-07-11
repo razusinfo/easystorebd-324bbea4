@@ -1,0 +1,45 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  reseller-checkout-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests playwright pytest
+          python -m playwright install --with-deps chromium
+
+      - name: Run reseller-checkout propagation suite
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          E2E_STORE_ID: ${{ secrets.E2E_STORE_ID }}
+          E2E_PRODUCT_ID: ${{ secrets.E2E_PRODUCT_ID }}
+          E2E_SUPER_ADMIN_EMAIL: ${{ secrets.E2E_SUPER_ADMIN_EMAIL }}
+          E2E_SUPER_ADMIN_PASSWORD: ${{ secrets.E2E_SUPER_ADMIN_PASSWORD }}
+          E2E_SUPPLIER_EMAIL: ${{ secrets.E2E_SUPPLIER_EMAIL }}
+          E2E_SUPPLIER_PASSWORD: ${{ secrets.E2E_SUPPLIER_PASSWORD }}
+          E2E_SUPPLIER_USER_ID: ${{ secrets.E2E_SUPPLIER_USER_ID }}
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$E2E_STORE_ID" ]; then
+            echo "::warning::E2E secrets not configured — skipping E2E suite."
+            exit 0
+          fi
+          python tests/e2e/reseller-checkout-propagation.spec.py
+          python tests/e2e/order-management-role-visibility.spec.py
