@@ -54,8 +54,26 @@ const REASON_LABEL: Record<string, string> = {
   unlinked_default_rule: "Unlinked → default rule",
   unlinked_category_rule: "Unlinked → category rule",
   unlinked_no_rule: "Unlinked → NO rule (dropped)",
+  retry_linked_source_reseller_product: "Retry: Linked → source supplier",
+  retry_unlinked_default_rule: "Retry: Unlinked → default rule",
+  retry_unlinked_category_rule: "Retry: Unlinked → category rule",
+  retry_unlinked_no_rule: "Retry: NO rule (dropped)",
+  retry_already_forwarded: "Retry: Already forwarded",
+  retry_no_product: "Retry: order_item has no product",
+  retry_no_store_owner: "Retry: store has no owner",
+  retry_error: "Retry: Error",
   error: "Error",
 };
+
+const REASON_FILTER_GROUPS: Array<{ value: string; label: string; match: (r: string) => boolean }> = [
+  { value: "all", label: "All reasons", match: () => true },
+  { value: "linked", label: "Linked", match: (r) => r.includes("linked_source_reseller_product") },
+  { value: "category", label: "Category rule", match: (r) => r.includes("unlinked_category_rule") },
+  { value: "default", label: "Default rule", match: (r) => r.includes("unlinked_default_rule") },
+  { value: "no_rule", label: "No rule (dropped)", match: (r) => r.includes("no_rule") },
+  { value: "error", label: "Error / failed", match: (r) => r === "error" || r.startsWith("retry_error") || r.includes("no_product") || r.includes("no_store_owner") },
+  { value: "retry", label: "Retries only", match: (r) => r.startsWith("retry_") },
+];
 
 function AdminOrderRoutingPage() {
   const qc = useQueryClient();
