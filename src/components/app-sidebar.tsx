@@ -166,6 +166,7 @@ export function AppSidebar() {
                 {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
                 {renderItem({ title: "Notifications", url: "/admin-notifications", icon: Bell })}
                 {renderItem({ title: "Sync Status", url: "/admin-reseller-sync-status", icon: RefreshCcw, badge: "NEW" })}
+                {renderItem({ title: "Platform Domain Setup", url: "/admin-platform-domain-setup", icon: Globe, badge: "NEW" })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
