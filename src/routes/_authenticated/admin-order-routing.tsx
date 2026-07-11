@@ -597,3 +597,12 @@ function AdminOrderRoutingPage() {
     </div>
   );
 }
+
+function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={`text-xs ${mono ? "font-mono break-all" : ""}`}>{value}</div>
+    </div>
+  );
+}
