@@ -4,11 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ChevronLeft, ChevronRight, Eye, ShoppingBag } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, ShoppingBag, Phone, Mail, User } from "lucide-react";
 import { listManagedOrders, type ManagedOrderRow } from "@/lib/order-management.functions";
 import { updateManagedOrderStatus } from "@/lib/order-management-actions.functions";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +86,7 @@ function OrderManagementPage() {
   const [draftStatus, setDraftStatus] = useState<string>("");
   const [draftTracking, setDraftTracking] = useState<string>("");
   const [draftTrackUrl, setDraftTrackUrl] = useState<string>("");
+  const [draftNotes, setDraftNotes] = useState<string>("");
 
   const role = query.data?.role;
   const rows = query.data?.rows ?? [];
@@ -122,19 +124,21 @@ function OrderManagementPage() {
     setDetail(r);
     setDraftStatus(r.status);
     setDraftTracking(r.tracking_id ?? "");
-    setDraftTrackUrl("");
+    setDraftTrackUrl(r.tracking_url ?? "");
+    setDraftNotes(r.notes ?? "");
   };
 
   const upd = useMutation({
-    mutationFn: async (payload: { id: string; status?: string; tracking_id?: string | null; tracking_url?: string | null }) => {
+    mutationFn: async (payload: { id: string; status?: string; tracking_id?: string | null; tracking_url?: string | null; notes?: string | null }) => {
       const clean: Record<string, unknown> = { id: payload.id };
       if (payload.status !== undefined) clean.status = payload.status;
       if (payload.tracking_id !== undefined) clean.tracking_id = payload.tracking_id;
       if (payload.tracking_url !== undefined) clean.tracking_url = payload.tracking_url;
+      if (payload.notes !== undefined) clean.notes = payload.notes;
       return updateStatusFn({ data: clean });
     },
     onSuccess: () => {
-      toast.success("Order updated");
+      toast.success("Order updated — reseller notified");
       qc.invalidateQueries({ queryKey: ["order-management"] });
       setDetail(null);
     },
@@ -335,56 +339,97 @@ function OrderManagementPage() {
                 <div className="text-muted-foreground">{detail.customer_email ?? "—"}</div>
                 <div className="text-muted-foreground whitespace-pre-wrap">{detail.shipping_address}</div>
               </section>
-              <section>
-                <h3 className="font-semibold mb-1">Reseller</h3>
-                <div>{detail.reseller_name}</div>
-                {detail.reseller_store && (
-                  <div className="text-muted-foreground">{detail.reseller_store}</div>
-                )}
-              </section>
-              <section>
-                <h3 className="font-semibold mb-1">Product</h3>
-                <div>{detail.product_name} × {detail.quantity}</div>
-              </section>
-              <section className="grid grid-cols-2 gap-2">
-                <div>
-                  <div className="text-xs text-muted-foreground">Unit price</div>
-                  <div className="font-medium">{fmt(detail.customer_price)}</div>
+              {/* Reseller Info & Fulfillment — contact + status/tracking/notes */}
+              <section className="border rounded-md p-3 space-y-3 bg-muted/30">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <User className="h-4 w-4" /> Reseller Info & Fulfillment
+                </h3>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Name</div>
+                    <div className="font-medium">
+                      {detail.storefront_owner_name || detail.reseller_name || "—"}
+                    </div>
+                    {detail.reseller_store && (
+                      <div className="text-xs text-muted-foreground">{detail.reseller_store}</div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Phone className="h-3 w-3" /> Phone
+                    </div>
+                    {detail.storefront_owner_phone ? (
+                      <a
+                        href={`tel:${detail.storefront_owner_phone}`}
+                        className="text-primary underline font-medium"
+                      >
+                        {detail.storefront_owner_phone}
+                      </a>
+                    ) : (
+                      <div className="text-muted-foreground">—</div>
+                    )}
+                  </div>
+                  <div className="sm:col-span-2">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" /> Email
+                    </div>
+                    {detail.storefront_owner_email ? (
+                      <a
+                        href={`mailto:${detail.storefront_owner_email}`}
+                        className="text-primary underline font-medium break-all"
+                      >
+                        {detail.storefront_owner_email}
+                      </a>
+                    ) : (
+                      <div className="text-muted-foreground">—</div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Total</div>
-                  <div className="font-bold text-primary">{fmt(detail.total_amount)}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Reseller price</div>
-                  <div>{fmt(detail.reseller_price)}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Profit</div>
-                  <div className="text-emerald-700 font-medium">{fmt(detail.profit_margin)}</div>
-                </div>
-              </section>
 
-              <section className="border-t pt-3 space-y-2">
-                <h3 className="font-semibold">Update {role === "supplier" ? "(supplier: fulfillment only)" : ""}</h3>
-                <div>
-                  <Label className="text-xs">Status</Label>
-                  <Select value={draftStatus} onValueChange={setDraftStatus}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {allowedStatuses.map((s) => (
-                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs">Tracking ID</Label>
-                  <Input value={draftTracking} onChange={(e) => setDraftTracking(e.target.value)} placeholder="e.g. Pathao-12345" />
-                </div>
-                <div>
-                  <Label className="text-xs">Tracking URL (optional)</Label>
-                  <Input value={draftTrackUrl} onChange={(e) => setDraftTrackUrl(e.target.value)} placeholder="https://…" />
+                <div className="border-t pt-3 space-y-2">
+                  <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Update {role === "supplier" ? "(fulfillment only)" : ""}
+                  </div>
+                  <div>
+                    <Label className="text-xs">Order status</Label>
+                    <Select value={draftStatus} onValueChange={setDraftStatus}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {allowedStatuses.map((s) => (
+                          <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Courier tracking number</Label>
+                    <Input
+                      value={draftTracking}
+                      onChange={(e) => setDraftTracking(e.target.value)}
+                      placeholder="e.g. Pathao-12345"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Tracking URL (optional)</Label>
+                    <Input
+                      value={draftTrackUrl}
+                      onChange={(e) => setDraftTrackUrl(e.target.value)}
+                      placeholder="https://…"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Notes for reseller</Label>
+                    <Textarea
+                      value={draftNotes}
+                      onChange={(e) => setDraftNotes(e.target.value)}
+                      placeholder="Address issue, stock delay, courier note…"
+                      rows={3}
+                      maxLength={2000}
+                    />
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      Saved notes and tracking are visible to the reseller instantly.
+                    </div>
+                  </div>
                 </div>
               </section>
             </div>
@@ -397,7 +442,8 @@ function OrderManagementPage() {
                 id: detail.id,
                 status: draftStatus !== detail.status ? draftStatus : undefined,
                 tracking_id: draftTracking !== (detail.tracking_id ?? "") ? draftTracking : undefined,
-                tracking_url: draftTrackUrl ? draftTrackUrl : undefined,
+                tracking_url: draftTrackUrl !== (detail.tracking_url ?? "") ? draftTrackUrl : undefined,
+                notes: draftNotes !== (detail.notes ?? "") ? draftNotes : undefined,
               })}
             >
               {upd.isPending ? "Saving…" : "Save changes"}
