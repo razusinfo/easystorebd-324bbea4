@@ -185,9 +185,22 @@ function PlatformDomainSetupPage() {
               <Button variant="outline" size="sm" disabled={stepIdx === 0} onClick={() => updMut.mutate({ current_step: stepIdx })}>
                 <ChevronLeft className="h-4 w-4 mr-1" />Back
               </Button>
-              <Button size="sm" disabled={stepIdx === STEPS.length - 1} onClick={() => updMut.mutate({ current_step: stepIdx + 2 })}>
-                Next<ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+              {stepIdx === STEPS.length - 1 ? (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (!isDone) updMut.mutate({ [step.key]: true });
+                    else toast.success("Setup complete 🎉");
+                  }}
+                >
+                  {isDone ? "Finish" : "Continue & mark complete"}
+                  <Check className="h-4 w-4 ml-1" />
+                </Button>
+              ) : (
+                <Button size="sm" onClick={() => updMut.mutate({ current_step: stepIdx + 2 })}>
+                  Next<ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
