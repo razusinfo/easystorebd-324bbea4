@@ -408,7 +408,7 @@ function AddDialog({
   const supplierPrice = row ? (row.reseller_price ?? row.price) : 0;
   const [price, setPrice] = useState<string>("");
 
-  useMemo(() => {
+  useEffect(() => {
     if (row) setPrice(String(supplierPrice));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [row?.id]);
@@ -470,7 +470,7 @@ function EditDialog({
   const supplierPrice = state ? (state.row.reseller_price ?? state.row.price) : 0;
   const [price, setPrice] = useState<string>("");
 
-  useMemo(() => {
+  useEffect(() => {
     if (state) setPrice(String(state.currentPrice));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.row.id]);
