@@ -46,45 +46,58 @@ function HostnameSanitizerInput() {
   const [raw, setRaw] = useState("");
   const result = sanitizeLovableHostname(raw);
   const sanitizedShown = result.sanitized || "easystorebd.com";
+  const describedBy = result.hasInvalidWildcard
+    ? "hostname-error"
+    : result.stripped
+      ? "hostname-stripped"
+      : "hostname-help";
 
   return (
     <div className="rounded-md border p-3 space-y-2" data-testid="hostname-sanitizer">
       <p className="font-medium text-sm">Hostname helper (wildcard-safe)</p>
-      <p className="text-xs text-muted-foreground">
+      <p id="hostname-help" className="text-xs text-muted-foreground">
         <code>*.easystorebd.com</code> পেস্ট করলে <code>*.</code> স্বয়ংক্রিয়ভাবে বাদ যাবে যাতে Lovable-এর
-        Connect Domain ইনপুটে Continue enable থাকে।
+        Connect Domain ইনপুটে Continue বাটন সক্রিয় থাকে।
       </p>
       <input
         type="text"
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
         placeholder="*.easystorebd.com"
-        aria-label="Hostname to sanitize"
+        aria-label="Lovable-এর জন্য hostname লিখুন"
+        aria-invalid={result.hasInvalidWildcard || undefined}
+        aria-describedby={describedBy}
         data-testid="hostname-input"
         className="w-full rounded-md border bg-background px-3 py-2 text-sm"
       />
-      {result.hasInvalidWildcard && (
-        <p
-          className="text-xs text-destructive"
-          role="alert"
-          data-testid="hostname-error"
-        >
-          {result.message} — Continue disable থাকবে।
-        </p>
-      )}
-      {result.stripped && !result.hasInvalidWildcard && (
-        <p
-          className="text-xs text-emerald-700 dark:text-emerald-400"
-          role="status"
-          data-testid="hostname-stripped"
-        >
-          {result.message}
-        </p>
-      )}
+      {/* aria-live: sanitizer state screen reader-কে জানাবে */}
+      <div aria-live="polite" aria-atomic="true">
+        {result.hasInvalidWildcard && (
+          <p
+            id="hostname-error"
+            className="text-xs text-destructive"
+            role="alert"
+            data-testid="hostname-error"
+          >
+            ত্রুটি: {result.message} — Continue বাটন নিষ্ক্রিয় থাকবে।
+          </p>
+        )}
+        {result.stripped && !result.hasInvalidWildcard && (
+          <p
+            id="hostname-stripped"
+            className="text-xs text-emerald-700 dark:text-emerald-400"
+            role="status"
+            data-testid="hostname-stripped"
+          >
+            {result.message} এখন Continue বাটন আবার সক্রিয় হবে।
+          </p>
+        )}
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         <code
           className="rounded bg-muted px-2 py-1 text-xs"
           data-testid="hostname-sanitized"
+          aria-label={`পরিশোধিত hostname ${sanitizedShown}`}
         >
           {sanitizedShown}
         </code>
@@ -104,9 +117,10 @@ function HostnameSanitizerInput() {
           }}
           title={
             result.hasInvalidWildcard
-              ? "`*` character থাকলে Lovable Continue disable করে"
-              : "Copy sanitized hostname"
+              ? "`*` ক্যারেক্টার থাকলে Lovable Continue বাটন নিষ্ক্রিয় করে"
+              : "পরিশোধিত hostname কপি করুন"
           }
+          aria-label="Lovable-এর জন্য পরিশোধিত hostname কপি করুন"
         >
           <Copy className="h-3.5 w-3.5 mr-1" /> Copy for Lovable
         </Button>
@@ -134,12 +148,12 @@ function PlatformDomainSetupPage() {
     mutationFn: () => verifyFn(),
     onSuccess: (r) => {
       if (r.dnsOk && r.httpsOk) {
-        toast.success("Wildcard is live!");
+        toast.success("Wildcard সফলভাবে live হয়েছে 🎉");
         updMut.mutate({ lovable_wildcard_connected: true });
       } else if (r.dnsOk) {
-        toast.warning("DNS OK, but HTTPS not responding yet. SSL may still be issuing.");
+        toast.warning("DNS ঠিক আছে, তবে HTTPS এখনো response দিচ্ছে না — SSL issue হতে কিছু সময় লাগতে পারে।");
       } else {
-        toast.error(`DNS not pointing to Lovable (got: ${r.addrs.join(", ") || "no answer"})`);
+        toast.error(`DNS এখনো Lovable-এ point করছে না (পাওয়া গেছে: ${r.addrs.join(", ") || "কোনো উত্তর নেই"})`);
       }
     },
     onError: (e) => toast.error((e as Error).message),
@@ -246,10 +260,16 @@ function PlatformDomainSetupPage() {
             )}
             {stepIdx === 4 && (
               <div className="space-y-3">
-                <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs space-y-1">
-                  <p className="font-medium text-amber-900 dark:text-amber-200">⚠️ Lovable-এর Connect Domain ডায়ালগ <code>*</code> ক্যারেক্টার গ্রহণ করে না</p>
+                <div
+                  className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs space-y-1"
+                  role="note"
+                  aria-label="Wildcard hostname সম্পর্কিত সতর্কতা"
+                  title="Lovable-এর Connect Domain input `*` ক্যারেক্টার reject করে — তাই *.easystorebd.com দিলে Continue disable হয়ে যায়।"
+                  data-testid="wildcard-warning-banner"
+                >
+                  <p className="font-medium text-amber-900 dark:text-amber-200">⚠️ কেন <code>*.easystorebd.com</code> দিলে Continue বাটন নিষ্ক্রিয় হয়?</p>
                   <p className="text-amber-800/90 dark:text-amber-200/80">
-                    <code>*.easystorebd.com</code> টাইপ করলে Continue বাটন disable হয়ে যায় — এটা Lovable UI-এর hostname validation, বাগ নয়। wildcard self-serve সম্ভব না; নিচের যেকোনো একটা পথ ব্যবহার করুন।
+                    Lovable-এর Connect Domain ডায়ালগের hostname validation <code>*</code> ক্যারেক্টার গ্রহণ করে না — তাই <code>*.easystorebd.com</code> টাইপ করলে Continue বাটন সাথে সাথে disable হয়ে যায়। এটি বাগ নয়, UI validation। নিচের যেকোনো একটি পথ ব্যবহার করুন (নিচের helper দিয়ে <code>*.</code> auto-strip করে নিলে Continue আবার সক্রিয় হবে)।
                   </p>
                 </div>
 
@@ -278,41 +298,46 @@ function PlatformDomainSetupPage() {
 
                 <p className="pt-2">কানেক্ট শেষে নিচে verify করুন:</p>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button onClick={() => verifyMut.mutate()} disabled={verifyMut.isPending}>
+                  <Button
+                    onClick={() => verifyMut.mutate()}
+                    disabled={verifyMut.isPending}
+                    aria-label="Wildcard DNS ও HTTPS যাচাই করুন"
+                  >
                     {verifyMut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Verify wildcard
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => {
-                      toast.info("Re-checking DNS…");
+                      toast.info("DNS পুনরায় যাচাই করা হচ্ছে…");
                       verifyMut.mutate();
                     }}
                     disabled={verifyMut.isPending}
+                    aria-label="DNS propagation পুনরায় যাচাই করুন"
                   >
                     <RefreshCw className={`h-4 w-4 mr-2 ${verifyMut.isPending ? "animate-spin" : ""}`} />
                     Re-check DNS propagation
                   </Button>
                 </div>
-                {verifyMut.data && (
-                  <div className="rounded-md border bg-muted/40 p-3 text-xs">
-                    <div>Probed host: <code>{verifyMut.data.testHost}</code></div>
-                    <div>DNS: {verifyMut.data.dnsOk ? "✅ points to Lovable" : `❌ got ${verifyMut.data.addrs.join(", ") || "no answer"}`}</div>
-                    <div>HTTPS: {verifyMut.data.httpsOk ? "✅ live" : "⏳ not responding yet"}</div>
-                  </div>
-                )}
+                <div aria-live="polite" aria-atomic="true">
+                  {verifyMut.data && (
+                    <div className="rounded-md border bg-muted/40 p-3 text-xs" data-testid="verify-result">
+                      <div>যাচাই-করা host: <code>{verifyMut.data.testHost}</code></div>
+                      <div>DNS: {verifyMut.data.dnsOk ? "✅ Lovable-এ point করছে" : `❌ পাওয়া গেছে ${verifyMut.data.addrs.join(", ") || "কোনো উত্তর নেই"}`}</div>
+                      <div>HTTPS: {verifyMut.data.httpsOk ? "✅ live" : "⏳ এখনো response দিচ্ছে না"}</div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {(stepIdx === 1 || stepIdx === 2 || stepIdx === 4) && (
-              <div className="flex gap-2 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs">
-                <Clock className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+              <div className="flex gap-2 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs" role="note">
+                <Clock className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" aria-hidden="true" />
                 <div className="space-y-1">
-                  <p className="font-medium text-amber-900 dark:text-amber-200">DNS propagation takes time</p>
+                  <p className="font-medium text-amber-900 dark:text-amber-200">DNS propagation-এ সময় লাগে</p>
                   <p className="text-amber-800/90 dark:text-amber-200/80">
-                    Wildcard DNS and SSL can take anywhere from a few minutes up to 24–48 hours to propagate
-                    globally. If verification fails, wait 10–15 minutes and click <b>Re-check DNS propagation</b>.
-                    You can also test at{" "}
+                    Wildcard DNS ও SSL globally ছড়াতে কয়েক মিনিট থেকে ২৪–৪৮ ঘণ্টা সময় নিতে পারে। যাচাই ফেল করলে ১০–১৫ মিনিট অপেক্ষা করে <b>Re-check DNS propagation</b> চাপুন। বাইরে থেকে যাচাই করতে চাইলে{" "}
                     <a
                       className="underline"
                       href="https://dnschecker.org/#A/test.easystorebd.com"
@@ -320,8 +345,8 @@ function PlatformDomainSetupPage() {
                       rel="noreferrer"
                     >
                       dnschecker.org
-                    </a>
-                    .
+                    </a>{" "}
+                    ব্যবহার করুন।
                   </p>
                 </div>
               </div>
@@ -333,14 +358,16 @@ function PlatformDomainSetupPage() {
                 checked={!!isDone}
                 onCheckedChange={(v) => updMut.mutate({ [step.key]: v === true })}
               />
-              <label htmlFor="done" className="text-sm">Mark step complete</label>
+              <label htmlFor="done" className="text-sm">Mark step complete (ধাপ সম্পন্ন হিসেবে চিহ্নিত করুন)</label>
             </div>
 
-            {!canGoNext && (
-              <p className="text-xs text-amber-700 dark:text-amber-300" role="status">
-                {blockedMsg}
-              </p>
-            )}
+            <div aria-live="polite" aria-atomic="true">
+              {!canGoNext && (
+                <p className="text-xs text-amber-700 dark:text-amber-300" role="status" data-testid="blocked-message">
+                  {blockedMsg}
+                </p>
+              )}
+            </div>
 
             <div className="flex justify-between pt-2">
               <Button variant="outline" size="sm" disabled={stepIdx === 0} onClick={() => updMut.mutate({ current_step: stepIdx })}>
