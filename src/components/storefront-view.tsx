@@ -49,7 +49,17 @@ export function StorefrontView({ slug }: { slug: string }) {
   useEffect(() => {
     if (effectiveLogoEarly) writeCache(LOGO_CACHE_PREFIX, slug, effectiveLogoEarly);
     if (storeName) writeCache(NAME_CACHE_PREFIX, slug, storeName);
+    // Also cache under the current hostname so custom-domain reloads (where
+    // the URL has no /s/<slug> segment) can render the correct logo on splash.
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname.toLowerCase();
+      if (host && host !== slug) {
+        if (effectiveLogoEarly) writeCache(LOGO_CACHE_PREFIX, host, effectiveLogoEarly);
+        if (storeName) writeCache(NAME_CACHE_PREFIX, host, storeName);
+      }
+    }
   }, [slug, effectiveLogoEarly, storeName]);
+
 
   if (q.isLoading) {
     const cachedLogo = readCache(LOGO_CACHE_PREFIX, slug);
