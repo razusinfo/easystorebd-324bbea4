@@ -34,7 +34,8 @@ subprocess.run(
 js = BUNDLE_PATH.read_text()
 # Data-URL script tags don't support ESM; drop the export block and
 # attach the function to window instead.
-js = js.replace("export {", "// export {")
+import re as _re
+js = _re.sub(r"export\s*\{[\s\S]*?\};?", "", js)
 js += "\nwindow.sanitizeLovableHostname = sanitizeLovableHostname;\n"
 
 HTML = f"""<!doctype html>
