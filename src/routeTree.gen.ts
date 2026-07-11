@@ -34,6 +34,7 @@ import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
 import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
+import { Route as AuthenticatedSplashPreviewRouteImport } from './routes/_authenticated/splash-preview'
 import { Route as AuthenticatedSmsSettingsRouteImport } from './routes/_authenticated/sms-settings'
 import { Route as AuthenticatedResellerRequestsRouteImport } from './routes/_authenticated/reseller-requests'
 import { Route as AuthenticatedResellerProductsRouteImport } from './routes/_authenticated/reseller-products'
@@ -84,6 +85,7 @@ import { Route as AuthenticatedCategoriesNewRouteImport } from './routes/_authen
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$productId'
+import { Route as ApiPublicSplashLogoSplatRouteImport } from './routes/api/public/splash-logo.$'
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
 import { Route as ApiPublicHooksResyncMarketplaceStockRouteImport } from './routes/api/public/hooks/resync-marketplace-stock'
@@ -217,6 +219,12 @@ const AuthenticatedSpotlightsRoute = AuthenticatedSpotlightsRouteImport.update({
   path: '/spotlights',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSplashPreviewRoute =
+  AuthenticatedSplashPreviewRouteImport.update({
+    id: '/splash-preview',
+    path: '/splash-preview',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSmsSettingsRoute =
   AuthenticatedSmsSettingsRouteImport.update({
     id: '/sms-settings',
@@ -492,6 +500,12 @@ const SSlugPProductIdRoute = SSlugPProductIdRouteImport.update({
   path: '/p/$productId',
   getParentRoute: () => SSlugRoute,
 } as any)
+const ApiPublicSplashLogoSplatRoute =
+  ApiPublicSplashLogoSplatRouteImport.update({
+    id: '/api/public/splash-logo/$',
+    path: '/api/public/splash-logo/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicResellerProductsUser_idRoute =
   ApiPublicResellerProductsUser_idRouteImport.update({
     id: '/api/public/reseller-products/$user_id',
@@ -579,6 +593,7 @@ export interface FileRoutesByFullPath {
   '/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/reseller-requests': typeof AuthenticatedResellerRequestsRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
+  '/splash-preview': typeof AuthenticatedSplashPreviewRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
@@ -615,6 +630,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
+  '/api/public/splash-logo/$': typeof ApiPublicSplashLogoSplatRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -661,6 +677,7 @@ export interface FileRoutesByTo {
   '/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/reseller-requests': typeof AuthenticatedResellerRequestsRoute
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
+  '/splash-preview': typeof AuthenticatedSplashPreviewRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
@@ -696,6 +713,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
+  '/api/public/splash-logo/$': typeof ApiPublicSplashLogoSplatRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRoutesById {
@@ -745,6 +763,7 @@ export interface FileRoutesById {
   '/_authenticated/reseller-products': typeof AuthenticatedResellerProductsRoute
   '/_authenticated/reseller-requests': typeof AuthenticatedResellerRequestsRoute
   '/_authenticated/sms-settings': typeof AuthenticatedSmsSettingsRoute
+  '/_authenticated/splash-preview': typeof AuthenticatedSplashPreviewRoute
   '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
@@ -781,6 +800,7 @@ export interface FileRoutesById {
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
+  '/api/public/splash-logo/$': typeof ApiPublicSplashLogoSplatRoute
   '/s/$slug/p/$productId': typeof SSlugPProductIdRoute
 }
 export interface FileRouteTypes {
@@ -830,6 +850,7 @@ export interface FileRouteTypes {
     | '/reseller-products'
     | '/reseller-requests'
     | '/sms-settings'
+    | '/splash-preview'
     | '/spotlights'
     | '/theme-builder'
     | '/themes'
@@ -866,6 +887,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
+    | '/api/public/splash-logo/$'
     | '/s/$slug/p/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -912,6 +934,7 @@ export interface FileRouteTypes {
     | '/reseller-products'
     | '/reseller-requests'
     | '/sms-settings'
+    | '/splash-preview'
     | '/spotlights'
     | '/theme-builder'
     | '/themes'
@@ -947,6 +970,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
+    | '/api/public/splash-logo/$'
     | '/s/$slug/p/$productId'
   id:
     | '__root__'
@@ -995,6 +1019,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reseller-products'
     | '/_authenticated/reseller-requests'
     | '/_authenticated/sms-settings'
+    | '/_authenticated/splash-preview'
     | '/_authenticated/spotlights'
     | '/_authenticated/theme-builder'
     | '/_authenticated/themes'
@@ -1031,6 +1056,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
+    | '/api/public/splash-logo/$'
     | '/s/$slug/p/$productId'
   fileRoutesById: FileRoutesById
 }
@@ -1060,6 +1086,7 @@ export interface RootRouteChildren {
   ApiPublicHooksResyncMarketplaceStockRoute: typeof ApiPublicHooksResyncMarketplaceStockRoute
   ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
+  ApiPublicSplashLogoSplatRoute: typeof ApiPublicSplashLogoSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1237,6 +1264,13 @@ declare module '@tanstack/react-router' {
       path: '/spotlights'
       fullPath: '/spotlights'
       preLoaderRoute: typeof AuthenticatedSpotlightsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/splash-preview': {
+      id: '/_authenticated/splash-preview'
+      path: '/splash-preview'
+      fullPath: '/splash-preview'
+      preLoaderRoute: typeof AuthenticatedSplashPreviewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/sms-settings': {
@@ -1589,6 +1623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugPProductIdRouteImport
       parentRoute: typeof SSlugRoute
     }
+    '/api/public/splash-logo/$': {
+      id: '/api/public/splash-logo/$'
+      path: '/api/public/splash-logo/$'
+      fullPath: '/api/public/splash-logo/$'
+      preLoaderRoute: typeof ApiPublicSplashLogoSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/reseller-products/$user_id': {
       id: '/api/public/reseller-products/$user_id'
       path: '/api/public/reseller-products/$user_id'
@@ -1674,6 +1715,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedResellerProductsRoute: typeof AuthenticatedResellerProductsRoute
   AuthenticatedResellerRequestsRoute: typeof AuthenticatedResellerRequestsRoute
   AuthenticatedSmsSettingsRoute: typeof AuthenticatedSmsSettingsRoute
+  AuthenticatedSplashPreviewRoute: typeof AuthenticatedSplashPreviewRoute
   AuthenticatedSpotlightsRoute: typeof AuthenticatedSpotlightsRoute
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
@@ -1725,6 +1767,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedResellerProductsRoute: AuthenticatedResellerProductsRoute,
   AuthenticatedResellerRequestsRoute: AuthenticatedResellerRequestsRoute,
   AuthenticatedSmsSettingsRoute: AuthenticatedSmsSettingsRoute,
+  AuthenticatedSplashPreviewRoute: AuthenticatedSplashPreviewRoute,
   AuthenticatedSpotlightsRoute: AuthenticatedSpotlightsRoute,
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
@@ -1825,6 +1868,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksResyncMarketplaceStockRoute,
   ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
   ApiPublicResellerProductsUser_idRoute: ApiPublicResellerProductsUser_idRoute,
+  ApiPublicSplashLogoSplatRoute: ApiPublicSplashLogoSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

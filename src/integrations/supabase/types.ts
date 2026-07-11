@@ -1526,6 +1526,50 @@ export type Database = {
         }
         Relationships: []
       }
+      splash_logo_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          affected_scopes: string[]
+          created_at: string
+          host_snapshot: string | null
+          id: string
+          new_path: string | null
+          old_path: string | null
+          store_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          affected_scopes?: string[]
+          created_at?: string
+          host_snapshot?: string | null
+          id?: string
+          new_path?: string | null
+          old_path?: string | null
+          store_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          affected_scopes?: string[]
+          created_at?: string
+          host_snapshot?: string | null
+          id?: string
+          new_path?: string | null
+          old_path?: string | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "splash_logo_audit_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string | null

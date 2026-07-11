@@ -26,6 +26,8 @@ import { Switch } from "@/components/ui/switch";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { primeSplashCache } from "@/lib/splash-cache";
+import { recordSplashAudit } from "@/lib/splash-audit.functions";
 
 export const Route = createFileRoute("/_authenticated/manage-shop")({
   head: () => ({
@@ -350,29 +352,13 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
     finally { setUploadingSplash(false); }
   }
 
-  async function primeSplashCache(logoSignedUrl: string | null, splashSignedUrl: string | null) {
-    if (typeof window === "undefined") return;
-    const currentSlug = store.slug || slugifyStoreName(store.name);
-    const subHost = `${currentSlug}.easystorebd.com`;
-    const custom = store.custom_domain || null;
-    const set = (k: string, v: string | null) => {
-      try {
-        if (v) localStorage.setItem("storefront_logo_cache:" + k, v);
-      } catch { /* ignore */ }
-    };
-    // Slug key always uses the storefront logo.
-    set(currentSlug, logoSignedUrl);
-    // Host keys respect splash toggles.
-    if (splashOnSub && splashSignedUrl) set(subHost, splashSignedUrl);
-    else set(subHost, logoSignedUrl);
-    if (custom) {
-      if (splashOnCd && splashSignedUrl) set(custom.toLowerCase(), splashSignedUrl);
-      else set(custom.toLowerCase(), logoSignedUrl);
-    }
-  }
-
   async function saveAll() {
     try {
+      const prevSplash = store.shop_settings?.splash ?? {};
+      const prevPath = (prevSplash as any).logo_path ?? null;
+      const prevOnSub = (prevSplash as any).on_subdomain ?? true;
+      const prevOnCd = (prevSplash as any).on_custom_domain ?? true;
+
       const merged = {
         ...(store.shop_settings ?? {}),
         general: {
@@ -408,12 +394,55 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
         logo_url: logoPath,
         shop_settings: merged,
       });
+
       // Immediately refresh browser splash caches so the next reload uses the
       // updated logo without waiting for a storefront visit.
-      await primeSplashCache(signedLogo.data ?? null, signedSplash.data ?? null);
+      const currentSlug = store.slug || slugifyStoreName(store.name);
+      const version = Date.now();
+      const splashProxyUrl = splashPath
+        ? `/api/public/splash-logo/${store.id}?v=${version}`
+        : null;
+      primeSplashCache({
+        slug: currentSlug,
+        customDomain: (store as any).custom_domain ?? null,
+        logoUrl: signedLogo.data ?? null,
+        splashUrl: splashProxyUrl ?? signedSplash.data ?? null,
+        onSubdomain: splashOnSub,
+        onCustomDomain: splashOnCd,
+      });
+
+      // Audit any change to the splash configuration.
+      const pathChanged = prevPath !== splashPath;
+      const togglesChanged = prevOnSub !== splashOnSub || prevOnCd !== splashOnCd;
+      if (pathChanged || togglesChanged) {
+        const action: "upload" | "change" | "remove" | "toggle" =
+          !prevPath && splashPath ? "upload" :
+          prevPath && !splashPath ? "remove" :
+          pathChanged ? "change" : "toggle";
+        const scopes: ("slug" | "subdomain" | "custom_domain")[] = ["slug"];
+        if (splashOnSub) scopes.push("subdomain");
+        if (splashOnCd && (store as any).custom_domain) scopes.push("custom_domain");
+        try {
+          await recordSplashAudit({
+            data: {
+              store_id: store.id,
+              action,
+              old_path: prevPath,
+              new_path: splashPath,
+              affected_scopes: scopes,
+              host_snapshot: typeof window !== "undefined" ? window.location.host : null,
+            },
+          });
+        } catch (auditErr: any) {
+          // Audit failure must not block the user-visible save success.
+          console.warn("splash audit log failed:", auditErr?.message);
+        }
+      }
+
       toast.success("Shop settings updated.");
     } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
   }
+
 
 
   async function saveThemeColor() {
@@ -690,9 +719,17 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
                 <Switch checked={splashOnCd} onCheckedChange={setSplashOnCd} />
               </label>
             </div>
-            <p className="mt-3 text-[11px] text-muted-foreground">
-              Click <b>Save</b> at the top to apply. The updated splash logo will appear on your next reload.
-            </p>
+            <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+              <span>
+                Click <b>Save</b> at the top to apply. The updated splash logo will appear on your next reload.
+              </span>
+              <Link
+                to="/splash-preview"
+                className="inline-flex items-center gap-1 text-primary hover:underline whitespace-nowrap"
+              >
+                Preview splash <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
           </section>
 
 
