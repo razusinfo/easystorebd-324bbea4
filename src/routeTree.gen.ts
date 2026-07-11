@@ -89,6 +89,7 @@ import { Route as ApiPublicSplashLogoSplatRouteImport } from './routes/api/publi
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
 import { Route as ApiPublicHooksResyncMarketplaceStockRouteImport } from './routes/api/public/hooks/resync-marketplace-stock'
+import { Route as ApiPublicHooksResellerOrderNotifyRouteImport } from './routes/api/public/hooks/reseller-order-notify'
 import { Route as ApiPublicHooksOrderCourierStatusRouteImport } from './routes/api/public/hooks/order-courier-status'
 import { Route as ApiPublicHooksCourierStatusRouteImport } from './routes/api/public/hooks/courier-status'
 import { Route as AuthenticatedProductsProductIdEditRouteImport } from './routes/_authenticated/products.$productId.edit'
@@ -523,6 +524,12 @@ const ApiPublicHooksResyncMarketplaceStockRoute =
     path: '/api/public/hooks/resync-marketplace-stock',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksResellerOrderNotifyRoute =
+  ApiPublicHooksResellerOrderNotifyRouteImport.update({
+    id: '/api/public/hooks/reseller-order-notify',
+    path: '/api/public/hooks/reseller-order-notify',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksOrderCourierStatusRoute =
   ApiPublicHooksOrderCourierStatusRouteImport.update({
     id: '/api/public/hooks/order-courier-status',
@@ -627,6 +634,7 @@ export interface FileRoutesByFullPath {
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
+  '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -710,6 +718,7 @@ export interface FileRoutesByTo {
   '/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
+  '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -797,6 +806,7 @@ export interface FileRoutesById {
   '/_authenticated/products/$productId/edit': typeof AuthenticatedProductsProductIdEditRoute
   '/api/public/hooks/courier-status': typeof ApiPublicHooksCourierStatusRoute
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
+  '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -884,6 +894,7 @@ export interface FileRouteTypes {
     | '/products/$productId/edit'
     | '/api/public/hooks/courier-status'
     | '/api/public/hooks/order-courier-status'
+    | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -967,6 +978,7 @@ export interface FileRouteTypes {
     | '/products/$productId/edit'
     | '/api/public/hooks/courier-status'
     | '/api/public/hooks/order-courier-status'
+    | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -1053,6 +1065,7 @@ export interface FileRouteTypes {
     | '/_authenticated/products/$productId/edit'
     | '/api/public/hooks/courier-status'
     | '/api/public/hooks/order-courier-status'
+    | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -1083,6 +1096,7 @@ export interface RootRouteChildren {
   ApiPublicResellerSyncRoute: typeof ApiPublicResellerSyncRoute
   ApiPublicHooksCourierStatusRoute: typeof ApiPublicHooksCourierStatusRoute
   ApiPublicHooksOrderCourierStatusRoute: typeof ApiPublicHooksOrderCourierStatusRoute
+  ApiPublicHooksResellerOrderNotifyRoute: typeof ApiPublicHooksResellerOrderNotifyRoute
   ApiPublicHooksResyncMarketplaceStockRoute: typeof ApiPublicHooksResyncMarketplaceStockRoute
   ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
@@ -1651,6 +1665,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksResyncMarketplaceStockRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/reseller-order-notify': {
+      id: '/api/public/hooks/reseller-order-notify'
+      path: '/api/public/hooks/reseller-order-notify'
+      fullPath: '/api/public/hooks/reseller-order-notify'
+      preLoaderRoute: typeof ApiPublicHooksResellerOrderNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/order-courier-status': {
       id: '/api/public/hooks/order-courier-status'
       path: '/api/public/hooks/order-courier-status'
@@ -1864,6 +1885,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicResellerSyncRoute: ApiPublicResellerSyncRoute,
   ApiPublicHooksCourierStatusRoute: ApiPublicHooksCourierStatusRoute,
   ApiPublicHooksOrderCourierStatusRoute: ApiPublicHooksOrderCourierStatusRoute,
+  ApiPublicHooksResellerOrderNotifyRoute:
+    ApiPublicHooksResellerOrderNotifyRoute,
   ApiPublicHooksResyncMarketplaceStockRoute:
     ApiPublicHooksResyncMarketplaceStockRoute,
   ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
