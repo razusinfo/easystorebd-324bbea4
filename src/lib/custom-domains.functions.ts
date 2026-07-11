@@ -153,8 +153,9 @@ export const checkDomainStatus = createServerFn({ method: "POST" })
       }
     }
 
-    const { data: updated, error: upErr } = await context.supabase
-      .from("custom_domains" as never)
+    const sb2 = context.supabase as unknown as { from: (t: string) => any };
+    const { data: updated, error: upErr } = await sb2
+      .from("custom_domains")
       .update({
         status,
         last_checked_at: new Date().toISOString(),
