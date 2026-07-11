@@ -6,6 +6,7 @@ import {
   clampStep,
   completedCount,
   isStepDone,
+  sanitizeLovableHostname,
 } from "./platform-domain-setup-logic";
 
 describe("platform domain setup logic", () => {
@@ -61,5 +62,37 @@ describe("platform domain setup logic", () => {
     for (const k of PLATFORM_STEP_KEYS) finished[k] = true;
     expect(completedCount(finished)).toBe(PLATFORM_STEP_KEYS.length);
     expect(canAdvance(finished, PLATFORM_STEP_KEYS.length - 1)).toBe(true);
+  });
+
+  describe("sanitizeLovableHostname (Step 5 Connect Domain e2e behavior)", () => {
+    it("strips the `*.` wildcard prefix so Continue stays enabled with the apex domain", () => {
+      const r = sanitizeLovableHostname("*.easystorebd.com");
+      expect(r.sanitized).toBe("easystorebd.com");
+      expect(r.stripped).toBe(true);
+      expect(r.hasInvalidWildcard).toBe(false);
+      expect(r.isValid).toBe(true);
+      expect(r.message).toMatch(/easystorebd\.com/);
+    });
+
+    it("still flags stray `*` characters mid-hostname so Continue stays disabled", () => {
+      const r = sanitizeLovableHostname("foo.*.easystorebd.com");
+      expect(r.hasInvalidWildcard).toBe(true);
+      expect(r.isValid).toBe(false);
+      expect(r.message).toMatch(/Continue disable/);
+    });
+
+    it("passes a clean apex through unchanged and marks it valid", () => {
+      const r = sanitizeLovableHostname("easystorebd.com");
+      expect(r.sanitized).toBe("easystorebd.com");
+      expect(r.stripped).toBe(false);
+      expect(r.isValid).toBe(true);
+      expect(r.message).toBeNull();
+    });
+
+    it("normalizes protocol and trailing slash paste from browser", () => {
+      const r = sanitizeLovableHostname("https://*.easystorebd.com/");
+      expect(r.sanitized).toBe("easystorebd.com");
+      expect(r.isValid).toBe(true);
+    });
   });
 });

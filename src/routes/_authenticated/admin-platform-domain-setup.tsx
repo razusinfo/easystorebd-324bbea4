@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import {
   clampStep,
   completedCount,
   isStepDone,
+  sanitizeLovableHostname,
 } from "@/lib/platform-domain-setup-logic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -39,6 +41,80 @@ const STEP_TITLES: Record<(typeof PLATFORM_STEP_KEYS)[number], string> = {
 const STEPS = PLATFORM_STEP_KEYS.map((key) => ({ key, title: STEP_TITLES[key] }));
 
 function copyText(t: string) { navigator.clipboard.writeText(t).then(() => toast.success("Copied")); }
+
+function HostnameSanitizerInput() {
+  const [raw, setRaw] = useState("");
+  const result = sanitizeLovableHostname(raw);
+  const sanitizedShown = result.sanitized || "easystorebd.com";
+
+  return (
+    <div className="rounded-md border p-3 space-y-2" data-testid="hostname-sanitizer">
+      <p className="font-medium text-sm">Hostname helper (wildcard-safe)</p>
+      <p className="text-xs text-muted-foreground">
+        <code>*.easystorebd.com</code> পেস্ট করলে <code>*.</code> স্বয়ংক্রিয়ভাবে বাদ যাবে যাতে Lovable-এর
+        Connect Domain ইনপুটে Continue enable থাকে।
+      </p>
+      <input
+        type="text"
+        value={raw}
+        onChange={(e) => setRaw(e.target.value)}
+        placeholder="*.easystorebd.com"
+        aria-label="Hostname to sanitize"
+        data-testid="hostname-input"
+        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+      />
+      {result.hasInvalidWildcard && (
+        <p
+          className="text-xs text-destructive"
+          role="alert"
+          data-testid="hostname-error"
+        >
+          {result.message} — Continue disable থাকবে।
+        </p>
+      )}
+      {result.stripped && !result.hasInvalidWildcard && (
+        <p
+          className="text-xs text-emerald-700 dark:text-emerald-400"
+          role="status"
+          data-testid="hostname-stripped"
+        >
+          {result.message}
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <code
+          className="rounded bg-muted px-2 py-1 text-xs"
+          data-testid="hostname-sanitized"
+        >
+          {sanitizedShown}
+        </code>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={!result.isValid}
+          data-testid="hostname-copy"
+          onClick={() => {
+            navigator.clipboard.writeText(result.sanitized).then(() => {
+              if (result.stripped) {
+                toast.success(`wildcard বাদ দিয়ে "${result.sanitized}" কপি হয়েছে`);
+              } else {
+                toast.success(`"${result.sanitized}" কপি হয়েছে`);
+              }
+            });
+          }}
+          title={
+            result.hasInvalidWildcard
+              ? "`*` character থাকলে Lovable Continue disable করে"
+              : "Copy sanitized hostname"
+          }
+        >
+          <Copy className="h-3.5 w-3.5 mr-1" /> Copy for Lovable
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 
 function PlatformDomainSetupPage() {
   const qc = useQueryClient();
@@ -176,6 +252,10 @@ function PlatformDomainSetupPage() {
                     <code>*.easystorebd.com</code> টাইপ করলে Continue বাটন disable হয়ে যায় — এটা Lovable UI-এর hostname validation, বাগ নয়। wildcard self-serve সম্ভব না; নিচের যেকোনো একটা পথ ব্যবহার করুন।
                   </p>
                 </div>
+
+                <HostnameSanitizerInput />
+
+
 
                 <div className="rounded-md border p-3 space-y-2">
                   <p className="font-medium">Option A — Root + www কানেক্ট করুন (সবচেয়ে সহজ)</p>
