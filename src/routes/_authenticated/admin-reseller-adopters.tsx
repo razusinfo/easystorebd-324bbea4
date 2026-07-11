@@ -13,7 +13,7 @@ import {
   type Adopter,
   type AdopterGroup,
 } from "@/lib/admin-reseller-adopters.functions";
-import { useIsSuperAdmin } from "@/lib/eazystore-data";
+import { useIsSuperAdmin, buildStorefrontUrl } from "@/lib/eazystore-data";
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
 } from "@/components/ui/card";
