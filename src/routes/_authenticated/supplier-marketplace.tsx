@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Route as ResellerProductsRoute } from "./reseller-products";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// Supplier Marketplace: alias route for resellers to browse supplier products
-// and add them to their store (with custom retail price). Reuses the existing
-// reseller-products page component so both URLs stay in sync.
+// Supplier Marketplace: alias URL that redirects to the reseller products
+// browsing page (browse supplier products + Add to My Store with custom price).
 export const Route = createFileRoute("/_authenticated/supplier-marketplace")({
-  component: ResellerProductsRoute.options.component!,
+  beforeLoad: () => {
+    throw redirect({ to: "/reseller-products" });
+  },
 });
