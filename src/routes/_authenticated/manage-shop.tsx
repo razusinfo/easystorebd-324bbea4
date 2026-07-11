@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   useMyStore, useUpdateStore, useLogoSignedUrl, uploadStoreLogo, deleteStoreLogo,
   usePublishStore, useChangeSlug, slugifyStoreName, buildStorefrontUrl,
-  TEMPLATES,
+  TEMPLATES, businessTypeLabel,
   type Category, type TemplateId, type ShopSettings,
 } from "@/lib/eazystore-data";
 import { Button } from "@/components/ui/button";
