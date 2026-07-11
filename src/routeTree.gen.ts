@@ -59,6 +59,7 @@ import { Route as AuthenticatedAdminResellerSyncLogsRouteImport } from './routes
 import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
 import { Route as AuthenticatedAdminResellerAdoptersRouteImport } from './routes/_authenticated/admin-reseller-adopters'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
+import { Route as AuthenticatedAdminPlatformDomainSetupRouteImport } from './routes/_authenticated/admin-platform-domain-setup'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin-payouts'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
 import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin-financial'
@@ -353,6 +354,12 @@ const AuthenticatedAdminRequestsRoute =
     path: '/admin-requests',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminPlatformDomainSetupRoute =
+  AuthenticatedAdminPlatformDomainSetupRouteImport.update({
+    id: '/admin-platform-domain-setup',
+    path: '/admin-platform-domain-setup',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPayoutsRoute =
   AuthenticatedAdminPayoutsRouteImport.update({
     id: '/admin-payouts',
@@ -530,6 +537,7 @@ export interface FileRoutesByFullPath {
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
+  '/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -609,6 +617,7 @@ export interface FileRoutesByTo {
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
+  '/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -690,6 +699,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/_authenticated/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
+  '/_authenticated/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
   '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -772,6 +782,7 @@ export interface FileRouteTypes {
     | '/admin-financial'
     | '/admin-notifications'
     | '/admin-payouts'
+    | '/admin-platform-domain-setup'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -851,6 +862,7 @@ export interface FileRouteTypes {
     | '/admin-financial'
     | '/admin-notifications'
     | '/admin-payouts'
+    | '/admin-platform-domain-setup'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -931,6 +943,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-financial'
     | '/_authenticated/admin-notifications'
     | '/_authenticated/admin-payouts'
+    | '/_authenticated/admin-platform-domain-setup'
     | '/_authenticated/admin-requests'
     | '/_authenticated/admin-reseller-adopters'
     | '/_authenticated/admin-reseller-orders'
@@ -1375,6 +1388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-platform-domain-setup': {
+      id: '/_authenticated/admin-platform-domain-setup'
+      path: '/admin-platform-domain-setup'
+      fullPath: '/admin-platform-domain-setup'
+      preLoaderRoute: typeof AuthenticatedAdminPlatformDomainSetupRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin-payouts': {
       id: '/_authenticated/admin-payouts'
       path: '/admin-payouts'
@@ -1586,6 +1606,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminFinancialRoute: typeof AuthenticatedAdminFinancialRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
+  AuthenticatedAdminPlatformDomainSetupRoute: typeof AuthenticatedAdminPlatformDomainSetupRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminResellerAdoptersRoute: typeof AuthenticatedAdminResellerAdoptersRoute
   AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
@@ -1630,6 +1651,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminFinancialRoute: AuthenticatedAdminFinancialRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
+  AuthenticatedAdminPlatformDomainSetupRoute:
+    AuthenticatedAdminPlatformDomainSetupRoute,
   AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
   AuthenticatedAdminResellerAdoptersRoute:
     AuthenticatedAdminResellerAdoptersRoute,
