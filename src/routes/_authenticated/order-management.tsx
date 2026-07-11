@@ -86,6 +86,7 @@ function OrderManagementPage() {
   const [draftStatus, setDraftStatus] = useState<string>("");
   const [draftTracking, setDraftTracking] = useState<string>("");
   const [draftTrackUrl, setDraftTrackUrl] = useState<string>("");
+  const [draftNotes, setDraftNotes] = useState<string>("");
 
   const role = query.data?.role;
   const rows = query.data?.rows ?? [];
