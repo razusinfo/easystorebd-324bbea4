@@ -1,6 +1,6 @@
 // Wildcard-subdomain routing helpers for the public storefront.
 // Recognized apex domains where `<slug>.<apex>` should render a storefront.
-export const STOREFRONT_APEX_DOMAINS = ["eazystore.xyz"] as const;
+export const STOREFRONT_APEX_DOMAINS = ["easystorebd.com", "eazystore.xyz"] as const;
 
 const RESERVED_SUBS = new Set(["www", "app", "admin", "api", "mail", "webmail", "ftp", "cdn", "static"]);
 
