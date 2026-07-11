@@ -17,21 +17,25 @@ Run:
     python3 tests/e2e/hostname-sanitizer.spec.py
 """
 import asyncio
-import re
+import subprocess
 from pathlib import Path
 from playwright.async_api import async_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
-LOGIC = (ROOT / "src/lib/platform-domain-setup-logic.ts").read_text()
 
-# Strip TS-only bits so the file can eval as JS in the browser.
-js = LOGIC
-js = re.sub(r"export type [\s\S]*?};\n", "", js)
-js = re.sub(r"export ", "", js)
-js = js.replace(" as const", "")
-# Remove type annotations on function params / return types.
-js = re.sub(r":\s*[A-Za-z_][\w<>\[\]|\"'.\s,{}?&]*(?=\s*[=,)])", "", js)
-js = re.sub(r"\):\s*[A-Za-z_][\w<>\[\]|\"'.\s,{}?&]*\s*\{", ") {", js)
+# Transpile the sanitizer TS module to plain JS with bun, then expose the
+# named export on window for the harness.
+BUNDLE_PATH = Path("/tmp/platform-domain-setup-logic.js")
+subprocess.run(
+    ["bun", "build", str(ROOT / "src/lib/platform-domain-setup-logic.ts"),
+     "--format=esm", "--outfile", str(BUNDLE_PATH)],
+    check=True, cwd=ROOT, capture_output=True,
+)
+js = BUNDLE_PATH.read_text()
+# Data-URL script tags don't support ESM; drop the export block and
+# attach the function to window instead.
+js = js.replace("export {", "// export {")
+js += "\nwindow.sanitizeLovableHostname = sanitizeLovableHostname;\n"
 
 HTML = f"""<!doctype html>
 <html lang="bn"><body>
