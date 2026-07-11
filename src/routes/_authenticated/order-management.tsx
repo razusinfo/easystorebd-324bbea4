@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Eye, ShoppingBag } from "lucide-react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
+import { ChevronLeft, ChevronRight, Eye, ShoppingBag } from "lucide-react";
 import { listManagedOrders, type ManagedOrderRow } from "@/lib/order-management.functions";
+import { updateManagedOrderStatus } from "@/lib/order-management-actions.functions";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,11 +19,21 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
+
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  status: fallback(z.string(), "all").default("all"),
+  supplier: fallback(z.string(), "all").default("all"),
+  reseller: fallback(z.string(), "all").default("all"),
+  page: fallback(z.number().int(), 1).default(1),
+});
 
 export const Route = createFileRoute("/_authenticated/order-management")({
   component: OrderManagementPage,
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Order Management — EasyStore" },
