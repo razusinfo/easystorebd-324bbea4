@@ -719,9 +719,17 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
                 <Switch checked={splashOnCd} onCheckedChange={setSplashOnCd} />
               </label>
             </div>
-            <p className="mt-3 text-[11px] text-muted-foreground">
-              Click <b>Save</b> at the top to apply. The updated splash logo will appear on your next reload.
-            </p>
+            <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+              <span>
+                Click <b>Save</b> at the top to apply. The updated splash logo will appear on your next reload.
+              </span>
+              <Link
+                to="/splash-preview"
+                className="inline-flex items-center gap-1 text-primary hover:underline whitespace-nowrap"
+              >
+                Preview splash <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
           </section>
 
 
