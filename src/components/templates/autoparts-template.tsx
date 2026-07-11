@@ -3,7 +3,7 @@ import {
   Star, Plus, Zap, Wrench, Gauge, Battery, Lightbulb, Cog, Shield, Car,
 } from "lucide-react";
 import type { StoreRow, ProductRow } from "@/lib/eazystore-data";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 import { isValidHexColor, sanitizeHexColor } from "@/lib/hex-color";
 
 type Props = {
@@ -304,7 +304,7 @@ export function AutoPartsTemplate({
       </div>
 
       <footer className="border-t border-neutral-200 bg-white py-5 text-center text-xs text-neutral-500">
-        Powered by <a href="/" className="hover:underline"><EazyStoreWordmark className="text-xs align-middle" /></a> · {tagline}
+        Powered by <a href="/" className="hover:underline"><EasyStoreWordmark className="text-xs align-middle" /></a> · {tagline}
       </footer>
     </div>
   );

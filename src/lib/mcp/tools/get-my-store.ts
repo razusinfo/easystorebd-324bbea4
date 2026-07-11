@@ -11,7 +11,7 @@ function supabaseForUser(ctx: ToolContext) {
 export default defineTool({
   name: "get_my_store",
   title: "Get my store",
-  description: "Return basic info about the signed-in user's EazyStore store (name, slug, contact).",
+  description: "Return basic info about the signed-in user's EasyStore store (name, slug, contact).",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {

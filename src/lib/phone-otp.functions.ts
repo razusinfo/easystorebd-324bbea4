@@ -111,7 +111,7 @@ export const sendPhoneOtp = createServerFn({ method: "POST" })
     const template =
       settings?.otp_template ??
       "Your {app} verification code is {code}. It expires in {minutes} minutes. Do not share this code.{signature}";
-    const appName = settings?.app_name ?? "EazyStore";
+    const appName = settings?.app_name ?? "EasyStore";
     const signature = settings?.signature ?? "";
     const signatureBlock = signature ? `\n${signature}` : "";
     const message = template

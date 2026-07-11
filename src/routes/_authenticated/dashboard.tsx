@@ -8,10 +8,10 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyStore, useMyProducts, buildStorefrontUrl } from "@/lib/eazystore-data";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — EazyStore" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — EasyStore" }] }),
   component: Dashboard,
 });
 
@@ -170,7 +170,7 @@ function Dashboard() {
             <div className="min-w-0">
               <p className="text-xs font-medium text-foreground/60">Introducing</p>
               <p className="text-xl">
-                <EazyStoreWordmark className="text-xl align-baseline" /> <span className="font-display font-black text-primary">Experts</span>
+                <EasyStoreWordmark className="text-xl align-baseline" /> <span className="font-display font-black text-primary">Experts</span>
               </p>
               <p className="mt-0.5 text-xs text-foreground/70">
                 From confusion to clarity — structured guidance for your business.

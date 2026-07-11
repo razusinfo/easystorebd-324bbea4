@@ -36,7 +36,7 @@ const DEFAULTS: Settings = {
   email_enabled: true,
   sms_enabled: true,
   from_email: "orders@resend.dev",
-  from_name: "EazyStore",
+  from_name: "EasyStore",
   reply_to: null,
   notify_customer: true,
   notify_reseller: true,

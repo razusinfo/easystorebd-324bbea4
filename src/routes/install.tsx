@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Smartphone, Monitor, Apple, Chrome, Share, MoreVertical, Download, Home } from "lucide-react";
 import { PwaInstallButton } from "@/components/pwa-install-button";
 import logoAsset from "@/assets/eazystore-logo.png.asset.json";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export const Route = createFileRoute("/install")({
   head: () => ({
     meta: [
-      { title: "EazyStore অ্যাপ ইনস্টল করুন — মোবাইল ও ডেস্কটপ গাইড" },
-      { name: "description", content: "EazyStore কে আপনার ফোন বা কম্পিউটারে অ্যাপের মতো ইনস্টল করুন। Android, iPhone, Windows ও Mac-এর জন্য সহজ ধাপে ধাপে গাইড।" },
+      { title: "EasyStore অ্যাপ ইনস্টল করুন — মোবাইল ও ডেস্কটপ গাইড" },
+      { name: "description", content: "EasyStore কে আপনার ফোন বা কম্পিউটারে অ্যাপের মতো ইনস্টল করুন। Android, iPhone, Windows ও Mac-এর জন্য সহজ ধাপে ধাপে গাইড।" },
     ],
   }),
   component: InstallPage,
@@ -56,7 +56,7 @@ const GUIDES: Guide[] = [
     steps: [
       { text: "Chrome অথবা Microsoft Edge-এ সাইটটি খুলুন।", icon: Chrome },
       { text: "URL বারের ডান পাশে ইনস্টল আইকন (⬇️/💻) দেখলে সেটি চাপুন।", icon: Download },
-      { text: "না দেখলে মেনু (⋮) → \"Install EazyStore…\" সিলেক্ট করুন।", icon: MoreVertical },
+      { text: "না দেখলে মেনু (⋮) → \"Install EasyStore…\" সিলেক্ট করুন।", icon: MoreVertical },
       { text: "\"Install\" চেপে নিশ্চিত করুন — ডেস্কটপ/টাস্কবারে অ্যাপ চালু হবে।", icon: Monitor },
     ],
   },
@@ -80,11 +80,11 @@ function InstallPage() {
         <section className="text-center space-y-3">
           <img
             src={logoAsset.url}
-            alt="EazyStore"
+            alt="EasyStore"
             className="mx-auto h-20 sm:h-24 w-auto object-contain drop-shadow-md"
           />
           <h1 className="text-3xl sm:text-4xl font-black text-emerald-900">
-            <EazyStoreWordmark className="text-3xl sm:text-4xl align-baseline" /> অ্যাপ ইনস্টল করুন
+            <EasyStoreWordmark className="text-3xl sm:text-4xl align-baseline" /> অ্যাপ ইনস্টল করুন
           </h1>
           <p className="mx-auto max-w-xl text-sm sm:text-base text-slate-600">
             কোনো Play Store বা App Store লাগবে না। সরাসরি ব্রাউজার থেকেই আপনার ফোন ও কম্পিউটারে

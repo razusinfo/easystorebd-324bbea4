@@ -82,9 +82,9 @@ function Consent() {
   return (
     <main className="mx-auto max-w-md p-6">
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <h1 className="text-xl font-bold">Connect {clientName} to your EazyStore account</h1>
+        <h1 className="text-xl font-bold">Connect {clientName} to your EasyStore account</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This lets {clientName} use EazyStore tools on your behalf — reading your store,
+          This lets {clientName} use EasyStore tools on your behalf — reading your store,
           products, and orders as you.
         </p>
         {error && (

@@ -16,8 +16,8 @@ import {
 export const Route = createFileRoute("/_authenticated/mobile-app")({
   head: () => ({
     meta: [
-      { title: "Mobile App — EazyStore" },
-      { name: "description", content: "Manage your EazyStore shop from your phone — sales, orders, products, and settings on the go." },
+      { title: "Mobile App — EasyStore" },
+      { name: "description", content: "Manage your EasyStore shop from your phone — sales, orders, products, and settings on the go." },
       { name: "theme-color", content: "#7C3AED" },
     ],
   }),
@@ -519,7 +519,7 @@ function SettingsTab({ store }: { store: any }) {
         ))}
       </section>
 
-      <p className="pt-2 text-center text-[11px] text-slate-400">EazyStore Mobile · v1.0</p>
+      <p className="pt-2 text-center text-[11px] text-slate-400">EasyStore Mobile · v1.0</p>
     </div>
   );
 }

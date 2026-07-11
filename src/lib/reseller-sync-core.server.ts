@@ -30,7 +30,7 @@ export async function rehostImageFromCandidates(
   let lastError: string | null = null;
   for (const src of unique) {
     try {
-      const res = await fetch(src, { headers: { "User-Agent": "EazyStore-Sync/1.0" } });
+      const res = await fetch(src, { headers: { "User-Agent": "EasyStore-Sync/1.0" } });
       if (!res.ok) {
         lastError = `fetch ${res.status} ${res.statusText} — ${src.slice(0, 160)}`;
         continue;
@@ -87,7 +87,7 @@ export async function rehostAllImages(
   const errors: string[] = [];
   for (const src of unique) {
     try {
-      const res = await fetch(src, { headers: { "User-Agent": "EazyStore-Sync/1.0" } });
+      const res = await fetch(src, { headers: { "User-Agent": "EasyStore-Sync/1.0" } });
       if (!res.ok) { errors.push(`fetch ${res.status} — ${src.slice(0, 100)}`); continue; }
       const buf = new Uint8Array(await res.arrayBuffer());
       if (buf.byteLength === 0) { errors.push(`empty — ${src.slice(0, 100)}`); continue; }

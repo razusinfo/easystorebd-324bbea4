@@ -9,8 +9,8 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_authenticated/products/new")({
   head: () => ({
     meta: [
-      { title: "Add Product — EazyStore" },
-      { name: "description", content: "Add a new product to your EazyStore inventory." },
+      { title: "Add Product — EasyStore" },
+      { name: "description", content: "Add a new product to your EasyStore inventory." },
     ],
   }),
   validateSearch: (s) => searchSchema.parse(s),

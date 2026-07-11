@@ -3,13 +3,13 @@ import { useEffect } from "react";
 import { TEMPLATES, usePublicStoreBySlug, getTemplateSettings } from "@/lib/eazystore-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
-import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import { EasyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { FlipmartTemplate } from "@/components/templates/flipmart-template";
 import { FreshmartTemplate } from "@/components/templates/freshmart-template";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 const LOGO_CACHE_PREFIX = "storefront_logo_cache:";
 const NAME_CACHE_PREFIX = "storefront_name_cache:";
@@ -137,7 +137,7 @@ export function StorefrontView({ slug }: { slug: string }) {
 
   if (s.template === "eazystore-basic") {
     return (
-      <EazyStoreBasicTemplate
+      <EasyStoreBasicTemplate
         store={s}
         products={orderedProducts}
         logoUrl={effectiveLogo}
@@ -265,7 +265,7 @@ export function StorefrontView({ slug }: { slug: string }) {
       )}
 
       <footer className="border-t border-neutral-200 bg-white py-6 text-center text-xs text-neutral-500">
-        Powered by <a href="/" className="hover:underline"><EazyStoreWordmark className="text-sm align-middle" /></a>
+        Powered by <a href="/" className="hover:underline"><EasyStoreWordmark className="text-sm align-middle" /></a>
       </footer>
     </main>
   );

@@ -41,7 +41,7 @@ describe("buildSubmittedEmailPayload", () => {
       origin: ORIGIN,
     });
     expect(p.to).toBe("admin@shop.com");
-    expect(p.from).toMatch(/EazyStore/);
+    expect(p.from).toMatch(/EasyStore/);
     expect(p.subject).toBe("New product request: Neon Lamp");
     expect(p.html).toContain("Alice");
     expect(p.html).toContain("Neon Lamp");

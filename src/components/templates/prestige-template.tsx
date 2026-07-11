@@ -39,7 +39,7 @@ function useCountdown(fromMs = 5 * 60 * 60 * 1000) {
 }
 
 export function PrestigeTemplate({ store, products, logoUrl, categories, demo = false }: Props) {
-  const name = (store?.name ?? "EazyStore").toUpperCase();
+  const name = (store?.name ?? "EasyStore").toUpperCase();
   const slug = store?.slug;
   const storeId = store?.id;
   const useDemo = demo;

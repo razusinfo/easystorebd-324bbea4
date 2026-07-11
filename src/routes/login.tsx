@@ -6,7 +6,7 @@ import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -29,10 +29,10 @@ export const Route = createFileRoute("/login")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Welcome Back — Sign in to EazyStore" },
-      { name: "description", content: "Sign in to your EazyStore account to manage your store." },
-      { property: "og:title", content: "Welcome Back — Sign in to EazyStore" },
-      { property: "og:description", content: "Sign in to your EazyStore account to manage your store." },
+      { title: "Welcome Back — Sign in to EasyStore" },
+      { name: "description", content: "Sign in to your EasyStore account to manage your store." },
+      { property: "og:title", content: "Welcome Back — Sign in to EasyStore" },
+      { property: "og:description", content: "Sign in to your EasyStore account to manage your store." },
       { property: "og:url", content: "https://eazystorebd.lovable.app/login" },
     ],
     links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/login" }],
@@ -239,7 +239,7 @@ function LoginPage() {
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-purple-600 to-violet-600 text-white shadow-md">
             <Sparkles className="h-5 w-5" />
           </div>
-          <EazyStoreWordmark className="text-xl" />
+          <EasyStoreWordmark className="text-xl" />
         </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
@@ -435,7 +435,7 @@ function LoginPage() {
             <a href="#" className="font-semibold text-purple-700 hover:underline">Terms of Use</a>
             {" "}&amp;{" "}
             <a href="#" className="font-semibold text-purple-700 hover:underline">Privacy Policy</a>
-            {" "}of <EazyStoreWordmark className="text-xs align-baseline" />.
+            {" "}of <EasyStoreWordmark className="text-xs align-baseline" />.
           </p>
         </div>
       </div>

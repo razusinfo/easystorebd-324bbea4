@@ -7,7 +7,7 @@ import { useIsSuperAdmin } from "@/lib/eazystore-data";
 import { getSmsSettings, updateSmsSettings } from "@/lib/sms-settings.functions";
 
 export const Route = createFileRoute("/_authenticated/sms-settings")({
-  head: () => ({ meta: [{ title: "SMS Template — EazyStore" }] }),
+  head: () => ({ meta: [{ title: "SMS Template — EasyStore" }] }),
   component: SmsSettingsPage,
 });
 
@@ -15,7 +15,7 @@ function renderPreview(template: string, app: string, signature: string) {
   return template
     .replaceAll("{code}", "123456")
     .replaceAll("{minutes}", "5")
-    .replaceAll("{app}", app || "EazyStore")
+    .replaceAll("{app}", app || "EasyStore")
     .replaceAll("{signature}", signature ? `\n${signature}` : "");
 }
 
@@ -34,14 +34,14 @@ function SmsSettingsPage() {
 
   const [template, setTemplate] = useState("");
   const [signature, setSignature] = useState("");
-  const [appName, setAppName] = useState("EazyStore");
+  const [appName, setAppName] = useState("EasyStore");
   const [status, setStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   useEffect(() => {
     if (settings.data) {
       setTemplate(settings.data.otp_template);
       setSignature(settings.data.signature ?? "");
-      setAppName(settings.data.app_name ?? "EazyStore");
+      setAppName(settings.data.app_name ?? "EasyStore");
     }
   }, [settings.data]);
 
@@ -126,7 +126,7 @@ function SmsSettingsPage() {
                 onChange={(e) => setAppName(e.target.value)}
                 maxLength={40}
                 className="w-full rounded-xl border-2 border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
-                placeholder="EazyStore"
+                placeholder="EasyStore"
               />
               <p className="text-xs text-muted-foreground">Replaces <code className="rounded bg-muted px-1">{"{app}"}</code> in the template.</p>
             </div>
@@ -160,7 +160,7 @@ function SmsSettingsPage() {
                 onChange={(e) => setSignature(e.target.value)}
                 maxLength={80}
                 className="w-full rounded-xl border-2 border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary"
-                placeholder="— Team EazyStore"
+                placeholder="— Team EasyStore"
               />
               <p className="text-xs text-muted-foreground">
                 Inserted where <code className="rounded bg-muted px-1">{"{signature}"}</code> appears (on its own line).

@@ -5,7 +5,7 @@ export const Route = createFileRoute("/demo/bdlove")({
   component: DemoBdLove,
   head: () => ({
     meta: [
-      { title: "BD Love Shop template — EazyStore" },
+      { title: "BD Love Shop template — EasyStore" },
       { name: "description", content: "Preview the BD Love Shop storefront template: sidebar categories, purple accents, BDT pricing, responsive product grid." },
     ],
   }),

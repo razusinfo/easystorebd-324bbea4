@@ -22,7 +22,7 @@ function PrestigeDemoPage() {
 
   return (
     <PrestigeTemplate
-      store={store ?? { name: "EazyStore" }}
+      store={store ?? { name: "EasyStore" }}
       products={products}
       logoUrl={logoUrl}
       categories={categories}

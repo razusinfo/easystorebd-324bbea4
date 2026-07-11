@@ -11,10 +11,10 @@ const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unse
 
 export default defineMcp({
   name: "eazystore-mcp",
-  title: "EazyStore",
+  title: "EasyStore",
   version: "0.1.0",
   instructions:
-    "Tools to inspect an EazyStore seller's store: read the store profile, list products, and list orders. All data is scoped to the authenticated user.",
+    "Tools to inspect an EasyStore seller's store: read the store profile, list products, and list orders. All data is scoped to the authenticated user.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",

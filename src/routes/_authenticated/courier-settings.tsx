@@ -18,7 +18,7 @@ import {
 export const Route = createFileRoute("/_authenticated/courier-settings")({
   head: () => ({
     meta: [
-      { title: "Courier Settings — EazyStore" },
+      { title: "Courier Settings — EasyStore" },
       { name: "description", content: "Configure courier partner API keys, pickup zones and status mapping." },
     ],
   }),
@@ -245,7 +245,7 @@ function PartnerCard({
             placeholder='{"in_transit":"shipped","delivered":"delivered"}'
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Maps this partner's status names → EazyStore order status (pending/confirmed/shipped/delivered/cancelled).
+            Maps this partner's status names → EasyStore order status (pending/confirmed/shipped/delivered/cancelled).
           </p>
         </div>
       </div>

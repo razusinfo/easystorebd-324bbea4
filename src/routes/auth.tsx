@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 
 const searchSchema = z.object({
@@ -45,10 +45,10 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Create Your Account — EazyStore" },
-      { name: "description", content: "Start selling for free — no credit card required. Create your EazyStore account." },
-      { property: "og:title", content: "Create Your Account — EazyStore" },
-      { property: "og:description", content: "Start selling for free — no credit card required. Create your EazyStore account." },
+      { title: "Create Your Account — EasyStore" },
+      { name: "description", content: "Start selling for free — no credit card required. Create your EasyStore account." },
+      { property: "og:title", content: "Create Your Account — EasyStore" },
+      { property: "og:description", content: "Start selling for free — no credit card required. Create your EasyStore account." },
       { property: "og:url", content: "https://eazystorebd.lovable.app/auth" },
     ],
     links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/auth" }],
@@ -361,8 +361,8 @@ function AuthPage() {
     <main className="min-h-screen bg-[linear-gradient(180deg,#f5eefe_0%,#e4d6fb_55%,#f1e8fe_100%)] px-4 py-8 text-slate-900">
       <div className="mx-auto max-w-md">
         <Link to="/" className="mb-6 inline-flex items-center gap-2">
-          <img src={eazystoreLogo.url} alt="EazyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
-          <EazyStoreWordmark className="text-xl" />
+          <img src={eazystoreLogo.url} alt="EasyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
+          <EasyStoreWordmark className="text-xl" />
         </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
@@ -649,7 +649,7 @@ function AuthPage() {
             <a href="#" className="font-semibold text-purple-700 hover:underline">Terms of Use</a>
             {" "}&amp;{" "}
             <a href="#" className="font-semibold text-purple-700 hover:underline">Privacy Policy</a>
-            {" "}of <EazyStoreWordmark className="text-xs align-baseline" />.
+            {" "}of <EasyStoreWordmark className="text-xs align-baseline" />.
           </p>
           </>
           )}

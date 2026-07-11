@@ -28,7 +28,7 @@ const ASSIGNABLE_ROLES: AppRole[] = [
 ];
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Super Admin — EazyStore" }] }),
+  head: () => ({ meta: [{ title: "Super Admin — EasyStore" }] }),
   component: Admin,
 });
 

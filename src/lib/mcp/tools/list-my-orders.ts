@@ -12,7 +12,7 @@ function supabaseForUser(ctx: ToolContext) {
 export default defineTool({
   name: "list_my_orders",
   title: "List my orders",
-  description: "List recent orders for the signed-in user's EazyStore store.",
+  description: "List recent orders for the signed-in user's EasyStore store.",
   inputSchema: {
     limit: z.number().int().min(1).max(100).default(20).describe("Max orders to return."),
     status: z

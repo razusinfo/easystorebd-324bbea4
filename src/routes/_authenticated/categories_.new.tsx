@@ -10,7 +10,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/categories_/new")({
-  head: () => ({ meta: [{ title: "New Category — EazyStore" }] }),
+  head: () => ({ meta: [{ title: "New Category — EasyStore" }] }),
   validateSearch: searchSchema,
   component: NewCategoryPage,
 });

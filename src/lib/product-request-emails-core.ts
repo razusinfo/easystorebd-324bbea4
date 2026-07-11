@@ -8,7 +8,7 @@ export const DEFAULT_SITE_ORIGIN = "https://eazystorebd.lovable.app";
 export const ADMIN_REQUESTS_PATH = "/admin";
 // Reseller-facing marketplace page (matches src/routes/_authenticated/reseller-products.tsx).
 export const RESELLER_PRODUCTS_PATH = "/reseller-products";
-export const EMAIL_FROM = "EazyStore <orders@resend.dev>";
+export const EMAIL_FROM = "EasyStore <orders@resend.dev>";
 
 export function resolveSiteOrigin(env: NodeJS.ProcessEnv = process.env): string {
   return env.SITE_URL || DEFAULT_SITE_ORIGIN;
@@ -73,7 +73,7 @@ export function buildSubmittedEmailPayload(
     to: adminEmail,
     subject: `New product request: ${input.productName}`,
     html: shell(
-      "EazyStore",
+      "EasyStore",
       "New product request",
       `<p><strong>${escapeHtml(requester)}</strong> submitted a new product to review.</p>
        <ul style="line-height:1.7">
@@ -101,7 +101,7 @@ export function buildApprovedEmailPayload(input: ApprovedInput): ResendPayload {
     to: input.resellerEmail,
     subject: `Your product "${input.productName}" is now live`,
     html: shell(
-      "EazyStore",
+      "EasyStore",
       "🎉 Your product is live!",
       `<p>Great news — your requested product <strong>${escapeHtml(input.productName)}</strong> has been approved and is now live in the Reseller Marketplace.</p>
        <ul style="line-height:1.7">
