@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft, ChevronRight, ChevronLeft, ChevronUp, ChevronDown,
   Loader2, Minus, Plus, ShoppingCart, Store as StoreIcon,
@@ -30,7 +30,54 @@ function PublicProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const [cartOpen, setCartOpen] = useState(false);
+  const [wished, setWished] = useState(false);
   const addToCart = useCartStore((s) => s.add);
+
+  const wishKey = `easystore_wishlist:${slug}`;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(wishKey);
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      setWished(list.includes(productId));
+    } catch { /* ignore */ }
+  }, [wishKey, productId]);
+
+  const toggleWishlist = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(wishKey);
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      const has = list.includes(productId);
+      const next = has ? list.filter((x) => x !== productId) : [...list, productId];
+      window.localStorage.setItem(wishKey, JSON.stringify(next));
+      setWished(!has);
+      toast.success(has ? "Wishlist থেকে সরানো হয়েছে" : "Wishlist এ যোগ হয়েছে");
+    } catch {
+      toast.error("Wishlist সেভ করা যায়নি");
+    }
+  };
+
+  const handleShare = async () => {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    const title = q.data?.product?.name ?? "Product";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+    } catch (e) {
+      const err = e as { name?: string };
+      if (err?.name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("লিংক কপি হয়েছে");
+    } catch {
+      toast.error("শেয়ার করা যায়নি");
+    }
+  };
 
   if (q.isLoading) {
     return (
@@ -203,11 +250,17 @@ function PublicProductDetailPage() {
                     {product.name}
                   </h1>
                   <div className="flex shrink-0 items-center gap-1">
-                    <button className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" aria-label="Share">
+                    <button type="button" onClick={handleShare} className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" aria-label="Share">
                       <Share2 className="h-4 w-4" />
                     </button>
-                    <button className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" aria-label="Wishlist">
-                      <Heart className="h-4 w-4" />
+                    <button
+                      type="button"
+                      onClick={toggleWishlist}
+                      aria-pressed={wished}
+                      className={`grid h-8 w-8 place-items-center rounded-full hover:bg-neutral-100 ${wished ? "text-rose-500" : "text-neutral-500"}`}
+                      aria-label="Wishlist"
+                    >
+                      <Heart className={`h-4 w-4 ${wished ? "fill-current" : ""}`} />
                     </button>
                   </div>
                 </div>
