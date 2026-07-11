@@ -170,12 +170,34 @@ function PlatformDomainSetupPage() {
             )}
             {stepIdx === 4 && (
               <div className="space-y-3">
-                <p>1. In Lovable → <b>Project Settings → Domains → Connect domain</b></p>
-                <p>2. Enter: <code className="bg-muted px-1">*.easystorebd.com</code></p>
-                <p>3. Expand <b>Advanced</b> and check ✅ <b>"Domain uses Cloudflare or a similar proxy"</b></p>
-                <p>4. Follow any CNAME instructions Lovable shows.</p>
-                <p>5. Once connected, click Verify below:</p>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
+                <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs space-y-1">
+                  <p className="font-medium text-amber-900 dark:text-amber-200">⚠️ Lovable-এর Connect Domain ডায়ালগ <code>*</code> ক্যারেক্টার গ্রহণ করে না</p>
+                  <p className="text-amber-800/90 dark:text-amber-200/80">
+                    <code>*.easystorebd.com</code> টাইপ করলে Continue বাটন disable হয়ে যায় — এটা Lovable UI-এর hostname validation, বাগ নয়। wildcard self-serve সম্ভব না; নিচের যেকোনো একটা পথ ব্যবহার করুন।
+                  </p>
+                </div>
+
+                <div className="rounded-md border p-3 space-y-2">
+                  <p className="font-medium">Option A — Root + www কানেক্ট করুন (সবচেয়ে সহজ)</p>
+                  <p className="text-xs text-muted-foreground">প্রতি reseller-এর subdomain Cloudflare-এর wildcard A record + proxy দিয়ে কাজ করবে; Lovable-এ শুধু root domain কানেক্ট থাকলেই SSL wildcard cert issue হয়।</p>
+                  <p>1. Lovable → <b>Project Settings → Domains → Connect domain</b></p>
+                  <p>2. Enter: <code className="bg-muted px-1">easystorebd.com</code> (wildcard ছাড়া)</p>
+                  <p>3. Advanced → ✅ <b>"Domain uses Cloudflare or a similar proxy"</b></p>
+                  <p>4. একইভাবে <code className="bg-muted px-1">www.easystorebd.com</code> কানেক্ট করুন।</p>
+                </div>
+
+                <div className="rounded-md border p-3 space-y-2">
+                  <p className="font-medium">Option B — প্রতি reseller subdomain আলাদা করে যোগ করুন</p>
+                  <p className="text-xs text-muted-foreground">সীমিত reseller হলে প্রতিটা <code>&lt;slug&gt;.easystorebd.com</code> Lovable-এ কানেক্ট করুন (wildcard ছাড়া কাজ করবে)।</p>
+                </div>
+
+                <div className="rounded-md border p-3 space-y-2">
+                  <p className="font-medium">Option C — Lovable support-কে wildcard enable-এর অনুরোধ</p>
+                  <p className="text-xs text-muted-foreground">Enterprise/paid plan-এ support team ম্যানুয়ালি <code>*.easystorebd.com</code> attach করে দিতে পারে।</p>
+                </div>
+
+                <p className="pt-2">কানেক্ট শেষে নিচে verify করুন:</p>
+                <div className="flex flex-wrap items-center gap-2">
                   <Button onClick={() => verifyMut.mutate()} disabled={verifyMut.isPending}>
                     {verifyMut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Verify wildcard
