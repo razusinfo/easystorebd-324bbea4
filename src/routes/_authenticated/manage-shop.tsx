@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   useMyStore, useUpdateStore, useLogoSignedUrl, uploadStoreLogo, deleteStoreLogo,
   usePublishStore, useChangeSlug, slugifyStoreName, buildStorefrontUrl,
-  TEMPLATES,
+  TEMPLATES, businessTypeLabel,
   type Category, type TemplateId, type ShopSettings,
 } from "@/lib/eazystore-data";
 import { Button } from "@/components/ui/button";
@@ -488,7 +488,7 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
                 <Select value={businessType} onValueChange={setBusinessType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent className="max-h-[228px]">
-                    {BUSINESS_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {BUSINESS_TYPES.map((t) => <SelectItem key={t} value={t}>{businessTypeLabel(t)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

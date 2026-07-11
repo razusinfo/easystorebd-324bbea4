@@ -33,6 +33,35 @@ export const BUSINESS_TYPES: Category[] = [
   "Utilities", "Others",
 ];
 
+// Bilingual (English + Bangla) display labels for Business Type options.
+// Falls back to the raw value when a label is not defined.
+export const BUSINESS_TYPE_LABELS: Partial<Record<string, string>> = {
+  "A to Z": "A to Z (সবকিছু)",
+  "Not Selected": "Not Selected (নির্বাচিত নয়)",
+  "Clothing & Apparel": "Clothing & Apparel (পোশাক)",
+  "Shoes & Footwear": "Shoes & Footwear (জুতা)",
+  "Accessories & Jewelry": "Accessories & Jewelry (গহনা)",
+  "Beauty & Cosmetics": "Beauty & Cosmetics (প্রসাধনী)",
+  "Electronics & Gadgets": "Electronics & Gadgets (ইলেকট্রনিক্স)",
+  "Home & Furniture": "Home & Furniture (ঘরের আসবাব)",
+  "Books & Media": "Books & Media (বই ও মিডিয়া)",
+  "Toys & Games": "Toys & Games (খেলনা)",
+  "Sports & Outdoors": "Sports & Outdoors (খেলাধুলা)",
+  "Health & Wellness": "Health & Wellness (স্বাস্থ্য)",
+  "Food & Beverage": "Food & Beverage (খাদ্য ও পানীয়)",
+  "Pet Supplies": "Pet Supplies (পোষা প্রাণী)",
+  "Grocery": "Grocery (মুদি)",
+  "Telecommunication": "Telecommunication (টেলিকম)",
+  "Telecommunication Items": "Telecommunication Items (টেলিকম সামগ্রী)",
+  "Pharmaceuticals": "Pharmaceuticals (ঔষধ)",
+  "Utilities": "Utilities (ইউটিলিটি)",
+  "Others": "Others (অন্যান্য)",
+};
+
+export function businessTypeLabel(value: string): string {
+  return BUSINESS_TYPE_LABELS[value] ?? value;
+}
+
 export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic" | "prestige" | "flipmart" | "freshmart" | "megamart" | "trendmart" | "shopii" | "quickmart";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
@@ -660,7 +689,7 @@ export function useCreateStore() {
         .insert({
           owner_user_id: user.id,
           name: input.name,
-          category: input.category as never,
+          category: input.category,
           template: input.template as never,
           phone: input.phone?.trim() || null,
           address: input.address?.trim() || null,

@@ -6,7 +6,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, type Lang } from "@/lib/i18n";
 import {
-  useMyStore, useCreateStore, TEMPLATES, BUSINESS_TYPES, type Category, type TemplateId,
+  useMyStore, useCreateStore, TEMPLATES, BUSINESS_TYPES, businessTypeLabel, type Category, type TemplateId,
 } from "@/lib/eazystore-data";
 import {
   MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview, SportyPulsePreview, LuxeNoirPreview,
@@ -168,7 +168,7 @@ function Onboarding() {
                         <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg gradient-primary text-white">
                           <Briefcase className="h-4 w-4" />
                         </div>
-                        <div className="flex-1 font-semibold">{c}</div>
+                        <div className="flex-1 font-semibold">{businessTypeLabel(c)}</div>
                         {active && <Check className="h-5 w-5 text-primary" />}
                       </button>
                     );
