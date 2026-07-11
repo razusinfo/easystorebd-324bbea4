@@ -1,0 +1,1 @@
+ALTER TYPE public.store_category ADD VALUE IF NOT EXISTS 'A to Z' BEFORE 'Clothes';

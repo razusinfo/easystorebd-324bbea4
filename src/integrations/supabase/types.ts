@@ -2088,6 +2088,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
       store_category:
+        | "A to Z"
         | "Clothes"
         | "Electronics"
         | "Sports"
@@ -2282,6 +2283,7 @@ export const Constants = {
         "cancelled",
       ],
       store_category: [
+        "A to Z",
         "Clothes",
         "Electronics",
         "Sports",
