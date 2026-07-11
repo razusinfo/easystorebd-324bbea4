@@ -14,6 +14,7 @@ import {
 
 
 export type Category =
+  | "A to Z"
   | "Clothes" | "Electronics" | "Sports"
   | "Clothing & Apparel" | "Shoes & Footwear" | "Accessories & Jewelry"
   | "Beauty & Cosmetics" | "Electronics & Gadgets" | "Home & Furniture"
@@ -23,6 +24,7 @@ export type Category =
   | "Utilities" | "Others";
 
 export const BUSINESS_TYPES: Category[] = [
+  "A to Z",
   "Clothing & Apparel", "Shoes & Footwear", "Accessories & Jewelry",
   "Beauty & Cosmetics", "Electronics & Gadgets", "Home & Furniture",
   "Books & Media", "Toys & Games", "Sports & Outdoors",
@@ -30,6 +32,7 @@ export const BUSINESS_TYPES: Category[] = [
   "Grocery", "Telecommunication", "Pharmaceuticals",
   "Utilities", "Others",
 ];
+
 export type TemplateId = "minimal" | "boutique" | "techgrid" | "sporty" | "luxe" | "autoparts" | "bdlove" | "eazystore-basic" | "prestige" | "flipmart" | "freshmart" | "megamart" | "trendmart" | "shopii" | "quickmart";
 export type ProductStatus = "pending" | "approved" | "rejected";
 
@@ -657,7 +660,7 @@ export function useCreateStore() {
         .insert({
           owner_user_id: user.id,
           name: input.name,
-          category: input.category,
+          category: input.category as never,
           template: input.template as never,
           phone: input.phone?.trim() || null,
           address: input.address?.trim() || null,
