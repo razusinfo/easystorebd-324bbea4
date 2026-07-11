@@ -1497,12 +1497,30 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
                 )}
               </SelectContent>
             </Select>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => openCreateCategory("root")}
+                className="inline-flex items-center gap-1 rounded-md border border-dashed border-primary/40 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/5"
+              >
+                <PlusCircle className="h-3 w-3" /> নতুন ক্যাটাগরি / New Category
+              </button>
+              <button
+                type="button"
+                onClick={() => openCreateCategory("sub")}
+                disabled={categories.length === 0}
+                className="inline-flex items-center gap-1 rounded-md border border-dashed border-primary/40 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PlusCircle className="h-3 w-3" /> নতুন সাব-ক্যাটাগরি / New Sub Category
+              </button>
+            </div>
             {!categoryId && (
               <p className="text-[11px] text-destructive">
                 ক্যাটাগরি আবশ্যক / Category is required
               </p>
             )}
           </div>
+
 
           <div className="space-y-1">
             <Label htmlFor="ams-price">আপনার বিক্রয় মূল্য / Your Selling Price</Label>
