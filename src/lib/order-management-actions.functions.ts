@@ -40,7 +40,7 @@ export const updateManagedOrderStatus = createServerFn({ method: "POST" })
     // Load current row for authorization & audit before/after values.
     const { data: current, error: cerr } = await supabaseAdmin
       .from("reseller_orders")
-      .select("id, reseller_id, status, tracking_id, tracking_url, product_name, quantity")
+      .select("id, reseller_id, status, tracking_id, tracking_url, notes, product_name, quantity")
       .eq("id", data.id)
       .maybeSingle();
     if (cerr) throw new Error(cerr.message);
@@ -52,7 +52,7 @@ export const updateManagedOrderStatus = createServerFn({ method: "POST" })
     }
 
     // Field-level allow list per role.
-    const patch: Partial<{ status: Status; tracking_id: string | null; tracking_url: string | null }> = {};
+    const patch: Partial<{ status: Status; tracking_id: string | null; tracking_url: string | null; notes: string | null }> = {};
     if (data.status !== undefined) {
       if (role === "supplier" && !SUPPLIER_ALLOWED.includes(data.status)) {
         throw new Error(`Forbidden: suppliers may only set status to ${SUPPLIER_ALLOWED.join(", ")}`);
@@ -61,13 +61,14 @@ export const updateManagedOrderStatus = createServerFn({ method: "POST" })
     }
     if (data.tracking_id !== undefined) patch.tracking_id = data.tracking_id || null;
     if (data.tracking_url !== undefined) patch.tracking_url = data.tracking_url || null;
+    if (data.notes !== undefined) patch.notes = data.notes || null;
     if (Object.keys(patch).length === 0) return { ok: true as const };
 
     const { data: updated, error: uerr } = await supabaseAdmin
       .from("reseller_orders")
       .update(patch)
       .eq("id", data.id)
-      .select("id, status, tracking_id, tracking_url, reseller_id, product_name, quantity, reseller_price, customer_name, customer_phone, customer_email")
+      .select("id, status, tracking_id, tracking_url, notes, reseller_id, product_name, quantity, reseller_price, customer_name, customer_phone, customer_email")
       .single();
     if (uerr) throw new Error(uerr.message);
 
