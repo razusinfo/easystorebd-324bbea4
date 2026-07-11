@@ -647,6 +647,56 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
             </Button>
           </section>
 
+          {/* Splash-screen logo */}
+          <section className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold mb-1">Splash Screen Logo</h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              Shown while your storefront loads on subdomains and custom domains.
+              Falls back to your shop logo when unset.
+            </p>
+            <div className="w-full aspect-square max-h-40 border-2 border-dashed rounded-lg grid place-items-center bg-muted/30 overflow-hidden">
+              {splashPreview ? (
+                <img src={splashPreview} alt="splash logo" className="max-h-full object-contain" />
+              ) : logo ? (
+                <img src={logo} alt="fallback logo" className="max-h-full object-contain opacity-60" />
+              ) : (
+                <Upload className="h-8 w-8 opacity-40 text-muted-foreground" />
+              )}
+            </div>
+            <input ref={splashRef} type="file" accept="image/*" className="hidden"
+              onChange={(e) => e.target.files?.[0] && pickSplash(e.target.files[0])} />
+            <div className="mt-3 flex gap-2">
+              <Button
+                className="flex-1 gradient-primary text-primary-foreground"
+                onClick={() => splashRef.current?.click()}
+                disabled={uploadingSplash}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {uploadingSplash ? "Uploading..." : splashPath ? "Replace" : "Upload Splash Logo"}
+              </Button>
+              {splashPath && (
+                <Button variant="outline" onClick={() => { setSplashPath(null); setLocalSplash(null); }}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <div className="mt-4 space-y-2 text-sm">
+              <label className="flex items-center justify-between rounded-lg border px-3 py-2">
+                <span>Show on subdomain <span className="text-xs text-muted-foreground">(slug.easystorebd.com)</span></span>
+                <Switch checked={splashOnSub} onCheckedChange={setSplashOnSub} />
+              </label>
+              <label className="flex items-center justify-between rounded-lg border px-3 py-2">
+                <span>Show on custom domain</span>
+                <Switch checked={splashOnCd} onCheckedChange={setSplashOnCd} />
+              </label>
+            </div>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Click <b>Save</b> at the top to apply. The updated splash logo will appear on your next reload.
+            </p>
+          </section>
+
+
+
           {/* Theme color */}
           <section className="rounded-xl border bg-card p-5">
             <h3 className="font-semibold text-primary mb-3">Shop Theme</h3>
