@@ -1451,6 +1451,7 @@ export type Database = {
           low_stock_threshold: number
           primary_color: string
           sidebar_categories: Json
+          unknown_tenant_redirect: boolean
           updated_at: string
           updated_by: string | null
           whatsapp_url: string | null
@@ -1469,6 +1470,7 @@ export type Database = {
           low_stock_threshold?: number
           primary_color?: string
           sidebar_categories?: Json
+          unknown_tenant_redirect?: boolean
           updated_at?: string
           updated_by?: string | null
           whatsapp_url?: string | null
@@ -1487,6 +1489,7 @@ export type Database = {
           low_stock_threshold?: number
           primary_color?: string
           sidebar_categories?: Json
+          unknown_tenant_redirect?: boolean
           updated_at?: string
           updated_by?: string | null
           whatsapp_url?: string | null
@@ -1625,6 +1628,33 @@ export type Database = {
           read_at?: string | null
           receiver_id?: string | null
           sender_id?: string
+        }
+        Relationships: []
+      }
+      tenant_resolver_audit: {
+        Row: {
+          attempted: string | null
+          first_seen: string
+          hit_count: number
+          host: string
+          kind: string
+          last_seen: string
+        }
+        Insert: {
+          attempted?: string | null
+          first_seen?: string
+          hit_count?: number
+          host: string
+          kind: string
+          last_seen?: string
+        }
+        Update: {
+          attempted?: string | null
+          first_seen?: string
+          hit_count?: number
+          host?: string
+          kind?: string
+          last_seen?: string
         }
         Relationships: []
       }
