@@ -8,19 +8,24 @@ export type ResolvedTenant = {
   tenant: TenantResult;
   redirectUnknown: boolean;
   host: string | null;
+  suggestions: Array<{ slug: string; name: string }>;
 };
 
 export const resolveTenant = createServerFn({ method: "GET" }).handler(
   async (): Promise<ResolvedTenant> => {
     const { getRequestHost } = await import("@tanstack/react-start/server");
-    const { resolveTenantServer, getUnknownTenantRedirect } = await import("./tenant-resolver.server");
+    const { resolveTenantServer, getUnknownTenantRedirect, fetchStoreSuggestions } = await import("./tenant-resolver.server");
     let host: string | null = null;
     try { host = getRequestHost(); } catch { host = null; }
     const [tenant, redirectUnknown] = await Promise.all([
       resolveTenantServer(host),
       getUnknownTenantRedirect(),
     ]);
-    return { tenant, redirectUnknown, host };
+    const suggestions =
+      tenant.kind === "unknown-sub" || tenant.kind === "unknown-custom"
+        ? await fetchStoreSuggestions(6)
+        : [];
+    return { tenant, redirectUnknown, host, suggestions };
   },
 );
 
