@@ -13,6 +13,11 @@ export type ManagedOrderRow = {
   reseller_id: string;
   reseller_name: string;
   reseller_store: string | null;
+  // Storefront owner ("reseller who made the sale") — for supplier contact.
+  storefront_owner_id: string | null;
+  storefront_owner_name: string | null;
+  storefront_owner_phone: string | null;
+  storefront_owner_email: string | null;
   product_name: string;
   quantity: number;
   customer_price: number;
@@ -21,6 +26,8 @@ export type ManagedOrderRow = {
   total_amount: number;
   profit_margin: number;
   tracking_id: string | null;
+  tracking_url: string | null;
+  notes: string | null;
   source_store_id: string | null;
   source: string | null;
 };
@@ -47,16 +54,12 @@ export const listManagedOrders = createServerFn({ method: "GET" })
     let query = supabase
       .from("reseller_orders")
       .select(
-        "id, reseller_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, customer_price, profit_margin, status, tracking_id, created_at, source, source_store_id",
+        "id, reseller_id, product_name, customer_name, customer_phone, customer_email, shipping_address, quantity, original_price, reseller_price, customer_price, profit_margin, status, tracking_id, tracking_url, notes, created_at, source, source_store_id",
       )
       .order("created_at", { ascending: false })
       .limit(500);
 
     if (role === "supplier") {
-      // Supplier scoping: rows this supplier fulfills.
-      // In this system a "supplier" is the reseller who sold the item to the
-      // customer (they own the storefront and fulfill via us). Non-admins are
-      // scoped to their own reseller_id — they cannot see other suppliers'.
       query = query.eq("reseller_id", userId);
     }
 
@@ -84,12 +87,51 @@ export const listManagedOrders = createServerFn({ method: "GET" })
 
     const nameMap = new Map<string, string>();
     for (const p of profilesRes.data ?? []) nameMap.set(p.id, p.name ?? "");
-    const storeMap = new Map<string, string>();
-    for (const s of storesRes.data ?? []) storeMap.set(s.id, s.name ?? "");
+    const storeMap = new Map<string, { name: string; owner_user_id: string | null }>();
+    for (const s of storesRes.data ?? []) {
+      storeMap.set(s.id, { name: s.name ?? "", owner_user_id: s.owner_user_id ?? null });
+    }
+
+    // Storefront-owner ids (the "reseller who made the sale") — resolve
+    // name/phone/email for supplier contact.
+    const ownerIds = Array.from(
+      new Set(
+        Array.from(storeMap.values()).map((s) => s.owner_user_id).filter(Boolean),
+      ),
+    ) as string[];
+
+    const ownerProfileRes = ownerIds.length
+      ? await supabaseAdmin.from("profiles").select("id, name").in("id", ownerIds)
+      : { data: [] as Array<{ id: string; name: string | null }> };
+    for (const p of ownerProfileRes.data ?? []) {
+      if (!nameMap.has(p.id)) nameMap.set(p.id, p.name ?? "");
+    }
+
+    // Emails via auth admin (best effort — swallow errors).
+    const emailMap = new Map<string, string>();
+    const phoneMap = new Map<string, string>();
+    await Promise.all(
+      ownerIds.map(async (uid) => {
+        try {
+          const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
+          if (u?.user) {
+            if (u.user.email) emailMap.set(uid, u.user.email);
+            if (u.user.phone) phoneMap.set(uid, u.user.phone);
+            const meta = (u.user.user_metadata ?? {}) as Record<string, unknown>;
+            const metaPhone = (meta.phone as string | undefined) ?? (meta.phone_number as string | undefined);
+            if (!phoneMap.has(uid) && metaPhone) phoneMap.set(uid, metaPhone);
+          }
+        } catch {
+          /* ignore */
+        }
+      }),
+    );
 
     const rows: ManagedOrderRow[] = raw.map((r) => {
       const qty = Number(r.quantity ?? 0);
       const cp = Number(r.customer_price ?? r.reseller_price ?? 0);
+      const storeInfo = r.source_store_id ? storeMap.get(r.source_store_id as string) : undefined;
+      const ownerId = storeInfo?.owner_user_id ?? null;
       return {
         id: r.id as string,
         order_id_short: String(r.id).slice(0, 8).toUpperCase(),
@@ -101,9 +143,11 @@ export const listManagedOrders = createServerFn({ method: "GET" })
         shipping_address: (r.shipping_address as string) ?? "",
         reseller_id: r.reseller_id as string,
         reseller_name: nameMap.get(r.reseller_id as string) || "—",
-        reseller_store: r.source_store_id
-          ? storeMap.get(r.source_store_id as string) ?? null
-          : null,
+        reseller_store: storeInfo?.name ?? null,
+        storefront_owner_id: ownerId,
+        storefront_owner_name: ownerId ? nameMap.get(ownerId) || null : null,
+        storefront_owner_phone: ownerId ? phoneMap.get(ownerId) ?? null : null,
+        storefront_owner_email: ownerId ? emailMap.get(ownerId) ?? null : null,
         product_name: (r.product_name as string) ?? "",
         quantity: qty,
         customer_price: cp,
@@ -112,12 +156,13 @@ export const listManagedOrders = createServerFn({ method: "GET" })
         total_amount: cp * qty,
         profit_margin: Number(r.profit_margin ?? 0),
         tracking_id: (r.tracking_id as string) ?? null,
+        tracking_url: (r.tracking_url as string) ?? null,
+        notes: (r.notes as string) ?? null,
         source_store_id: (r.source_store_id as string) ?? null,
         source: (r.source as string) ?? null,
       };
     });
 
-    // Filter dropdown options (suppliers = source strings; resellers = names)
     const suppliers = Array.from(new Set(rows.map((r) => r.source).filter(Boolean))) as string[];
     const resellerSet = new Map<string, string>();
     for (const r of rows) resellerSet.set(r.reseller_id, r.reseller_name);
