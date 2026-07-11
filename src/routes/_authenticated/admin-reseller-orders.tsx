@@ -215,7 +215,16 @@ function AdminResellerOrdersPage() {
           <h1 className="text-2xl font-bold">Reseller Orders</h1>
           <p className="text-sm text-muted-foreground">All orders placed by resellers via the API.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant={alertsOn ? "default" : "outline"}
+            size="sm"
+            onClick={() => setAlertsOn((v) => !v)}
+            title={alertsOn ? "Live alerts on" : "Live alerts off"}
+          >
+            {alertsOn ? <Bell className="h-4 w-4 mr-1" /> : <BellOff className="h-4 w-4 mr-1" />}
+            {alertsOn ? "Alerts on" : "Alerts off"}
+          </Button>
           <Card className="px-4 py-2 text-sm">
             <span className="text-muted-foreground">Total profit: </span>
             <span className="font-bold text-primary">{fmt(totalProfit)}</span>
@@ -225,6 +234,7 @@ function AdminResellerOrdersPage() {
             <span className="font-bold">{pendingShip}</span>
           </Card>
         </div>
+
       </header>
 
       <Card className="p-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
