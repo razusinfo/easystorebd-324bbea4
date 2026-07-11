@@ -286,6 +286,17 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
   const favRef = useRef<HTMLInputElement>(null);
   const signedFav = useLogoSignedUrl(faviconPath);
 
+  // Splash-screen logo (separate from storefront/header logo).
+  const splashInit = store.shop_settings?.splash ?? {};
+  const [splashPath, setSplashPath] = useState<string | null>(splashInit.logo_path ?? null);
+  const [localSplash, setLocalSplash] = useState<string | null>(null);
+  const [uploadingSplash, setUploadingSplash] = useState(false);
+  const splashRef = useRef<HTMLInputElement>(null);
+  const signedSplash = useLogoSignedUrl(splashPath);
+  const [splashOnSub, setSplashOnSub] = useState<boolean>(splashInit.on_subdomain ?? true);
+  const [splashOnCd, setSplashOnCd] = useState<boolean>(splashInit.on_custom_domain ?? true);
+  const splashPreview = localSplash || signedSplash.data || null;
+
   const [themeColor, setThemeColor] = useState<string>(g.theme_color ?? "#7c3aed");
 
   const logo = localLogo || signedLogo.data || null;
