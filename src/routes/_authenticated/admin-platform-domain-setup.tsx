@@ -358,14 +358,16 @@ function PlatformDomainSetupPage() {
                 checked={!!isDone}
                 onCheckedChange={(v) => updMut.mutate({ [step.key]: v === true })}
               />
-              <label htmlFor="done" className="text-sm">Mark step complete</label>
+              <label htmlFor="done" className="text-sm">Mark step complete (ধাপ সম্পন্ন হিসেবে চিহ্নিত করুন)</label>
             </div>
 
-            {!canGoNext && (
-              <p className="text-xs text-amber-700 dark:text-amber-300" role="status">
-                {blockedMsg}
-              </p>
-            )}
+            <div aria-live="polite" aria-atomic="true">
+              {!canGoNext && (
+                <p className="text-xs text-amber-700 dark:text-amber-300" role="status" data-testid="blocked-message">
+                  {blockedMsg}
+                </p>
+              )}
+            </div>
 
             <div className="flex justify-between pt-2">
               <Button variant="outline" size="sm" disabled={stepIdx === 0} onClick={() => updMut.mutate({ current_step: stepIdx })}>
