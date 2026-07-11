@@ -66,7 +66,7 @@ export const updateManagedOrderStatus = createServerFn({ method: "POST" })
       .from("reseller_orders")
       .update(patch)
       .eq("id", data.id)
-      .select("id, status, tracking_id, tracking_url, reseller_id, product_name, quantity, customer_name, customer_phone, customer_email")
+      .select("id, status, tracking_id, tracking_url, reseller_id, product_name, quantity, reseller_price, customer_name, customer_phone, customer_email")
       .single();
     if (uerr) throw new Error(uerr.message);
 
