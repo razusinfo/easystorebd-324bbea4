@@ -229,7 +229,7 @@ function MyOrdersPage() {
                   <TableCell>
                     <Badge variant={STATUS_COLORS[o.status] ?? "outline"}>{o.status}</Badge>
                     {o.tracking_id && (
-                      <div className="mt-1 text-xs">
+                      <div className="mt-1 text-xs" data-testid={`tracking-id-${o.id}`}>
                         <span className="text-muted-foreground">Tracking: </span>
                         {o.tracking_url ? (
                           <a href={o.tracking_url} target="_blank" rel="noreferrer" className="text-primary underline">
@@ -238,6 +238,19 @@ function MyOrdersPage() {
                         ) : (
                           <span className="font-medium">{o.tracking_id}</span>
                         )}
+                      </div>
+                    )}
+                    {o.tracking_url && !o.tracking_id && (
+                      <div className="mt-1 text-xs">
+                        <a href={o.tracking_url} target="_blank" rel="noreferrer" className="text-primary underline">
+                          Track shipment
+                        </a>
+                      </div>
+                    )}
+                    {o.notes && (
+                      <div className="mt-1 max-w-xs whitespace-pre-wrap rounded bg-muted/60 p-1.5 text-xs text-muted-foreground" data-testid={`notes-${o.id}`}>
+                        <span className="font-medium text-foreground">Note from supplier: </span>
+                        {o.notes}
                       </div>
                     )}
                   </TableCell>
