@@ -1,15 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { toast } from "sonner";
-import { Check, ChevronLeft, ChevronRight, ExternalLink, Copy, Loader2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ExternalLink, Copy, Loader2, RefreshCw, Clock } from "lucide-react";
 
 import {
   getPlatformSetup,
   updatePlatformSetup,
   verifyWildcardConnected,
 } from "@/lib/custom-domains.functions";
+import {
+  PLATFORM_STEP_KEYS,
+  advanceBlockedMessage,
+  canAdvance,
+  clampStep,
+  completedCount,
+  isStepDone,
+} from "@/lib/platform-domain-setup-logic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,15 +29,14 @@ export const Route = createFileRoute("/_authenticated/admin-platform-domain-setu
   component: PlatformDomainSetupPage,
 });
 
-const STEPS = [
-  { key: "cloudflare_added", title: "1. Add site to Cloudflare" },
-  { key: "nameservers_updated", title: "2. Update Nameservers" },
-  { key: "dns_records_added", title: "3. Add DNS Records" },
-  { key: "ssl_mode_set", title: "4. Set SSL Mode" },
-  { key: "lovable_wildcard_connected", title: "5. Connect Wildcard in Lovable" },
-] as const;
-
-type StepKey = typeof STEPS[number]["key"];
+const STEP_TITLES: Record<(typeof PLATFORM_STEP_KEYS)[number], string> = {
+  cloudflare_added: "1. Add site to Cloudflare",
+  nameservers_updated: "2. Update Nameservers",
+  dns_records_added: "3. Add DNS Records",
+  ssl_mode_set: "4. Set SSL Mode",
+  lovable_wildcard_connected: "5. Connect Wildcard in Lovable",
+};
+const STEPS = PLATFORM_STEP_KEYS.map((key) => ({ key, title: STEP_TITLES[key] }));
 
 function copyText(t: string) { navigator.clipboard.writeText(t).then(() => toast.success("Copied")); }
 
