@@ -223,6 +223,30 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_wishlists: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          store_slug: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          store_slug: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          store_slug?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           created_at: string
