@@ -90,7 +90,7 @@ function OrderManagementPage() {
   const rows = query.data?.rows ?? [];
 
   const setSearch = (patch: Partial<{ q: string; status: string; supplier: string; reseller: string; page: number }>) => {
-    navigate({ search: (prev) => ({ ...prev, ...patch, page: patch.page ?? 1 }) });
+    navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, ...patch, page: patch.page ?? 1 }) });
   };
 
   const filtered = useMemo(() => {
