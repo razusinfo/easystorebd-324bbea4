@@ -52,7 +52,7 @@ export const Route = createFileRoute("/")({
       if (redirectUnknown) {
         throw redirect({ href: "https://easystorebd.com/" });
       }
-      try { setUnknownTenantStatus(); } catch { /* no-op */ }
+      try { await setUnknownTenantStatus(); } catch { /* no-op */ }
     }
     return { tenant, host, suggestions };
   },
