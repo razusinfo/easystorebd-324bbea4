@@ -250,11 +250,17 @@ function PublicProductDetailPage() {
                     {product.name}
                   </h1>
                   <div className="flex shrink-0 items-center gap-1">
-                    <button className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" aria-label="Share">
+                    <button type="button" onClick={handleShare} className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" aria-label="Share">
                       <Share2 className="h-4 w-4" />
                     </button>
-                    <button className="grid h-8 w-8 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" aria-label="Wishlist">
-                      <Heart className="h-4 w-4" />
+                    <button
+                      type="button"
+                      onClick={toggleWishlist}
+                      aria-pressed={wished}
+                      className={`grid h-8 w-8 place-items-center rounded-full hover:bg-neutral-100 ${wished ? "text-rose-500" : "text-neutral-500"}`}
+                      aria-label="Wishlist"
+                    >
+                      <Heart className={`h-4 w-4 ${wished ? "fill-current" : ""}`} />
                     </button>
                   </div>
                 </div>
