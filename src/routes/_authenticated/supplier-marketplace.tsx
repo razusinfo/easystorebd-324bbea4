@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Search, Package, Store as StoreIcon, ChevronLeft, ChevronRight, PencilLine, PlusCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -388,14 +388,8 @@ function SupplierMarketplacePage() {
 }
 
 function useMemoResetPage(key: string, setPage: (n: number) => void) {
-  // Reset page to 1 whenever the filter key changes. We use useMemo to run
-  // side-effect-free logic; the actual setter is a useState updater which is
-  // safe to call in render only for setting to the same value. Wrap in
-  // requestAnimationFrame to defer state updates out of render.
-  useMemo(() => {
-    if (typeof window !== "undefined") {
-      window.requestAnimationFrame(() => setPage(1));
-    }
+  useEffect(() => {
+    setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 }
