@@ -45,6 +45,7 @@ import { Route as AuthenticatedMyNotificationsRouteImport } from './routes/_auth
 import { Route as AuthenticatedMobileAppRouteImport } from './routes/_authenticated/mobile-app'
 import { Route as AuthenticatedManageShopRouteImport } from './routes/_authenticated/manage-shop'
 import { Route as AuthenticatedLandingPagesRouteImport } from './routes/_authenticated/landing-pages'
+import { Route as AuthenticatedDomainSettingsRouteImport } from './routes/_authenticated/domain-settings'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedCourierSettingsRouteImport } from './routes/_authenticated/courier-settings'
@@ -271,6 +272,12 @@ const AuthenticatedLandingPagesRoute =
   AuthenticatedLandingPagesRouteImport.update({
     id: '/landing-pages',
     path: '/landing-pages',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDomainSettingsRoute =
+  AuthenticatedDomainSettingsRouteImport.update({
+    id: '/domain-settings',
+    path: '/domain-settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -536,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/domain-settings': typeof AuthenticatedDomainSettingsRoute
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
@@ -614,6 +622,7 @@ export interface FileRoutesByTo {
   '/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/domain-settings': typeof AuthenticatedDomainSettingsRoute
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
@@ -694,6 +703,7 @@ export interface FileRoutesById {
   '/_authenticated/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/domain-settings': typeof AuthenticatedDomainSettingsRoute
   '/_authenticated/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/_authenticated/manage-shop': typeof AuthenticatedManageShopRoute
   '/_authenticated/mobile-app': typeof AuthenticatedMobileAppRoute
@@ -775,6 +785,7 @@ export interface FileRouteTypes {
     | '/courier-settings'
     | '/customers'
     | '/dashboard'
+    | '/domain-settings'
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
@@ -853,6 +864,7 @@ export interface FileRouteTypes {
     | '/courier-settings'
     | '/customers'
     | '/dashboard'
+    | '/domain-settings'
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
@@ -932,6 +944,7 @@ export interface FileRouteTypes {
     | '/_authenticated/courier-settings'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/domain-settings'
     | '/_authenticated/landing-pages'
     | '/_authenticated/manage-shop'
     | '/_authenticated/mobile-app'
@@ -1264,6 +1277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLandingPagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/domain-settings': {
+      id: '/_authenticated/domain-settings'
+      path: '/domain-settings'
+      fullPath: '/domain-settings'
+      preLoaderRoute: typeof AuthenticatedDomainSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -1579,6 +1599,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCourierSettingsRoute: typeof AuthenticatedCourierSettingsRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDomainSettingsRoute: typeof AuthenticatedDomainSettingsRoute
   AuthenticatedLandingPagesRoute: typeof AuthenticatedLandingPagesRoute
   AuthenticatedManageShopRoute: typeof AuthenticatedManageShopRoute
   AuthenticatedMobileAppRoute: typeof AuthenticatedMobileAppRoute
@@ -1626,6 +1647,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCourierSettingsRoute: AuthenticatedCourierSettingsRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDomainSettingsRoute: AuthenticatedDomainSettingsRoute,
   AuthenticatedLandingPagesRoute: AuthenticatedLandingPagesRoute,
   AuthenticatedManageShopRoute: AuthenticatedManageShopRoute,
   AuthenticatedMobileAppRoute: AuthenticatedMobileAppRoute,
