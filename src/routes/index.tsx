@@ -29,21 +29,6 @@ import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: async () => {
-    if (typeof window === "undefined") {
-      try {
-        const { getRequest } = await import("@tanstack/react-start/server");
-        const req = getRequest();
-        const host = req?.headers.get("host") ?? req?.headers.get("x-forwarded-host") ?? "";
-        const slug = getStorefrontSlugFromHost(host);
-        if (slug) return { storefrontSlug: slug };
-      } catch {}
-    } else {
-      const slug = getStorefrontSlugFromHost(window.location.hostname);
-      if (slug) return { storefrontSlug: slug };
-    }
-    return { storefrontSlug: null as string | null };
-  },
   head: () => ({
     meta: [
       { title: "EasyStore — Build your online store in minutes" },
@@ -67,8 +52,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const { storefrontSlug } = Route.useRouteContext();
-  if (storefrontSlug) return <StorefrontView slug={storefrontSlug} />;
+  const subSlug =
+    typeof window !== "undefined" ? getStorefrontSlugFromHost(window.location.hostname) : null;
+  if (subSlug) return <StorefrontView slug={subSlug} />;
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -81,6 +67,7 @@ function Landing() {
     </main>
   );
 }
+
 
 
 /* ---------------- Top band: nav + hero ---------------- */
