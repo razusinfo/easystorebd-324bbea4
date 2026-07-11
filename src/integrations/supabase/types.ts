@@ -122,6 +122,59 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_domains: {
+        Row: {
+          created_at: string
+          dns_target: string
+          domain: string
+          id: string
+          last_checked_at: string | null
+          last_error: string | null
+          owner_id: string
+          ssl_issued_at: string | null
+          status: string
+          store_id: string
+          updated_at: string
+          verification_token: string
+        }
+        Insert: {
+          created_at?: string
+          dns_target?: string
+          domain: string
+          id?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          owner_id: string
+          ssl_issued_at?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+          verification_token: string
+        }
+        Update: {
+          created_at?: string
+          dns_target?: string
+          domain?: string
+          id?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          owner_id?: string
+          ssl_issued_at?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+          verification_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_domains_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_addresses: {
         Row: {
           address_line: string
@@ -546,6 +599,42 @@ export type Database = {
           expires_at?: string
           id?: string
           phone?: string
+        }
+        Relationships: []
+      }
+      platform_domain_setup: {
+        Row: {
+          cloudflare_added: boolean
+          current_step: number
+          dns_records_added: boolean
+          id: number
+          lovable_wildcard_connected: boolean
+          nameservers_updated: boolean
+          notes: string | null
+          ssl_mode_set: boolean
+          updated_at: string
+        }
+        Insert: {
+          cloudflare_added?: boolean
+          current_step?: number
+          dns_records_added?: boolean
+          id?: number
+          lovable_wildcard_connected?: boolean
+          nameservers_updated?: boolean
+          notes?: string | null
+          ssl_mode_set?: boolean
+          updated_at?: string
+        }
+        Update: {
+          cloudflare_added?: boolean
+          current_step?: number
+          dns_records_added?: boolean
+          id?: number
+          lovable_wildcard_connected?: boolean
+          nameservers_updated?: boolean
+          notes?: string | null
+          ssl_mode_set?: boolean
+          updated_at?: string
         }
         Relationships: []
       }

@@ -45,6 +45,7 @@ import { Route as AuthenticatedMyNotificationsRouteImport } from './routes/_auth
 import { Route as AuthenticatedMobileAppRouteImport } from './routes/_authenticated/mobile-app'
 import { Route as AuthenticatedManageShopRouteImport } from './routes/_authenticated/manage-shop'
 import { Route as AuthenticatedLandingPagesRouteImport } from './routes/_authenticated/landing-pages'
+import { Route as AuthenticatedDomainSettingsRouteImport } from './routes/_authenticated/domain-settings'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedCourierSettingsRouteImport } from './routes/_authenticated/courier-settings'
@@ -58,6 +59,7 @@ import { Route as AuthenticatedAdminResellerSyncLogsRouteImport } from './routes
 import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
 import { Route as AuthenticatedAdminResellerAdoptersRouteImport } from './routes/_authenticated/admin-reseller-adopters'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
+import { Route as AuthenticatedAdminPlatformDomainSetupRouteImport } from './routes/_authenticated/admin-platform-domain-setup'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin-payouts'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
 import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin-financial'
@@ -273,6 +275,12 @@ const AuthenticatedLandingPagesRoute =
     path: '/landing-pages',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDomainSettingsRoute =
+  AuthenticatedDomainSettingsRouteImport.update({
+    id: '/domain-settings',
+    path: '/domain-settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -344,6 +352,12 @@ const AuthenticatedAdminRequestsRoute =
   AuthenticatedAdminRequestsRouteImport.update({
     id: '/admin-requests',
     path: '/admin-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminPlatformDomainSetupRoute =
+  AuthenticatedAdminPlatformDomainSetupRouteImport.update({
+    id: '/admin-platform-domain-setup',
+    path: '/admin-platform-domain-setup',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminPayoutsRoute =
@@ -523,6 +537,7 @@ export interface FileRoutesByFullPath {
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
+  '/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -536,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/domain-settings': typeof AuthenticatedDomainSettingsRoute
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
@@ -601,6 +617,7 @@ export interface FileRoutesByTo {
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
+  '/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -614,6 +631,7 @@ export interface FileRoutesByTo {
   '/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/domain-settings': typeof AuthenticatedDomainSettingsRoute
   '/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/manage-shop': typeof AuthenticatedManageShopRoute
   '/mobile-app': typeof AuthenticatedMobileAppRoute
@@ -681,6 +699,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
   '/_authenticated/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
+  '/_authenticated/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
   '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -694,6 +713,7 @@ export interface FileRoutesById {
   '/_authenticated/courier-settings': typeof AuthenticatedCourierSettingsRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/domain-settings': typeof AuthenticatedDomainSettingsRoute
   '/_authenticated/landing-pages': typeof AuthenticatedLandingPagesRoute
   '/_authenticated/manage-shop': typeof AuthenticatedManageShopRoute
   '/_authenticated/mobile-app': typeof AuthenticatedMobileAppRoute
@@ -762,6 +782,7 @@ export interface FileRouteTypes {
     | '/admin-financial'
     | '/admin-notifications'
     | '/admin-payouts'
+    | '/admin-platform-domain-setup'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -775,6 +796,7 @@ export interface FileRouteTypes {
     | '/courier-settings'
     | '/customers'
     | '/dashboard'
+    | '/domain-settings'
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
@@ -840,6 +862,7 @@ export interface FileRouteTypes {
     | '/admin-financial'
     | '/admin-notifications'
     | '/admin-payouts'
+    | '/admin-platform-domain-setup'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -853,6 +876,7 @@ export interface FileRouteTypes {
     | '/courier-settings'
     | '/customers'
     | '/dashboard'
+    | '/domain-settings'
     | '/landing-pages'
     | '/manage-shop'
     | '/mobile-app'
@@ -919,6 +943,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-financial'
     | '/_authenticated/admin-notifications'
     | '/_authenticated/admin-payouts'
+    | '/_authenticated/admin-platform-domain-setup'
     | '/_authenticated/admin-requests'
     | '/_authenticated/admin-reseller-adopters'
     | '/_authenticated/admin-reseller-orders'
@@ -932,6 +957,7 @@ export interface FileRouteTypes {
     | '/_authenticated/courier-settings'
     | '/_authenticated/customers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/domain-settings'
     | '/_authenticated/landing-pages'
     | '/_authenticated/manage-shop'
     | '/_authenticated/mobile-app'
@@ -1264,6 +1290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLandingPagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/domain-settings': {
+      id: '/_authenticated/domain-settings'
+      path: '/domain-settings'
+      fullPath: '/domain-settings'
+      preLoaderRoute: typeof AuthenticatedDomainSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -1353,6 +1386,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-requests'
       fullPath: '/admin-requests'
       preLoaderRoute: typeof AuthenticatedAdminRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin-platform-domain-setup': {
+      id: '/_authenticated/admin-platform-domain-setup'
+      path: '/admin-platform-domain-setup'
+      fullPath: '/admin-platform-domain-setup'
+      preLoaderRoute: typeof AuthenticatedAdminPlatformDomainSetupRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin-payouts': {
@@ -1566,6 +1606,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminFinancialRoute: typeof AuthenticatedAdminFinancialRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
+  AuthenticatedAdminPlatformDomainSetupRoute: typeof AuthenticatedAdminPlatformDomainSetupRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminResellerAdoptersRoute: typeof AuthenticatedAdminResellerAdoptersRoute
   AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
@@ -1579,6 +1620,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCourierSettingsRoute: typeof AuthenticatedCourierSettingsRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDomainSettingsRoute: typeof AuthenticatedDomainSettingsRoute
   AuthenticatedLandingPagesRoute: typeof AuthenticatedLandingPagesRoute
   AuthenticatedManageShopRoute: typeof AuthenticatedManageShopRoute
   AuthenticatedMobileAppRoute: typeof AuthenticatedMobileAppRoute
@@ -1609,6 +1651,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminFinancialRoute: AuthenticatedAdminFinancialRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
+  AuthenticatedAdminPlatformDomainSetupRoute:
+    AuthenticatedAdminPlatformDomainSetupRoute,
   AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
   AuthenticatedAdminResellerAdoptersRoute:
     AuthenticatedAdminResellerAdoptersRoute,
@@ -1626,6 +1670,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCourierSettingsRoute: AuthenticatedCourierSettingsRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDomainSettingsRoute: AuthenticatedDomainSettingsRoute,
   AuthenticatedLandingPagesRoute: AuthenticatedLandingPagesRoute,
   AuthenticatedManageShopRoute: AuthenticatedManageShopRoute,
   AuthenticatedMobileAppRoute: AuthenticatedMobileAppRoute,

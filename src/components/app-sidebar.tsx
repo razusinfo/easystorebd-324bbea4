@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Truck,
   Store, BarChart3, Palette, Wand2, LayoutTemplate, Smartphone,
   Megaphone, Tag, Settings, LogOut, ShieldCheck, Repeat2, Receipt, Bell, MessageCircle,
-  Send, Wallet, RefreshCcw,
+  Send, Wallet, RefreshCcw, Globe,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -44,6 +44,7 @@ const growthItems = [
   { title: "Spotlights", url: "/spotlights", icon: Megaphone, badge: "NEW" },
   { title: "Promo Codes", url: "/promo-codes", icon: Tag },
   { title: "SMS Settings", url: "/sms-settings", icon: Settings },
+  { title: "Domain Settings", url: "/domain-settings", icon: Globe, badge: "NEW" },
 ];
 
 export function AppSidebar() {
@@ -165,6 +166,7 @@ export function AppSidebar() {
                 {renderItem({ title: "Support Messages", url: "/admin-support", icon: MessageCircle })}
                 {renderItem({ title: "Notifications", url: "/admin-notifications", icon: Bell })}
                 {renderItem({ title: "Sync Status", url: "/admin-reseller-sync-status", icon: RefreshCcw, badge: "NEW" })}
+                {renderItem({ title: "Platform Domain Setup", url: "/admin-platform-domain-setup", icon: Globe, badge: "NEW" })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

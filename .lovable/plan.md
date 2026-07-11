@@ -1,79 +1,106 @@
-# Logo System Upgrade — Plan
+# Domain Management System
 
-চারটি কাজ একসাথে করা হবে। প্রতিটি স্বতন্ত্র ও পরপর ডেলিভার করা যাবে।
+তিনটি ফিচার একসাথে যোগ করা হবে: (1) Super Admin-এর জন্য Cloudflare wildcard setup wizard, (2) real-time domain/SSL status dashboard, (3) Store Owner-এর জন্য custom domain mapping UI।
 
-## 1. Verification Checklist (docs only)
+## ১. Database Schema
 
-`LOGO_VERIFICATION.md` যোগ করা হবে — চেকলিস্ট আকারে:
+নতুন টেবিল `custom_domains`:
 
-- হেডার/সাইডবার/ফুটার/অথ পেজে লোগো দৃশ্যমান (রুট: `/`, `/auth`, `/login`, `/dashboard`, `/s/<slug>`, `/install`, `/offline`, `/reset-password`)
-- হার্ড রিলোডে (Ctrl+Shift+R) স্প্ল্যাশ দেখাচ্ছে
-- ব্রাউজার ট্যাবে favicon
-- মোবাইল "Add to Home Screen"–এ নতুন আইকন
-- Chrome DevTools → Application → Manifest ও Icons প্রিভিউ
-- Lighthouse PWA স্কোর
+```sql
+CREATE TABLE public.custom_domains (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id uuid NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
+  owner_id uuid NOT NULL,
+  domain text NOT NULL UNIQUE,
+  status text NOT NULL DEFAULT 'pending',
+  -- pending | verifying | dns_ok | ssl_pending | live | failed | offline
+  verification_token text NOT NULL,
+  dns_target text NOT NULL DEFAULT '185.158.133.1',
+  ssl_issued_at timestamptz,
+  last_checked_at timestamptz,
+  last_error text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+```
 
-কমান্ড: `curl -I <preview>/pwa-icon-512.png`-এর মতো verifier snippets দেওয়া হবে।
+GRANT + RLS: owner reads/writes own rows; super_admin reads all; anon SELECT নয়।
 
-## 2. PWA Icon Cache-Busting (আনইনস্টল ছাড়া আপডেট)
+নতুন টেবিল `platform_domain_setup` (singleton, Super Admin wildcard progress):
 
-সমস্যা: iOS/Android ইনস্টল টাইমে `manifest.webmanifest`-এর `icons[].src` ক্যাশ করে; একই path-এ নতুন ফাইল দিলেও রিফ্রেশ হয় না।
+```sql
+CREATE TABLE public.platform_domain_setup (
+  id int PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  cloudflare_added boolean DEFAULT false,
+  nameservers_updated boolean DEFAULT false,
+  dns_records_added boolean DEFAULT false,
+  ssl_mode_set boolean DEFAULT false,
+  lovable_wildcard_connected boolean DEFAULT false,
+  current_step int DEFAULT 1,
+  updated_at timestamptz DEFAULT now()
+);
+```
 
-সমাধান:
+## ২. Server Functions (`src/lib/custom-domains.functions.ts`)
 
-- `public/manifest.webmanifest`-এ প্রতিটি আইকন src-এ version query যোগ: `/pwa-icon-192.png?v=2`
-- `__root.tsx`-এর `<link rel="icon">`/`apple-touch-icon` href-গুলোতেও একই `?v=2`
-- একটি ছোট constant `ICON_VERSION` ফাইল (`src/lib/icon-version.ts`) — নতুন লোগো বদলালে এই সংখ্যা bump করলেই hosts নতুন URL fetch করে
-- বিদ্যমান sw.js (থাকলে) inspect করে stale icon cache entries পরিষ্কার করা হবে; না থাকলে kill-switch worker যোগ করা হবে না (PWA skill অনুযায়ী unnecessary)
+- `addCustomDomain({ storeId, domain })` — validate, insert, generate token
+- `checkDomainStatus({ domainId })` — DNS lookup (A record → 185.158.133.1), TXT verify, HTTPS probe; update status
+- `listMyDomains()` — store owner view
+- `removeCustomDomain({ domainId })`
+- `getPlatformSetup()` / `updatePlatformSetupStep({ step, done })` — Super Admin
 
-সীমাবদ্ধতা স্পষ্ট করে বলা হবে: ইতিমধ্যে ইনস্টলড iOS অ্যাপে হোম-স্ক্রিন আইকন আপডেট OS-এর হাতে; কিছু ডিভাইসে reinstall লাগতেই পারে (এটি platform limitation, code দিয়ে workaround নেই)।
+DNS check server-side: `dns.promises.resolve4()` (Node built-in, Cloudflare Worker সমর্থন করে) + `fetch(https://${domain}, { method: 'HEAD' })` SSL probe।
 
-## 3. Dark/Light Logo Variant Support
+## ৩. UI Components
 
-`src/components/brand-logo.tsx` নতুন কম্পোনেন্ট:
+### `src/routes/_authenticated/admin-platform-domain-setup.tsx` (Super Admin)
+৫-step wizard:
+1. **Cloudflare Account** — signup link, "I've added easystorebd.com" checkbox
+2. **Nameservers** — Cloudflare-provided NS দেখানোর ইনপুট + registrar guide
+3. **DNS Records** — copy-paste table (A `@`, A `www`, A `*` → 185.158.133.1, Proxied)
+4. **SSL Mode** — Full mode confirm
+5. **Lovable Connect** — `*.easystorebd.com` proxy-mode instructions + verify button (probes `test-verify.easystorebd.com`)
 
-- `useTheme()` হুক থেকে current mode পড়বে
-- Props: `variant?: "auto" | "light" | "dark"`, `className`
-- `site_settings` টেবিলে দুটি নতুন কলাম: `logo_url_light`, `logo_url_dark` (existing `logo_url` কে fallback হিসেবে ব্যবহার)
-- হেডার/সাইডবার/অথ পেজে existing `<img src={logo}>` কল-সাইটগুলো `<BrandLogo/>`-এ রিপ্লেস
-- default asset (`eazystore-logo.png.asset.json`) fallback হিসেবে থাকবে
+প্রতি step-এ progress bar, next/back, database-এ auto-save।
 
-Migration: `alter table public.site_settings add column logo_url_light text, add column logo_url_dark text`
+### `src/routes/_authenticated/domain-settings.tsx` (Store Owner)
+- Current subdomain দেখানো (`<slug>.easystorebd.com`, copy button)
+- "Add Custom Domain" ফর্ম (নিজস্ব domain যেমন `myshop.com`)
+- Instructions card: A record → 185.158.133.1, TXT `_lovable` verification
+- Domain list with real-time status badge + "Recheck" button + delete
+- Live SSL confirmation: green ✓ "SSL active" যখন HTTPS probe সফল
 
-## 4. Admin Logo Upload (সব জায়গায় auto-update)
+### `src/components/domain-status-badge.tsx`
+Reusable badge: pending (gray) → verifying (yellow, spinner) → dns_ok (blue) → ssl_pending (orange) → live (green ✓) → failed (red)।
 
-`/_authenticated/admin` (বা existing `ui-customizer.tsx`)-এ "Brand Logo" সেকশন যোগ:
+## ৪. Real-time Status
 
-- দুটি upload slot: **Light mode logo**, **Dark mode logo** (+ single "Universal" fallback)
-- Supabase Storage bucket `brand-assets` (public) — tool দিয়ে তৈরি হবে
-- Upload → public URL → `site_settings.logo_url_light` / `logo_url_dark` / `logo_url`-এ save
-- Save করার পর `ICON_VERSION` auto-bump করার জন্য একটি server function `bumpAssetVersion` — `site_settings.asset_version` int কলাম; manifest ও `<link>` tags এই version query হিসেবে read করবে
-- Live preview thumbnail দেখাবে সেভ করার আগে
-- RLS: শুধু `super_admin` role update করতে পারবে
+TanStack Query with `refetchInterval: 15000` non-live domains-এর জন্য; live হলে 60s। Manual "Recheck now" button `checkDomainStatus` invoke করবে।
 
-সব consumer (`BrandLogo`, splash script, manifest generator) `site_settings` থেকে reactively পড়বে, ফলে upload করার সাথে সাথেই সব পেজে reflect হবে (splash-এ localStorage cache mechanism–এর মতো)।
+Storefront resolver (`src/lib/storefront-host.ts`) update: hostname যদি `custom_domains` টেবিলে থাকে → সেই store লোড করবে।
 
-## Technical Details
+## ৫. Sidebar
 
-**Files to add:**
-- `LOGO_VERIFICATION.md`
-- `src/lib/icon-version.ts`
-- `src/components/brand-logo.tsx`
-- Migration: `site_settings` তে `logo_url_light`, `logo_url_dark`, `asset_version` কলাম
-- Storage bucket: `brand-assets` (public)
+- Super Admin: "Platform Domain Setup" menu item
+- Store Owner: "Domain Settings" menu item
 
-**Files to modify:**
-- `public/manifest.webmanifest` — icons-এ `?v={ICON_VERSION}`
-- `src/routes/__root.tsx` — icon links-এ version, splash `<img>`-কে dynamic (site_settings থেকে)
-- `src/components/app-sidebar.tsx`, `src/components/storefront-view.tsx`, auth pages — `<BrandLogo/>` ব্যবহার
-- `src/components/admin/ui-customizer.tsx` — নতুন Brand Logo সেকশন
+## ৬. Files to Create/Modify
 
-**Order:** 1 → 2 → 3 → 4 (docs first, তারপর infra, তারপর UI, শেষে admin flow)
+**New:**
+- `supabase/migrations/*_custom_domains.sql`
+- `src/lib/custom-domains.functions.ts`
+- `src/routes/_authenticated/admin-platform-domain-setup.tsx`
+- `src/routes/_authenticated/domain-settings.tsx`
+- `src/components/domain-status-badge.tsx`
+- `src/components/domain-setup-wizard.tsx`
 
-## Questions
+**Modify:**
+- `src/lib/storefront-host.ts` — custom domain lookup
+- `src/components/app-sidebar.tsx` — new menu items
+- `src/routeTree.gen.ts` — auto-regenerated
 
-কাজ শুরু করার আগে কনফার্ম করুন:
+## Notes
 
-- (A) চারটাই একসাথে করব, নাকি একটা একটা করে (যেমন আগে শুধু admin upload)?
-- (B) Dark/light আলাদা লোগো: আপনি কি এখনই dark variant দেবেন, নাকি admin panel বানানোর পর আপনি নিজে upload করবেন?
-- (C) `asset_version` auto-bump: প্রতিবার admin logo save করলে automatic bump হবে — ঠিক আছে?
+- DNS checks run server-side only (Node `dns` module)
+- Rate limit recheck: max 1/minute per domain
+- Custom domains still need user to point A record; wizard কেবল guide, DNS পুশ নয়
