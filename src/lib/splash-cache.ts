@@ -75,12 +75,18 @@ export function primeSplashCache(input: PrimeInput): PrimeResult {
 
   const commit = (rawKey: string, value: string | null) => {
     const fullKey = LOGO_CACHE_PREFIX + rawKey;
-    if (value) {
-      writes[rawKey] = value;
-      storage?.setItem(fullKey, value);
-    } else {
-      removes.push(rawKey);
-      storage?.removeItem(fullKey);
+    try {
+      if (value) {
+        writes[rawKey] = value;
+        storage?.setItem(fullKey, value);
+      } else {
+        removes.push(rawKey);
+        storage?.removeItem(fullKey);
+      }
+    } catch {
+      // Storage may be full, blocked (Safari private mode), or absent.
+      // The in-memory `writes` / `removes` still reflect intent for the
+      // caller and tests.
     }
   };
 
