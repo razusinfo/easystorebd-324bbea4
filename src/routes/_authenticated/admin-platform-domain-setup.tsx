@@ -1,15 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { toast } from "sonner";
-import { Check, ChevronLeft, ChevronRight, ExternalLink, Copy, Loader2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ExternalLink, Copy, Loader2, RefreshCw, Clock } from "lucide-react";
 
 import {
   getPlatformSetup,
   updatePlatformSetup,
   verifyWildcardConnected,
 } from "@/lib/custom-domains.functions";
+import {
+  PLATFORM_STEP_KEYS,
+  advanceBlockedMessage,
+  canAdvance,
+  clampStep,
+  completedCount,
+  isStepDone,
+} from "@/lib/platform-domain-setup-logic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,15 +29,14 @@ export const Route = createFileRoute("/_authenticated/admin-platform-domain-setu
   component: PlatformDomainSetupPage,
 });
 
-const STEPS = [
-  { key: "cloudflare_added", title: "1. Add site to Cloudflare" },
-  { key: "nameservers_updated", title: "2. Update Nameservers" },
-  { key: "dns_records_added", title: "3. Add DNS Records" },
-  { key: "ssl_mode_set", title: "4. Set SSL Mode" },
-  { key: "lovable_wildcard_connected", title: "5. Connect Wildcard in Lovable" },
-] as const;
-
-type StepKey = typeof STEPS[number]["key"];
+const STEP_TITLES: Record<(typeof PLATFORM_STEP_KEYS)[number], string> = {
+  cloudflare_added: "1. Add site to Cloudflare",
+  nameservers_updated: "2. Update Nameservers",
+  dns_records_added: "3. Add DNS Records",
+  ssl_mode_set: "4. Set SSL Mode",
+  lovable_wildcard_connected: "5. Connect Wildcard in Lovable",
+};
+const STEPS = PLATFORM_STEP_KEYS.map((key) => ({ key, title: STEP_TITLES[key] }));
 
 function copyText(t: string) { navigator.clipboard.writeText(t).then(() => toast.success("Copied")); }
 
@@ -64,13 +70,17 @@ function PlatformDomainSetupPage() {
   });
 
   const setup = setupQuery.data;
-  const currentStep = setup?.current_step ?? 1;
-  const doneCount = setup ? STEPS.filter((s) => setup[s.key]).length : 0;
+  // Persisted current_step comes from Supabase, so a reload resumes on the
+  // same step. clampStep guards against stale/corrupt values.
+  const currentStep = clampStep(setup?.current_step);
+  const doneCount = completedCount(setup);
   const progress = (doneCount / STEPS.length) * 100;
 
   const stepIdx = currentStep - 1;
   const step = STEPS[stepIdx];
-  const isDone = setup && step ? setup[step.key] : false;
+  const isDone = isStepDone(setup, stepIdx);
+  const canGoNext = canAdvance(setup, stepIdx);
+  const blockedMsg = advanceBlockedMessage(stepIdx);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4 md:p-6">
@@ -165,10 +175,53 @@ function PlatformDomainSetupPage() {
                 <p>3. Expand <b>Advanced</b> and check ✅ <b>"Domain uses Cloudflare or a similar proxy"</b></p>
                 <p>4. Follow any CNAME instructions Lovable shows.</p>
                 <p>5. Once connected, click Verify below:</p>
-                <Button onClick={() => verifyMut.mutate()} disabled={verifyMut.isPending} className="mt-2">
-                  {verifyMut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Verify wildcard
-                </Button>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <Button onClick={() => verifyMut.mutate()} disabled={verifyMut.isPending}>
+                    {verifyMut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Verify wildcard
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      toast.info("Re-checking DNS…");
+                      verifyMut.mutate();
+                    }}
+                    disabled={verifyMut.isPending}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${verifyMut.isPending ? "animate-spin" : ""}`} />
+                    Re-check DNS propagation
+                  </Button>
+                </div>
+                {verifyMut.data && (
+                  <div className="rounded-md border bg-muted/40 p-3 text-xs">
+                    <div>Probed host: <code>{verifyMut.data.testHost}</code></div>
+                    <div>DNS: {verifyMut.data.dnsOk ? "✅ points to Lovable" : `❌ got ${verifyMut.data.addrs.join(", ") || "no answer"}`}</div>
+                    <div>HTTPS: {verifyMut.data.httpsOk ? "✅ live" : "⏳ not responding yet"}</div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(stepIdx === 1 || stepIdx === 2 || stepIdx === 4) && (
+              <div className="flex gap-2 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs">
+                <Clock className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-medium text-amber-900 dark:text-amber-200">DNS propagation takes time</p>
+                  <p className="text-amber-800/90 dark:text-amber-200/80">
+                    Wildcard DNS and SSL can take anywhere from a few minutes up to 24–48 hours to propagate
+                    globally. If verification fails, wait 10–15 minutes and click <b>Re-check DNS propagation</b>.
+                    You can also test at{" "}
+                    <a
+                      className="underline"
+                      href="https://dnschecker.org/#A/test.easystorebd.com"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      dnschecker.org
+                    </a>
+                    .
+                  </p>
+                </div>
               </div>
             )}
 
@@ -181,6 +234,12 @@ function PlatformDomainSetupPage() {
               <label htmlFor="done" className="text-sm">Mark step complete</label>
             </div>
 
+            {!canGoNext && (
+              <p className="text-xs text-amber-700 dark:text-amber-300" role="status">
+                {blockedMsg}
+              </p>
+            )}
+
             <div className="flex justify-between pt-2">
               <Button variant="outline" size="sm" disabled={stepIdx === 0} onClick={() => updMut.mutate({ current_step: stepIdx })}>
                 <ChevronLeft className="h-4 w-4 mr-1" />Back
@@ -188,16 +247,32 @@ function PlatformDomainSetupPage() {
               {stepIdx === STEPS.length - 1 ? (
                 <Button
                   size="sm"
+                  disabled={!canGoNext}
+                  title={!canGoNext ? blockedMsg : undefined}
                   onClick={() => {
-                    if (!isDone) updMut.mutate({ [step.key]: true });
-                    else toast.success("Setup complete 🎉");
+                    if (!canGoNext) {
+                      toast.error(blockedMsg);
+                      return;
+                    }
+                    toast.success("Setup complete 🎉");
                   }}
                 >
-                  {isDone ? "Finish" : "Continue & mark complete"}
+                  Finish
                   <Check className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button size="sm" onClick={() => updMut.mutate({ current_step: stepIdx + 2 })}>
+                <Button
+                  size="sm"
+                  disabled={!canGoNext}
+                  title={!canGoNext ? blockedMsg : undefined}
+                  onClick={() => {
+                    if (!canGoNext) {
+                      toast.error(blockedMsg);
+                      return;
+                    }
+                    updMut.mutate({ current_step: stepIdx + 2 });
+                  }}
+                >
                   Next<ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
