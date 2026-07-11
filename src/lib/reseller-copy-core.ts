@@ -173,8 +173,8 @@ export async function runCopyResellerProduct(
 
     const sellingPrice = input.custom_price != null ? Number(input.custom_price) : Number(price);
 
-    // Assemble media set from original product; fall back to reseller_products
-    // (which now stores rehosted supplier gallery images).
+    // Assemble original media set (used as fallback when the caller does not
+    // pass an explicit selection).
     const sourceGallery = Array.isArray((source as any).gallery_urls) ? (source as any).gallery_urls as string[] : [];
     const originalPrimary = original?.image_url ?? source.image_url ?? source.image ?? null;
     const originalGallery = Array.isArray(original?.gallery_urls) && original!.gallery_urls!.length > 0
@@ -182,21 +182,25 @@ export async function runCopyResellerProduct(
       : sourceGallery;
     const originalVideo = original?.video_url ?? null;
 
-    const allMedia = [
-      ...(originalPrimary ? [originalPrimary] : []),
-      ...originalGallery,
-      ...(originalVideo ? [originalVideo] : []),
-    ];
+    let finalPrimary: string | null;
+    let finalGallery: string[];
+    let finalVideo: string | null;
 
-    // Optional whitelist: intersect with what actually exists on the source.
-    const allowed = input.selected_media
-      ? new Set(input.selected_media.filter((u) => allMedia.includes(u)))
-      : null;
-    const keep = (u: string | null) => (u == null ? false : allowed ? allowed.has(u) : true);
-
-    const finalPrimary = keep(originalPrimary) ? originalPrimary : originalGallery.find(keep) ?? null;
-    const finalGallery = originalGallery.filter((u) => keep(u) && u !== finalPrimary);
-    const finalVideo = keep(originalVideo) ? originalVideo : null;
+    if (Array.isArray(input.selected_media)) {
+      // Honor the reseller's exact ordering AND any freshly uploaded URLs.
+      // First URL = primary product image; the rest become gallery entries.
+      // A URL matching originalVideo is treated as the product video.
+      const ordered = input.selected_media.filter((u): u is string => typeof u === "string" && u.length > 0);
+      const videoUrl = originalVideo && ordered.includes(originalVideo) ? originalVideo : null;
+      const imagesOrdered = ordered.filter((u) => u !== videoUrl);
+      finalPrimary = imagesOrdered[0] ?? null;
+      finalGallery = imagesOrdered.slice(1);
+      finalVideo = videoUrl;
+    } else {
+      finalPrimary = originalPrimary;
+      finalGallery = originalGallery.filter((u) => u !== originalPrimary);
+      finalVideo = originalVideo;
+    }
 
     const insertPayload = {
       store_id: store.id,
