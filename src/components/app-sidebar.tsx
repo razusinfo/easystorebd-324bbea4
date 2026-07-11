@@ -44,6 +44,7 @@ const growthItems = [
   { title: "Spotlights", url: "/spotlights", icon: Megaphone, badge: "NEW" },
   { title: "Promo Codes", url: "/promo-codes", icon: Tag },
   { title: "SMS Settings", url: "/sms-settings", icon: Settings },
+  { title: "Domain Settings", url: "/domain-settings", icon: Globe, badge: "NEW" },
 ];
 
 export function AppSidebar() {
