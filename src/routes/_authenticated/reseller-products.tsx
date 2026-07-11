@@ -1634,70 +1634,89 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label>মিডিয়া নির্বাচন করুন / Select Media to Import</Label>
-              {!mediaQ.isLoading && media.length > 0 && (
-                <div className="flex gap-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => setExcluded(new Set())}
-                    disabled={excluded.size === 0}
-                  >
-                    সব নির্বাচন / Select all
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => setExcluded(new Set(media.map((m) => m.url)))}
-                    disabled={selectedMedia.length === 0}
-                  >
-                    সব বাদ / Clear
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-1">
+                <input
+                  ref={mediaFileRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => onPickMediaFiles(e.target.files)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1 px-2 text-xs"
+                  disabled={uploadingMedia}
+                  onClick={() => mediaFileRef.current?.click()}
+                >
+                  {uploadingMedia ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5" />
+                  )}
+                  {uploadingMedia ? "আপলোড…" : "ছবি যোগ / Add image"}
+                </Button>
+              </div>
             </div>
+
             {mediaQ.isLoading ? (
               <div className="flex items-center gap-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 মিডিয়া লোড হচ্ছে… / Loading media…
               </div>
-            ) : media.length === 0 ? (
+            ) : items.length === 0 ? (
               <div className="flex flex-col items-center gap-1 rounded-md border border-dashed p-6 text-center">
                 <Package className="h-6 w-6 text-muted-foreground" />
                 <p className="text-sm font-medium">
-                  কোনো ছবি বা ভিডিও নেই / No images or videos available
+                  কোনো ছবি বা ভিডিও নেই / No images or videos
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  এই পণ্যটির সাথে কোনো মিডিয়া কপি করার জন্য নেই।
+                  উপরের "ছবি যোগ" বাটন থেকে নিজের ছবি যুক্ত করতে পারেন।
                 </p>
               </div>
             ) : (
-
               <>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {media.map((m) => {
-                    const checked = !excluded.has(m.url);
+                <div
+                  className="grid grid-cols-3 gap-2 sm:grid-cols-4"
+                  onPointerMove={moveDrag}
+                  onPointerUp={endDrag}
+                  onPointerCancel={endDrag}
+                >
+                  {items.map((m, idx) => {
+                    const isDragging = dragIdx === idx;
+                    const isOver = dragIdx != null && overIdx === idx && dragIdx !== idx;
                     return (
-                      <label
+                      <div
                         key={m.url}
-                        className={`relative block cursor-pointer overflow-hidden rounded-md border-2 ${
-                          checked ? "border-primary" : "border-muted opacity-50"
+                        data-media-idx={idx}
+                        onPointerDown={(e) => startDrag(idx, e)}
+                        className={`relative block touch-none select-none overflow-hidden rounded-md border-2 transition ${
+                          idx === 0 ? "border-primary" : "border-muted"
+                        } ${isDragging ? "scale-95 opacity-60" : ""} ${
+                          isOver ? "ring-2 ring-primary ring-offset-1" : ""
                         }`}
+                        style={{ cursor: dragIdx != null ? "grabbing" : "grab" }}
                       >
-                        <input
-                          type="checkbox"
-                          className="absolute right-1 top-1 z-10 h-4 w-4"
-                          checked={checked}
-                          onChange={() => toggleMedia(m.url)}
-                        />
+                        <button
+                          type="button"
+                          aria-label="Remove image"
+                          className="absolute right-1 top-1 z-10 rounded-full bg-black/70 p-0.5 text-white hover:bg-red-600"
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeMedia(m.url);
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                         {m.kind === "image" ? (
                           <img
                             src={m.url}
                             alt=""
-                            className="aspect-square w-full object-cover"
+                            draggable={false}
+                            className="pointer-events-none aspect-square w-full object-cover"
                             loading="lazy"
                             decoding="async"
                             width={160}
@@ -1706,61 +1725,27 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
                         ) : (
                           <video
                             src={m.url}
-                            className="aspect-square w-full bg-black object-cover"
+                            className="pointer-events-none aspect-square w-full bg-black object-cover"
                             muted
                             preload="metadata"
                           />
                         )}
-                        <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[9px] text-white">
-                          {m.kind === "image" ? "IMG" : "VIDEO"}
+                        <span
+                          className={`absolute bottom-1 left-1 rounded px-1 text-[9px] font-bold text-white ${
+                            idx === 0 ? "bg-primary" : "bg-black/60"
+                          }`}
+                        >
+                          {idx === 0 ? "1 ★" : `#${idx + 1}`}
                         </span>
-                      </label>
+                      </div>
                     );
                   })}
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  {selectedMedia.length} / {media.length} নির্বাচিত / selected
+                <p className="text-[10px] text-muted-foreground">
+                  ★ = প্রাইমারি ছবি · X চেপে ছবি বাদ দিন · চেপে ধরে টেনে সাজান /
+                  Tap ✕ to remove · press-and-hold to drag &amp; reorder
                 </p>
-                {selectedMedia.filter((m) => m.kind === "image").length > 0 && (
-                  <div className="rounded-md border bg-muted/30 p-2">
-                    <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">
-                      ইম্পোর্ট অর্ডার প্রিভিউ / Import order preview
-                    </p>
-                    <div className="flex gap-1.5 overflow-x-auto">
-                      {selectedMedia
-                        .filter((m) => m.kind === "image")
-                        .map((m, idx) => (
-                          <div
-                            key={m.url}
-                            className="relative h-14 w-14 shrink-0 overflow-hidden rounded border"
-                            title={idx === 0 ? "Primary image" : `Gallery #${idx}`}
-                          >
-                            <img
-                              src={m.url}
-                              alt=""
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                              decoding="async"
-                              width={56}
-                              height={56}
-                            />
-                            <span
-                              className={`absolute left-0 top-0 rounded-br px-1 text-[9px] font-bold text-white ${
-                                idx === 0 ? "bg-primary" : "bg-black/60"
-                              }`}
-                            >
-                              {idx === 0 ? "1★" : idx + 1}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                    <p className="mt-1 text-[10px] text-muted-foreground">
-                      ★ = প্রাইমারি ছবি (দোকান কার্ড ও ইনভয়েসে) / Primary image (shown on shop card & invoice)
-                    </p>
-                  </div>
-                )}
               </>
-
             )}
           </div>
         </div>
