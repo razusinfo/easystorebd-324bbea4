@@ -36,6 +36,9 @@ jobs:
           E2E_SUPPLIER_EMAIL: ${{ secrets.E2E_SUPPLIER_EMAIL }}
           E2E_SUPPLIER_PASSWORD: ${{ secrets.E2E_SUPPLIER_PASSWORD }}
           E2E_SUPPLIER_USER_ID: ${{ secrets.E2E_SUPPLIER_USER_ID }}
+          E2E_RESELLER_EMAIL: ${{ secrets.E2E_RESELLER_EMAIL }}
+          E2E_RESELLER_PASSWORD: ${{ secrets.E2E_RESELLER_PASSWORD }}
+          E2E_APP_URL: ${{ secrets.E2E_APP_URL }}
         run: |
           if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$E2E_STORE_ID" ]; then
             echo "::warning::E2E secrets not configured — skipping E2E suite."
@@ -44,3 +47,8 @@ jobs:
           python tests/e2e/reseller-checkout-propagation.spec.py
           python tests/e2e/order-management-role-visibility.spec.py
           python tests/e2e/supplier-fulfillment-update.spec.py
+          if [ -n "$E2E_RESELLER_EMAIL" ] && [ -n "$E2E_APP_URL" ]; then
+            python tests/e2e/supplier-marketplace-add.spec.py
+          else
+            echo "::warning::Skipping supplier-marketplace-add.spec.py (E2E_RESELLER_EMAIL / E2E_APP_URL not set)"
+          fi
