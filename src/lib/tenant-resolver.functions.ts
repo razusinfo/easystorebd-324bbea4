@@ -50,7 +50,8 @@ export const listPublicStores = createServerFn({ method: "GET" }).handler(
 
 // --- Super admin debug + admin actions ---
 
-async function assertSuperAdmin(context: { supabase: ReturnType<typeof import("@supabase/supabase-js").createClient>; userId: string }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function assertSuperAdmin(context: any) {
   const { data, error } = await context.supabase.rpc("has_role", {
     _user_id: context.userId, _role: "super_admin",
   });
