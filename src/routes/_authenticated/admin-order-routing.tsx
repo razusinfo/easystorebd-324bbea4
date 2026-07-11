@@ -258,6 +258,16 @@ function AdminOrderRoutingPage() {
     setFFrom(""); setFTo(""); setFQuery("");
   }
 
+  return (
+    <div className="p-4 sm:p-6 space-y-6">
+      <header>
+        <h1 className="text-2xl font-bold">Order Routing</h1>
+        <p className="text-sm text-muted-foreground">
+          Decide which supplier receives customer orders when a product isn't directly linked to a
+          marketplace item. Rules apply in priority order — lower priority number wins. Category
+          rules take precedence over the default rule.
+        </p>
+      </header>
 
       {/* Add rule */}
       <Card className="p-4 space-y-3">
