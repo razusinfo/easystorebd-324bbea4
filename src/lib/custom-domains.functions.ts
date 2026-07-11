@@ -65,9 +65,10 @@ export const addCustomDomain = createServerFn({ method: "POST" })
       throw new Error("Store not found or access denied");
     }
 
-    const { data: inserted, error } = await context.supabase
-      .from("custom_domains" as never)
-      .insert({ /*t*/ } as never); void ({
+    const sb = context.supabase as unknown as { from: (t: string) => any };
+    const { data: inserted, error } = await sb
+      .from("custom_domains")
+      .insert({
         store_id: data.storeId,
         owner_id: context.userId,
         domain,
