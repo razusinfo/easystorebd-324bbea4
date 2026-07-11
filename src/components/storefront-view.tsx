@@ -43,22 +43,46 @@ export function StorefrontView({ slug }: { slug: string }) {
     },
   });
 
+  const splashCfg = store?.shop_settings?.splash;
+  const splashPath = splashCfg?.logo_path ?? null;
+  const splashLogoQ = useQuery({
+    queryKey: ["splash-logo-signed", splashPath],
+    enabled: !!splashPath,
+    staleTime: 1000 * 60 * 30,
+    queryFn: async () => {
+      const { data, error } = await supabase.storage
+        .from("store-logos")
+        .createSignedUrl(splashPath!, 60 * 60 * 24 * 7);
+      if (error) throw error;
+      return data?.signedUrl ?? null;
+    },
+  });
+
   const effectiveLogoEarly = templateLogoQ.data ?? q.data?.logoUrl ?? null;
   const storeName = q.data?.store?.name ?? null;
 
   useEffect(() => {
-    if (effectiveLogoEarly) writeCache(LOGO_CACHE_PREFIX, slug, effectiveLogoEarly);
+    if (typeof window === "undefined") return;
+    const host = window.location.hostname.toLowerCase();
+    const isSubdomain = /^[a-z0-9-]+\.easystorebd\.com$/i.test(host);
+    const isCustomDomain =
+      host && host !== slug &&
+      !/(^|\.)easystorebd\.com$/i.test(host) &&
+      !/(^|\.)lovable\.app$/i.test(host);
+    const useSplashForSub = isSubdomain && splashCfg?.on_subdomain !== false && !!splashLogoQ.data;
+    const useSplashForCd = isCustomDomain && splashCfg?.on_custom_domain !== false && !!splashLogoQ.data;
+    const splashLogo = useSplashForSub || useSplashForCd ? splashLogoQ.data : null;
+    const logoForSlug = effectiveLogoEarly;
+    const logoForHost = splashLogo ?? effectiveLogoEarly;
+
+    if (logoForSlug) writeCache(LOGO_CACHE_PREFIX, slug, logoForSlug);
     if (storeName) writeCache(NAME_CACHE_PREFIX, slug, storeName);
-    // Also cache under the current hostname so custom-domain reloads (where
-    // the URL has no /s/<slug> segment) can render the correct logo on splash.
-    if (typeof window !== "undefined") {
-      const host = window.location.hostname.toLowerCase();
-      if (host && host !== slug) {
-        if (effectiveLogoEarly) writeCache(LOGO_CACHE_PREFIX, host, effectiveLogoEarly);
-        if (storeName) writeCache(NAME_CACHE_PREFIX, host, storeName);
-      }
+    if (host && host !== slug) {
+      if (logoForHost) writeCache(LOGO_CACHE_PREFIX, host, logoForHost);
+      if (storeName) writeCache(NAME_CACHE_PREFIX, host, storeName);
     }
-  }, [slug, effectiveLogoEarly, storeName]);
+  }, [slug, effectiveLogoEarly, storeName, splashCfg?.on_subdomain, splashCfg?.on_custom_domain, splashLogoQ.data]);
+
 
 
   if (q.isLoading) {
