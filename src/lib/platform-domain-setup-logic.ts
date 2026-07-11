@@ -43,9 +43,9 @@ export function canAdvance(setup: PlatformSetupState | null | undefined, current
 export function advanceBlockedMessage(currentStepIdx: number): string {
   const isLast = currentStepIdx === PLATFORM_STEP_KEYS.length - 1;
   if (isLast) {
-    return "Verify the wildcard first, then tick “Mark step complete” to finish.";
+    return "Verify the wildcard first, then tick “Mark step complete” to finish. (আগে wildcard verify করুন, তারপর “Mark step complete” টিক দিয়ে শেষ করুন।)";
   }
-  return "Tick “Mark step complete” before moving on — this keeps setup progress accurate on reload.";
+  return "Tick “Mark step complete” before moving on — this keeps setup progress accurate on reload. (এগোনোর আগে “Mark step complete” টিক দিন — রিলোডে সঠিক ধাপে ফিরে আসতে এটা দরকার।)";
 }
 
 export function completedCount(setup: PlatformSetupState | null | undefined): number {
