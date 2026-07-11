@@ -23,54 +23,73 @@ import {
 } from "lucide-react";
 import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
 import { StorefrontView } from "@/components/storefront-view";
+import { UnknownTenant } from "@/components/unknown-tenant";
 import heroAsset from "@/assets/hero-storefront.jpg.asset.json";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-
-import { createServerFn } from "@tanstack/react-start";
-
-const getSubdomainSlug = createServerFn({ method: "GET" }).handler(async () => {
-  const { getRequestHost } = await import("@tanstack/react-start/server");
-  try {
-    const host = getRequestHost();
-    return getStorefrontSlugFromHost(host);
-  } catch {
-    return null;
-  }
-});
+import { resolveTenant, type TenantResult } from "@/lib/tenant-resolver.functions";
 
 export const Route = createFileRoute("/")({
-  loader: async () => ({ subSlug: await getSubdomainSlug() }),
-  head: () => ({
-    meta: [
-      { title: "EasyStore — Build your online store in minutes" },
-      {
-        name: "description",
-        content:
-          "EasyStore gives every merchant a beautiful storefront, powerful dashboard and local payments — no code, no hassle. Just sell.",
-      },
-      { property: "og:title", content: "EasyStore — Build your online store in minutes" },
-      {
-        property: "og:description",
-        content:
-          "Beautiful storefront, powerful dashboard and local payments (COD, bKash, Nagad). Launch in minutes.",
-      },
-      { property: "og:image", content: `https://eazystorebd.lovable.app${heroAsset.url}` },
-      { property: "og:url", content: "https://eazystorebd.lovable.app/" },
-    ],
-    links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/" }],
+  loader: async (): Promise<{ tenant: TenantResult }> => ({
+    tenant: await resolveTenant(),
   }),
+  head: ({ loaderData }) => {
+    const tenant = loaderData?.tenant;
+    if (tenant && (tenant.kind === "unknown-sub" || tenant.kind === "unknown-custom")) {
+      return {
+        meta: [
+          { title: "Store not found — EasyStore" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
+    }
+    return {
+      meta: [
+        { title: "EasyStore — Build your online store in minutes" },
+        {
+          name: "description",
+          content:
+            "EasyStore gives every merchant a beautiful storefront, powerful dashboard and local payments — no code, no hassle. Just sell.",
+        },
+        { property: "og:title", content: "EasyStore — Build your online store in minutes" },
+        {
+          property: "og:description",
+          content:
+            "Beautiful storefront, powerful dashboard and local payments (COD, bKash, Nagad). Launch in minutes.",
+        },
+        { property: "og:image", content: `https://eazystorebd.lovable.app${heroAsset.url}` },
+        { property: "og:url", content: "https://eazystorebd.lovable.app/" },
+      ],
+      links: [{ rel: "canonical", href: "https://eazystorebd.lovable.app/" }],
+    };
+  },
   component: Landing,
 });
 
 function Landing() {
-  const { subSlug: ssrSlug } = Route.useLoaderData();
-  const clientSlug =
-    typeof window !== "undefined" ? getStorefrontSlugFromHost(window.location.hostname) : null;
-  const subSlug = ssrSlug ?? clientSlug;
-  if (subSlug) return <StorefrontView slug={subSlug} />;
+  const { tenant } = Route.useLoaderData();
 
+  // Client-side fallback: host-based slug when SSR resolver returned apex
+  // (e.g. loader ran before host was available or during hydration on a
+  // subdomain that was cached as apex).
+  const clientSlug =
+    typeof window !== "undefined"
+      ? getStorefrontSlugFromHost(window.location.hostname)
+      : null;
+
+  if (tenant.kind === "subdomain" || tenant.kind === "custom") {
+    return <StorefrontView slug={tenant.slug} />;
+  }
+  if (tenant.kind === "unknown-sub") {
+    return <UnknownTenant kind="unknown-sub" attempted={tenant.attempted} />;
+  }
+  if (tenant.kind === "unknown-custom") {
+    return <UnknownTenant kind="unknown-custom" host={tenant.host} />;
+  }
+  if (clientSlug) {
+    return <StorefrontView slug={clientSlug} />;
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -83,6 +102,7 @@ function Landing() {
     </main>
   );
 }
+
 
 
 
