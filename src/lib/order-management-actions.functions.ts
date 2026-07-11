@@ -20,6 +20,7 @@ const Input = z.object({
     .nullable()
     .optional()
     .or(z.literal("").transform(() => null)),
+  notes: z.string().trim().max(2000).nullable().optional(),
 });
 
 export const updateManagedOrderStatus = createServerFn({ method: "POST" })
