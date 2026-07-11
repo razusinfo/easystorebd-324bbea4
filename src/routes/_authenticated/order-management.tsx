@@ -124,19 +124,21 @@ function OrderManagementPage() {
     setDetail(r);
     setDraftStatus(r.status);
     setDraftTracking(r.tracking_id ?? "");
-    setDraftTrackUrl("");
+    setDraftTrackUrl(r.tracking_url ?? "");
+    setDraftNotes(r.notes ?? "");
   };
 
   const upd = useMutation({
-    mutationFn: async (payload: { id: string; status?: string; tracking_id?: string | null; tracking_url?: string | null }) => {
+    mutationFn: async (payload: { id: string; status?: string; tracking_id?: string | null; tracking_url?: string | null; notes?: string | null }) => {
       const clean: Record<string, unknown> = { id: payload.id };
       if (payload.status !== undefined) clean.status = payload.status;
       if (payload.tracking_id !== undefined) clean.tracking_id = payload.tracking_id;
       if (payload.tracking_url !== undefined) clean.tracking_url = payload.tracking_url;
+      if (payload.notes !== undefined) clean.notes = payload.notes;
       return updateStatusFn({ data: clean });
     },
     onSuccess: () => {
-      toast.success("Order updated");
+      toast.success("Order updated — reseller notified");
       qc.invalidateQueries({ queryKey: ["order-management"] });
       setDetail(null);
     },
