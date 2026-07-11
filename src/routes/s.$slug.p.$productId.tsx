@@ -32,30 +32,94 @@ function PublicProductDetailPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [cartOpen, setCartOpen] = useState(false);
   const [wished, setWished] = useState(false);
+  const [wishBusy, setWishBusy] = useState(false);
+  const [statusMsg, setStatusMsg] = useState("");
+  const userIdRef = useRef<string | null>(null);
   const addToCart = useCartStore((s) => s.add);
 
   const wishKey = `easystore_wishlist:${slug}`;
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem(wishKey);
-      const list: string[] = raw ? JSON.parse(raw) : [];
-      setWished(list.includes(productId));
-    } catch { /* ignore */ }
-  }, [wishKey, productId]);
 
-  const toggleWishlist = () => {
-    if (typeof window === "undefined") return;
+  const readLocal = (): string[] => {
+    if (typeof window === "undefined") return [];
     try {
       const raw = window.localStorage.getItem(wishKey);
-      const list: string[] = raw ? JSON.parse(raw) : [];
-      const has = list.includes(productId);
-      const next = has ? list.filter((x) => x !== productId) : [...list, productId];
-      window.localStorage.setItem(wishKey, JSON.stringify(next));
-      setWished(!has);
-      toast.success(has ? "Wishlist থেকে সরানো হয়েছে" : "Wishlist এ যোগ হয়েছে");
+      return raw ? (JSON.parse(raw) as string[]) : [];
+    } catch { return []; }
+  };
+  const writeLocal = (list: string[]) => {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem(wishKey, JSON.stringify(list)); } catch { /* ignore */ }
+  };
+
+  // Load state: local first (instant), then reconcile with cloud when signed in.
+  useEffect(() => {
+    let cancelled = false;
+    setWished(readLocal().includes(productId));
+
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user ?? null;
+      userIdRef.current = user?.id ?? null;
+      if (!user || cancelled) return;
+      const { data: rows, error } = await supabase
+        .from("customer_wishlists")
+        .select("product_id")
+        .eq("store_slug", slug)
+        .eq("product_id", productId)
+        .limit(1);
+      if (cancelled || error) return;
+      const cloudHas = (rows?.length ?? 0) > 0;
+      setWished(cloudHas);
+      const local = readLocal();
+      const localHas = local.includes(productId);
+      if (cloudHas && !localHas) writeLocal([...local, productId]);
+      if (!cloudHas && localHas) writeLocal(local.filter((x) => x !== productId));
+    })();
+
+    return () => { cancelled = true; };
+  }, [wishKey, productId, slug]);
+
+  const toggleWishlist = async () => {
+    if (wishBusy) return; // race guard: no double-fire
+    setWishBusy(true);
+    const prev = wished;
+    const next = !prev;
+    // Optimistic UI + local mirror
+    setWished(next);
+    const local = readLocal();
+    writeLocal(next ? Array.from(new Set([...local, productId])) : local.filter((x) => x !== productId));
+
+    const userId = userIdRef.current;
+    try {
+      if (userId) {
+        if (next) {
+          const { error } = await supabase
+            .from("customer_wishlists")
+            .insert({ user_id: userId, store_slug: slug, product_id: productId });
+          // 23505 = unique violation → already saved on another device, treat as success
+          if (error && error.code !== "23505") throw error;
+        } else {
+          const { error } = await supabase
+            .from("customer_wishlists")
+            .delete()
+            .eq("user_id", userId)
+            .eq("store_slug", slug)
+            .eq("product_id", productId);
+          if (error) throw error;
+        }
+      }
+      const msg = next ? "Wishlist এ যোগ হয়েছে" : "Wishlist থেকে সরানো হয়েছে";
+      toast.success(msg);
+      setStatusMsg(msg);
     } catch {
-      toast.error("Wishlist সেভ করা যায়নি");
+      // rollback
+      setWished(prev);
+      writeLocal(prev ? Array.from(new Set([...readLocal(), productId])) : readLocal().filter((x) => x !== productId));
+      const msg = "Wishlist সেভ করা যায়নি";
+      toast.error(msg);
+      setStatusMsg(msg);
+    } finally {
+      setWishBusy(false);
     }
   };
 
@@ -64,19 +128,26 @@ function PublicProductDetailPage() {
     const url = window.location.href;
     const title = q.data?.product?.name ?? "Product";
     try {
-      if (navigator.share) {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
         await navigator.share({ title, url });
+        const msg = "শেয়ার করা হয়েছে";
+        toast.success(msg);
+        setStatusMsg(msg);
         return;
       }
     } catch (e) {
       const err = e as { name?: string };
-      if (err?.name === "AbortError") return;
+      if (err?.name === "AbortError") return; // user dismissed sheet — silent
     }
     try {
       await navigator.clipboard.writeText(url);
-      toast.success("লিংক কপি হয়েছে");
+      const msg = "লিংক কপি হয়েছে";
+      toast.success(msg);
+      setStatusMsg(msg);
     } catch {
-      toast.error("শেয়ার করা যায়নি");
+      const msg = "শেয়ার করা যায়নি";
+      toast.error(msg);
+      setStatusMsg(msg);
     }
   };
 
