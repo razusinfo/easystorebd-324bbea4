@@ -70,13 +70,17 @@ function PlatformDomainSetupPage() {
   });
 
   const setup = setupQuery.data;
-  const currentStep = setup?.current_step ?? 1;
-  const doneCount = setup ? STEPS.filter((s) => setup[s.key]).length : 0;
+  // Persisted current_step comes from Supabase, so a reload resumes on the
+  // same step. clampStep guards against stale/corrupt values.
+  const currentStep = clampStep(setup?.current_step);
+  const doneCount = completedCount(setup);
   const progress = (doneCount / STEPS.length) * 100;
 
   const stepIdx = currentStep - 1;
   const step = STEPS[stepIdx];
-  const isDone = setup && step ? setup[step.key] : false;
+  const isDone = isStepDone(setup, stepIdx);
+  const canGoNext = canAdvance(setup, stepIdx);
+  const blockedMsg = advanceBlockedMessage(stepIdx);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4 md:p-6">
