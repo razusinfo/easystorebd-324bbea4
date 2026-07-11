@@ -83,6 +83,7 @@ function CustomizerForm({
   saving: boolean;
 }) {
   const [logoPath, setLogoPath] = useState<string | null>(initial.logo_url);
+  const [logoDarkPath, setLogoDarkPath] = useState<string | null>(initial.logo_url_dark);
   const [faviconPath, setFaviconPath] = useState<string | null>(initial.favicon_url);
   const [color, setColor] = useState(initial.primary_color);
   const [cats, setCats] = useState<SidebarCategory[]>(initial.sidebar_categories);
@@ -96,6 +97,7 @@ function CustomizerForm({
 
   useEffect(() => {
     setLogoPath(initial.logo_url);
+    setLogoDarkPath(initial.logo_url_dark);
     setFaviconPath(initial.favicon_url);
     setColor(initial.primary_color);
     setCats(initial.sidebar_categories);
@@ -107,10 +109,12 @@ function CustomizerForm({
   }, [initial]);
 
   const logoUrl = useSignedSiteAsset(logoPath);
+  const logoDarkUrl = useSignedSiteAsset(logoDarkPath);
   const faviconUrl = useSignedSiteAsset(faviconPath);
 
   const dirty = useMemo(() => (
     logoPath !== initial.logo_url ||
+    logoDarkPath !== initial.logo_url_dark ||
     faviconPath !== initial.favicon_url ||
     color !== initial.primary_color ||
     JSON.stringify(cats) !== JSON.stringify(initial.sidebar_categories) ||
@@ -119,14 +123,16 @@ function CustomizerForm({
     phone !== (initial.contact_phone ?? "") ||
     facebook !== (initial.facebook_url ?? "") ||
     instagram !== (initial.instagram_url ?? "")
-  ), [logoPath, faviconPath, color, cats, whatsapp, email, phone, facebook, instagram, initial]);
+  ), [logoPath, logoDarkPath, faviconPath, color, cats, whatsapp, email, phone, facebook, instagram, initial]);
 
-  async function handleUpload(file: File, kind: "logo" | "favicon") {
+  async function handleUpload(file: File, kind: "logo" | "logo-dark" | "favicon") {
     try {
-      const path = await uploadSiteAsset(file, kind);
+      // uploadSiteAsset accepts "logo" | "favicon"; reuse "logo" folder for dark too.
+      const path = await uploadSiteAsset(file, kind === "favicon" ? "favicon" : "logo");
       if (kind === "logo") setLogoPath(path);
+      else if (kind === "logo-dark") setLogoDarkPath(path);
       else setFaviconPath(path);
-      toast.success(`${kind === "logo" ? "Logo" : "Favicon"} uploaded`);
+      toast.success("Uploaded");
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     }
@@ -135,6 +141,10 @@ function CustomizerForm({
   async function handleRemoveLogo() {
     if (logoPath) { try { await deleteSiteAsset(logoPath); } catch {} }
     setLogoPath(null);
+  }
+  async function handleRemoveLogoDark() {
+    if (logoDarkPath) { try { await deleteSiteAsset(logoDarkPath); } catch {} }
+    setLogoDarkPath(null);
   }
   async function handleRemoveFavicon() {
     if (faviconPath) { try { await deleteSiteAsset(faviconPath); } catch {} }
@@ -172,9 +182,17 @@ function CustomizerForm({
     if (cats.some((c) => !c.label.trim() || !c.href.trim())) {
       return toast.error("Every category needs a label and href");
     }
+    // Auto-bump asset_version whenever any brand artwork changed. Installed
+    // PWAs and browsers cache icons/manifest aggressively; a version bump
+    // makes downstream URLs (via ICON_VERSION-style query strings) look new.
+    const brandingChanged =
+      logoPath !== initial.logo_url ||
+      logoDarkPath !== initial.logo_url_dark ||
+      faviconPath !== initial.favicon_url;
     try {
       await onSave({
         logo_url: logoPath,
+        logo_url_dark: logoDarkPath,
         favicon_url: faviconPath,
         primary_color: color,
         sidebar_categories: cats,
@@ -183,6 +201,7 @@ function CustomizerForm({
         contact_phone: phone || null,
         facebook_url: facebook || null,
         instagram_url: instagram || null,
+        ...(brandingChanged ? { asset_version: (initial.asset_version ?? 1) + 1 } : {}),
       });
       toast.success("Site settings saved");
     } catch (e: any) {
@@ -195,13 +214,20 @@ function CustomizerForm({
       <div className="space-y-6 min-w-0">
 
       {/* Branding */}
-      <Section title="Branding" description="Main logo and browser tab favicon shown across the site.">
-        <div className="grid gap-6 sm:grid-cols-2">
+      <Section title="Branding" description="Main logo, dark-mode variant, and browser tab favicon shown across the site.">
+        <div className="grid gap-6 sm:grid-cols-3">
           <AssetUploader
-            label="Main logo"
+            label="Main logo (light mode)"
             preview={logoUrl.data ?? null}
             onFile={(f) => handleUpload(f, "logo")}
             onRemove={handleRemoveLogo}
+            accept="image/png,image/jpeg,image/svg+xml,image/webp"
+          />
+          <AssetUploader
+            label="Dark-mode logo (optional)"
+            preview={logoDarkUrl.data ?? null}
+            onFile={(f) => handleUpload(f, "logo-dark")}
+            onRemove={handleRemoveLogoDark}
             accept="image/png,image/jpeg,image/svg+xml,image/webp"
           />
           <AssetUploader

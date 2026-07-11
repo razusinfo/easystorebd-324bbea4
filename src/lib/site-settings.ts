@@ -12,6 +12,7 @@ export type SidebarCategory = {
 export type SiteSettings = {
   id: string;
   logo_url: string | null;
+  logo_url_dark: string | null;
   favicon_url: string | null;
   primary_color: string;
   sidebar_categories: SidebarCategory[];
@@ -20,16 +21,21 @@ export type SiteSettings = {
   contact_phone: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
+  asset_version: number;
   updated_at: string;
 };
 
 const SETTINGS_ID = "global";
 const QK = ["site-settings"] as const;
 
+const SELECT_COLS =
+  "id,logo_url,logo_url_dark,favicon_url,primary_color,sidebar_categories,whatsapp_url,contact_email,contact_phone,facebook_url,instagram_url,asset_version,updated_at";
+
 function normalize(row: any): SiteSettings {
   return {
     id: row.id ?? SETTINGS_ID,
     logo_url: row.logo_url ?? null,
+    logo_url_dark: row.logo_url_dark ?? null,
     favicon_url: row.favicon_url ?? null,
     primary_color: row.primary_color ?? "#5B21B6",
     sidebar_categories: Array.isArray(row.sidebar_categories)
@@ -40,6 +46,7 @@ function normalize(row: any): SiteSettings {
     contact_phone: row.contact_phone ?? null,
     facebook_url: row.facebook_url ?? null,
     instagram_url: row.instagram_url ?? null,
+    asset_version: typeof row.asset_version === "number" ? row.asset_version : 1,
     updated_at: row.updated_at ?? new Date().toISOString(),
   };
 }
@@ -51,7 +58,7 @@ export function useSiteSettings() {
     queryFn: async (): Promise<SiteSettings> => {
       const { data, error } = await supabase
         .from("site_settings")
-        .select("id,logo_url,favicon_url,primary_color,sidebar_categories,whatsapp_url,contact_email,contact_phone,facebook_url,instagram_url,updated_at")
+        .select(SELECT_COLS)
         .eq("id", SETTINGS_ID)
         .maybeSingle();
       if (error) throw error;
@@ -68,7 +75,7 @@ export function useUpdateSiteSettings() {
       const { data, error } = await supabase
         .from("site_settings")
         .upsert(payload, { onConflict: "id" })
-        .select("id,logo_url,favicon_url,primary_color,sidebar_categories,whatsapp_url,contact_email,contact_phone,facebook_url,instagram_url,updated_at")
+        .select(SELECT_COLS)
         .maybeSingle();
       if (error) throw error;
       return normalize(data);

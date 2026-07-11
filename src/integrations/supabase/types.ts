@@ -1349,6 +1349,7 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          asset_version: number
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -1357,6 +1358,7 @@ export type Database = {
           id: string
           instagram_url: string | null
           logo_url: string | null
+          logo_url_dark: string | null
           low_stock_threshold: number
           primary_color: string
           sidebar_categories: Json
@@ -1365,6 +1367,7 @@ export type Database = {
           whatsapp_url: string | null
         }
         Insert: {
+          asset_version?: number
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -1373,6 +1376,7 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          logo_url_dark?: string | null
           low_stock_threshold?: number
           primary_color?: string
           sidebar_categories?: Json
@@ -1381,6 +1385,7 @@ export type Database = {
           whatsapp_url?: string | null
         }
         Update: {
+          asset_version?: number
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -1389,6 +1394,7 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           logo_url?: string | null
+          logo_url_dark?: string | null
           low_stock_threshold?: number
           primary_color?: string
           sidebar_categories?: Json
