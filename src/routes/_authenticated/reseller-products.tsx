@@ -1200,7 +1200,14 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
   const [price, setPrice] = useState<string>(
     row.displayPrice != null ? String(row.displayPrice) : row.reseller_price != null ? String(row.reseller_price) : "",
   );
-  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [items, setItems] = useState<MediaItem[]>([]);
+  const mediaInitedRef = useRef(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const mediaFileRef = useRef<HTMLInputElement | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  const longPressRef = useRef<number | null>(null);
+  const dragActiveRef = useRef(false);
 
   const catsQ = useCategories(storeId);
   const categories = catsQ.data ?? [];
