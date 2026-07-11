@@ -148,12 +148,12 @@ function PlatformDomainSetupPage() {
     mutationFn: () => verifyFn(),
     onSuccess: (r) => {
       if (r.dnsOk && r.httpsOk) {
-        toast.success("Wildcard is live!");
+        toast.success("Wildcard সফলভাবে live হয়েছে 🎉");
         updMut.mutate({ lovable_wildcard_connected: true });
       } else if (r.dnsOk) {
-        toast.warning("DNS OK, but HTTPS not responding yet. SSL may still be issuing.");
+        toast.warning("DNS ঠিক আছে, তবে HTTPS এখনো response দিচ্ছে না — SSL issue হতে কিছু সময় লাগতে পারে।");
       } else {
-        toast.error(`DNS not pointing to Lovable (got: ${r.addrs.join(", ") || "no answer"})`);
+        toast.error(`DNS এখনো Lovable-এ point করছে না (পাওয়া গেছে: ${r.addrs.join(", ") || "কোনো উত্তর নেই"})`);
       }
     },
     onError: (e) => toast.error((e as Error).message),
