@@ -28,7 +28,20 @@ import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
+import { createServerFn } from "@tanstack/react-start";
+
+const getSubdomainSlug = createServerFn({ method: "GET" }).handler(async () => {
+  const { getRequestHost } = await import("@tanstack/react-start/server");
+  try {
+    const host = getRequestHost();
+    return getStorefrontSlugFromHost(host);
+  } catch {
+    return null;
+  }
+});
+
 export const Route = createFileRoute("/")({
+  loader: async () => ({ subSlug: await getSubdomainSlug() }),
   head: () => ({
     meta: [
       { title: "EasyStore — Build your online store in minutes" },
@@ -52,9 +65,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const subSlug =
+  const { subSlug: ssrSlug } = Route.useLoaderData();
+  const clientSlug =
     typeof window !== "undefined" ? getStorefrontSlugFromHost(window.location.hostname) : null;
+  const subSlug = ssrSlug ?? clientSlug;
   if (subSlug) return <StorefrontView slug={subSlug} />;
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
