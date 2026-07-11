@@ -194,16 +194,70 @@ function AdminOrderRoutingPage() {
     onError: (e: any) => toast.error(e?.message ?? "Failed to delete"),
   });
 
-  return (
-    <div className="p-4 sm:p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Order Routing</h1>
-        <p className="text-sm text-muted-foreground">
-          Decide which supplier receives customer orders when a product isn't directly linked to a
-          marketplace item. Rules apply in priority order — lower priority number wins. Category
-          rules take precedence over the default rule.
-        </p>
-      </header>
+  const retryForward = useMutation({
+    mutationFn: async (itemId: string) => {
+      const { data, error } = await supabase.rpc("retry_forward_order_item", { _item_id: itemId });
+      if (error) throw error;
+      return data as { ok: boolean; error?: string; reason?: string; reseller_order_id?: string; already?: boolean };
+    },
+    onSuccess: (res) => {
+      if (res?.ok) {
+        toast.success(res.already ? "Already forwarded" : `Forwarded (${res.reason ?? "ok"})`);
+      } else {
+        toast.error(`Retry failed: ${res?.error ?? "unknown"}`);
+      }
+      qc.invalidateQueries({ queryKey: ["reseller_order_forward_audit"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Retry failed"),
+  });
+
+  // Client-side filter over the loaded audit rows.
+  const filteredAudit = useMemo(() => {
+    const rows = audit.data ?? [];
+    const q = fQuery.trim().toLowerCase();
+    const fromTs = fFrom ? new Date(fFrom).getTime() : null;
+    const toTs = fTo ? new Date(fTo).getTime() + 86400000 : null; // inclusive end-of-day
+    const group = REASON_FILTER_GROUPS.find((g) => g.value === fReason) ?? REASON_FILTER_GROUPS[0];
+    return rows.filter((a) => {
+      if (!group.match(a.reason)) return false;
+      if (fSupplier !== "all" && a.supplier_user_id !== fSupplier) return false;
+      if (fCategory !== "all") {
+        // Try both product's category (via metadata) and audit's product_id lookup via categoryLookup unavailable client-side without join.
+        const catInMeta = (a.metadata as any)?.category_id;
+        if (catInMeta !== fCategory) return false;
+      }
+      const ts = new Date(a.created_at).getTime();
+      if (fromTs && ts < fromTs) return false;
+      if (toTs && ts > toTs) return false;
+      if (q) {
+        const hay = [
+          a.reason,
+          a.error ?? "",
+          a.source_order_id ?? "",
+          a.source_order_item_id ?? "",
+          a.product_id ?? "",
+          a.reseller_product_id ?? "",
+          a.supplier_user_id ?? "",
+          (a.metadata as any)?.product_name ?? "",
+          (a.metadata as any)?.reseller_order_id ?? "",
+          JSON.stringify(a.metadata ?? {}),
+        ].join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [audit.data, fReason, fSupplier, fCategory, fFrom, fTo, fQuery]);
+
+  const errorCount = useMemo(
+    () => (audit.data ?? []).filter((a) => !a.success).length,
+    [audit.data],
+  );
+
+  function resetFilters() {
+    setFReason("all"); setFSupplier("all"); setFCategory("all");
+    setFFrom(""); setFTo(""); setFQuery("");
+  }
+
 
       {/* Add rule */}
       <Card className="p-4 space-y-3">
