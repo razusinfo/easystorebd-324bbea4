@@ -157,9 +157,31 @@ async function resolveCore(rawHost: string | null | undefined): Promise<TenantRe
     const sub = subdomainOf(host, apex);
     if (!sub) return { kind: "apex" };
     const store = await fetchStoreBySlug(sub);
-    return store
-      ? { kind: "subdomain", slug: sub, store }
-      : { kind: "unknown-sub", attempted: sub };
+    if (!store) return { kind: "unknown-sub", attempted: sub };
+
+    // Unexpected-kind check: if this store also has an active custom domain,
+    // flag it so admins can catch DNS or custom-domain mistakes early.
+    try {
+      const sb = serverClient();
+      const { data: cd } = await sb
+        .from("custom_domains")
+        .select("domain")
+        .eq("store_id", store.id)
+        .eq("status", "active")
+        .limit(1);
+      if (cd && cd.length > 0) {
+        void recordUnknownAudit(
+          host,
+          "unknown-sub",
+          `mismatch:store=${store.slug}:has_custom_domain=${cd[0]!.domain}`,
+        );
+        console.warn(
+          `[tenant-resolver] unexpected-kind: subdomain hit for store="${store.slug}" that has active custom_domain="${cd[0]!.domain}"`,
+        );
+      }
+    } catch { /* best-effort */ }
+
+    return { kind: "subdomain", slug: sub, store };
   }
   const match = await fetchStoreByCustomDomain(host);
   return match
@@ -181,7 +203,6 @@ export async function resolveTenantServer(
   if (result.kind === "unknown-sub" || result.kind === "unknown-custom") {
     const attempted = result.kind === "unknown-sub" ? result.attempted : null;
     console.warn(`[tenant-resolver] unknown ${result.kind}: host=${host} attempted=${attempted ?? "-"}`);
-    // Fire-and-forget audit.
     void recordUnknownAudit(host, result.kind, attempted);
   }
 
@@ -189,15 +210,18 @@ export async function resolveTenantServer(
   return result;
 }
 
-// Cache-bypassing resolver for the debug view.
 export async function resolveTenantFresh(
   rawHost: string | null | undefined,
 ): Promise<TenantResult> {
   return resolveCore(rawHost);
 }
 
-// Read the unknown-tenant redirect toggle (best-effort; defaults to false).
+// Env toggle: UNKNOWN_TENANT_BEHAVIOR=redirect|404 overrides the DB toggle.
+// Falls back to the site_settings.unknown_tenant_redirect flag.
 export async function getUnknownTenantRedirect(): Promise<boolean> {
+  const envValue = (process.env.UNKNOWN_TENANT_BEHAVIOR ?? "").toLowerCase().trim();
+  if (envValue === "redirect") return true;
+  if (envValue === "404" || envValue === "fallback") return false;
   try {
     const sb = serverClient();
     const { data } = await sb
@@ -210,3 +234,22 @@ export async function getUnknownTenantRedirect(): Promise<boolean> {
     return false;
   }
 }
+
+// Return a small set of published stores for suggestion in the unknown-tenant page.
+export async function fetchStoreSuggestions(limit = 6): Promise<Array<{ slug: string; name: string }>> {
+  try {
+    const sb = serverClient();
+    const { data } = await sb
+      .from("stores")
+      .select("slug, name")
+      .eq("published", true)
+      .not("slug", "is", null)
+      .order("name", { ascending: true })
+      .limit(limit);
+    return (data ?? [])
+      .filter((s): s is { slug: string; name: string } => typeof s.slug === "string" && s.slug.length > 0);
+  } catch {
+    return [];
+  }
+}
+
