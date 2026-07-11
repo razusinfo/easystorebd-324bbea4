@@ -45,13 +45,16 @@ async function main() {
     console.log("✓ easystorebd.com → landing (200)");
   }
 
-  // 2. Known subdomain → storefront.
+  // 2. Known subdomain → storefront (does not render the marketing hero body).
   {
     const res = await get(`${STORE_SLUG}.easystorebd.com`);
     assert.equal(res.status, 200, `known subdomain should be 200, got ${res.status}`);
+    // The <body> should not include the landing feature bullets or top-band CTA.
+    // Storefronts don't render <TopBand /> or <Features />.
+    const bodyOnly = res.body.replace(/<head[\s\S]*?<\/head>/i, "");
     assert.ok(
-      !/Build your online store in minutes/i.test(res.body),
-      "known subdomain must not render the marketing hero",
+      !/হাজারো বিক্রেতা/i.test(bodyOnly) && !/Launch your storefront in minutes/i.test(bodyOnly),
+      "known subdomain body should not render marketing hero copy",
     );
     console.log(`✓ ${STORE_SLUG}.easystorebd.com → storefront (200)`);
   }
