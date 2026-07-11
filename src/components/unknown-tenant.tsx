@@ -83,17 +83,21 @@ export function UnknownTenant({ kind, attempted, host, suggestions = [] }: Props
           <div className="mt-10 w-full">
             <p className="mb-3 text-xs uppercase tracking-wide text-muted-foreground">Suggested stores</p>
             <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {suggestions.map((s) => (
-                <li key={s.slug}>
-                  <a
-                    href={buildSubdomainStorefrontUrl(s.slug)}
-                    className="flex items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-muted"
-                  >
-                    <span className="truncate font-medium">{s.name}</span>
-                    <span className="ml-2 truncate font-mono text-xs text-muted-foreground">{s.slug}</span>
-                  </a>
-                </li>
-              ))}
+              {suggestions.map((s) => {
+                const url = buildSubdomainStorefrontUrl(s.slug);
+                if (!url) return null;
+                return (
+                  <li key={s.slug}>
+                    <a
+                      href={url}
+                      className="flex items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm hover:bg-muted"
+                    >
+                      <span className="truncate font-medium">{s.name}</span>
+                      <span className="ml-2 truncate font-mono text-xs text-muted-foreground">{s.slug}</span>
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
