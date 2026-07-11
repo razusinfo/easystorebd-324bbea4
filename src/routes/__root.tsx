@@ -155,9 +155,27 @@ function RootShell({ children }: { children: ReactNode }) {
             __html: `
               (function(){
                 try {
+                  var slug = null;
                   var m = location.pathname.match(/^\\/s\\/([a-z0-9-]+)/i);
-                  if (!m) return;
-                  var slug = m[1].toLowerCase();
+                  if (m) {
+                    slug = m[1].toLowerCase();
+                  } else {
+                    var host = location.hostname.toLowerCase();
+                    // Apex/reserved hosts that must NOT be treated as tenant slugs.
+                    var APEX = ["easystorebd.com","www.easystorebd.com","easystorebd.lovable.app","localhost"];
+                    var isApex = APEX.indexOf(host) !== -1
+                      || /(^|\\.)lovable\\.app$/.test(host)
+                      || /(^|\\.)lovableproject\\.com$/.test(host)
+                      || /(^|\\.)lovableproject-dev\\.com$/.test(host)
+                      || /^\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(host);
+                    if (!isApex) {
+                      // Subdomain tenant: <slug>.easystorebd.com  → use "<slug>"
+                      // Custom domain: use full host as cache key
+                      var sub = host.match(/^([a-z0-9-]+)\\.easystorebd\\.com$/i);
+                      slug = sub ? sub[1].toLowerCase() : host;
+                    }
+                  }
+                  if (!slug) return;
                   var logo = localStorage.getItem("storefront_logo_cache:" + slug);
                   var img = document.getElementById("app-splash-img");
                   var splash = document.getElementById("app-splash");
@@ -170,6 +188,7 @@ function RootShell({ children }: { children: ReactNode }) {
                 } catch(e) {}
               })();
             `,
+
           }}
         />
         {children}
