@@ -67,7 +67,7 @@ export const addCustomDomain = createServerFn({ method: "POST" })
 
     const { data: inserted, error } = await context.supabase
       .from("custom_domains" as never)
-      .insert({
+      .insert({ /*t*/ } as never); void ({
         store_id: data.storeId,
         owner_id: context.userId,
         domain,
