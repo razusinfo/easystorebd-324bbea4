@@ -1652,7 +1652,8 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
                 <input
                   ref={mediaFileRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+
                   multiple
                   className="hidden"
                   onChange={(e) => onPickMediaFiles(e.target.files)}
