@@ -127,8 +127,8 @@ function RootShell({ children }: { children: ReactNode }) {
           // Full-screen page-load splash. Fades out once the app hydrates.
           dangerouslySetInnerHTML={{
             __html: `
-              #app-splash{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#1E1B4B;transition:opacity .35s ease;}
-              #app-splash img{width:min(60vw,60vh);height:auto;object-fit:contain;filter:drop-shadow(0 8px 32px rgba(0,0,0,.35));animation:app-splash-pulse 1.4s ease-in-out infinite;}
+              #app-splash{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#ffffff;transition:opacity .35s ease;}
+              #app-splash img{width:min(60vw,60vh);height:auto;object-fit:contain;filter:drop-shadow(0 8px 32px rgba(0,0,0,.12));animation:app-splash-pulse 1.4s ease-in-out infinite;}
               #app-splash.hide{opacity:0;pointer-events:none;}
               @keyframes app-splash-pulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.04);opacity:1}}
             `,
