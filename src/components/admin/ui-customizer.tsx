@@ -97,6 +97,7 @@ function CustomizerForm({
 
   useEffect(() => {
     setLogoPath(initial.logo_url);
+    setLogoDarkPath(initial.logo_url_dark);
     setFaviconPath(initial.favicon_url);
     setColor(initial.primary_color);
     setCats(initial.sidebar_categories);
