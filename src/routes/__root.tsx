@@ -127,10 +127,18 @@ function RootShell({ children }: { children: ReactNode }) {
           // Full-screen page-load splash. Fades out once the app hydrates.
           dangerouslySetInnerHTML={{
             __html: `
-              #app-splash{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#ffffff;transition:opacity .35s ease;}
-              #app-splash img{width:min(60vw,60vh);height:auto;object-fit:contain;filter:drop-shadow(0 8px 32px rgba(0,0,0,.12));animation:app-splash-pulse 1.4s ease-in-out infinite;}
+              #app-splash{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#ffffff !important;color:#0f172a;transition:opacity .35s ease;padding:24px;color-scheme:light;}
+              html.dark #app-splash, .dark #app-splash{background:#ffffff !important;color:#0f172a !important;}
+              #app-splash img{width:clamp(140px, 42vw, 240px);height:auto;object-fit:contain;filter:drop-shadow(0 10px 30px rgba(0,0,0,.14));animation:app-splash-pulse 1.4s ease-in-out infinite;}
+              @media (min-width: 768px){#app-splash img{width:clamp(180px, 22vw, 300px);}}
               #app-splash.hide{opacity:0;pointer-events:none;}
+              #app-splash-dots{display:flex;gap:8px;align-items:center;justify-content:center;}
+              #app-splash-dots span{width:8px;height:8px;border-radius:9999px;background:#059669;opacity:.35;animation:app-splash-dot 1s ease-in-out infinite;}
+              #app-splash-dots span:nth-child(2){animation-delay:.15s}
+              #app-splash-dots span:nth-child(3){animation-delay:.3s}
+              #app-splash-label{font-family:"Hind Siliguri","Inter",system-ui,sans-serif;font-size:13px;letter-spacing:.02em;color:#334155;}
               @keyframes app-splash-pulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.04);opacity:1}}
+              @keyframes app-splash-dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
             `,
           }}
         />
@@ -138,7 +146,10 @@ function RootShell({ children }: { children: ReactNode }) {
       <body>
         <div id="app-splash" aria-hidden="true">
           <img id="app-splash-img" src="/__l5e/assets-v1/99cfd954-72ad-4e47-aa73-ca0fe57827d3/easystore-logo.png" alt="" />
+          <div id="app-splash-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div id="app-splash-label">লোড হচ্ছে…</div>
         </div>
+
         <script
           dangerouslySetInnerHTML={{
             __html: `
