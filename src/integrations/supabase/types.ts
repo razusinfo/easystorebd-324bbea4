@@ -2184,6 +2184,7 @@ export type Database = {
           total_consumed: number
         }[]
       }
+      retry_forward_order_item: { Args: { _item_id: string }; Returns: Json }
     }
     Enums: {
       app_role:
