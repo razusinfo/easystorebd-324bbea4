@@ -298,41 +298,46 @@ function PlatformDomainSetupPage() {
 
                 <p className="pt-2">কানেক্ট শেষে নিচে verify করুন:</p>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button onClick={() => verifyMut.mutate()} disabled={verifyMut.isPending}>
+                  <Button
+                    onClick={() => verifyMut.mutate()}
+                    disabled={verifyMut.isPending}
+                    aria-label="Wildcard DNS ও HTTPS যাচাই করুন"
+                  >
                     {verifyMut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Verify wildcard
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => {
-                      toast.info("Re-checking DNS…");
+                      toast.info("DNS পুনরায় যাচাই করা হচ্ছে…");
                       verifyMut.mutate();
                     }}
                     disabled={verifyMut.isPending}
+                    aria-label="DNS propagation পুনরায় যাচাই করুন"
                   >
                     <RefreshCw className={`h-4 w-4 mr-2 ${verifyMut.isPending ? "animate-spin" : ""}`} />
                     Re-check DNS propagation
                   </Button>
                 </div>
-                {verifyMut.data && (
-                  <div className="rounded-md border bg-muted/40 p-3 text-xs">
-                    <div>Probed host: <code>{verifyMut.data.testHost}</code></div>
-                    <div>DNS: {verifyMut.data.dnsOk ? "✅ points to Lovable" : `❌ got ${verifyMut.data.addrs.join(", ") || "no answer"}`}</div>
-                    <div>HTTPS: {verifyMut.data.httpsOk ? "✅ live" : "⏳ not responding yet"}</div>
-                  </div>
-                )}
+                <div aria-live="polite" aria-atomic="true">
+                  {verifyMut.data && (
+                    <div className="rounded-md border bg-muted/40 p-3 text-xs" data-testid="verify-result">
+                      <div>যাচাই-করা host: <code>{verifyMut.data.testHost}</code></div>
+                      <div>DNS: {verifyMut.data.dnsOk ? "✅ Lovable-এ point করছে" : `❌ পাওয়া গেছে ${verifyMut.data.addrs.join(", ") || "কোনো উত্তর নেই"}`}</div>
+                      <div>HTTPS: {verifyMut.data.httpsOk ? "✅ live" : "⏳ এখনো response দিচ্ছে না"}</div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {(stepIdx === 1 || stepIdx === 2 || stepIdx === 4) && (
-              <div className="flex gap-2 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs">
-                <Clock className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+              <div className="flex gap-2 rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs" role="note">
+                <Clock className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" aria-hidden="true" />
                 <div className="space-y-1">
-                  <p className="font-medium text-amber-900 dark:text-amber-200">DNS propagation takes time</p>
+                  <p className="font-medium text-amber-900 dark:text-amber-200">DNS propagation-এ সময় লাগে</p>
                   <p className="text-amber-800/90 dark:text-amber-200/80">
-                    Wildcard DNS and SSL can take anywhere from a few minutes up to 24–48 hours to propagate
-                    globally. If verification fails, wait 10–15 minutes and click <b>Re-check DNS propagation</b>.
-                    You can also test at{" "}
+                    Wildcard DNS ও SSL globally ছড়াতে কয়েক মিনিট থেকে ২৪–৪৮ ঘণ্টা সময় নিতে পারে। যাচাই ফেল করলে ১০–১৫ মিনিট অপেক্ষা করে <b>Re-check DNS propagation</b> চাপুন। বাইরে থেকে যাচাই করতে চাইলে{" "}
                     <a
                       className="underline"
                       href="https://dnschecker.org/#A/test.easystorebd.com"
@@ -340,8 +345,8 @@ function PlatformDomainSetupPage() {
                       rel="noreferrer"
                     >
                       dnschecker.org
-                    </a>
-                    .
+                    </a>{" "}
+                    ব্যবহার করুন।
                   </p>
                 </div>
               </div>
