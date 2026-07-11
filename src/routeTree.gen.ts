@@ -33,6 +33,7 @@ import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedUpgradeRouteImport } from './routes/_authenticated/upgrade'
 import { Route as AuthenticatedThemesRouteImport } from './routes/_authenticated/themes'
 import { Route as AuthenticatedThemeBuilderRouteImport } from './routes/_authenticated/theme-builder'
+import { Route as AuthenticatedSupplierMarketplaceRouteImport } from './routes/_authenticated/supplier-marketplace'
 import { Route as AuthenticatedSpotlightsRouteImport } from './routes/_authenticated/spotlights'
 import { Route as AuthenticatedSplashPreviewRouteImport } from './routes/_authenticated/splash-preview'
 import { Route as AuthenticatedSmsSettingsRouteImport } from './routes/_authenticated/sms-settings'
@@ -215,6 +216,12 @@ const AuthenticatedThemeBuilderRoute =
   AuthenticatedThemeBuilderRouteImport.update({
     id: '/theme-builder',
     path: '/theme-builder',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSupplierMarketplaceRoute =
+  AuthenticatedSupplierMarketplaceRouteImport.update({
+    id: '/supplier-marketplace',
+    path: '/supplier-marketplace',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSpotlightsRoute = AuthenticatedSpotlightsRouteImport.update({
@@ -618,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/splash-preview': typeof AuthenticatedSplashPreviewRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
+  '/supplier-marketplace': typeof AuthenticatedSupplierMarketplaceRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
@@ -705,6 +713,7 @@ export interface FileRoutesByTo {
   '/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/splash-preview': typeof AuthenticatedSplashPreviewRoute
   '/spotlights': typeof AuthenticatedSpotlightsRoute
+  '/supplier-marketplace': typeof AuthenticatedSupplierMarketplaceRoute
   '/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/themes': typeof AuthenticatedThemesRoute
   '/upgrade': typeof AuthenticatedUpgradeRoute
@@ -794,6 +803,7 @@ export interface FileRoutesById {
   '/_authenticated/sms-settings': typeof AuthenticatedSmsSettingsRoute
   '/_authenticated/splash-preview': typeof AuthenticatedSplashPreviewRoute
   '/_authenticated/spotlights': typeof AuthenticatedSpotlightsRoute
+  '/_authenticated/supplier-marketplace': typeof AuthenticatedSupplierMarketplaceRoute
   '/_authenticated/theme-builder': typeof AuthenticatedThemeBuilderRoute
   '/_authenticated/themes': typeof AuthenticatedThemesRoute
   '/_authenticated/upgrade': typeof AuthenticatedUpgradeRoute
@@ -884,6 +894,7 @@ export interface FileRouteTypes {
     | '/sms-settings'
     | '/splash-preview'
     | '/spotlights'
+    | '/supplier-marketplace'
     | '/theme-builder'
     | '/themes'
     | '/upgrade'
@@ -971,6 +982,7 @@ export interface FileRouteTypes {
     | '/sms-settings'
     | '/splash-preview'
     | '/spotlights'
+    | '/supplier-marketplace'
     | '/theme-builder'
     | '/themes'
     | '/upgrade'
@@ -1059,6 +1071,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sms-settings'
     | '/_authenticated/splash-preview'
     | '/_authenticated/spotlights'
+    | '/_authenticated/supplier-marketplace'
     | '/_authenticated/theme-builder'
     | '/_authenticated/themes'
     | '/_authenticated/upgrade'
@@ -1297,6 +1310,13 @@ declare module '@tanstack/react-router' {
       path: '/theme-builder'
       fullPath: '/theme-builder'
       preLoaderRoute: typeof AuthenticatedThemeBuilderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/supplier-marketplace': {
+      id: '/_authenticated/supplier-marketplace'
+      path: '/supplier-marketplace'
+      fullPath: '/supplier-marketplace'
+      preLoaderRoute: typeof AuthenticatedSupplierMarketplaceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/spotlights': {
@@ -1780,6 +1800,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSmsSettingsRoute: typeof AuthenticatedSmsSettingsRoute
   AuthenticatedSplashPreviewRoute: typeof AuthenticatedSplashPreviewRoute
   AuthenticatedSpotlightsRoute: typeof AuthenticatedSpotlightsRoute
+  AuthenticatedSupplierMarketplaceRoute: typeof AuthenticatedSupplierMarketplaceRoute
   AuthenticatedThemeBuilderRoute: typeof AuthenticatedThemeBuilderRoute
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
@@ -1834,6 +1855,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSmsSettingsRoute: AuthenticatedSmsSettingsRoute,
   AuthenticatedSplashPreviewRoute: AuthenticatedSplashPreviewRoute,
   AuthenticatedSpotlightsRoute: AuthenticatedSpotlightsRoute,
+  AuthenticatedSupplierMarketplaceRoute: AuthenticatedSupplierMarketplaceRoute,
   AuthenticatedThemeBuilderRoute: AuthenticatedThemeBuilderRoute,
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
