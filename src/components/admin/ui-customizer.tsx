@@ -83,6 +83,7 @@ function CustomizerForm({
   saving: boolean;
 }) {
   const [logoPath, setLogoPath] = useState<string | null>(initial.logo_url);
+  const [logoDarkPath, setLogoDarkPath] = useState<string | null>(initial.logo_url_dark);
   const [faviconPath, setFaviconPath] = useState<string | null>(initial.favicon_url);
   const [color, setColor] = useState(initial.primary_color);
   const [cats, setCats] = useState<SidebarCategory[]>(initial.sidebar_categories);
