@@ -66,40 +66,82 @@ function fmt(n: number | null | undefined) {
   return `৳${Number(n).toLocaleString("en-BD", { maximumFractionDigits: 2 })}`;
 }
 
+const PAGE_SIZE = 20;
+const STATUS_OPTIONS_SUPPLIER = ["confirmed", "shipped", "delivered"] as const;
+
 function OrderManagementPage() {
+  const qc = useQueryClient();
   const listOrders = useServerFn(listManagedOrders);
-  const q = useQuery({
+  const updateStatusFn = useServerFn(updateManagedOrderStatus);
+  const navigate = Route.useNavigate();
+  const { q: qParam, status: fStatus, supplier: fSupplier, reseller: fReseller, page } = Route.useSearch();
+
+  const query = useQuery({
     queryKey: ["order-management"],
     queryFn: () => listOrders(),
   });
 
-  const [search, setSearch] = useState("");
-  const [fStatus, setFStatus] = useState<string>("all");
-  const [fSupplier, setFSupplier] = useState<string>("all");
-  const [fReseller, setFReseller] = useState<string>("all");
   const [detail, setDetail] = useState<ManagedOrderRow | null>(null);
+  const [draftStatus, setDraftStatus] = useState<string>("");
+  const [draftTracking, setDraftTracking] = useState<string>("");
+  const [draftTrackUrl, setDraftTrackUrl] = useState<string>("");
 
-  const role = q.data?.role;
-  const rows = q.data?.rows ?? [];
+  const role = query.data?.role;
+  const rows = query.data?.rows ?? [];
+
+  const setSearch = (patch: Partial<{ q: string; status: string; supplier: string; reseller: string; page: number }>) => {
+    navigate({ search: (prev) => ({ ...prev, ...patch, page: patch.page ?? 1 }) });
+  };
 
   const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
+    const s = qParam.trim().toLowerCase();
     return rows.filter((r) => {
       if (fStatus !== "all" && r.status !== fStatus) return false;
       if (role === "super_admin" && fSupplier !== "all" && r.source !== fSupplier) return false;
       if (role === "super_admin" && fReseller !== "all" && r.reseller_id !== fReseller) return false;
       if (!s) return true;
+      // Search dedicated to Order ID + customer phone/name (per spec) with
+      // product name as a helpful add-on.
       const hay =
-        `${r.order_id_short} ${r.customer_name} ${r.customer_phone ?? ""} ${r.product_name} ${r.reseller_name} ${r.reseller_store ?? ""}`.toLowerCase();
+        `${r.order_id_short} ${r.id} ${r.customer_name} ${r.customer_phone ?? ""} ${r.product_name}`.toLowerCase();
       return hay.includes(s);
     });
-  }, [rows, search, fStatus, fSupplier, fReseller, role]);
+  }, [rows, qParam, fStatus, fSupplier, fReseller, role]);
 
   const totals = useMemo(() => {
     const revenue = filtered.reduce((s, r) => s + r.total_amount, 0);
     const pending = filtered.filter((r) => r.status === "pending").length;
     return { revenue, pending, count: filtered.length };
   }, [filtered]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, page), pageCount);
+  const pageRows = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const openDetail = (r: ManagedOrderRow) => {
+    setDetail(r);
+    setDraftStatus(r.status);
+    setDraftTracking(r.tracking_id ?? "");
+    setDraftTrackUrl("");
+  };
+
+  const upd = useMutation({
+    mutationFn: async (payload: { id: string; status?: string; tracking_id?: string | null; tracking_url?: string | null }) => {
+      const clean: Record<string, unknown> = { id: payload.id };
+      if (payload.status !== undefined) clean.status = payload.status;
+      if (payload.tracking_id !== undefined) clean.tracking_id = payload.tracking_id;
+      if (payload.tracking_url !== undefined) clean.tracking_url = payload.tracking_url;
+      return updateStatusFn({ data: clean });
+    },
+    onSuccess: () => {
+      toast.success("Order updated");
+      qc.invalidateQueries({ queryKey: ["order-management"] });
+      setDetail(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const allowedStatuses = role === "super_admin" ? STATUSES : STATUS_OPTIONS_SUPPLIER;
 
   return (
     <div className="p-4 sm:p-6 space-y-5">
@@ -135,16 +177,16 @@ function OrderManagementPage() {
       <Card className="p-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Label className="text-xs">Search</Label>
+            <Label className="text-xs">Search (Order ID / Customer)</Label>
             <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Order ID, customer, product…"
+              value={qParam}
+              onChange={(e) => setSearch({ q: e.target.value })}
+              placeholder="#A1B2C3D4, phone, or customer name…"
             />
           </div>
           <div>
             <Label className="text-xs">Status</Label>
-            <Select value={fStatus} onValueChange={setFStatus}>
+            <Select value={fStatus} onValueChange={(v) => setSearch({ status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
@@ -158,11 +200,11 @@ function OrderManagementPage() {
             <>
               <div>
                 <Label className="text-xs">Supplier</Label>
-                <Select value={fSupplier} onValueChange={setFSupplier}>
+                <Select value={fSupplier} onValueChange={(v) => setSearch({ supplier: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All suppliers</SelectItem>
-                    {(q.data?.suppliers ?? []).map((s) => (
+                    {(query.data?.suppliers ?? []).map((s) => (
                       <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -170,11 +212,11 @@ function OrderManagementPage() {
               </div>
               <div>
                 <Label className="text-xs">Reseller</Label>
-                <Select value={fReseller} onValueChange={setFReseller}>
+                <Select value={fReseller} onValueChange={(v) => setSearch({ reseller: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All resellers</SelectItem>
-                    {(q.data?.resellers ?? []).map((r) => (
+                    {(query.data?.resellers ?? []).map((r) => (
                       <SelectItem key={r.id} value={r.id}>{r.name || "—"}</SelectItem>
                     ))}
                   </SelectContent>
@@ -201,21 +243,21 @@ function OrderManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {q.isLoading && (
+              {query.isLoading && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
                     Loading orders…
                   </TableCell>
                 </TableRow>
               )}
-              {!q.isLoading && filtered.length === 0 && (
+              {!query.isLoading && pageRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
                     No orders found.
                   </TableCell>
                 </TableRow>
               )}
-              {filtered.map((r) => (
+              {pageRows.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell className="font-mono text-xs">#{r.order_id_short}</TableCell>
                   <TableCell>
@@ -237,7 +279,7 @@ function OrderManagementPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" onClick={() => setDetail(r)}>
+                    <Button size="sm" variant="outline" onClick={() => openDetail(r)}>
                       <Eye className="h-3.5 w-3.5 mr-1" /> View
                     </Button>
                   </TableCell>
@@ -245,6 +287,29 @@ function OrderManagementPage() {
               ))}
             </TableBody>
           </Table>
+        </div>
+        <div className="flex items-center justify-between p-3 border-t text-sm">
+          <div className="text-muted-foreground">
+            Page {safePage} of {pageCount} · {filtered.length} order{filtered.length === 1 ? "" : "s"}
+          </div>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={safePage <= 1}
+              onClick={() => setSearch({ page: safePage - 1 })}
+            >
+              <ChevronLeft className="h-4 w-4" /> Prev
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={safePage >= pageCount}
+              onClick={() => setSearch({ page: safePage + 1 })}
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -299,16 +364,48 @@ function OrderManagementPage() {
                   <div className="text-emerald-700 font-medium">{fmt(detail.profit_margin)}</div>
                 </div>
               </section>
-              {detail.tracking_id && (
-                <section>
-                  <h3 className="font-semibold mb-1">Tracking</h3>
-                  <div className="font-mono text-xs">{detail.tracking_id}</div>
-                </section>
-              )}
+
+              <section className="border-t pt-3 space-y-2">
+                <h3 className="font-semibold">Update {role === "supplier" ? "(supplier: fulfillment only)" : ""}</h3>
+                <div>
+                  <Label className="text-xs">Status</Label>
+                  <Select value={draftStatus} onValueChange={setDraftStatus}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {allowedStatuses.map((s) => (
+                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Tracking ID</Label>
+                  <Input value={draftTracking} onChange={(e) => setDraftTracking(e.target.value)} placeholder="e.g. Pathao-12345" />
+                </div>
+                <div>
+                  <Label className="text-xs">Tracking URL (optional)</Label>
+                  <Input value={draftTrackUrl} onChange={(e) => setDraftTrackUrl(e.target.value)} placeholder="https://…" />
+                </div>
+              </section>
             </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetail(null)}>Close</Button>
+            <Button
+              disabled={!detail || upd.isPending}
+              onClick={() => detail && upd.mutate({
+                id: detail.id,
+                status: draftStatus !== detail.status ? draftStatus : undefined,
+                tracking_id: draftTracking !== (detail.tracking_id ?? "") ? draftTracking : undefined,
+                tracking_url: draftTrackUrl ? draftTrackUrl : undefined,
+              })}
+            >
+              {upd.isPending ? "Saving…" : "Save changes"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
