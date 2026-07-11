@@ -208,8 +208,9 @@ export const updatePlatformSetup = createServerFn({ method: "POST" })
       _role: "super_admin",
     });
     if (!role) throw new Error("Forbidden");
-    const { data: updated, error } = await context.supabase
-      .from("platform_domain_setup" as never)
+    const sb3 = context.supabase as unknown as { from: (t: string) => any };
+    const { data: updated, error } = await sb3
+      .from("platform_domain_setup")
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq("id", 1)
       .select("*")
