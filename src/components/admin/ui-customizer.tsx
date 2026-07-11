@@ -182,9 +182,17 @@ function CustomizerForm({
     if (cats.some((c) => !c.label.trim() || !c.href.trim())) {
       return toast.error("Every category needs a label and href");
     }
+    // Auto-bump asset_version whenever any brand artwork changed. Installed
+    // PWAs and browsers cache icons/manifest aggressively; a version bump
+    // makes downstream URLs (via ICON_VERSION-style query strings) look new.
+    const brandingChanged =
+      logoPath !== initial.logo_url ||
+      logoDarkPath !== initial.logo_url_dark ||
+      faviconPath !== initial.favicon_url;
     try {
       await onSave({
         logo_url: logoPath,
+        logo_url_dark: logoDarkPath,
         favicon_url: faviconPath,
         primary_color: color,
         sidebar_categories: cats,
@@ -193,6 +201,7 @@ function CustomizerForm({
         contact_phone: phone || null,
         facebook_url: facebook || null,
         instagram_url: instagram || null,
+        ...(brandingChanged ? { asset_version: (initial.asset_version ?? 1) + 1 } : {}),
       });
       toast.success("Site settings saved");
     } catch (e: any) {
