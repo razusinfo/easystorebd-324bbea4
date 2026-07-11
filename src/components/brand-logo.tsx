@@ -24,7 +24,8 @@ export function BrandLogo({ variant = "auto", className, alt = "Brand logo" }: B
   const settings = useSiteSettings();
 
   const wantDark =
-    variant === "dark" || (variant === "auto" && resolvedTheme === "dark");
+    variant === "dark" || (variant === "auto" && theme === "dark");
+
 
   const darkPath = settings.data?.logo_url_dark ?? null;
   const lightPath = settings.data?.logo_url ?? null;
