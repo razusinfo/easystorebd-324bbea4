@@ -24,7 +24,7 @@ export function EasyStoreWordmark({
       }}
     >
       <span style={{ color: "#B3002D" }}>E</span>
-      <span style={{ color: "#000000" }}>azy</span>
+      <span style={{ color: "#000000" }}>asy</span>
       <span style={{ color: "#B3002D" }}>S</span>
       <span style={{ color: "#000000" }}>tore</span>
     </span>
