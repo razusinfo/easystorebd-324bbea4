@@ -152,6 +152,11 @@ export type ShopSettings = {
       align?: "left" | "center" | "right";
     };
   };
+  splash?: {
+    logo_path?: string | null;
+    on_subdomain?: boolean;
+    on_custom_domain?: boolean;
+  };
 };
 
 export function logoStyle(settings?: ShopSettings | null): CSSProperties {

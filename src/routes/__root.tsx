@@ -145,7 +145,16 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         <div id="app-splash" aria-hidden="true">
-          <img id="app-splash-img" src="/__l5e/assets-v1/99cfd954-72ad-4e47-aa73-ca0fe57827d3/easystore-logo.png" alt="" />
+          <img
+            id="app-splash-img"
+            src="/__l5e/assets-v1/99cfd954-72ad-4e47-aa73-ca0fe57827d3/easystore-logo.png"
+            alt=""
+            width="240"
+            height="240"
+            decoding="sync"
+            fetchPriority="high"
+            style={{ aspectRatio: "1 / 1" }}
+          />
           <div id="app-splash-dots" aria-hidden="true"><span></span><span></span><span></span></div>
           <div id="app-splash-label">লোড হচ্ছে…</div>
         </div>
@@ -154,14 +163,15 @@ function RootShell({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: `
               (function(){
+                var FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+                  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><rect width="240" height="240" rx="48" fill="url(#g)"/><path d="M60 96l14-32a10 10 0 0 1 9-6h74a10 10 0 0 1 9 6l14 32" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><rect x="56" y="96" width="128" height="88" rx="10" fill="#fff"/><rect x="80" y="132" width="80" height="40" rx="6" fill="#059669"/></svg>'
+                );
                 try {
-                  var slug = null;
+                  var slug = null, host = location.hostname.toLowerCase();
                   var m = location.pathname.match(/^\\/s\\/([a-z0-9-]+)/i);
                   if (m) {
                     slug = m[1].toLowerCase();
                   } else {
-                    var host = location.hostname.toLowerCase();
-                    // Apex/reserved hosts that must NOT be treated as tenant slugs.
                     var APEX = ["easystorebd.com","www.easystorebd.com","easystorebd.lovable.app","localhost"];
                     var isApex = APEX.indexOf(host) !== -1
                       || /(^|\\.)lovable\\.app$/.test(host)
@@ -169,28 +179,36 @@ function RootShell({ children }: { children: ReactNode }) {
                       || /(^|\\.)lovableproject-dev\\.com$/.test(host)
                       || /^\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(host);
                     if (!isApex) {
-                      // Subdomain tenant: <slug>.easystorebd.com  → use "<slug>"
-                      // Custom domain: use full host as cache key
                       var sub = host.match(/^([a-z0-9-]+)\\.easystorebd\\.com$/i);
                       slug = sub ? sub[1].toLowerCase() : host;
                     }
                   }
                   if (!slug) return;
-                  var logo = localStorage.getItem("storefront_logo_cache:" + slug);
-                  var img = document.getElementById("app-splash-img");
-                  var splash = document.getElementById("app-splash");
-                  if (logo && img) {
-                    img.src = logo;
-                    img.style.width = "min(40vw,40vh)";
-                    img.style.borderRadius = "24px";
-                    if (splash) splash.style.background = "#ffffff";
-                  }
+                  var key = 'storefront_logo_cache:' + slug;
+                  var altKey = 'storefront_logo_cache:' + host;
+                  var logo = localStorage.getItem(altKey) || localStorage.getItem(key);
+                  var img = document.getElementById('app-splash-img');
+                  var splash = document.getElementById('app-splash');
+                  if (!img) return;
+                  var chosen = logo || FALLBACK;
+                  // Preload hint so the browser starts fetching immediately.
+                  try {
+                    var link = document.createElement('link');
+                    link.rel = 'preload'; link.as = 'image'; link.href = chosen;
+                    if (chosen.indexOf('data:') !== 0) link.setAttribute('fetchpriority', 'high');
+                    document.head.appendChild(link);
+                  } catch(_){}
+                  img.src = chosen;
+                  img.style.width = 'min(40vw,40vh)';
+                  img.style.height = 'auto';
+                  img.style.borderRadius = '24px';
+                  if (splash) splash.style.background = '#ffffff';
                 } catch(e) {}
               })();
             `,
-
           }}
         />
+
         {children}
         <Scripts />
       </body>

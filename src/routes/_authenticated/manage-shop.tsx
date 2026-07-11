@@ -286,6 +286,17 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
   const favRef = useRef<HTMLInputElement>(null);
   const signedFav = useLogoSignedUrl(faviconPath);
 
+  // Splash-screen logo (separate from storefront/header logo).
+  const splashInit = store.shop_settings?.splash ?? {};
+  const [splashPath, setSplashPath] = useState<string | null>(splashInit.logo_path ?? null);
+  const [localSplash, setLocalSplash] = useState<string | null>(null);
+  const [uploadingSplash, setUploadingSplash] = useState(false);
+  const splashRef = useRef<HTMLInputElement>(null);
+  const signedSplash = useLogoSignedUrl(splashPath);
+  const [splashOnSub, setSplashOnSub] = useState<boolean>(splashInit.on_subdomain ?? true);
+  const [splashOnCd, setSplashOnCd] = useState<boolean>(splashInit.on_custom_domain ?? true);
+  const splashPreview = localSplash || signedSplash.data || null;
+
   const [themeColor, setThemeColor] = useState<string>(g.theme_color ?? "#7c3aed");
 
   const logo = localLogo || signedLogo.data || null;
@@ -325,6 +336,41 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
     finally { setUploadingFav(false); }
   }
 
+  async function pickSplash(f: File) {
+    if (!f.type.startsWith("image/")) return toast.error("Please choose an image.");
+    if (f.size > 2 * 1024 * 1024) return toast.error("Splash logo must be ≤ 2MB.");
+    setLocalSplash(URL.createObjectURL(f));
+    setUploadingSplash(true);
+    try {
+      const old = splashPath;
+      const p = await uploadStoreLogo(f);
+      setSplashPath(p);
+      if (old && old !== p) await deleteStoreLogo(old);
+    } catch (e: any) { toast.error(e?.message ?? "Upload failed."); }
+    finally { setUploadingSplash(false); }
+  }
+
+  async function primeSplashCache(logoSignedUrl: string | null, splashSignedUrl: string | null) {
+    if (typeof window === "undefined") return;
+    const currentSlug = store.slug || slugifyStoreName(store.name);
+    const subHost = `${currentSlug}.easystorebd.com`;
+    const custom = store.custom_domain || null;
+    const set = (k: string, v: string | null) => {
+      try {
+        if (v) localStorage.setItem("storefront_logo_cache:" + k, v);
+      } catch { /* ignore */ }
+    };
+    // Slug key always uses the storefront logo.
+    set(currentSlug, logoSignedUrl);
+    // Host keys respect splash toggles.
+    if (splashOnSub && splashSignedUrl) set(subHost, splashSignedUrl);
+    else set(subHost, logoSignedUrl);
+    if (custom) {
+      if (splashOnCd && splashSignedUrl) set(custom.toLowerCase(), splashSignedUrl);
+      else set(custom.toLowerCase(), logoSignedUrl);
+    }
+  }
+
   async function saveAll() {
     try {
       const merged = {
@@ -347,6 +393,11 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
           per_hour_order_limit: orderLimit === "" ? null : Number(orderLimit),
           vat_percent: vat === "" ? null : Number(vat),
         },
+        splash: {
+          logo_path: splashPath,
+          on_subdomain: splashOnSub,
+          on_custom_domain: splashOnCd,
+        },
       };
       await update.mutateAsync({
         id: store.id,
@@ -357,9 +408,13 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
         logo_url: logoPath,
         shop_settings: merged,
       });
+      // Immediately refresh browser splash caches so the next reload uses the
+      // updated logo without waiting for a storefront visit.
+      await primeSplashCache(signedLogo.data ?? null, signedSplash.data ?? null);
       toast.success("Shop settings updated.");
     } catch (e: any) { toast.error(e?.message ?? "Save failed."); }
   }
+
 
   async function saveThemeColor() {
     try {
@@ -591,6 +646,56 @@ function ShopSettingsView({ store, onBack }: { store: any; onBack: () => void })
               {uploadingFav ? "Uploading..." : "Upload Shop Favicon"}
             </Button>
           </section>
+
+          {/* Splash-screen logo */}
+          <section className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold mb-1">Splash Screen Logo</h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              Shown while your storefront loads on subdomains and custom domains.
+              Falls back to your shop logo when unset.
+            </p>
+            <div className="w-full aspect-square max-h-40 border-2 border-dashed rounded-lg grid place-items-center bg-muted/30 overflow-hidden">
+              {splashPreview ? (
+                <img src={splashPreview} alt="splash logo" className="max-h-full object-contain" />
+              ) : logo ? (
+                <img src={logo} alt="fallback logo" className="max-h-full object-contain opacity-60" />
+              ) : (
+                <Upload className="h-8 w-8 opacity-40 text-muted-foreground" />
+              )}
+            </div>
+            <input ref={splashRef} type="file" accept="image/*" className="hidden"
+              onChange={(e) => e.target.files?.[0] && pickSplash(e.target.files[0])} />
+            <div className="mt-3 flex gap-2">
+              <Button
+                className="flex-1 gradient-primary text-primary-foreground"
+                onClick={() => splashRef.current?.click()}
+                disabled={uploadingSplash}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {uploadingSplash ? "Uploading..." : splashPath ? "Replace" : "Upload Splash Logo"}
+              </Button>
+              {splashPath && (
+                <Button variant="outline" onClick={() => { setSplashPath(null); setLocalSplash(null); }}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <div className="mt-4 space-y-2 text-sm">
+              <label className="flex items-center justify-between rounded-lg border px-3 py-2">
+                <span>Show on subdomain <span className="text-xs text-muted-foreground">(slug.easystorebd.com)</span></span>
+                <Switch checked={splashOnSub} onCheckedChange={setSplashOnSub} />
+              </label>
+              <label className="flex items-center justify-between rounded-lg border px-3 py-2">
+                <span>Show on custom domain</span>
+                <Switch checked={splashOnCd} onCheckedChange={setSplashOnCd} />
+              </label>
+            </div>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Click <b>Save</b> at the top to apply. The updated splash logo will appear on your next reload.
+            </p>
+          </section>
+
+
 
           {/* Theme color */}
           <section className="rounded-xl border bg-card p-5">
