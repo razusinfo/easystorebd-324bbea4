@@ -46,45 +46,58 @@ function HostnameSanitizerInput() {
   const [raw, setRaw] = useState("");
   const result = sanitizeLovableHostname(raw);
   const sanitizedShown = result.sanitized || "easystorebd.com";
+  const describedBy = result.hasInvalidWildcard
+    ? "hostname-error"
+    : result.stripped
+      ? "hostname-stripped"
+      : "hostname-help";
 
   return (
     <div className="rounded-md border p-3 space-y-2" data-testid="hostname-sanitizer">
       <p className="font-medium text-sm">Hostname helper (wildcard-safe)</p>
-      <p className="text-xs text-muted-foreground">
+      <p id="hostname-help" className="text-xs text-muted-foreground">
         <code>*.easystorebd.com</code> পেস্ট করলে <code>*.</code> স্বয়ংক্রিয়ভাবে বাদ যাবে যাতে Lovable-এর
-        Connect Domain ইনপুটে Continue enable থাকে।
+        Connect Domain ইনপুটে Continue বাটন সক্রিয় থাকে।
       </p>
       <input
         type="text"
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
         placeholder="*.easystorebd.com"
-        aria-label="Hostname to sanitize"
+        aria-label="Lovable-এর জন্য hostname লিখুন"
+        aria-invalid={result.hasInvalidWildcard || undefined}
+        aria-describedby={describedBy}
         data-testid="hostname-input"
         className="w-full rounded-md border bg-background px-3 py-2 text-sm"
       />
-      {result.hasInvalidWildcard && (
-        <p
-          className="text-xs text-destructive"
-          role="alert"
-          data-testid="hostname-error"
-        >
-          {result.message} — Continue disable থাকবে।
-        </p>
-      )}
-      {result.stripped && !result.hasInvalidWildcard && (
-        <p
-          className="text-xs text-emerald-700 dark:text-emerald-400"
-          role="status"
-          data-testid="hostname-stripped"
-        >
-          {result.message}
-        </p>
-      )}
+      {/* aria-live: sanitizer state screen reader-কে জানাবে */}
+      <div aria-live="polite" aria-atomic="true">
+        {result.hasInvalidWildcard && (
+          <p
+            id="hostname-error"
+            className="text-xs text-destructive"
+            role="alert"
+            data-testid="hostname-error"
+          >
+            ত্রুটি: {result.message} — Continue বাটন নিষ্ক্রিয় থাকবে।
+          </p>
+        )}
+        {result.stripped && !result.hasInvalidWildcard && (
+          <p
+            id="hostname-stripped"
+            className="text-xs text-emerald-700 dark:text-emerald-400"
+            role="status"
+            data-testid="hostname-stripped"
+          >
+            {result.message} এখন Continue বাটন আবার সক্রিয় হবে।
+          </p>
+        )}
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         <code
           className="rounded bg-muted px-2 py-1 text-xs"
           data-testid="hostname-sanitized"
+          aria-label={`পরিশোধিত hostname ${sanitizedShown}`}
         >
           {sanitizedShown}
         </code>
@@ -104,9 +117,10 @@ function HostnameSanitizerInput() {
           }}
           title={
             result.hasInvalidWildcard
-              ? "`*` character থাকলে Lovable Continue disable করে"
-              : "Copy sanitized hostname"
+              ? "`*` ক্যারেক্টার থাকলে Lovable Continue বাটন নিষ্ক্রিয় করে"
+              : "পরিশোধিত hostname কপি করুন"
           }
+          aria-label="Lovable-এর জন্য পরিশোধিত hostname কপি করুন"
         >
           <Copy className="h-3.5 w-3.5 mr-1" /> Copy for Lovable
         </Button>
