@@ -20,7 +20,7 @@ interface BrandLogoProps {
  * screens or fixed-color surfaces).
  */
 export function BrandLogo({ variant = "auto", className, alt = "Brand logo" }: BrandLogoProps) {
-  const { resolvedTheme } = useTheme();
+  const { theme } = useTheme();
   const settings = useSiteSettings();
 
   const wantDark =
