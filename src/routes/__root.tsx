@@ -137,7 +137,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         <div id="app-splash" aria-hidden="true">
-          <img id="app-splash-img" src="/__l5e/assets-v1/b2fc381c-becb-478c-a47f-100eee076c9c/eazystore-logo.png" alt="" />
+          <img id="app-splash-img" src="/__l5e/assets-v1/99cfd954-72ad-4e47-aa73-ca0fe57827d3/easystore-logo.png" alt="" />
         </div>
         <script
           dangerouslySetInnerHTML={{
@@ -155,8 +155,6 @@ function RootShell({ children }: { children: ReactNode }) {
                     img.style.width = "min(40vw,40vh)";
                     img.style.borderRadius = "24px";
                     if (splash) splash.style.background = "#ffffff";
-                  } else if (splash) {
-                    splash.style.display = "none";
                   }
                 } catch(e) {}
               })();
