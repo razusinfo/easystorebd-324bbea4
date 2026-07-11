@@ -85,11 +85,13 @@ export const updateManagedOrderStatus = createServerFn({ method: "POST" })
             status: current.status,
             tracking_id: current.tracking_id,
             tracking_url: current.tracking_url,
+            notes: current.notes,
           },
           after: {
             status: updated.status,
             tracking_id: updated.tracking_id,
             tracking_url: updated.tracking_url,
+            notes: updated.notes,
           },
         }),
       });
