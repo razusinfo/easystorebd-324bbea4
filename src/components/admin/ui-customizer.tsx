@@ -109,10 +109,12 @@ function CustomizerForm({
   }, [initial]);
 
   const logoUrl = useSignedSiteAsset(logoPath);
+  const logoDarkUrl = useSignedSiteAsset(logoDarkPath);
   const faviconUrl = useSignedSiteAsset(faviconPath);
 
   const dirty = useMemo(() => (
     logoPath !== initial.logo_url ||
+    logoDarkPath !== initial.logo_url_dark ||
     faviconPath !== initial.favicon_url ||
     color !== initial.primary_color ||
     JSON.stringify(cats) !== JSON.stringify(initial.sidebar_categories) ||
@@ -121,14 +123,16 @@ function CustomizerForm({
     phone !== (initial.contact_phone ?? "") ||
     facebook !== (initial.facebook_url ?? "") ||
     instagram !== (initial.instagram_url ?? "")
-  ), [logoPath, faviconPath, color, cats, whatsapp, email, phone, facebook, instagram, initial]);
+  ), [logoPath, logoDarkPath, faviconPath, color, cats, whatsapp, email, phone, facebook, instagram, initial]);
 
-  async function handleUpload(file: File, kind: "logo" | "favicon") {
+  async function handleUpload(file: File, kind: "logo" | "logo-dark" | "favicon") {
     try {
-      const path = await uploadSiteAsset(file, kind);
+      // uploadSiteAsset accepts "logo" | "favicon"; reuse "logo" folder for dark too.
+      const path = await uploadSiteAsset(file, kind === "favicon" ? "favicon" : "logo");
       if (kind === "logo") setLogoPath(path);
+      else if (kind === "logo-dark") setLogoDarkPath(path);
       else setFaviconPath(path);
-      toast.success(`${kind === "logo" ? "Logo" : "Favicon"} uploaded`);
+      toast.success("Uploaded");
     } catch (e: any) {
       toast.error(e?.message ?? "Upload failed");
     }
@@ -137,6 +141,10 @@ function CustomizerForm({
   async function handleRemoveLogo() {
     if (logoPath) { try { await deleteSiteAsset(logoPath); } catch {} }
     setLogoPath(null);
+  }
+  async function handleRemoveLogoDark() {
+    if (logoDarkPath) { try { await deleteSiteAsset(logoDarkPath); } catch {} }
+    setLogoDarkPath(null);
   }
   async function handleRemoveFavicon() {
     if (faviconPath) { try { await deleteSiteAsset(faviconPath); } catch {} }
