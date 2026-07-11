@@ -214,13 +214,20 @@ function CustomizerForm({
       <div className="space-y-6 min-w-0">
 
       {/* Branding */}
-      <Section title="Branding" description="Main logo and browser tab favicon shown across the site.">
-        <div className="grid gap-6 sm:grid-cols-2">
+      <Section title="Branding" description="Main logo, dark-mode variant, and browser tab favicon shown across the site.">
+        <div className="grid gap-6 sm:grid-cols-3">
           <AssetUploader
-            label="Main logo"
+            label="Main logo (light mode)"
             preview={logoUrl.data ?? null}
             onFile={(f) => handleUpload(f, "logo")}
             onRemove={handleRemoveLogo}
+            accept="image/png,image/jpeg,image/svg+xml,image/webp"
+          />
+          <AssetUploader
+            label="Dark-mode logo (optional)"
+            preview={logoDarkUrl.data ?? null}
+            onFile={(f) => handleUpload(f, "logo-dark")}
+            onRemove={handleRemoveLogoDark}
             accept="image/png,image/jpeg,image/svg+xml,image/webp"
           />
           <AssetUploader
