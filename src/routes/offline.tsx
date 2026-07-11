@@ -6,8 +6,8 @@ import logoAsset from "@/assets/eazystore-logo.png.asset.json";
 export const Route = createFileRoute("/offline")({
   head: () => ({
     meta: [
-      { title: "অফলাইন — EazyStore" },
-      { name: "description", content: "ইন্টারনেট সংযোগ নেই। EazyStore অফলাইন মোডে আছে।" },
+      { title: "অফলাইন — EasyStore" },
+      { name: "description", content: "ইন্টারনেট সংযোগ নেই। EasyStore অফলাইন মোডে আছে।" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -33,7 +33,7 @@ function OfflinePage() {
       <div className="max-w-md w-full text-center space-y-6">
         <img
           src={logoAsset.url}
-          alt="EazyStore"
+          alt="EasyStore"
           className="mx-auto h-16 w-auto object-contain opacity-80"
         />
         <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-600/10 text-emerald-700">

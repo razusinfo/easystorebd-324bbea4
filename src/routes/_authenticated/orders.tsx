@@ -35,7 +35,7 @@ import {
 export const Route = createFileRoute("/_authenticated/orders")({
   head: () => ({
     meta: [
-      { title: "Orders — EazyStore" },
+      { title: "Orders — EasyStore" },
       { name: "description", content: "View and manage all customer orders — status, payments, and delivery in one place." },
     ],
   }),

@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Set a new password — EazyStore" },
-      { name: "description", content: "Set a new password for your EazyStore account." },
+      { title: "Set a new password — EasyStore" },
+      { name: "description", content: "Set a new password for your EasyStore account." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -92,7 +92,7 @@ function ResetPasswordPage() {
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-purple-600 to-violet-600 text-white shadow-md">
             <Sparkles className="h-5 w-5" />
           </div>
-          <EazyStoreWordmark className="text-xl" />
+          <EasyStoreWordmark className="text-xl" />
         </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">

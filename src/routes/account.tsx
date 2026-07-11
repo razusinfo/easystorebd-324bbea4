@@ -12,8 +12,8 @@ import { CustomerAuth } from "@/components/storefront/customer-auth";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "My Account — EazyStore" },
-      { name: "description", content: "Manage your EazyStore customer account." },
+      { title: "My Account — EasyStore" },
+      { name: "description", content: "Manage your EasyStore customer account." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -165,7 +165,7 @@ function StorefrontChrome({ slug, children }: { slug: string; children: React.Re
   const store = q.data?.store;
   const items = useStoreCart(store?.id);
   const count = cartCount(items);
-  const name = (store?.name ?? "EAZYSTORE").toUpperCase();
+  const name = (store?.name ?? "EASYSTORE").toUpperCase();
   const logo = q.data?.logoUrl ?? null;
 
   const tpl = getTemplateSettings(store, store?.template ?? "eazystore-basic");

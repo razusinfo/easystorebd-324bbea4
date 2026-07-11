@@ -1,4 +1,4 @@
-// Supabase-backed data layer for EazyStore.
+// Supabase-backed data layer for EasyStore.
 // All hooks rely on RLS — owners only see/modify their own data; super_admin sees all.
 import type { CSSProperties } from "react";
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
@@ -315,7 +315,7 @@ export type ProductAuditLog = {
 
 export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradient: string; accent: string; category: string; premium?: boolean }[] = [
   
-  { id: "eazystore-basic", name: "EazyStore Basic", tagline: "EazyStore's own basic storefront — sidebar categories, product grid, mobile-friendly", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
+  { id: "eazystore-basic", name: "EasyStore Basic", tagline: "EasyStore's own basic storefront — sidebar categories, product grid, mobile-friendly", gradient: "from-violet-600 to-indigo-600", accent: "#5B21B6", category: "General" },
   
   
   { id: "flipmart", name: "Flipmart Bazaar", tagline: "Marketplace megastore — blue + yellow, category rail, hero banner, and multi-section product grids", gradient: "from-blue-600 to-yellow-400", accent: "#2563eb", category: "General", premium: true },

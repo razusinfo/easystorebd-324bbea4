@@ -6,7 +6,7 @@ import { useCategories } from "@/lib/categories-data";
 import { CategoryEditor } from "@/components/category-editor";
 
 export const Route = createFileRoute("/_authenticated/categories_/$id/edit")({
-  head: () => ({ meta: [{ title: "Edit Category — EazyStore" }] }),
+  head: () => ({ meta: [{ title: "Edit Category — EasyStore" }] }),
   component: EditCategoryPage,
 });
 

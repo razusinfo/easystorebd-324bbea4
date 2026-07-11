@@ -14,7 +14,7 @@ interface BrandLogoProps {
  * Renders the site brand logo. Uses:
  *   - dark-mode variant when the resolved theme is dark and one is set
  *   - the main uploaded logo otherwise
- *   - the bundled EazyStore default as final fallback
+ *   - the bundled EasyStore default as final fallback
  *
  * Consumers can force a variant via the `variant` prop (useful on splash
  * screens or fixed-color surfaces).

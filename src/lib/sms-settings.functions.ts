@@ -37,7 +37,7 @@ export const getSmsSettings = createServerFn({ method: "GET" })
         otp_template:
           "Your {app} verification code is {code}. It expires in {minutes} minutes. Do not share this code.{signature}",
         signature: "",
-        app_name: "EazyStore",
+        app_name: "EasyStore",
         updated_at: null,
       }
     );

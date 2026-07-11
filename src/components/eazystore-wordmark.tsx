@@ -1,5 +1,5 @@
 /**
- * Premium serif wordmark for "EazyStore".
+ * Premium serif wordmark for "EasyStore".
  * Coded as HTML text (not an image) using Playfair Display.
  * Colors follow the same rule as the Lovable mark:
  *   E   = #B3002D (deep red)
@@ -7,7 +7,7 @@
  *   S   = #B3002D (deep red)
  *   tore= #000000 (black)
  */
-export function EazyStoreWordmark({
+export function EasyStoreWordmark({
   className = "",
   italic = false,
 }: {
@@ -16,7 +16,7 @@ export function EazyStoreWordmark({
 }) {
   return (
     <span
-      aria-label="EazyStore"
+      aria-label="EasyStore"
       className={`inline-block select-none font-black leading-none tracking-[0.01em] ${className}`}
       style={{
         fontFamily: '"Playfair Display", Georgia, serif',

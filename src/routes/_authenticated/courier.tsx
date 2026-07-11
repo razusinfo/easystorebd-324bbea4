@@ -27,7 +27,7 @@ import {
 export const Route = createFileRoute("/_authenticated/courier")({
   head: () => ({
     meta: [
-      { title: "Courier — EazyStore" },
+      { title: "Courier — EasyStore" },
       { name: "description", content: "Ship orders, update delivery status, and connect with courier partners." },
     ],
   }),

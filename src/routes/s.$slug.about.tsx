@@ -7,7 +7,7 @@ export const Route = createFileRoute("/s/$slug/about")({
   head: ({ params }) => ({
     meta: [
       { title: `About — ${params.slug}` },
-      { name: "description", content: `About ${params.slug} on EazyStore.` },
+      { name: "description", content: `About ${params.slug} on EasyStore.` },
       { property: "og:title", content: `About — ${params.slug}` },
       { property: "og:description", content: `About ${params.slug}.` },
     ],
@@ -23,7 +23,7 @@ function AboutPage() {
   return (
     <StorefrontPage slug={slug} title="About Us">
       <p className="text-neutral-700 leading-relaxed">
-        {s?.tagline || `${s?.name ?? "This store"} is a shop on EazyStore. We offer quality products at fair prices.`}
+        {s?.tagline || `${s?.name ?? "This store"} is a shop on EasyStore. We offer quality products at fair prices.`}
       </p>
       {(s?.address || s?.phone || s?.contact_email || s?.website_url ||
         s?.facebook_url || s?.instagram_url || s?.whatsapp_number) && (

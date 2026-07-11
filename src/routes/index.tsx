@@ -25,19 +25,19 @@ import { getStorefrontSlugFromHost } from "@/lib/storefront-host";
 import { StorefrontView } from "@/components/storefront-view";
 import heroAsset from "@/assets/hero-storefront.jpg.asset.json";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "EazyStore — Build your online store in minutes" },
+      { title: "EasyStore — Build your online store in minutes" },
       {
         name: "description",
         content:
-          "EazyStore gives every merchant a beautiful storefront, powerful dashboard and local payments — no code, no hassle. Just sell.",
+          "EasyStore gives every merchant a beautiful storefront, powerful dashboard and local payments — no code, no hassle. Just sell.",
       },
-      { property: "og:title", content: "EazyStore — Build your online store in minutes" },
+      { property: "og:title", content: "EasyStore — Build your online store in minutes" },
       {
         property: "og:description",
         content:
@@ -81,10 +81,10 @@ function TopBand() {
         <Link to="/" className="flex min-w-0 items-center gap-2">
           <img
             src={eazystoreLogo.url}
-            alt="EazyStore"
+            alt="EasyStore"
             className="h-9 w-9 shrink-0 rounded-xl object-contain"
           />
-          <EazyStoreWordmark className="truncate text-lg sm:text-xl" />
+          <EasyStoreWordmark className="truncate text-lg sm:text-xl" />
         </Link>
 
         <nav className="hidden items-center gap-9 text-sm font-medium text-slate-700 md:flex">
@@ -121,8 +121,8 @@ function TopBand() {
             <SheetContent side="right" className="w-80 max-w-[85vw] p-0">
               <SheetHeader className="border-b border-emerald-100 p-5">
                 <SheetTitle className="flex items-center gap-2">
-                  <img src={eazystoreLogo.url} alt="EazyStore" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
-                  <EazyStoreWordmark className="text-lg" />
+                  <img src={eazystoreLogo.url} alt="EasyStore" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
+                  <EasyStoreWordmark className="text-lg" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col p-4 text-base font-medium text-slate-800">
@@ -152,7 +152,7 @@ function TopBand() {
           </h1>
 
           <p className="mt-5 max-w-lg text-base text-slate-700 sm:text-lg">
-            <EazyStoreWordmark className="text-base sm:text-lg align-baseline" /> gives every merchant a beautiful storefront, powerful dashboard and local
+            <EasyStoreWordmark className="text-base sm:text-lg align-baseline" /> gives every merchant a beautiful storefront, powerful dashboard and local
             payments — no code, no hassle. Just sell.
           </p>
 
@@ -186,7 +186,7 @@ function TopBand() {
           <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-gradient-to-br from-emerald-200/60 to-emerald-400/30 blur-2xl" />
           <img
             src={heroAsset.url}
-            alt="EazyStore mobile storefront and dashboard preview"
+            alt="EasyStore mobile storefront and dashboard preview"
             width={1280}
             height={1024}
             className="w-full rounded-[1.75rem] shadow-2xl ring-1 ring-emerald-900/5"
@@ -240,7 +240,7 @@ function Features() {
           Everything you need to sell online
         </h2>
         <p className="mt-4 text-slate-600">
-          From your first product to your thousandth order, <EazyStoreWordmark className="text-base align-baseline" /> has the tools to grow.
+          From your first product to your thousandth order, <EasyStoreWordmark className="text-base align-baseline" /> has the tools to grow.
         </p>
       </div>
 
@@ -434,14 +434,14 @@ function CtaBanner() {
         <div className="relative">
           <img
             src={eazystoreLogo.url}
-            alt="EazyStore"
+            alt="EasyStore"
             className="mx-auto h-16 w-16 rounded-2xl bg-white/90 p-1.5 object-contain shadow-md ring-1 ring-white/40"
           />
           <h2 className="font-hero mt-6 text-3xl leading-tight tracking-tight sm:text-5xl">
             Ready to open your store?
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-emerald-50">
-            Join merchants selling smarter with <EazyStoreWordmark className="text-base align-baseline" />. Set up your store today — it's free.
+            Join merchants selling smarter with <EasyStoreWordmark className="text-base align-baseline" />. Set up your store today — it's free.
           </p>
           <Link
             to="/auth"
@@ -464,7 +464,7 @@ function Footer() {
       {/* Tagline */}
       <p className="mx-auto max-w-4xl text-center font-hero text-2xl leading-snug tracking-tight text-slate-900 sm:text-4xl">
         Easily take your business online with{" "}
-        <EazyStoreWordmark italic className="text-2xl sm:text-4xl align-baseline" /> in just one click.
+        <EasyStoreWordmark italic className="text-2xl sm:text-4xl align-baseline" /> in just one click.
       </p>
 
       {/* Main card */}
@@ -473,8 +473,8 @@ function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2">
-              <img src={eazystoreLogo.url} alt="EazyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
-              <EazyStoreWordmark className="text-lg" />
+              <img src={eazystoreLogo.url} alt="EasyStore" className="h-9 w-9 shrink-0 rounded-xl object-contain" />
+              <EasyStoreWordmark className="text-lg" />
             </div>
             <p className="mt-4 text-sm leading-relaxed text-slate-600">
               Launch and manage your online store with a beautiful storefront, powerful dashboard
@@ -549,7 +549,7 @@ function Footer() {
 
         {/* Divider + copyright */}
         <div className="mt-8 border-t border-emerald-100 pt-6 text-center text-sm text-slate-500">
-          Copyright © 2022–{new Date().getFullYear()} <EazyStoreWordmark className="text-sm align-baseline" />. All rights reserved.
+          Copyright © 2022–{new Date().getFullYear()} <EasyStoreWordmark className="text-sm align-baseline" />. All rights reserved.
         </div>
       </div>
     </footer>

@@ -10,7 +10,7 @@ import {
 import { useCategories } from "@/lib/categories-data";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { BdLoveTemplate } from "@/components/templates/bdlove-template";
-import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import { EasyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { FlipmartTemplate } from "@/components/templates/flipmart-template";
 import { FreshmartTemplate } from "@/components/templates/freshmart-template";
 import { isValidHexColor, sanitizeHexColor } from "@/lib/hex-color";
@@ -28,7 +28,7 @@ import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.js
 
 export const Route = createFileRoute("/_authenticated/themes")({
   head: () => ({
-    meta: [{ title: "Themes — EazyStore" }],
+    meta: [{ title: "Themes — EasyStore" }],
     links: [
       { rel: "preload", as: "image", href: basicThemePreview.url, fetchpriority: "low" },
       { rel: "preload", as: "image", href: eazystoreBasicPreview.url, fetchpriority: "low" },
@@ -689,7 +689,7 @@ function LivePreviewModal({
             defaultCategoryName={settings.defaultCategoryName}
           />
         ) : id === "eazystore-basic" ? (
-          <EazyStoreBasicTemplate
+          <EasyStoreBasicTemplate
             demo={orderedProducts.length === 0}
             products={orderedProducts.length ? orderedProducts : undefined}
             logoUrl={logoSigned}
@@ -834,7 +834,7 @@ function TemplateThumbnail({ id, gradient, accent }: { id: TemplateId; gradient:
   if (id === "eazystore-basic") {
     return (
       <div ref={ref} className="pointer-events-none absolute inset-0 overflow-hidden bg-white">
-        {inView ? <LazyThumbImage src={eazystoreBasicPreview.url} alt="EazyStore Basic preview" /> : <ThumbSkeleton />}
+        {inView ? <LazyThumbImage src={eazystoreBasicPreview.url} alt="EasyStore Basic preview" /> : <ThumbSkeleton />}
       </div>
     );
   }

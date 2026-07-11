@@ -77,7 +77,7 @@ const LABEL_TO_SUBPATH: Record<string, string> = {
   "Contact": "contact",
 };
 
-export function EazyStoreBasicTemplate({
+export function EasyStoreBasicTemplate({
   store, products, logoUrl, demo = false, accentColor, defaultCategoryName, footer, categories,
 }: Props) {
   // Build a top-level list + children map. Demo mode stays flat.
@@ -125,7 +125,7 @@ export function EazyStoreBasicTemplate({
 
   const siteSettings = useSiteSettings().data;
   const whatsappHref = siteSettings?.whatsapp_url || "#";
-  const name = (store?.name ?? "EAZYSTORE").toUpperCase();
+  const name = (store?.name ?? "EASYSTORE").toUpperCase();
   const slug = store?.slug;
   const storeId = store?.id;
   const useDemo = demo;

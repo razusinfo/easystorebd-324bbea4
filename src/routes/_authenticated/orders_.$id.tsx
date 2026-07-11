@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/_authenticated/orders_/$id")({
   head: () => ({
     meta: [
-      { title: "Order details — EazyStore" },
+      { title: "Order details — EasyStore" },
       { name: "robots", content: "noindex" },
     ],
   }),

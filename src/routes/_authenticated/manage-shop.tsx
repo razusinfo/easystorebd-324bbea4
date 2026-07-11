@@ -30,7 +30,7 @@ import {
 export const Route = createFileRoute("/_authenticated/manage-shop")({
   head: () => ({
     meta: [
-      { title: "Manage Shop — EazyStore" },
+      { title: "Manage Shop — EasyStore" },
       { name: "description", content: "Manage all shop configurations — settings, domain, policy, delivery, payments, SEO and support in one place." },
     ],
   }),

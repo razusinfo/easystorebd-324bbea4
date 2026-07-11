@@ -11,7 +11,7 @@ import {
 import {
   MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview, SportyPulsePreview, LuxeNoirPreview,
 } from "@/components/templates/mini-previews";
-import { EazyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
+import { EasyStoreBasicTemplate } from "@/components/templates/eazystore-basic-template";
 import { AutoPartsTemplate } from "@/components/templates/autoparts-template";
 import { PrestigeTemplate } from "@/components/templates/prestige-template";
 import { FlipmartTemplate } from "@/components/templates/flipmart-template";
@@ -21,7 +21,7 @@ import eazystoreBasicPreview from "@/assets/eazystore-basic-preview.png.asset.js
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
-    meta: [{ title: "Onboarding — EazyStore" }],
+    meta: [{ title: "Onboarding — EasyStore" }],
     links: [
       { rel: "preload", as: "image", href: eazystoreBasicPreview.url, fetchpriority: "low" },
     ],
@@ -366,7 +366,7 @@ function TemplatePreview({ id, gradient, accent }: { id: TemplateId; gradient: s
         {inView ? (
           <LazyImage
             src={eazystoreBasicPreview.url}
-            alt="EazyStore Basic preview"
+            alt="EasyStore Basic preview"
             className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
           />
         ) : (

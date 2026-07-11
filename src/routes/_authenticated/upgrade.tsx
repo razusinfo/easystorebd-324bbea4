@@ -6,7 +6,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/upgrade")({
   head: () => ({
     meta: [
-      { title: "Upgrade Plan — EazyStore" },
+      { title: "Upgrade Plan — EasyStore" },
       { name: "description", content: "Upgrade to Pro to unlock custom domains, unlimited products, and premium storefront features for your shop." },
     ],
   }),

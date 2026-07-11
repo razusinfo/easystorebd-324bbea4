@@ -4,8 +4,8 @@ import { ProductForm } from "@/components/product-form";
 export const Route = createFileRoute("/_authenticated/products/$productId/edit")({
   head: () => ({
     meta: [
-      { title: "Edit Product — EazyStore" },
-      { name: "description", content: "Edit an existing product in your EazyStore inventory." },
+      { title: "Edit Product — EasyStore" },
+      { name: "description", content: "Edit an existing product in your EasyStore inventory." },
     ],
   }),
   component: EditProductPage,

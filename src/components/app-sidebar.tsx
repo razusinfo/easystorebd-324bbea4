@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
 import { useQuery } from "@tanstack/react-query";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
-import { EazyStoreWordmark } from "@/components/eazystore-wordmark";
+import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -124,11 +124,11 @@ export function AppSidebar() {
         <Link to="/dashboard" onClick={handleNavClick} className="flex items-center gap-2">
           <img
             src={eazystoreLogo.url}
-            alt="EazyStore"
+            alt="EasyStore"
             className="h-8 w-8 shrink-0 rounded-lg object-contain"
           />
           {!collapsed && (
-            <EazyStoreWordmark className="text-lg" />
+            <EasyStoreWordmark className="text-lg" />
           )}
         </Link>
       </SidebarHeader>

@@ -13,13 +13,13 @@
     "server": {
       "name": "eazystore-mcp",
       "version": "0.1.0",
-      "title": "EazyStore"
+      "title": "EasyStore"
     },
     "tools": [
       {
         "name": "get_my_store",
         "title": "Get my store",
-        "description": "Return basic info about the signed-in user's EazyStore store (name, slug, contact).",
+        "description": "Return basic info about the signed-in user's EasyStore store (name, slug, contact).",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -35,7 +35,7 @@
       {
         "name": "list_my_products",
         "title": "List my products",
-        "description": "List products in the signed-in store owner's EazyStore store.",
+        "description": "List products in the signed-in store owner's EasyStore store.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -59,7 +59,7 @@
       {
         "name": "list_my_orders",
         "title": "List my orders",
-        "description": "List recent orders for the signed-in user's EazyStore store.",
+        "description": "List recent orders for the signed-in user's EasyStore store.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,

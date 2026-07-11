@@ -58,7 +58,7 @@ export function StorefrontPage({ slug, title, children }: Props) {
     );
   }
 
-  const name = (store.name ?? "EAZYSTORE").toUpperCase();
+  const name = (store.name ?? "EASYSTORE").toUpperCase();
   const logo = q.data?.logoUrl ?? null;
 
   return (

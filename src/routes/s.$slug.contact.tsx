@@ -7,7 +7,7 @@ export const Route = createFileRoute("/s/$slug/contact")({
   head: ({ params }) => ({
     meta: [
       { title: `Contact — ${params.slug}` },
-      { name: "description", content: `Contact ${params.slug} on EazyStore.` },
+      { name: "description", content: `Contact ${params.slug} on EasyStore.` },
       { property: "og:title", content: `Contact — ${params.slug}` },
       { property: "og:description", content: `Reach out to ${params.slug}.` },
     ],

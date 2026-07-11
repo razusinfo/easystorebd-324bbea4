@@ -11,7 +11,7 @@ import {
 } from "@/lib/categories-data";
 
 export const Route = createFileRoute("/_authenticated/categories")({
-  head: () => ({ meta: [{ title: "Categories — EazyStore" }] }),
+  head: () => ({ meta: [{ title: "Categories — EasyStore" }] }),
   component: CategoriesPage,
 });
 
