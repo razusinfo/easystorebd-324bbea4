@@ -90,11 +90,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const { tenant } = Route.useLoaderData();
+  const { tenant, host, suggestions } = Route.useLoaderData();
 
-  // Client-side fallback: host-based slug when SSR resolver returned apex
-  // (e.g. loader ran before host was available or during hydration on a
-  // subdomain that was cached as apex).
   const clientSlug =
     typeof window !== "undefined"
       ? getStorefrontSlugFromHost(window.location.hostname)
@@ -104,10 +101,10 @@ function Landing() {
     return <StorefrontView slug={tenant.slug} />;
   }
   if (tenant.kind === "unknown-sub") {
-    return <UnknownTenant kind="unknown-sub" attempted={tenant.attempted} />;
+    return <UnknownTenant kind="unknown-sub" attempted={tenant.attempted} host={host} suggestions={suggestions} />;
   }
   if (tenant.kind === "unknown-custom") {
-    return <UnknownTenant kind="unknown-custom" host={tenant.host} />;
+    return <UnknownTenant kind="unknown-custom" host={tenant.host} suggestions={suggestions} />;
   }
   if (clientSlug) {
     return <StorefrontView slug={clientSlug} />;
