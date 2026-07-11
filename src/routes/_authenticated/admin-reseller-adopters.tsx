@@ -261,13 +261,13 @@ function AdminResellerAdoptersPage() {
                                 <StoreIcon className="h-3.5 w-3.5 text-muted-foreground" />
                                 {a.store_slug ? (
                                   <a
-                                    href={`/s/${a.store_slug}`}
+                                    href={buildStorefrontUrl(a.store_slug)}
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
                                     className="text-primary underline-offset-2 hover:underline"
                                   >
-                                    {`${typeof window !== "undefined" ? window.location.host : ""}/s/${a.store_slug}`}
+                                    {buildStorefrontUrl(a.store_slug).replace(/^https?:\/\//, "").replace(/\/$/, "")}
                                   </a>
                                 ) : (
                                   a.store_name ?? a.store_id ?? "—"
