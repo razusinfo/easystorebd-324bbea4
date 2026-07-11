@@ -1,5 +1,5 @@
-import { Fragment, useMemo, useState } from "react";
-import { History } from "lucide-react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Bell, BellOff, History } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -121,6 +121,65 @@ function AdminResellerOrdersPage() {
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
 
+  // Live supplier alerts: play a beep + browser notification + toast whenever
+  // a customer order forwards a new reseller_orders row from any storefront.
+  const [alertsOn, setAlertsOn] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("admin-reseller-orders:alerts") !== "off";
+  });
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  useEffect(() => {
+    localStorage.setItem("admin-reseller-orders:alerts", alertsOn ? "on" : "off");
+  }, [alertsOn]);
+  useEffect(() => {
+    if (!alertsOn) return;
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, [alertsOn]);
+  useEffect(() => {
+    const ch = supabase
+      .channel("reseller-orders-live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reseller_orders" },
+        (payload) => {
+          const row = payload.new as { id: string; product_name: string; customer_name: string; quantity: number };
+          qc.invalidateQueries({ queryKey: ["admin-reseller-orders"] });
+          if (!alertsOn) return;
+          toast.success(`New order: ${row.product_name} × ${row.quantity} (${row.customer_name})`);
+          // Short beep via WebAudio — works without any bundled asset.
+          try {
+            const AC = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+            audioCtxRef.current ??= new AC();
+            const ctx = audioCtxRef.current!;
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = "sine";
+            o.frequency.value = 880;
+            g.gain.value = 0.15;
+            o.connect(g).connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.22);
+          } catch { /* audio blocked */ }
+          try {
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("New reseller order", {
+                body: `${row.product_name} × ${row.quantity} — ${row.customer_name}`,
+                tag: `reseller-order-${row.id}`,
+                icon: "/favicon.ico",
+              });
+            }
+          } catch { /* no-op */ }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [alertsOn, qc]);
+
+
   const filtered = useMemo(() => {
     const rows = q.data ?? [];
     const rq = fReseller.trim().toLowerCase();
@@ -156,7 +215,16 @@ function AdminResellerOrdersPage() {
           <h1 className="text-2xl font-bold">Reseller Orders</h1>
           <p className="text-sm text-muted-foreground">All orders placed by resellers via the API.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant={alertsOn ? "default" : "outline"}
+            size="sm"
+            onClick={() => setAlertsOn((v) => !v)}
+            title={alertsOn ? "Live alerts on" : "Live alerts off"}
+          >
+            {alertsOn ? <Bell className="h-4 w-4 mr-1" /> : <BellOff className="h-4 w-4 mr-1" />}
+            {alertsOn ? "Alerts on" : "Alerts off"}
+          </Button>
           <Card className="px-4 py-2 text-sm">
             <span className="text-muted-foreground">Total profit: </span>
             <span className="font-bold text-primary">{fmt(totalProfit)}</span>
@@ -166,6 +234,7 @@ function AdminResellerOrdersPage() {
             <span className="font-bold">{pendingShip}</span>
           </Card>
         </div>
+
       </header>
 
       <Card className="p-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">

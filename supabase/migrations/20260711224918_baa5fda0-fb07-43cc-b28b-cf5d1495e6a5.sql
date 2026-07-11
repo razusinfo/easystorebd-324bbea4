@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.notify_supplier_on_new_reseller_order() FROM PUBLIC, anon, authenticated;
