@@ -6,6 +6,7 @@ import {
   clampStep,
   completedCount,
   isStepDone,
+  sanitizeLovableHostname,
 } from "./platform-domain-setup-logic";
 
 describe("platform domain setup logic", () => {
