@@ -341,6 +341,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "v_reseller_storefront_orders"
+            referencedColumns: ["order_id"]
+          },
+          {
             foreignKeyName: "order_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -393,6 +400,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "v_reseller_storefront_orders"
+            referencedColumns: ["order_id"]
           },
           {
             foreignKeyName: "order_requests_store_id_fkey"
@@ -500,6 +514,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_tracking_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "v_reseller_storefront_orders"
+            referencedColumns: ["order_id"]
           },
         ]
       }
@@ -1243,6 +1264,13 @@ export type Database = {
             referencedRelation: "reseller_orders"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reseller_order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "v_supplier_orders"
+            referencedColumns: ["id"]
+          },
         ]
       }
       reseller_order_forward_audit: {
@@ -1319,7 +1347,7 @@ export type Database = {
           quantity: number
           reseller_id: string
           reseller_price: number
-          reseller_product_id: string
+          reseller_product_id: string | null
           settled_at: string | null
           shipping_address: string
           shipping_requested: boolean
@@ -1349,7 +1377,7 @@ export type Database = {
           quantity: number
           reseller_id: string
           reseller_price?: number
-          reseller_product_id: string
+          reseller_product_id?: string | null
           settled_at?: string | null
           shipping_address: string
           shipping_requested?: boolean
@@ -1379,7 +1407,7 @@ export type Database = {
           quantity?: number
           reseller_id?: string
           reseller_price?: number
-          reseller_product_id?: string
+          reseller_product_id?: string | null
           settled_at?: string | null
           shipping_address?: string
           shipping_requested?: boolean
@@ -1406,6 +1434,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reseller_orders_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "v_reseller_storefront_orders"
+            referencedColumns: ["order_id"]
           },
           {
             foreignKeyName: "reseller_orders_source_order_item_id_fkey"
@@ -1965,7 +2000,119 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_reseller_storefront_orders: {
+        Row: {
+          created_at: string | null
+          customer_address: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          delivery_charge: number | null
+          discount: number | null
+          item_count: number | null
+          order_id: string | null
+          order_number: string | null
+          payment_status: Database["public"]["Enums"]["payment_status"] | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          store_id: string | null
+          subtotal: number | null
+          total: number | null
+          total_quantity: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_supplier_orders: {
+        Row: {
+          courier_provider: string | null
+          courier_status: string | null
+          created_at: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          delivered_at: string | null
+          id: string | null
+          product_name: string | null
+          quantity: number | null
+          reseller_product_id: string | null
+          shipping_address: string | null
+          source: string | null
+          source_store_id: string | null
+          status: Database["public"]["Enums"]["reseller_order_status"] | null
+          supplier_price: number | null
+          supplier_total: number | null
+          supplier_user_id: string | null
+          tracking_id: string | null
+          tracking_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          courier_provider?: string | null
+          courier_status?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivered_at?: string | null
+          id?: string | null
+          product_name?: string | null
+          quantity?: number | null
+          reseller_product_id?: string | null
+          shipping_address?: string | null
+          source?: string | null
+          source_store_id?: string | null
+          status?: Database["public"]["Enums"]["reseller_order_status"] | null
+          supplier_price?: number | null
+          supplier_total?: never
+          supplier_user_id?: string | null
+          tracking_id?: string | null
+          tracking_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          courier_provider?: string | null
+          courier_status?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivered_at?: string | null
+          id?: string | null
+          product_name?: string | null
+          quantity?: number | null
+          reseller_product_id?: string | null
+          shipping_address?: string | null
+          source?: string | null
+          source_store_id?: string | null
+          status?: Database["public"]["Enums"]["reseller_order_status"] | null
+          supplier_price?: number | null
+          supplier_total?: never
+          supplier_user_id?: string | null
+          tracking_id?: string | null
+          tracking_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_orders_reseller_product_id_fkey"
+            columns: ["reseller_product_id"]
+            isOneToOne: false
+            referencedRelation: "reseller_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reseller_orders_source_store_id_fkey"
+            columns: ["source_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_assign_role:
@@ -2153,7 +2300,7 @@ export type Database = {
           quantity: number
           reseller_id: string
           reseller_price: number
-          reseller_product_id: string
+          reseller_product_id: string | null
           settled_at: string | null
           shipping_address: string
           shipping_requested: boolean
@@ -2185,6 +2332,14 @@ export type Database = {
         }[]
       }
       retry_forward_order_item: { Args: { _item_id: string }; Returns: Json }
+      verify_order_schema: {
+        Args: never
+        Returns: {
+          check_name: string
+          detail: string
+          ok: boolean
+        }[]
+      }
     }
     Enums: {
       app_role:
