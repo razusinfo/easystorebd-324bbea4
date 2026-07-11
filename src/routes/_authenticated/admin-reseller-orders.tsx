@@ -121,6 +121,65 @@ function AdminResellerOrdersPage() {
   const [fFrom, setFFrom] = useState("");
   const [fTo, setFTo] = useState("");
 
+  // Live supplier alerts: play a beep + browser notification + toast whenever
+  // a customer order forwards a new reseller_orders row from any storefront.
+  const [alertsOn, setAlertsOn] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("admin-reseller-orders:alerts") !== "off";
+  });
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  useEffect(() => {
+    localStorage.setItem("admin-reseller-orders:alerts", alertsOn ? "on" : "off");
+  }, [alertsOn]);
+  useEffect(() => {
+    if (!alertsOn) return;
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, [alertsOn]);
+  useEffect(() => {
+    const ch = supabase
+      .channel("reseller-orders-live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reseller_orders" },
+        (payload) => {
+          const row = payload.new as { id: string; product_name: string; customer_name: string; quantity: number };
+          qc.invalidateQueries({ queryKey: ["admin-reseller-orders"] });
+          if (!alertsOn) return;
+          toast.success(`New order: ${row.product_name} × ${row.quantity} (${row.customer_name})`);
+          // Short beep via WebAudio — works without any bundled asset.
+          try {
+            const AC = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+            audioCtxRef.current ??= new AC();
+            const ctx = audioCtxRef.current!;
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = "sine";
+            o.frequency.value = 880;
+            g.gain.value = 0.15;
+            o.connect(g).connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.22);
+          } catch { /* audio blocked */ }
+          try {
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification("New reseller order", {
+                body: `${row.product_name} × ${row.quantity} — ${row.customer_name}`,
+                tag: `reseller-order-${row.id}`,
+                icon: "/favicon.ico",
+              });
+            }
+          } catch { /* no-op */ }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [alertsOn, qc]);
+
+
   const filtered = useMemo(() => {
     const rows = q.data ?? [];
     const rq = fReseller.trim().toLowerCase();
