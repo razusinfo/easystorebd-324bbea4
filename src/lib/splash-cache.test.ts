@@ -118,24 +118,22 @@ describe("primeSplashCache", () => {
     ).toBeNull();
   });
 
-  it("is a no-op when storage is unavailable (SSR-safe)", () => {
-    // Pass an explicit storage adapter that always throws to prove the
-    // helper doesn't leak the exception up.
+  it("swallows storage errors and still reports intent (SSR/private-mode safe)", () => {
     const throwing = {
       setItem: () => { throw new Error("blocked"); },
       removeItem: () => { throw new Error("blocked"); },
     };
-    expect(() =>
-      primeSplashCache({
-        slug: "acme",
-        customDomain: null,
-        logoUrl: "https://cdn/logo.png",
-        splashUrl: null,
-        onSubdomain: true,
-        onCustomDomain: true,
-        storage: throwing,
-      }),
-    ).toThrow(); // storage adapter surfaces its own error; verify plumbing works.
+    const { writes } = primeSplashCache({
+      slug: "acme",
+      customDomain: null,
+      logoUrl: "https://cdn/logo.png",
+      splashUrl: null,
+      onSubdomain: true,
+      onCustomDomain: true,
+      storage: throwing,
+    });
+    // Storage refused, but the helper still records what it *tried* to write.
+    expect(writes["acme"]).toBe("https://cdn/logo.png");
   });
 
   it("uses apexHost override for testable subdomain keys", () => {
