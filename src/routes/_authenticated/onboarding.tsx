@@ -6,7 +6,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, type Lang } from "@/lib/i18n";
 import {
-  useMyStore, useCreateStore, TEMPLATES, BUSINESS_TYPES, type Category, type TemplateId,
+  useMyStore, useCreateStore, TEMPLATES, BUSINESS_TYPES, businessTypeLabel, type Category, type TemplateId,
 } from "@/lib/eazystore-data";
 import {
   MinimalMonoPreview, BoutiqueBlushPreview, TechGridPreview, SportyPulsePreview, LuxeNoirPreview,
