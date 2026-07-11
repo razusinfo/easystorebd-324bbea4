@@ -1,106 +1,73 @@
-# Domain Management System
 
-তিনটি ফিচার একসাথে যোগ করা হবে: (1) Super Admin-এর জন্য Cloudflare wildcard setup wizard, (2) real-time domain/SSL status dashboard, (3) Store Owner-এর জন্য custom domain mapping UI।
+## What's already built (skip)
 
-## ১. Database Schema
+- **Domain setup wizard** — `admin-platform-domain-setup.tsx` (5-step Cloudflare + wildcard flow).
+- **Custom domain mapping UI + real-time SSL status** — `domain-settings.tsx` polls `custom_domains` for Verifying/Setting up/Live and shows DNS instructions.
+- **Subdomain host parser** — `src/lib/storefront-host.ts` + SSR host detection in `routes/index.tsx`.
 
-নতুন টেবিল `custom_domains`:
+So this plan focuses on the two missing pieces: **central tenant resolver with cache** and **unknown-subdomain fallback**.
 
-```sql
-CREATE TABLE public.custom_domains (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id uuid NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
-  owner_id uuid NOT NULL,
-  domain text NOT NULL UNIQUE,
-  status text NOT NULL DEFAULT 'pending',
-  -- pending | verifying | dns_ok | ssl_pending | live | failed | offline
-  verification_token text NOT NULL,
-  dns_target text NOT NULL DEFAULT '185.158.133.1',
-  ssl_issued_at timestamptz,
-  last_checked_at timestamptz,
-  last_error text,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
+## What to build
+
+### 1. Central tenant resolver (`src/lib/tenant-resolver.functions.ts`)
+
+One server function that, given a `host`, returns a single normalized `TenantResult`:
+
+```text
+{ kind: "apex" }                              // easystorebd.com / www
+{ kind: "subdomain", slug, store }            // <slug>.easystorebd.com → resolved store
+{ kind: "custom", slug, store, domain }       // custom domain → resolved store
+{ kind: "unknown-sub", attempted: "<slug>" }  // subdomain has no matching store
+{ kind: "unknown-custom", host }              // host not recognized at all
 ```
 
-GRANT + RLS: owner reads/writes own rows; super_admin reads all; anon SELECT নয়।
+Resolution order inside the handler:
+1. Strip port, lowercase host.
+2. If `host` matches a `STOREFRONT_APEX_DOMAINS` apex or a reserved sub (`www`, `app`, `admin`…), return `apex`.
+3. If it's `<slug>.<apex>`: look up `stores` by `slug` → `subdomain` or `unknown-sub`.
+4. Otherwise treat as custom domain: look up `custom_domains` (status=`active`) joined to `stores` → `custom` or `unknown-custom`.
 
-নতুন টেবিল `platform_domain_setup` (singleton, Super Admin wildcard progress):
+**Cache:** in-module `Map<host, { result, expiresAt }>` with 60 s TTL for hits, 10 s TTL for misses. Keyed by host only. Simple LRU cap (e.g. 500 entries). Runs per Worker instance; that's the intended edge cache — no external dependency.
 
-```sql
-CREATE TABLE public.platform_domain_setup (
-  id int PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-  cloudflare_added boolean DEFAULT false,
-  nameservers_updated boolean DEFAULT false,
-  dns_records_added boolean DEFAULT false,
-  ssl_mode_set boolean DEFAULT false,
-  lovable_wildcard_connected boolean DEFAULT false,
-  current_step int DEFAULT 1,
-  updated_at timestamptz DEFAULT now()
-);
-```
+### 2. Wire the resolver into `routes/index.tsx`
 
-## ২. Server Functions (`src/lib/custom-domains.functions.ts`)
+Replace the current `getSubdomainSlug` with `resolveTenant`:
 
-- `addCustomDomain({ storeId, domain })` — validate, insert, generate token
-- `checkDomainStatus({ domainId })` — DNS lookup (A record → 185.158.133.1), TXT verify, HTTPS probe; update status
-- `listMyDomains()` — store owner view
-- `removeCustomDomain({ domainId })`
-- `getPlatformSetup()` / `updatePlatformSetupStep({ step, done })` — Super Admin
+- Loader calls `resolveTenant({ data: { host } })` (host from `getRequestHost()` server-side; fall back to `window.location.hostname` client-side via a small isomorphic helper).
+- Landing component branches on `result.kind`:
+  - `apex` → existing marketing landing.
+  - `subdomain` / `custom` → `<StorefrontView slug={result.slug} />`.
+  - `unknown-sub` / `unknown-custom` → new `<UnknownTenant />` component (see #3).
 
-DNS check server-side: `dns.promises.resolve4()` (Node built-in, Cloudflare Worker সমর্থন করে) + `fetch(https://${domain}, { method: 'HEAD' })` SSL probe।
+### 3. Unknown-subdomain fallback (`src/components/unknown-tenant.tsx`)
 
-## ৩. UI Components
+Full-page component (not a redirect — a redirect across apex→subdomain loses the host and confuses users). Shows:
 
-### `src/routes/_authenticated/admin-platform-domain-setup.tsx` (Super Admin)
-৫-step wizard:
-1. **Cloudflare Account** — signup link, "I've added easystorebd.com" checkbox
-2. **Nameservers** — Cloudflare-provided NS দেখানোর ইনপুট + registrar guide
-3. **DNS Records** — copy-paste table (A `@`, A `www`, A `*` → 185.158.133.1, Proxied)
-4. **SSL Mode** — Full mode confirm
-5. **Lovable Connect** — `*.easystorebd.com` proxy-mode instructions + verify button (probes `test-verify.easystorebd.com`)
+- EasyStore logo + wordmark.
+- "Store `<attempted>` doesn't exist" headline in Bangla + English.
+- Two CTAs: **Go to easystorebd.com** (external link to apex) and **Browse stores** (link to a new `/stores` public listing route).
+- Sets `<meta name="robots" content="noindex">` via `head()` on the route (guard on loader data kind).
 
-প্রতি step-এ progress bar, next/back, database-এ auto-save।
+Also add a minimal `src/routes/stores.tsx` that server-fetches published stores via a public server fn (publishable client + narrow `TO anon` policy on `stores.is_public=true` — already exists) and renders a simple grid of storefront links using `buildSubdomainStorefrontUrl`.
 
-### `src/routes/_authenticated/domain-settings.tsx` (Store Owner)
-- Current subdomain দেখানো (`<slug>.easystorebd.com`, copy button)
-- "Add Custom Domain" ফর্ম (নিজস্ব domain যেমন `myshop.com`)
-- Instructions card: A record → 185.158.133.1, TXT `_lovable` verification
-- Domain list with real-time status badge + "Recheck" button + delete
-- Live SSL confirmation: green ✓ "SSL active" যখন HTTPS probe সফল
+### 4. Wildcard splat safety net
 
-### `src/components/domain-status-badge.tsx`
-Reusable badge: pending (gray) → verifying (yellow, spinner) → dns_ok (blue) → ssl_pending (orange) → live (green ✓) → failed (red)।
+Keep the existing `src/routes/$.tsx` (or add one) to catch unmatched paths **on a resolved storefront** and forward to `StorefrontView` for slug-based product URLs. Nothing to change if it already exists — verify only.
 
-## ৪. Real-time Status
+## Files touched
 
-TanStack Query with `refetchInterval: 15000` non-live domains-এর জন্য; live হলে 60s। Manual "Recheck now" button `checkDomainStatus` invoke করবে।
+- **New:** `src/lib/tenant-resolver.functions.ts`, `src/lib/tenant-resolver.server.ts` (cache + DB helpers), `src/components/unknown-tenant.tsx`, `src/routes/stores.tsx`.
+- **Edit:** `src/routes/index.tsx` (swap loader + branch on tenant kind).
+- **No DB migration** — `stores`, `custom_domains` already exist.
 
-Storefront resolver (`src/lib/storefront-host.ts`) update: hostname যদি `custom_domains` টেবিলে থাকে → সেই store লোড করবে।
+## Technical notes
 
-## ৫. Sidebar
+- Handler-only imports for cache map & Supabase client to stay compatible with `?tss-serverfn-split` (helpers live in `.server.ts`).
+- Cache lives inside the `.server.ts` module scope; per-Worker warm cache is enough at current traffic.
+- Public reads use the **publishable-key** server client (not `supabaseAdmin`) with the existing `TO anon` SELECT policies on `stores` and `custom_domains`.
+- SSR host detection uses `getRequestHost()` inside the handler; client fallback stays for hydration parity.
+- `unknown-sub` renders 200 (not 404) so branded pages don't get de-indexed as errors, but sets `robots: noindex`.
 
-- Super Admin: "Platform Domain Setup" menu item
-- Store Owner: "Domain Settings" menu item
+## Out of scope
 
-## ৬. Files to Create/Modify
-
-**New:**
-- `supabase/migrations/*_custom_domains.sql`
-- `src/lib/custom-domains.functions.ts`
-- `src/routes/_authenticated/admin-platform-domain-setup.tsx`
-- `src/routes/_authenticated/domain-settings.tsx`
-- `src/components/domain-status-badge.tsx`
-- `src/components/domain-setup-wizard.tsx`
-
-**Modify:**
-- `src/lib/storefront-host.ts` — custom domain lookup
-- `src/components/app-sidebar.tsx` — new menu items
-- `src/routeTree.gen.ts` — auto-regenerated
-
-## Notes
-
-- DNS checks run server-side only (Node `dns` module)
-- Rate limit recheck: max 1/minute per domain
-- Custom domains still need user to point A record; wizard কেবল guide, DNS পুশ নয়
+Wizard and domain-mapping dashboard — already shipped. No changes there unless you want tweaks.
