@@ -30,6 +30,14 @@ import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { resolveTenant, type TenantResult } from "@/lib/tenant-resolver.functions";
 import { redirect } from "@tanstack/react-router";
+import { createIsomorphicFn } from "@tanstack/react-start";
+
+const setUnknownTenantStatus = createIsomorphicFn()
+  .client(() => {})
+  .server(async () => {
+    const { setResponseStatus } = await import("@tanstack/react-start/server");
+    setResponseStatus(404);
+  });
 
 export const Route = createFileRoute("/")({
   loader: async (): Promise<{ tenant: TenantResult }> => {
@@ -38,11 +46,7 @@ export const Route = createFileRoute("/")({
       if (redirectUnknown) {
         throw redirect({ href: "https://easystorebd.com/" });
       }
-      // Set a proper 404 status on the SSR response while still rendering the guided fallback UI.
-      try {
-        const { setResponseStatus } = await import("@tanstack/react-start/server");
-        setResponseStatus(404);
-      } catch { /* client nav — no-op */ }
+      try { setUnknownTenantStatus(); } catch { /* no-op */ }
     }
     return { tenant };
   },
