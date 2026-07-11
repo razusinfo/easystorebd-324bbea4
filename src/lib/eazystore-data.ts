@@ -1106,17 +1106,10 @@ export function slugifyStoreName(s: string): string {
 import { STOREFRONT_APEX_DOMAINS, buildSubdomainStorefrontUrl } from "@/lib/storefront-host";
 
 export function buildStorefrontUrl(slug: string): string {
-  if (typeof window === "undefined") {
-    return buildSubdomainStorefrontUrl(slug) ?? `https://eazystorebd.lovable.app/s/${slug}`;
-  }
-  const host = window.location.hostname.toLowerCase();
-  for (const apex of STOREFRONT_APEX_DOMAINS) {
-    if (host === apex || host.endsWith(`.${apex}`)) {
-      return `${window.location.protocol}//${slug}.${apex}/`;
-    }
-  }
-  return `${window.location.origin}/s/${slug}`;
+  // Always show the branded subdomain URL when sharing/publishing.
+  return buildSubdomainStorefrontUrl(slug) ?? `https://${slug}.easystorebd.com/`;
 }
+
 
 // Generate a unique slug — appends -2, -3... on conflict. Run before publish.
 async function ensureUniqueSlug(base: string, ownerStoreId: string): Promise<string> {
