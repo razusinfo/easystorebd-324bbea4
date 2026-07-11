@@ -260,10 +260,16 @@ function PlatformDomainSetupPage() {
             )}
             {stepIdx === 4 && (
               <div className="space-y-3">
-                <div className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs space-y-1">
-                  <p className="font-medium text-amber-900 dark:text-amber-200">⚠️ Lovable-এর Connect Domain ডায়ালগ <code>*</code> ক্যারেক্টার গ্রহণ করে না</p>
+                <div
+                  className="rounded-md border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs space-y-1"
+                  role="note"
+                  aria-label="Wildcard hostname সম্পর্কিত সতর্কতা"
+                  title="Lovable-এর Connect Domain input `*` ক্যারেক্টার reject করে — তাই *.easystorebd.com দিলে Continue disable হয়ে যায়।"
+                  data-testid="wildcard-warning-banner"
+                >
+                  <p className="font-medium text-amber-900 dark:text-amber-200">⚠️ কেন <code>*.easystorebd.com</code> দিলে Continue বাটন নিষ্ক্রিয় হয়?</p>
                   <p className="text-amber-800/90 dark:text-amber-200/80">
-                    <code>*.easystorebd.com</code> টাইপ করলে Continue বাটন disable হয়ে যায় — এটা Lovable UI-এর hostname validation, বাগ নয়। wildcard self-serve সম্ভব না; নিচের যেকোনো একটা পথ ব্যবহার করুন।
+                    Lovable-এর Connect Domain ডায়ালগের hostname validation <code>*</code> ক্যারেক্টার গ্রহণ করে না — তাই <code>*.easystorebd.com</code> টাইপ করলে Continue বাটন সাথে সাথে disable হয়ে যায়। এটি বাগ নয়, UI validation। নিচের যেকোনো একটি পথ ব্যবহার করুন (নিচের helper দিয়ে <code>*.</code> auto-strip করে নিলে Continue আবার সক্রিয় হবে)।
                   </p>
                 </div>
 
