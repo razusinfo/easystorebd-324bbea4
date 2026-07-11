@@ -43,7 +43,6 @@ function cacheGet(host: string): TenantResult | null {
 
 function cacheSet(host: string, result: TenantResult) {
   if (cache.size >= MAX_ENTRIES) {
-    // Cheap LRU: drop the oldest inserted key.
     const first = cache.keys().next().value;
     if (first) cache.delete(first);
   }
@@ -80,13 +79,7 @@ function serverClient() {
   return createClient<Database>(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_PUBLISHABLE_KEY!,
-    {
-      auth: {
-        storage: undefined,
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    },
+    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
   );
 }
 
@@ -99,13 +92,7 @@ async function fetchStoreBySlug(slug: string): Promise<TenantStore | null> {
     .eq("published", true)
     .maybeSingle();
   if (!data || !data.slug) return null;
-  return {
-    id: data.id,
-    slug: data.slug,
-    name: data.name,
-    logo_url: data.logo_url,
-    tagline: data.tagline,
-  };
+  return { id: data.id, slug: data.slug, name: data.name, logo_url: data.logo_url, tagline: data.tagline };
 }
 
 async function fetchStoreByCustomDomain(
@@ -114,9 +101,7 @@ async function fetchStoreByCustomDomain(
   const sb = serverClient();
   const { data } = await sb
     .from("custom_domains")
-    .select(
-      "domain, status, stores!inner(id, slug, name, logo_url, tagline, published)",
-    )
+    .select("domain, status, stores!inner(id, slug, name, logo_url, tagline, published)")
     .eq("domain", host)
     .eq("status", "active")
     .maybeSingle();
@@ -130,14 +115,56 @@ async function fetchStoreByCustomDomain(
   if (!data || !store || !store.published || !store.slug) return null;
   return {
     domain: data.domain,
-    store: {
-      id: store.id,
-      slug: store.slug,
-      name: store.name,
-      logo_url: store.logo_url,
-      tagline: store.tagline,
-    },
+    store: { id: store.id, slug: store.slug, name: store.name, logo_url: store.logo_url, tagline: store.tagline },
   };
+}
+
+// Best-effort audit; never throws.
+async function recordUnknownAudit(
+  host: string,
+  kind: "unknown-sub" | "unknown-custom",
+  attempted: string | null,
+) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Upsert-then-increment via RPC-less pattern: try increment first, insert if not present.
+    const { data: existing } = await supabaseAdmin
+      .from("tenant_resolver_audit")
+      .select("hit_count")
+      .eq("host", host)
+      .maybeSingle();
+    if (existing) {
+      await supabaseAdmin
+        .from("tenant_resolver_audit")
+        .update({ hit_count: (existing.hit_count ?? 0) + 1, last_seen: new Date().toISOString(), kind, attempted })
+        .eq("host", host);
+    } else {
+      await supabaseAdmin
+        .from("tenant_resolver_audit")
+        .insert({ host, kind, attempted, hit_count: 1 });
+    }
+  } catch (e) {
+    console.warn("tenant audit write failed", e);
+  }
+}
+
+async function resolveCore(rawHost: string | null | undefined): Promise<TenantResult> {
+  const host = normalizeHost(rawHost);
+  if (!host) return { kind: "apex" };
+
+  const apex = apexMatch(host);
+  if (apex) {
+    const sub = subdomainOf(host, apex);
+    if (!sub) return { kind: "apex" };
+    const store = await fetchStoreBySlug(sub);
+    return store
+      ? { kind: "subdomain", slug: sub, store }
+      : { kind: "unknown-sub", attempted: sub };
+  }
+  const match = await fetchStoreByCustomDomain(host);
+  return match
+    ? { kind: "custom", slug: match.store.slug, store: match.store, domain: match.domain }
+    : { kind: "unknown-custom", host };
 }
 
 export async function resolveTenantServer(
@@ -149,26 +176,37 @@ export async function resolveTenantServer(
   const cached = cacheGet(host);
   if (cached) return cached;
 
-  const apex = apexMatch(host);
-  let result: TenantResult;
+  const result = await resolveCore(host);
 
-  if (apex) {
-    const sub = subdomainOf(host, apex);
-    if (!sub) {
-      result = { kind: "apex" };
-    } else {
-      const store = await fetchStoreBySlug(sub);
-      result = store
-        ? { kind: "subdomain", slug: sub, store }
-        : { kind: "unknown-sub", attempted: sub };
-    }
-  } else {
-    const match = await fetchStoreByCustomDomain(host);
-    result = match
-      ? { kind: "custom", slug: match.store.slug, store: match.store, domain: match.domain }
-      : { kind: "unknown-custom", host };
+  if (result.kind === "unknown-sub" || result.kind === "unknown-custom") {
+    const attempted = result.kind === "unknown-sub" ? result.attempted : null;
+    console.warn(`[tenant-resolver] unknown ${result.kind}: host=${host} attempted=${attempted ?? "-"}`);
+    // Fire-and-forget audit.
+    void recordUnknownAudit(host, result.kind, attempted);
   }
 
   cacheSet(host, result);
   return result;
+}
+
+// Cache-bypassing resolver for the debug view.
+export async function resolveTenantFresh(
+  rawHost: string | null | undefined,
+): Promise<TenantResult> {
+  return resolveCore(rawHost);
+}
+
+// Read the unknown-tenant redirect toggle (best-effort; defaults to false).
+export async function getUnknownTenantRedirect(): Promise<boolean> {
+  try {
+    const sb = serverClient();
+    const { data } = await sb
+      .from("site_settings")
+      .select("unknown_tenant_redirect")
+      .eq("id", "singleton")
+      .maybeSingle();
+    return Boolean((data as { unknown_tenant_redirect?: boolean } | null)?.unknown_tenant_redirect);
+  } catch {
+    return false;
+  }
 }
