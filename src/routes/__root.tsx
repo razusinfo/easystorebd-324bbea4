@@ -152,7 +152,7 @@ function RootShell({ children }: { children: ReactNode }) {
             width="240"
             height="240"
             decoding="sync"
-            fetchpriority="high"
+            fetchPriority="high"
             style={{ aspectRatio: "1 / 1" }}
           />
           <div id="app-splash-dots" aria-hidden="true"><span></span><span></span><span></span></div>
