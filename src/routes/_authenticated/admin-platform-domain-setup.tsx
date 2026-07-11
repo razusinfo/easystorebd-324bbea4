@@ -356,6 +356,28 @@ function PlatformDomainSetupPage() {
                     Re-check DNS propagation
                   </Button>
                 </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer" title="প্রতি ৩০ সেকেন্ডে DNS ও HTTPS স্বয়ংক্রিয়ভাবে যাচাই হবে">
+                    <Checkbox
+                      checked={autoRecheck}
+                      onCheckedChange={(v) => setAutoRecheck(v === true)}
+                      aria-label="Auto re-check DNS propagation চালু/বন্ধ"
+                    />
+                    <span>Auto re-check প্রতি ৩০ সেকেন্ডে</span>
+                  </label>
+                  {autoRecheck && !wildcardLive && (
+                    <span className="text-muted-foreground" aria-live="polite">
+                      {verifyMut.isPending
+                        ? "যাচাই চলছে…"
+                        : secondsUntilNext != null
+                          ? `পরবর্তী চেক: ${secondsUntilNext}s`
+                          : ""}
+                    </span>
+                  )}
+                  {wildcardLive && (
+                    <span className="text-green-700 dark:text-green-400">✅ Wildcard live — auto re-check বন্ধ</span>
+                  )}
+                </div>
                 <div aria-live="polite" aria-atomic="true">
                   {verifyMut.data && (
                     <div className="rounded-md border bg-muted/40 p-3 text-xs" data-testid="verify-result">
