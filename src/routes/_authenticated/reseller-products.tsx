@@ -1792,7 +1792,56 @@ function AddToMyShopButton({ row, storeId, disabled }: { row: DisplayRow; storeI
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    <Dialog open={createCatOpen} onOpenChange={setCreateCatOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {createCatMode === "sub"
+              ? "নতুন সাব-ক্যাটাগরি / New Sub Category"
+              : "নতুন ক্যাটাগরি / New Category"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          {createCatMode === "sub" && (
+            <div className="space-y-1">
+              <Label>প্যারেন্ট ক্যাটাগরি / Parent Category</Label>
+              <Select value={newCatParent} onValueChange={setNewCatParent}>
+                <SelectTrigger>
+                  <SelectValue placeholder="একটি প্যারেন্ট বেছে নিন / Choose a parent" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="space-y-1">
+            <Label htmlFor="new-cat-name">নাম / Name</Label>
+            <Input
+              id="new-cat-name"
+              value={newCatName}
+              onChange={(e) => setNewCatName(e.target.value)}
+              placeholder="যেমন / e.g. Mobile Accessories"
+              autoFocus
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setCreateCatOpen(false)}>
+            বাতিল / Cancel
+          </Button>
+          <Button onClick={submitCreateCategory} disabled={createCat.isPending}>
+            {createCat.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "তৈরি করুন / Create"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
+
   );
 }
 
