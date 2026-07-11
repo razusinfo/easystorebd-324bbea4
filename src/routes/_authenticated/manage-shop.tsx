@@ -174,6 +174,7 @@ function SectionDialog({
 
 // -------- Shop Settings (full-page view like reference) --------
 const BUSINESS_TYPES = [
+  "A to Z",
   "Not Selected", "Clothing & Apparel", "Shoes & Footwear", "Accessories & Jewelry",
   "Beauty & Cosmetics", "Electronics & Gadgets", "Home & Furniture", "Books & Media",
   "Toys & Games", "Sports & Outdoors", "Health & Wellness", "Food & Beverage",
