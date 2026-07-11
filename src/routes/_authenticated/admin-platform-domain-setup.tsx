@@ -178,6 +178,10 @@ function PlatformDomainSetupPage() {
                   </p>
                 </div>
 
+                <HostnameSanitizerInput />
+
+
+
                 <div className="rounded-md border p-3 space-y-2">
                   <p className="font-medium">Option A — Root + www কানেক্ট করুন (সবচেয়ে সহজ)</p>
                   <p className="text-xs text-muted-foreground">প্রতি reseller-এর subdomain Cloudflare-এর wildcard A record + proxy দিয়ে কাজ করবে; Lovable-এ শুধু root domain কানেক্ট থাকলেই SSL wildcard cert issue হয়।</p>
