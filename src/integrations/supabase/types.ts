@@ -403,6 +403,53 @@ export type Database = {
           },
         ]
       }
+      order_routing_rules: {
+        Row: {
+          active: boolean
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          priority: number
+          scope: string
+          supplier_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          priority?: number
+          scope?: string
+          supplier_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          priority?: number
+          scope?: string
+          supplier_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_routing_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_tracking_events: {
         Row: {
           courier_provider: string | null
@@ -1194,6 +1241,62 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "reseller_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reseller_order_forward_audit: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          metadata: Json | null
+          product_id: string | null
+          reason: string
+          reseller_product_id: string | null
+          routing_rule_id: string | null
+          source_order_id: string | null
+          source_order_item_id: string | null
+          source_store_id: string | null
+          success: boolean
+          supplier_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          reason: string
+          reseller_product_id?: string | null
+          routing_rule_id?: string | null
+          source_order_id?: string | null
+          source_order_item_id?: string | null
+          source_store_id?: string | null
+          success?: boolean
+          supplier_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          reason?: string
+          reseller_product_id?: string | null
+          routing_rule_id?: string | null
+          source_order_id?: string | null
+          source_order_item_id?: string | null
+          source_store_id?: string | null
+          success?: boolean
+          supplier_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_order_forward_audit_routing_rule_id_fkey"
+            columns: ["routing_rule_id"]
+            isOneToOne: false
+            referencedRelation: "order_routing_rules"
             referencedColumns: ["id"]
           },
         ]
