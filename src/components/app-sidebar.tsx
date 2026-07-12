@@ -25,8 +25,9 @@ const mainItems = [
   { title: "Products", url: "/products", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
-  { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
 ];
+
+const courierItem = { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" };
 
 const resellerItems = [
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
