@@ -23,7 +23,7 @@ type Row = {
   store_id: string | null;
   actual_supplier_id: string | null;
   expected_supplier_id: string | null;
-  reason: string;
+  issue: string;
 };
 
 function AdminProductSupplierIntegrityPage() {
@@ -98,7 +98,7 @@ function AdminProductSupplierIntegrityPage() {
                       <TableCell className="font-mono text-xs">{r.store_id ?? "—"}</TableCell>
                       <TableCell className="font-mono text-xs">{r.actual_supplier_id ?? "—"}</TableCell>
                       <TableCell className="font-mono text-xs">{r.expected_supplier_id ?? "—"}</TableCell>
-                      <TableCell><Badge variant="outline">{r.reason}</Badge></TableCell>
+                      <TableCell><Badge variant="outline">{r.issue}</Badge></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
