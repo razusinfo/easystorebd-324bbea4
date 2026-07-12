@@ -47,6 +47,7 @@ jobs:
           python tests/e2e/reseller-checkout-propagation.spec.py
           python tests/e2e/order-management-role-visibility.spec.py
           python tests/e2e/supplier-fulfillment-update.spec.py
+          python tests/e2e/order-access-integrity-auth.spec.py
           if [ -n "$E2E_RESELLER_EMAIL" ] && [ -n "$E2E_APP_URL" ]; then
             python tests/e2e/supplier-marketplace-add.spec.py
           else
