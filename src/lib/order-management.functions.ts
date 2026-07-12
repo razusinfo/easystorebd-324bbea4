@@ -291,20 +291,34 @@ export const runOrderAccessIntegrityCheck = createServerFn({ method: "GET" })
     const { data, error } = await supabase.rpc("admin_check_order_access_integrity");
     if (error) throw new Error(error.message);
 
-    // Best-effort audit
+    // Detailed audit: group results by issue code and record sample order IDs.
+    const rows = (data ?? []) as OrderIntegrityRow[];
+    const byIssue: Record<string, { count: number; sample_order_ids: string[] }> = {};
+    for (const r of rows) {
+      const b = (byIssue[r.issue] ||= { count: 0, sample_order_ids: [] });
+      b.count += 1;
+      if (b.sample_order_ids.length < 10) b.sample_order_ids.push(r.order_id);
+    }
+    const summary = rows.length === 0
+      ? "clean"
+      : Object.entries(byIssue)
+          .map(([k, v]) => `${k}:${v.count}`)
+          .join(", ");
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await supabaseAdmin.from("order_access_audit").insert({
         actor_id: userId,
         actor_role: "super_admin",
         action: "run_integrity_check",
-        row_count: (data ?? []).length,
+        row_count: rows.length,
+        filters: { by_issue: byIssue, total: rows.length },
+        notes: `integrity_scan: ${summary}`,
       });
     } catch (e) {
       console.warn("[order-management] integrity audit insert failed:", e);
     }
 
-    return { rows: (data ?? []) as OrderIntegrityRow[] };
+    return { rows };
   });
 
 export type OrderAccessAuditEntry = {
