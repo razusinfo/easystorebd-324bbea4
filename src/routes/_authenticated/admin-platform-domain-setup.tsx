@@ -420,6 +420,18 @@ function PlatformDomainSetupPage() {
                             ? `❌ HTTP ${verifyMut.data.httpStatus} — Lovable app response দিচ্ছে না`
                             : "⏳ এখনো response দিচ্ছে না"}
                       </div>
+                      {verifyMut.data.cloudflareError === 1000 && (
+                        <div className="text-destructive font-medium">⚠️ Cloudflare Error 1000 detected (DNS points to prohibited IP)</div>
+                      )}
+                      {verifyMut.data.finalUrl && verifyMut.data.finalUrl !== `https://${verifyMut.data.testHost}/` && (
+                        <div className="text-muted-foreground">Final URL: <code>{verifyMut.data.finalUrl}</code></div>
+                      )}
+                      {verifyMut.data.redirectChain && verifyMut.data.redirectChain.length > 1 && (
+                        <details className="text-muted-foreground">
+                          <summary className="cursor-pointer">Redirect chain ({verifyMut.data.redirectChain.length} hop)</summary>
+                          <ul className="pl-4 mt-1">{verifyMut.data.redirectChain.map((h, i) => <li key={i}><code>{h}</code></li>)}</ul>
+                        </details>
+                      )}
                       {verifyMut.data.hint && (
                         <div className="mt-2 rounded border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2 text-amber-900 dark:text-amber-200" data-testid="verify-hint">
                           {verifyMut.data.hint}
