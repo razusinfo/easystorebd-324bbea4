@@ -20,9 +20,9 @@ import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Orders", url: "/orders", icon: ShoppingBag },
   { title: "Products", url: "/products", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderTree },
+  { title: "Orders", url: "/orders", icon: ShoppingBag },
   { title: "Customers", url: "/customers", icon: Users },
 ];
 
