@@ -90,7 +90,9 @@ function AdminOrderRoutingPage() {
   const [fFrom, setFFrom] = useState<string>("");
   const [fTo, setFTo] = useState<string>("");
   const [fQuery, setFQuery] = useState<string>("");
+  const [fFailedOnly, setFFailedOnly] = useState<boolean>(false);
   const [detailRow, setDetailRow] = useState<AuditRow | null>(null);
+
 
 
   const users = useQuery({
@@ -219,7 +221,9 @@ function AdminOrderRoutingPage() {
     const toTs = fTo ? new Date(fTo).getTime() + 86400000 : null; // inclusive end-of-day
     const group = REASON_FILTER_GROUPS.find((g) => g.value === fReason) ?? REASON_FILTER_GROUPS[0];
     return rows.filter((a) => {
+      if (fFailedOnly && a.success) return false;
       if (!group.match(a.reason)) return false;
+
       if (fSupplier !== "all" && a.supplier_user_id !== fSupplier) return false;
       if (fCategory !== "all") {
         // Try both product's category (via metadata) and audit's product_id lookup via categoryLookup unavailable client-side without join.
@@ -246,7 +250,7 @@ function AdminOrderRoutingPage() {
       }
       return true;
     });
-  }, [audit.data, fReason, fSupplier, fCategory, fFrom, fTo, fQuery]);
+  }, [audit.data, fReason, fSupplier, fCategory, fFrom, fTo, fQuery, fFailedOnly]);
 
   const errorCount = useMemo(
     () => (audit.data ?? []).filter((a) => !a.success).length,
@@ -255,8 +259,9 @@ function AdminOrderRoutingPage() {
 
   function resetFilters() {
     setFReason("all"); setFSupplier("all"); setFCategory("all");
-    setFFrom(""); setFTo(""); setFQuery("");
+    setFFrom(""); setFTo(""); setFQuery(""); setFFailedOnly(false);
   }
+
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -392,9 +397,20 @@ function AdminOrderRoutingPage() {
               <Badge variant="destructive">{errorCount} failed</Badge>
             )}
           </div>
-          <Button variant="outline" size="sm" onClick={() => audit.refetch()}>
-            <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={fFailedOnly ? "destructive" : "outline"}
+              size="sm"
+              onClick={() => setFFailedOnly((v) => !v)}
+              title="Show only failed forwarding attempts"
+            >
+              {fFailedOnly ? "Showing failed only" : "Failed only"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => audit.refetch()}>
+              <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
+          </div>
+
         </div>
 
         {/* Filters */}
@@ -454,13 +470,15 @@ function AdminOrderRoutingPage() {
               <TableHead>Reason</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Product</TableHead>
-              <TableHead>Order / Item</TableHead>
+              <TableHead>Source order / item</TableHead>
+              <TableHead>Destination</TableHead>
               <TableHead>Success</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAudit.length ? filteredAudit.map((a) => {
+
               const meta = (a.metadata ?? {}) as any;
               const isError = !a.success;
               const canRetry = !!a.source_order_item_id;
@@ -487,7 +505,13 @@ function AdminOrderRoutingPage() {
                     <div>ord {a.source_order_id?.slice(0, 8) ?? "—"}</div>
                     <div className="opacity-70">itm {a.source_order_item_id?.slice(0, 8) ?? "—"}</div>
                   </TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
+                    {meta.reseller_order_id
+                      ? <span title={String(meta.reseller_order_id)}>ro {String(meta.reseller_order_id).slice(0, 8)}</span>
+                      : "—"}
+                  </TableCell>
                   <TableCell>{a.success ? "✓" : "✗"}</TableCell>
+
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button
@@ -519,7 +543,8 @@ function AdminOrderRoutingPage() {
               );
             }) : (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+
                   {audit.isLoading ? "Loading…" : "No forwarding events match the current filters."}
                 </TableCell>
               </TableRow>
