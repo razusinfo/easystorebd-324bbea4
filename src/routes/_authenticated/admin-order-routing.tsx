@@ -90,7 +90,9 @@ function AdminOrderRoutingPage() {
   const [fFrom, setFFrom] = useState<string>("");
   const [fTo, setFTo] = useState<string>("");
   const [fQuery, setFQuery] = useState<string>("");
+  const [fFailedOnly, setFFailedOnly] = useState<boolean>(false);
   const [detailRow, setDetailRow] = useState<AuditRow | null>(null);
+
 
 
   const users = useQuery({
