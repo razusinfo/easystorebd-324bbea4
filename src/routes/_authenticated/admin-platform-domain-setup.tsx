@@ -281,18 +281,26 @@ function PlatformDomainSetupPage() {
                       <tr><th className="p-2 text-left">Type</th><th className="p-2 text-left">Name</th><th className="p-2 text-left">Content</th><th className="p-2 text-left">Proxy</th></tr>
                     </thead>
                     <tbody>
-                      {[["A", "@", "185.158.133.1"], ["A", "www", "185.158.133.1"], ["A", "*", "185.158.133.1"]].map(([t, n, v]) => (
+                      {[
+                        ["A", "@", "185.158.133.1", "🟠 Proxied"],
+                        ["A", "www", "185.158.133.1", "🟠 Proxied"],
+                        ["A", "*", "185.158.133.1", "☁️ DNS only"],
+                      ].map(([t, n, v, p]) => (
                         <tr key={n} className="border-t">
                           <td className="p-2">{t}</td>
                           <td className="p-2"><code>{n}</code></td>
                           <td className="p-2 flex items-center gap-1"><code>{v}</code><Button variant="ghost" size="sm" onClick={() => copyText(v)}><Copy className="h-3 w-3" /></Button></td>
-                          <td className="p-2">🟠 Proxied</td>
+                          <td className="p-2">{p}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <p className="text-muted-foreground">The <code>*</code> record enables all subdomains like <code>&lt;slug&gt;.easystorebd.com</code>.</p>
+                <p className="text-muted-foreground">
+                  <b>গুরুত্বপূর্ণ:</b> <code>*</code> record অবশ্যই <b>DNS only (☁️ grey cloud)</b> রাখতে হবে —
+                  Proxied করলে <b>Cloudflare Error 1000 “DNS points to prohibited IP”</b> দেখাবে,
+                  কারণ Lovable-এর edge নিজেই Cloudflare-এ চলে (proxy loop)।
+                </p>
               </div>
             )}
             {stepIdx === 3 && (
