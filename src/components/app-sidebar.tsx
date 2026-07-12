@@ -143,8 +143,21 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
+            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>{resellerItems.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems
+              {notificationItems
                 .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
                 .map(renderItem)}
             </SidebarMenu>
@@ -157,6 +170,7 @@ export function AppSidebar() {
             <SidebarMenu>{growthItems.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         {isAdmin.data && (
           <SidebarGroup>
