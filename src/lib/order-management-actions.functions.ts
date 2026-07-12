@@ -231,10 +231,15 @@ export const getOrderTimeline = createServerFn({ method: "GET" })
       actor_id: string | null;
       actor_name: string | null;
       action: string;
-      before: Record<string, unknown> | null;
-      after: Record<string, unknown> | null;
-      patch: Record<string, unknown> | null;
+      before_status: string | null;
+      after_status: string | null;
+      before_tracking: string | null;
+      after_tracking: string | null;
+      before_notes: string | null;
+      after_notes: string | null;
     };
+    const asStr = (v: unknown): string | null =>
+      v == null ? null : typeof v === "string" ? v : JSON.stringify(v);
     const filtered: Entry[] = [];
     for (const l of logs ?? []) {
       let parsed: Record<string, unknown> = {};
@@ -242,15 +247,20 @@ export const getOrderTimeline = createServerFn({ method: "GET" })
         parsed = l.notes ? JSON.parse(l.notes as string) : {};
       } catch { /* ignore */ }
       if (parsed.order_id !== data.id) continue;
+      const before = (parsed.before ?? {}) as Record<string, unknown>;
+      const after = (parsed.after ?? parsed.patch ?? {}) as Record<string, unknown>;
       filtered.push({
         id: l.id as string,
         at: l.created_at as string,
         actor_id: (l.actor_id as string) ?? null,
         actor_name: null,
         action: l.action as string,
-        before: (parsed.before as Record<string, unknown>) ?? null,
-        after: (parsed.after as Record<string, unknown>) ?? null,
-        patch: (parsed.patch as Record<string, unknown>) ?? null,
+        before_status: asStr(before.status),
+        after_status: asStr(after.status),
+        before_tracking: asStr(before.tracking_id),
+        after_tracking: asStr(after.tracking_id),
+        before_notes: asStr(before.notes),
+        after_notes: asStr(after.notes),
       });
     }
 
