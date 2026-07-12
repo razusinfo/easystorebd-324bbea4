@@ -132,6 +132,7 @@ function HostnameSanitizerInput() {
 
 function PlatformDomainSetupPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const getFn = useServerFn(getPlatformSetup);
   const updFn = useServerFn(updatePlatformSetup);
   const verifyFn = useServerFn(verifyWildcardConnected);
