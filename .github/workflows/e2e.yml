@@ -52,9 +52,11 @@ jobs:
 
           if [ -n "$E2E_APP_URL" ]; then
             python tests/e2e/supplier-marketplace-redirect.spec.py
+            python tests/e2e/my-orders-redirect.spec.py
           else
-            echo "::warning::Skipping supplier-marketplace-redirect.spec.py (E2E_APP_URL not set)"
+            echo "::warning::Skipping redirect specs (E2E_APP_URL not set)"
           fi
+
           if [ -n "$E2E_RESELLER_EMAIL" ] && [ -n "$E2E_APP_URL" ]; then
             python tests/e2e/supplier-marketplace-add.spec.py
           else
