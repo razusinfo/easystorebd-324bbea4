@@ -153,16 +153,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {resellerZone.data && (
-          <SidebarGroup data-testid="reseller-zone-group" className="mt-1">
-            {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-1">{resellerItems.map(renderItem)}</SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -179,6 +169,17 @@ export function AppSidebar() {
             <SidebarMenu>{growthItems.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {resellerZone.data && (
+          <SidebarGroup data-testid="reseller-zone-group" className="mt-1">
+            {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">{resellerItems.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+
 
 
         {isAdmin.data && (
