@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// My Orders has been merged into Order Management. Keep the URL working via
+// My Orders has been merged into Order For Suppliers. Keep the URL working via
 // a permanent client redirect (fires in beforeLoad so the browser's location
 // updates to /order-management before render). Canonical/og:url point at the
 // merged page so crawlers don't index /my-orders as a distinct URL.
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/my-orders")({
   },
   head: () => ({
     meta: [
-      { title: "Order Management — EasyStore" },
+      { title: "Order For Suppliers — EasyStore" },
       { name: "robots", content: "noindex, follow" },
       {
         property: "og:url",
