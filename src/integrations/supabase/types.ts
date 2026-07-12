@@ -1586,6 +1586,53 @@ export type Database = {
           },
         ]
       }
+      reseller_sites: {
+        Row: {
+          change_count: number
+          created_at: string
+          first_published_at: string | null
+          id: string
+          last_changed_at: string | null
+          owner_user_id: string | null
+          status: Database["public"]["Enums"]["reseller_site_status"]
+          store_id: string
+          subdomain: string | null
+          updated_at: string
+        }
+        Insert: {
+          change_count?: number
+          created_at?: string
+          first_published_at?: string | null
+          id?: string
+          last_changed_at?: string | null
+          owner_user_id?: string | null
+          status?: Database["public"]["Enums"]["reseller_site_status"]
+          store_id: string
+          subdomain?: string | null
+          updated_at?: string
+        }
+        Update: {
+          change_count?: number
+          created_at?: string
+          first_published_at?: string | null
+          id?: string
+          last_changed_at?: string | null
+          owner_user_id?: string | null
+          status?: Database["public"]["Enums"]["reseller_site_status"]
+          store_id?: string
+          subdomain?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_sites_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reseller_sync_webhook_logs: {
         Row: {
           error: string | null
@@ -2290,6 +2337,10 @@ export type Database = {
         Args: { _order_id: string }
         Returns: undefined
       }
+      check_subdomain_available: {
+        Args: { _slug: string; _store_id?: string }
+        Returns: boolean
+      }
       get_owner_products_full: {
         Args: { _store_id: string }
         Returns: {
@@ -2437,6 +2488,7 @@ export type Database = {
         | "shipped"
         | "delivered"
         | "cancelled"
+      reseller_site_status: "not_created" | "inactive" | "live"
       store_category:
         | "A to Z"
         | "Clothes"
@@ -2632,6 +2684,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
+      reseller_site_status: ["not_created", "inactive", "live"],
       store_category: [
         "A to Z",
         "Clothes",

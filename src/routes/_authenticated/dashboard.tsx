@@ -155,13 +155,15 @@ function Dashboard() {
               Visit
             </a>
           ) : (
-            <Link
-              to="/manage-shop"
-              className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/80 px-4 py-2.5 text-sm font-bold text-primary shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
+            <button
+              type="button"
+              disabled
+              title={store.slug ? "Website is inactive — republish to visit" : "Create your website first"}
+              className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/50 px-4 py-2.5 text-sm font-bold text-foreground/40 shadow-sm backdrop-blur"
             >
-              <StoreIcon className="h-4 w-4" />
-              Manage
-            </Link>
+              <ExternalLink className="h-4 w-4" />
+              Visit · {store.slug ? "Inactive" : "Not Created"}
+            </button>
           )}
         </div>
 
