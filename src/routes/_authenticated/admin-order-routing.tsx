@@ -505,7 +505,13 @@ function AdminOrderRoutingPage() {
                     <div>ord {a.source_order_id?.slice(0, 8) ?? "—"}</div>
                     <div className="opacity-70">itm {a.source_order_item_id?.slice(0, 8) ?? "—"}</div>
                   </TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
+                    {meta.reseller_order_id
+                      ? <span title={String(meta.reseller_order_id)}>ro {String(meta.reseller_order_id).slice(0, 8)}</span>
+                      : "—"}
+                  </TableCell>
                   <TableCell>{a.success ? "✓" : "✗"}</TableCell>
+
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button
