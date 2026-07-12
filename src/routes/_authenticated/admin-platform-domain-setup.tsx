@@ -386,10 +386,21 @@ function PlatformDomainSetupPage() {
                 </div>
                 <div aria-live="polite" aria-atomic="true">
                   {verifyMut.data && (
-                    <div className="rounded-md border bg-muted/40 p-3 text-xs" data-testid="verify-result">
+                    <div className="rounded-md border bg-muted/40 p-3 text-xs space-y-1" data-testid="verify-result">
                       <div>যাচাই-করা host: <code>{verifyMut.data.testHost}</code></div>
                       <div>DNS: {verifyMut.data.dnsOk ? "✅ Lovable-এ point করছে" : `❌ পাওয়া গেছে ${verifyMut.data.addrs.join(", ") || "কোনো উত্তর নেই"}`}</div>
-                      <div>HTTPS: {verifyMut.data.httpsOk ? "✅ live" : "⏳ এখনো response দিচ্ছে না"}</div>
+                      <div>
+                        HTTPS: {verifyMut.data.httpsOk
+                          ? "✅ live (Lovable app serve করছে)"
+                          : verifyMut.data.httpStatus
+                            ? `❌ HTTP ${verifyMut.data.httpStatus} — Lovable app response দিচ্ছে না`
+                            : "⏳ এখনো response দিচ্ছে না"}
+                      </div>
+                      {verifyMut.data.hint && (
+                        <div className="mt-2 rounded border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2 text-amber-900 dark:text-amber-200" data-testid="verify-hint">
+                          {verifyMut.data.hint}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -104,17 +104,30 @@ async function resolveA(hostname: string): Promise<string[]> {
   }
 }
 
-async function probeHttps(hostname: string): Promise<{ ok: boolean; error?: string }> {
+async function probeHttps(
+  hostname: string,
+): Promise<{ ok: boolean; status?: number; servedByApp?: boolean; error?: string }> {
   try {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(`https://${hostname}/`, {
-      method: "HEAD",
+      method: "GET",
       redirect: "manual",
       signal: controller.signal,
     });
     clearTimeout(t);
-    return { ok: res.status < 500 };
+    // Lovable hosting returns 403 (via Cloudflare) when the Host header is not
+    // attached to any project — exactly what a Cloudflare-only wildcard produces
+    // when the Lovable side has NOT enabled wildcard for the project.
+    if (res.status >= 400) {
+      return { ok: false, status: res.status, servedByApp: false };
+    }
+    let servedByApp = false;
+    try {
+      const body = (await res.text()).slice(0, 8000);
+      servedByApp = /EasyStore|id="root"|data-lovable/i.test(body);
+    } catch { /* ignore body read failure */ }
+    return { ok: servedByApp, status: res.status, servedByApp };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
@@ -233,9 +246,33 @@ export const verifyWildcardConnected = createServerFn({ method: "POST" })
     const addrs = await resolveA(testHost);
     const dnsOk = addrs.includes(LOVABLE_IP);
     let httpsOk = false;
+    let httpStatus: number | undefined;
+    let servedByApp: boolean | undefined;
+    let hint: string | null = null;
     if (dnsOk) {
       const probe = await probeHttps(testHost);
       httpsOk = probe.ok;
+      httpStatus = probe.status;
+      servedByApp = probe.servedByApp;
+      if (!probe.ok) {
+        if (probe.status === 403 || probe.status === 404) {
+          hint =
+            "DNS ঠিক আছে কিন্তু Lovable hosting এই subdomain accept করছে না " +
+            `(HTTP ${probe.status})। Cloudflare wildcard একা যথেষ্ট নয় — Lovable side-এ wildcard ` +
+            "enable করতে হবে: Project Settings → Domains → Connect domain দিয়ে `easystorebd.com` " +
+            "attach করুন (Advanced → “Domain uses Cloudflare or a similar proxy” টিক দিয়ে), " +
+            "অথবা Enterprise plan-এ Lovable support-কে `*.easystorebd.com` wildcard enable করতে বলুন। " +
+            "যতক্ষণ এটা না হয়, ইউজারের `<slug>.easystorebd.com` কাজ করবে না।";
+        } else if (probe.status && probe.status >= 500) {
+          hint = `Lovable hosting ${probe.status} response দিচ্ছে — কিছুক্ষণ পর আবার চেষ্টা করুন।`;
+        } else if (!probe.status) {
+          hint = probe.error ?? "HTTPS response পাওয়া যায়নি।";
+        }
+      }
+    } else if (addrs.length === 0) {
+      hint = "DNS এখনো propagate হয়নি — ২৪–৪৮ ঘণ্টা পর্যন্ত সময় নিতে পারে।";
+    } else {
+      hint = `DNS ${addrs.join(", ")}-এ point করছে, ${LOVABLE_IP} নয়। Cloudflare-এ A record ঠিক করুন।`;
     }
-    return { dnsOk, httpsOk, testHost, addrs };
+    return { dnsOk, httpsOk, testHost, addrs, httpStatus, servedByApp, hint };
   });
