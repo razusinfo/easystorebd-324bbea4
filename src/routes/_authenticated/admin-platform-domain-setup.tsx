@@ -183,6 +183,11 @@ function PlatformDomainSetupPage() {
   const canGoNext = canAdvance(setup, stepIdx);
   const blockedMsg = advanceBlockedMessage(stepIdx);
   const wildcardLive = !!setup?.lovable_wildcard_connected;
+  const incompleteSteps = STEPS.filter((s) => !setup?.[s.key]);
+  const allStepsDone = incompleteSteps.length === 0;
+  const finishBlockedMsg = allStepsDone
+    ? null
+    : `Finish করতে বাকি ধাপ সম্পূর্ণ করুন: ${incompleteSteps.map((s) => s.title).join(", ")}`;
 
   // Poll DNS every AUTO_INTERVAL_MS on Step 5 while auto re-check is on and
   // the wildcard isn't yet live. Also drive a 1s ticker so the countdown
