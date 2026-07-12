@@ -326,6 +326,22 @@ function PlatformDomainSetupPage() {
 
                 <HostnameSanitizerInput />
 
+                <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-2" data-testid="wildcard-checklist">
+                  <p className="font-medium">📋 Lovable Connect Domain — click-by-click checklist</p>
+                  <ol className="list-decimal pl-5 space-y-1 text-xs">
+                    <li>Lovable dashboard খুলুন → বর্তমান project select করুন।</li>
+                    <li>উপরের ডানপাশে <b>Settings</b> (⚙️) → বাম মেনু থেকে <b>Project</b> section → <b>Domains</b>।</li>
+                    <li><b>Connect Domain</b> বাটনে ক্লিক করুন।</li>
+                    <li>Hostname ঘরে <code>easystorebd.com</code> লিখুন (<b>*</b> বাদ — উপরের helper দিয়ে কপি করুন)।</li>
+                    <li><b>Advanced</b> section expand করুন → ✅ <b>“Domain uses Cloudflare or a similar proxy”</b> checkbox টিক দিন।</li>
+                    <li><b>Continue</b> চাপুন → status <b>Verifying → Setting up → Active</b> হবে।</li>
+                    <li>একই ধাপ repeat করুন <code>www.easystorebd.com</code>-এর জন্য।</li>
+                    <li>Cloudflare-এ ফিরে গিয়ে DNS → Records-এ <code>*</code> A record-এর <b>Proxy status: DNS only</b> (☁️ grey cloud) নিশ্চিত করুন।</li>
+                    <li>এই পেজে ফিরে <b>Verify wildcard</b> চাপুন — সবুজ ✅ পেলে Finish করুন।</li>
+                  </ol>
+                </div>
+
+
 
 
                 <div className="rounded-md border p-3 space-y-2">
