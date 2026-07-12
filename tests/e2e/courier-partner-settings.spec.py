@@ -54,11 +54,39 @@ async def main():
         await page.goto("http://localhost:8080/courier", wait_until="domcontentloaded")
         await page.screenshot(path=str(SHOTS / "1_courier.png"))
 
+        # Sidebar order: Courier must sit directly below Customers.
+        order = await page.evaluate(
+            """() => Array.from(document.querySelectorAll('a[href="/customers"], a[href="/courier"]'))
+                  .map(a => a.getAttribute('href'))"""
+        )
+        assert order[:2] == ["/customers", "/courier"], f"Bad sidebar order: {order}"
+
+        # Active highlight for Courier while on /courier (desktop).
+        active = await page.evaluate(
+            """() => document.querySelector('a[href="/courier"]')?.closest('[data-active]')?.getAttribute('data-active')"""
+        )
+        assert active == "true", f"Courier not active on desktop: {active!r}"
+
+        # Mobile viewport: same order + active highlight after opening the sheet.
+        await page.set_viewport_size({"width": 390, "height": 844})
+        await page.reload(wait_until="domcontentloaded")
+        trigger = page.get_by_role("button", name="Toggle Sidebar")
+        if await trigger.count():
+            await trigger.first.click()
+            await page.wait_for_timeout(300)
+        m_order = await page.evaluate(
+            """() => Array.from(document.querySelectorAll('a[href="/customers"], a[href="/courier"]'))
+                  .map(a => a.getAttribute('href'))"""
+        )
+        assert m_order[:2] == ["/customers", "/courier"], f"Bad mobile order: {m_order}"
+        await page.screenshot(path=str(SHOTS / "2_mobile_sidebar.png"))
+        await page.set_viewport_size({"width": 1280, "height": 1800})
+
         link = page.get_by_role("link", name="Partner settings")
         await link.first.click()
         await page.wait_for_url("**/courier-settings", timeout=10_000)
         await page.wait_for_load_state("domcontentloaded")
-        await page.screenshot(path=str(SHOTS / "2_courier_settings.png"))
+        await page.screenshot(path=str(SHOTS / "3_courier_settings.png"))
 
         assert page.url.endswith("/courier-settings"), f"Bad URL: {page.url}"
 
