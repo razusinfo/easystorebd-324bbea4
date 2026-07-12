@@ -4,6 +4,8 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar";
 import { SupportChatWidget } from "@/components/support-chat-widget";
 import { HeaderNotificationsBell } from "@/components/header-notifications-bell";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 
 // Routes reachable BEFORE a store exists (avoid a redirect loop).
 const NO_STORE_ALLOWED = ["/onboarding", "/upgrade"];
@@ -53,15 +55,16 @@ function AuthenticatedLayout() {
               <HeaderNotificationsBell />
             </div>
           </header>
-          <main className="min-w-0 flex-1 overflow-x-hidden">
+          <main className="min-w-0 flex-1 overflow-x-hidden pb-16 md:pb-0">
             <div className="mx-auto w-full max-w-7xl">
               <Outlet />
             </div>
           </main>
         </SidebarInset>
+        <MobileBottomNav />
+        <KeyboardShortcuts />
       </div>
       <SupportChatWidget />
-    </SidebarProvider>
   );
 }
 
