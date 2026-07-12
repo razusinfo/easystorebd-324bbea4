@@ -56,6 +56,7 @@ import { Route as AuthenticatedCourierSettingsRouteImport } from './routes/_auth
 import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticated/courier'
 import { Route as AuthenticatedCategoriesRouteImport } from './routes/_authenticated/categories'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedAdminWebsiteRequestsRouteImport } from './routes/_authenticated/admin-website-requests'
 import { Route as AuthenticatedAdminTenantDebugRouteImport } from './routes/_authenticated/admin-tenant-debug'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin-support'
 import { Route as AuthenticatedAdminResellerVisibilityRouteImport } from './routes/_authenticated/admin-reseller-visibility'
@@ -346,6 +347,12 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminWebsiteRequestsRoute =
+  AuthenticatedAdminWebsiteRequestsRouteImport.update({
+    id: '/admin-website-requests',
+    path: '/admin-website-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminTenantDebugRoute =
   AuthenticatedAdminTenantDebugRouteImport.update({
     id: '/admin-tenant-debug',
@@ -625,6 +632,7 @@ export interface FileRoutesByFullPath {
   '/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/admin-tenant-debug': typeof AuthenticatedAdminTenantDebugRoute
+  '/admin-website-requests': typeof AuthenticatedAdminWebsiteRequestsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/courier': typeof AuthenticatedCourierRoute
@@ -716,6 +724,7 @@ export interface FileRoutesByTo {
   '/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/admin-tenant-debug': typeof AuthenticatedAdminTenantDebugRoute
+  '/admin-website-requests': typeof AuthenticatedAdminWebsiteRequestsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/categories': typeof AuthenticatedCategoriesRoute
   '/courier': typeof AuthenticatedCourierRoute
@@ -809,6 +818,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
   '/_authenticated/admin-support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin-tenant-debug': typeof AuthenticatedAdminTenantDebugRoute
+  '/_authenticated/admin-website-requests': typeof AuthenticatedAdminWebsiteRequestsRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/categories': typeof AuthenticatedCategoriesRoute
   '/_authenticated/courier': typeof AuthenticatedCourierRoute
@@ -903,6 +913,7 @@ export interface FileRouteTypes {
     | '/admin-reseller-visibility'
     | '/admin-support'
     | '/admin-tenant-debug'
+    | '/admin-website-requests'
     | '/analytics'
     | '/categories'
     | '/courier'
@@ -994,6 +1005,7 @@ export interface FileRouteTypes {
     | '/admin-reseller-visibility'
     | '/admin-support'
     | '/admin-tenant-debug'
+    | '/admin-website-requests'
     | '/analytics'
     | '/categories'
     | '/courier'
@@ -1086,6 +1098,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-reseller-visibility'
     | '/_authenticated/admin-support'
     | '/_authenticated/admin-tenant-debug'
+    | '/_authenticated/admin-website-requests'
     | '/_authenticated/analytics'
     | '/_authenticated/categories'
     | '/_authenticated/courier'
@@ -1512,6 +1525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-website-requests': {
+      id: '/_authenticated/admin-website-requests'
+      path: '/admin-website-requests'
+      fullPath: '/admin-website-requests'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin-tenant-debug': {
       id: '/_authenticated/admin-tenant-debug'
       path: '/admin-tenant-debug'
@@ -1840,6 +1860,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminResellerVisibilityRoute: typeof AuthenticatedAdminResellerVisibilityRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAdminTenantDebugRoute: typeof AuthenticatedAdminTenantDebugRoute
+  AuthenticatedAdminWebsiteRequestsRoute: typeof AuthenticatedAdminWebsiteRequestsRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedCategoriesRoute: typeof AuthenticatedCategoriesRoute
   AuthenticatedCourierRoute: typeof AuthenticatedCourierRoute
@@ -1899,6 +1920,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAdminResellerVisibilityRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedAdminTenantDebugRoute: AuthenticatedAdminTenantDebugRoute,
+  AuthenticatedAdminWebsiteRequestsRoute:
+    AuthenticatedAdminWebsiteRequestsRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedCategoriesRoute: AuthenticatedCategoriesRoute,
   AuthenticatedCourierRoute: AuthenticatedCourierRoute,
