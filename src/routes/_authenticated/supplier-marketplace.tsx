@@ -86,7 +86,7 @@ function SupplierMarketplacePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id,sku,product_serial,brand")
+        .select("id,sku,product_serial,brand,supplier_id")
         .in("id", originalIds);
       if (error) throw error;
       const map = new Map<string, OriginalMeta>();
@@ -94,6 +94,41 @@ function SupplierMarketplacePage() {
       return map;
     },
   });
+
+  // Resolve supplier display names from profiles for every supplier_id seen.
+  const supplierIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const meta of originalsQuery.data?.values() ?? []) {
+      if (meta.supplier_id) s.add(meta.supplier_id);
+    }
+    return Array.from(s);
+  }, [originalsQuery.data]);
+  const suppliersProfilesQuery = useQuery({
+    queryKey: ["supplier-marketplace", "supplier-profiles", supplierIds.slice(0).sort().join(",")],
+    enabled: supplierIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id,name,store").in("id", supplierIds);
+      if (error) throw error;
+      const map = new Map<string, string>();
+      for (const p of (data ?? []) as Array<{ id: string; name: string | null; store: string | null }>) {
+        map.set(p.id, p.store || p.name || "Supplier");
+      }
+      return map;
+    },
+  });
+
+  // Helper: resolve display supplier for a given row via supplier_id
+  // (preferred, joined through products.supplier_id) with a fallback to the
+  // legacy `source` string when the row has no linked original product.
+  const supplierIdOf = (r: Row): string | null => {
+    if (!r.original_product_id) return null;
+    return originalsQuery.data?.get(r.original_product_id)?.supplier_id ?? null;
+  };
+  const supplierNameOf = (r: Row): string => {
+    const id = supplierIdOf(r);
+    if (id) return suppliersProfilesQuery.data?.get(id) ?? "Supplier";
+    return normalizeSupplier(r.source);
+  };
 
   // What the reseller already has in their store — keyed by source_reseller_product_id.
   const addedQuery = useQuery({
