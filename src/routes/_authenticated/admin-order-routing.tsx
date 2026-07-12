@@ -543,7 +543,8 @@ function AdminOrderRoutingPage() {
               );
             }) : (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+
                   {audit.isLoading ? "Loading…" : "No forwarding events match the current filters."}
                 </TableCell>
               </TableRow>
