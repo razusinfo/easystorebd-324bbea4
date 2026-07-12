@@ -32,7 +32,6 @@ const resellerItems = [
   { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
   { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
-  { title: "Courier Settings", url: "/courier-settings", icon: Settings },
 ];
 
 const notificationItems = [
