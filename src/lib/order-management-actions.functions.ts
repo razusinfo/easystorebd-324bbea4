@@ -147,7 +147,7 @@ export const bulkUpdateManagedOrders = createServerFn({ method: "POST" })
       throw new Error(`Forbidden: suppliers may only set status to ${SUPPLIER_ALLOWED.join(", ")}`);
     }
 
-    const patch: Record<string, unknown> = {};
+    const patch: Partial<{ status: Status; tracking_id: string | null; tracking_url: string | null; notes: string | null }> = {};
     if (data.status !== undefined) patch.status = data.status;
     if (data.tracking_id !== undefined) patch.tracking_id = data.tracking_id || null;
     if (data.tracking_url !== undefined) patch.tracking_url = data.tracking_url || null;
