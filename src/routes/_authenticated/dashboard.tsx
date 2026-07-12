@@ -4,11 +4,12 @@ import {
   Package, ShoppingBag, Users, Globe, FolderTree, Megaphone,
   Store as StoreIcon, LayoutTemplate, Tag, BarChart3, FileBarChart,
   Truck, Gem, ReceiptText, LifeBuoy, Zap, Copy, ExternalLink,
-  Home, Loader2,
+  Home, Loader2, Pencil, Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyStore, useMyProducts, buildStorefrontUrl } from "@/lib/eazystore-data";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
+import { WebsiteNameDialog } from "@/components/website-name-dialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — EasyStore" }] }),
