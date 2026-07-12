@@ -60,6 +60,7 @@ jobs:
             python tests/e2e/reseller-products-above-requests.spec.py
             python tests/e2e/reseller-zone-above-products.spec.py
             python tests/e2e/order-notifications-rename.spec.py
+            python tests/e2e/orders-above-customers.spec.py
           else
             echo "::warning::Skipping redirect specs (E2E_APP_URL not set)"
           fi
