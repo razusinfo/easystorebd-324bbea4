@@ -28,6 +28,7 @@ function Dashboard() {
   const myStore = useMyStore();
   const products = useMyProducts(myStore.data?.id);
   const [name, setName] = useState<string>("");
+  const [siteDialogOpen, setSiteDialogOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
