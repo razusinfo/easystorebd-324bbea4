@@ -104,32 +104,64 @@ async function resolveA(hostname: string): Promise<string[]> {
   }
 }
 
-async function probeHttps(
+export async function probeHttps(
   hostname: string,
-): Promise<{ ok: boolean; status?: number; servedByApp?: boolean; error?: string }> {
+  opts?: { fetchImpl?: typeof fetch },
+): Promise<{
+  ok: boolean;
+  status?: number;
+  servedByApp?: boolean;
+  error?: string;
+  finalUrl?: string;
+  redirectChain?: string[];
+  cloudflareError?: number; // 1000 = "DNS points to prohibited IP"
+}> {
+  const doFetch = opts?.fetchImpl ?? fetch;
+  const redirectChain: string[] = [];
+  let currentUrl = `https://${hostname}/`;
   try {
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(`https://${hostname}/`, {
-      method: "GET",
-      redirect: "manual",
-      signal: controller.signal,
-    });
-    clearTimeout(t);
-    // Lovable hosting returns 403 (via Cloudflare) when the Host header is not
-    // attached to any project — exactly what a Cloudflare-only wildcard produces
-    // when the Lovable side has NOT enabled wildcard for the project.
-    if (res.status >= 400) {
-      return { ok: false, status: res.status, servedByApp: false };
+    for (let hop = 0; hop < 5; hop++) {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 8000);
+      const res = await doFetch(currentUrl, {
+        method: "GET",
+        redirect: "manual",
+        signal: controller.signal,
+        headers: { "User-Agent": "EasyStore-DomainProbe/1.0" },
+      });
+      clearTimeout(t);
+      redirectChain.push(`${res.status} ${currentUrl}`);
+
+      // Follow 3xx redirects manually so we can validate the final Host header.
+      if (res.status >= 300 && res.status < 400) {
+        const loc = res.headers.get("location");
+        if (!loc) return { ok: false, status: res.status, servedByApp: false, redirectChain };
+        currentUrl = new URL(loc, currentUrl).toString();
+        continue;
+      }
+
+      let body = "";
+      try { body = (await res.text()).slice(0, 16000); } catch { /* ignore */ }
+
+      // Cloudflare Error 1000 = proxied A record points at another Cloudflare
+      // IP (Lovable's edge is also on Cloudflare). Fix: grey-cloud the record.
+      if (/error\s*1000/i.test(body) || /DNS points to prohibited IP/i.test(body)) {
+        return {
+          ok: false, status: res.status, servedByApp: false,
+          cloudflareError: 1000, finalUrl: currentUrl, redirectChain,
+        };
+      }
+
+      if (res.status >= 400) {
+        return { ok: false, status: res.status, servedByApp: false, finalUrl: currentUrl, redirectChain };
+      }
+
+      const servedByApp = /EasyStore|id="root"|data-lovable/i.test(body);
+      return { ok: servedByApp, status: res.status, servedByApp, finalUrl: currentUrl, redirectChain };
     }
-    let servedByApp = false;
-    try {
-      const body = (await res.text()).slice(0, 8000);
-      servedByApp = /EasyStore|id="root"|data-lovable/i.test(body);
-    } catch { /* ignore body read failure */ }
-    return { ok: servedByApp, status: res.status, servedByApp };
+    return { ok: false, error: "Too many redirects", redirectChain };
   } catch (e) {
-    return { ok: false, error: (e as Error).message };
+    return { ok: false, error: (e as Error).message, redirectChain };
   }
 }
 
