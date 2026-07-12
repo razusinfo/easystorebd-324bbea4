@@ -166,20 +166,26 @@ export function AppSidebar() {
           <SidebarGroup data-testid="reseller-zone-group" className="mt-1">
             {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
             <SidebarGroupContent>
-              <SidebarMenu className="gap-1">{resellerItems.map(renderItem)}</SidebarMenu>
+              <SidebarMenu className="gap-1">
+                {resellerItems
+                  .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
+                  .map(renderItem)}
+              </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
 
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {notificationItems
-                .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
-                .map(renderItem)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {!resellerZone.data && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {notificationItems
+                  .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
+                  .map(renderItem)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
 
 
