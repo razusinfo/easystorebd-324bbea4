@@ -286,7 +286,7 @@ function SupplierMarketplacePage() {
             <SelectContent>
               <SelectItem value={ALL}>All suppliers</SelectItem>
               {suppliers.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
