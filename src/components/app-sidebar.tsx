@@ -32,6 +32,7 @@ const resellerItems = [
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
   { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
   { title: "Order For Suppliers", url: "/order-management", icon: Receipt, badge: "NEW" },
+  { title: "Order Notifications", url: "/my-notifications", icon: Bell },
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
 ];
 
