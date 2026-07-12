@@ -15,7 +15,7 @@ RESELLER_LINKS = [
     ("Reseller Requests", "/reseller-requests"),
     ("Wallet", "/wallet"),
     ("Courier", "/courier"),
-    ("Courier Settings", "/courier-settings"),
+
 ]
 
 async def restore_session(context, page):
