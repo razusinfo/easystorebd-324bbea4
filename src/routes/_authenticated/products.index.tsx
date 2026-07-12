@@ -8,9 +8,10 @@ import { useCategories } from "@/lib/categories-data";
 
 import {
   useMyStore, useMyProductsPaged, useMyProductsStats, useDeleteProduct,
-  useUpdateProductStatus, useProductAuditLogs,
+  useUpdateProductStatus, useProductAuditLogs, useMyProductSuppliers,
   type ProductRow, type ProductStatus,
 } from "@/lib/eazystore-data";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
