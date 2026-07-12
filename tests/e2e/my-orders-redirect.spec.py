@@ -1,5 +1,5 @@
 """E2E: /my-orders redirects to /order-management for both authenticated and
-unauthenticated visits, and the Order Management page renders its key UI
+unauthenticated visits, and the Order For Suppliers page renders its key UI
 (heading + filter/tab controls).
 
 Env:
@@ -39,7 +39,7 @@ async def _assert_redirect_and_ui(page, label: str):
         )
     body = (await page.locator("body").inner_text()).lower()
     assert "order management" in body, \
-        f"[{label}] missing 'Order Management' heading. body head: {body[:400]}"
+        f"[{label}] missing 'Order For Suppliers' heading. body head: {body[:400]}"
     print(f"[{label}] OK → {final}")
 
 

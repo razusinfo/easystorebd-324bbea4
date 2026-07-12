@@ -1,4 +1,4 @@
-"""E2E: Order Management role-scoped visibility.
+"""E2E: Order For Suppliers role-scoped visibility.
 
 Verifies that the `reseller_orders` reads (via PostgREST + RLS with a signed-in
 user token) enforce the role rules powering `/order-management`:
