@@ -155,16 +155,6 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {notificationItems
-                .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
-                .map(renderItem)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
           {!collapsed && <SidebarGroupLabel>Shop & Growth</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>{growthItems.map(renderItem)}</SidebarMenu>
@@ -179,6 +169,17 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {notificationItems
+                .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
+                .map(renderItem)}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
 
 
 
