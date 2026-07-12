@@ -45,7 +45,8 @@ type Row = {
   gallery_urls: string[] | null;
 };
 
-type OriginalMeta = { id: string; sku: string | null; product_serial: string | null; brand: string | null };
+type OriginalMeta = { id: string; sku: string | null; product_serial: string | null; brand: string | null; supplier_id: string | null };
+type SupplierOption = { id: string; name: string };
 
 function fmt(n: number | null | undefined) {
   if (n == null) return "—";
