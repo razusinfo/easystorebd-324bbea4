@@ -104,17 +104,30 @@ async function resolveA(hostname: string): Promise<string[]> {
   }
 }
 
-async function probeHttps(hostname: string): Promise<{ ok: boolean; error?: string }> {
+async function probeHttps(
+  hostname: string,
+): Promise<{ ok: boolean; status?: number; servedByApp?: boolean; error?: string }> {
   try {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(`https://${hostname}/`, {
-      method: "HEAD",
+      method: "GET",
       redirect: "manual",
       signal: controller.signal,
     });
     clearTimeout(t);
-    return { ok: res.status < 500 };
+    // Lovable hosting returns 403 (via Cloudflare) when the Host header is not
+    // attached to any project — exactly what a Cloudflare-only wildcard produces
+    // when the Lovable side has NOT enabled wildcard for the project.
+    if (res.status >= 400) {
+      return { ok: false, status: res.status, servedByApp: false };
+    }
+    let servedByApp = false;
+    try {
+      const body = (await res.text()).slice(0, 8000);
+      servedByApp = /EasyStore|id="root"|data-lovable/i.test(body);
+    } catch { /* ignore body read failure */ }
+    return { ok: servedByApp, status: res.status, servedByApp };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
