@@ -29,7 +29,6 @@ const mainItems = [
 const courierItem = { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" };
 
 const resellerItems = [
-  { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
 ];
 
