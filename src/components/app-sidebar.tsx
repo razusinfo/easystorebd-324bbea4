@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
+import { useIsResellerOrSupplier } from "@/lib/use-reseller-role";
 import { useQuery } from "@tanstack/react-query";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
@@ -58,6 +59,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isAdmin = useIsSuperAdmin();
+  const resellerZone = useIsResellerOrSupplier();
+
 
   const isActive = (path: string) => pathname === path;
   const handleNavClick = () => { if (isMobile) setOpenMobile(false); };
@@ -147,12 +150,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
-          <SidebarGroupContent>
-            <SidebarMenu>{resellerItems.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {resellerZone.data && (
+          <SidebarGroup data-testid="reseller-zone-group" className="mt-1">
+            {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">{resellerItems.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
 
         <SidebarGroup>
           <SidebarGroupContent>
