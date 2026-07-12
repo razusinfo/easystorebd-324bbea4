@@ -24,16 +24,20 @@ const mainItems = [
   { title: "Products", url: "/products", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
+];
+
+const resellerItems = [
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
-  
   { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
-  
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
-  
   { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
   { title: "Courier Settings", url: "/courier-settings", icon: Settings },
+];
+
+const notificationItems = [
   { title: "Notifications", url: "/my-notifications", icon: Bell },
 ];
+
 
 
 const growthItems = [
@@ -139,8 +143,21 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
+            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>{resellerItems.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems
+              {notificationItems
                 .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
                 .map(renderItem)}
             </SidebarMenu>
@@ -153,6 +170,7 @@ export function AppSidebar() {
             <SidebarMenu>{growthItems.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         {isAdmin.data && (
           <SidebarGroup>
