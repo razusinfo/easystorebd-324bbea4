@@ -12,6 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate .cpanel.yml syntax
+        run: |
+          test -f .cpanel.yml || { echo "::error::.cpanel.yml missing"; exit 1; }
+          python3 -c "import yaml,sys; d=yaml.safe_load(open('.cpanel.yml')); assert 'deployment' in d and 'tasks' in d['deployment'], 'invalid .cpanel.yml structure'; print('.cpanel.yml OK')"
+
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
