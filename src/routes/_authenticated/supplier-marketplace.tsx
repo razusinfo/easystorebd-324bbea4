@@ -149,17 +149,30 @@ function SupplierMarketplacePage() {
     },
   });
 
-  const suppliers = useMemo(() => {
-    const s = new Set<string>();
-    for (const r of productsQuery.data ?? []) s.add(normalizeSupplier(r.source));
-    // Always put the primary supplier first.
-    const list = Array.from(s).sort((a, b) => {
-      if (a === PRIMARY_SUPPLIER) return -1;
-      if (b === PRIMARY_SUPPLIER) return 1;
-      return a.localeCompare(b);
+  // Supplier options keyed by supplier_id (from products.supplier_id via the
+  // originals join). Rows without a linked original fall back to their
+  // legacy `source` string keyed by "src:<name>" so they remain filterable.
+  const suppliers = useMemo<SupplierOption[]>(() => {
+    const byId = new Map<string, SupplierOption>();
+    for (const r of productsQuery.data ?? []) {
+      const id = supplierIdOf(r);
+      if (id) {
+        if (!byId.has(id)) {
+          byId.set(id, { id, name: suppliersProfilesQuery.data?.get(id) ?? "Supplier" });
+        }
+      } else {
+        const name = normalizeSupplier(r.source);
+        const key = `src:${name}`;
+        if (!byId.has(key)) byId.set(key, { id: key, name });
+      }
+    }
+    return Array.from(byId.values()).sort((a, b) => {
+      if (a.name === PRIMARY_SUPPLIER) return -1;
+      if (b.name === PRIMARY_SUPPLIER) return 1;
+      return a.name.localeCompare(b.name);
     });
-    return list;
-  }, [productsQuery.data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productsQuery.data, originalsQuery.data, suppliersProfilesQuery.data]);
 
   const categories = useMemo(() => {
     const s = new Set<string>();
@@ -173,14 +186,18 @@ function SupplierMarketplacePage() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (productsQuery.data ?? []).filter((r) => {
-      if (supplier !== ALL && normalizeSupplier(r.source) !== supplier) return false;
+      if (supplier !== ALL) {
+        const id = supplierIdOf(r);
+        const key = id ?? `src:${normalizeSupplier(r.source)}`;
+        if (key !== supplier) return false;
+      }
       if (category !== ALL && (r.category ?? "").trim() !== category) return false;
       if (term) {
         const orig = r.original_product_id ? originalsQuery.data?.get(r.original_product_id) : null;
         const hay = [
           r.name,
           r.category ?? "",
-          normalizeSupplier(r.source),
+          supplierNameOf(r),
           orig?.sku ?? "",
           orig?.product_serial ?? "",
           orig?.brand ?? "",
@@ -191,7 +208,8 @@ function SupplierMarketplacePage() {
       }
       return true;
     });
-  }, [productsQuery.data, originalsQuery.data, search, supplier, category]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productsQuery.data, originalsQuery.data, suppliersProfilesQuery.data, search, supplier, category]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
