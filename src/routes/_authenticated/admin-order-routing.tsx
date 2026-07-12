@@ -250,7 +250,7 @@ function AdminOrderRoutingPage() {
       }
       return true;
     });
-  }, [audit.data, fReason, fSupplier, fCategory, fFrom, fTo, fQuery]);
+  }, [audit.data, fReason, fSupplier, fCategory, fFrom, fTo, fQuery, fFailedOnly]);
 
   const errorCount = useMemo(
     () => (audit.data ?? []).filter((a) => !a.success).length,
@@ -259,8 +259,9 @@ function AdminOrderRoutingPage() {
 
   function resetFilters() {
     setFReason("all"); setFSupplier("all"); setFCategory("all");
-    setFFrom(""); setFTo(""); setFQuery("");
+    setFFrom(""); setFTo(""); setFQuery(""); setFFailedOnly(false);
   }
+
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
