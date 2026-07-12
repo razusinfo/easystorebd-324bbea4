@@ -44,12 +44,20 @@ export const listManagedOrders = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<ManagedOrdersResult> => {
     const { supabase, userId } = context;
 
-    const { data: isAdmin } = await supabase.rpc("has_role", {
+    if (!userId) {
+      throw new Error("Forbidden: no authenticated user");
+    }
+
+    // Fail-closed role detection. If the RPC errors, treat the caller as a
+    // supplier (never as admin) so we still apply the reseller_id scope.
+    const { data: isAdminData, error: roleErr } = await supabase.rpc("has_role", {
       _user_id: userId,
       _role: "super_admin",
     });
-
-    const role: "super_admin" | "supplier" = isAdmin ? "super_admin" : "supplier";
+    if (roleErr) {
+      console.warn("[order-management] has_role failed, defaulting to supplier scope:", roleErr.message);
+    }
+    const role: "super_admin" | "supplier" = isAdminData === true ? "super_admin" : "supplier";
 
     let query = supabase
       .from("reseller_orders")
@@ -60,12 +68,27 @@ export const listManagedOrders = createServerFn({ method: "GET" })
       .limit(500);
 
     if (role === "supplier") {
+      // Server-side scope. RLS (`auth.uid() = reseller_id`) is the primary
+      // guard; this .eq is the redundant application-layer scope.
       query = query.eq("reseller_id", userId);
     }
 
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     const raw = (data ?? []) as Array<Record<string, unknown>>;
+
+    // Defense-in-depth: even though RLS + .eq() already scope suppliers to
+    // their own rows, assert it before returning anything to the client.
+    // Any leak here indicates a policy regression and must not silently ship.
+    if (role === "supplier") {
+      for (const r of raw) {
+        if (r.reseller_id !== userId) {
+          console.error("[order-management] supplier scope leak detected", { userId, rowResellerId: r.reseller_id });
+          throw new Error("Forbidden: supplier scope violation");
+        }
+      }
+    }
+
 
     const resellerIds = Array.from(new Set(raw.map((r) => r.reseller_id as string).filter(Boolean)));
     const storeIds = Array.from(
