@@ -58,6 +58,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isAdmin = useIsSuperAdmin();
+  const resellerZone = useIsResellerOrSupplier();
+
 
   const isActive = (path: string) => pathname === path;
   const handleNavClick = () => { if (isMobile) setOpenMobile(false); };
