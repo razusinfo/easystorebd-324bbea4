@@ -397,9 +397,20 @@ function AdminOrderRoutingPage() {
               <Badge variant="destructive">{errorCount} failed</Badge>
             )}
           </div>
-          <Button variant="outline" size="sm" onClick={() => audit.refetch()}>
-            <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={fFailedOnly ? "destructive" : "outline"}
+              size="sm"
+              onClick={() => setFFailedOnly((v) => !v)}
+              title="Show only failed forwarding attempts"
+            >
+              {fFailedOnly ? "Showing failed only" : "Failed only"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => audit.refetch()}>
+              <RefreshCcw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
+          </div>
+
         </div>
 
         {/* Filters */}
