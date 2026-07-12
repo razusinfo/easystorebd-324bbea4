@@ -324,7 +324,7 @@ function SupplierMarketplacePage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {pageRows.map((r) => {
-            const supplierName = normalizeSupplier(r.source);
+            const supplierName = supplierNameOf(r);
             const orig = r.original_product_id ? originalsQuery.data?.get(r.original_product_id) : null;
             const added = addedQuery.data?.get(r.id) ?? null;
             const image = r.image_url ?? r.image ?? null;
