@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -132,6 +132,7 @@ function HostnameSanitizerInput() {
 
 function PlatformDomainSetupPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const getFn = useServerFn(getPlatformSetup);
   const updFn = useServerFn(updatePlatformSetup);
   const verifyFn = useServerFn(verifyWildcardConnected);
@@ -435,16 +436,29 @@ function PlatformDomainSetupPage() {
               {stepIdx === STEPS.length - 1 ? (
                 <Button
                   size="sm"
-                  disabled={!canGoNext}
+                  disabled={!canGoNext || updMut.isPending}
                   title={!canGoNext ? blockedMsg : undefined}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!canGoNext) {
                       toast.error(blockedMsg);
                       return;
                     }
-                    toast.success("Setup complete 🎉");
+                    try {
+                      // Mark every step done + persist final step so a reload
+                      // resumes on the completed screen instead of step 1.
+                      const patch: Record<string, boolean | number> = { current_step: STEPS.length };
+                      for (const s of STEPS) patch[s.key] = true;
+                      await updMut.mutateAsync(patch);
+                      toast.success("Setup complete 🎉");
+                      navigate({ to: "/admin" });
+                    } catch (e) {
+                      toast.error((e as Error).message ?? "Failed to finish setup");
+                    }
                   }}
                 >
+                  {updMut.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : null}
                   Finish
                   <Check className="h-4 w-4 ml-1" />
                 </Button>
