@@ -291,6 +291,7 @@ export const verifyWildcardConnected = createServerFn({ method: "POST" })
     let finalUrl: string | undefined;
     let redirectChain: string[] | undefined;
     let cloudflareError: number | undefined;
+    let finalHeaders: Record<string, string> | undefined;
     let hint: string | null = null;
     if (dnsOk) {
       const probe = await probeHttps(testHost);
@@ -300,13 +301,19 @@ export const verifyWildcardConnected = createServerFn({ method: "POST" })
       finalUrl = probe.finalUrl;
       redirectChain = probe.redirectChain;
       cloudflareError = probe.cloudflareError;
+      finalHeaders = probe.finalHeaders;
       if (!probe.ok) hint = buildProbeHint(probe);
     } else if (addrs.length === 0) {
       hint = "DNS এখনো propagate হয়নি — ২৪–৪৮ ঘণ্টা পর্যন্ত সময় নিতে পারে।";
     } else {
       hint = `DNS ${addrs.join(", ")}-এ point করছে, ${LOVABLE_IP} নয়। Cloudflare-এ A record ঠিক করুন।`;
     }
-    return { dnsOk, httpsOk, testHost, addrs, httpStatus, servedByApp, finalUrl, redirectChain, cloudflareError, hint };
+    // Missing-wildcard = DNS OK + HTTP 4xx from Lovable edge (no CF1000). Signals
+    // that Lovable hasn't attached the wildcard to this project.
+    const missingWildcard =
+      dnsOk && !httpsOk && cloudflareError !== 1000 &&
+      typeof httpStatus === "number" && httpStatus >= 400 && httpStatus < 500;
+    return { dnsOk, httpsOk, testHost, addrs, httpStatus, servedByApp, finalUrl, redirectChain, cloudflareError, finalHeaders, missingWildcard, hint };
   });
 
 /** Pure hint builder — exported for unit tests. */
