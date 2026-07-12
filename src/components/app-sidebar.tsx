@@ -146,7 +146,10 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+            <SidebarMenu className="gap-1">
+              {mainItems.map(renderItem)}
+              {resellerZone.data && renderItem(courierItem)}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
