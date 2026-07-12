@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 
 export type ManagedOrderRow = {
   id: string;
@@ -190,6 +192,35 @@ export const listManagedOrders = createServerFn({ method: "GET" })
     const resellerSet = new Map<string, string>();
     for (const r of rows) resellerSet.set(r.reseller_id, r.reseller_name);
 
+    // Audit: record who fetched the order list. Best-effort — never block the
+    // read on a logging failure, but never silently drop it either.
+    try {
+      let ip: string | null = null;
+      let ua: string | null = null;
+      try {
+        const req = getRequest();
+        ip =
+          req.headers.get("cf-connecting-ip") ??
+          req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          req.headers.get("x-real-ip") ??
+          null;
+        ua = req.headers.get("user-agent");
+      } catch {
+        /* getRequest may be unavailable in non-request contexts */
+      }
+      await supabaseAdmin.from("order_access_audit").insert({
+        actor_id: userId,
+        actor_role: role,
+        action: "list_managed_orders",
+        row_count: rows.length,
+        filters: null,
+        ip_address: ip,
+        user_agent: ua,
+      });
+    } catch (auditErr) {
+      console.warn("[order-management] audit insert failed:", auditErr);
+    }
+
     return {
       role,
       rows,
@@ -197,3 +228,133 @@ export const listManagedOrders = createServerFn({ method: "GET" })
       resellers: Array.from(resellerSet.entries()).map(([id, name]) => ({ id, name })),
     };
   });
+
+// -----------------------------------------------------------------------------
+// Testable pure core: authorization + scope filter, no Supabase, no I/O.
+// Exported so unit tests can exercise the failure/empty cases directly.
+// -----------------------------------------------------------------------------
+
+export type ScopeDecision =
+  | { role: "super_admin"; scopeToUserId: null }
+  | { role: "supplier"; scopeToUserId: string };
+
+/** Fail-closed: any error from the RPC → treat as supplier, never admin. */
+export function decideOrderScope(
+  userId: string | null | undefined,
+  rpcResult: { data: unknown; error: unknown },
+): ScopeDecision {
+  if (!userId) throw new Error("Forbidden: no authenticated user");
+  const isAdmin = !rpcResult.error && rpcResult.data === true;
+  return isAdmin
+    ? { role: "super_admin", scopeToUserId: null }
+    : { role: "supplier", scopeToUserId: userId };
+}
+
+/** Asserts every row belongs to the supplier; throws on the first leak. */
+export function assertSupplierScope<T extends { reseller_id: unknown }>(
+  rows: T[],
+  scopeUserId: string,
+): void {
+  for (const r of rows) {
+    if (r.reseller_id !== scopeUserId) {
+      throw new Error("Forbidden: supplier scope violation");
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Admin-only integrity scanner
+// -----------------------------------------------------------------------------
+
+export type OrderIntegrityRow = {
+  order_id: string;
+  reseller_id: string | null;
+  storefront_owner_id: string | null;
+  source_order_item_id: string | null;
+  created_at: string;
+  issue: string;
+  detail: string;
+};
+
+export const runOrderAccessIntegrityCheck = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ rows: OrderIntegrityRow[] }> => {
+    const { supabase, userId } = context;
+    const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "super_admin",
+    });
+    if (roleErr || isAdmin !== true) {
+      throw new Error("Forbidden: super_admin only");
+    }
+
+    const { data, error } = await supabase.rpc("admin_check_order_access_integrity");
+    if (error) throw new Error(error.message);
+
+    // Best-effort audit
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.from("order_access_audit").insert({
+        actor_id: userId,
+        actor_role: "super_admin",
+        action: "run_integrity_check",
+        row_count: (data ?? []).length,
+      });
+    } catch (e) {
+      console.warn("[order-management] integrity audit insert failed:", e);
+    }
+
+    return { rows: (data ?? []) as OrderIntegrityRow[] };
+  });
+
+export type OrderAccessAuditEntry = {
+  id: string;
+  actor_id: string | null;
+  actor_role: string;
+  action: string;
+  row_count: number;
+  ip_address: string | null;
+  user_agent: string | null;
+  notes: string | null;
+  created_at: string;
+  actor_name: string | null;
+};
+
+export const listOrderAccessAudit = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ rows: OrderAccessAuditEntry[] }> => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "super_admin",
+    });
+    if (isAdmin !== true) throw new Error("Forbidden: super_admin only");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("order_access_audit")
+      .select("id, actor_id, actor_role, action, row_count, ip_address, user_agent, notes, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+
+    const actorIds = Array.from(
+      new Set((data ?? []).map((r) => r.actor_id).filter((v): v is string => !!v)),
+    );
+    const nameMap = new Map<string, string>();
+    if (actorIds.length) {
+      const { data: profs } = await supabaseAdmin
+        .from("profiles")
+        .select("id, name")
+        .in("id", actorIds);
+      for (const p of profs ?? []) nameMap.set(p.id, p.name ?? "");
+    }
+
+    return {
+      rows: (data ?? []).map((r) => ({
+        ...r,
+        actor_name: r.actor_id ? nameMap.get(r.actor_id) ?? null : null,
+      })) as OrderAccessAuditEntry[],
+    };
+  });
+

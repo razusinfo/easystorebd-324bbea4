@@ -298,6 +298,45 @@ export type Database = {
         }
         Relationships: []
       }
+      order_access_audit: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string
+          created_at: string
+          filters: Json | null
+          id: string
+          ip_address: string | null
+          notes: string | null
+          row_count: number
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role: string
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          row_count?: number
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          row_count?: number
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -2136,6 +2175,18 @@ export type Database = {
             }
             Returns: undefined
           }
+      admin_check_order_access_integrity: {
+        Args: never
+        Returns: {
+          created_at: string
+          detail: string
+          issue: string
+          order_id: string
+          reseller_id: string
+          source_order_item_id: string
+          storefront_owner_id: string
+        }[]
+      }
       admin_check_product_supplier_integrity: {
         Args: never
         Returns: {
