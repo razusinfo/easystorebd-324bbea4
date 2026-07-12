@@ -115,10 +115,20 @@ export async function probeHttps(
   finalUrl?: string;
   redirectChain?: string[];
   cloudflareError?: number; // 1000 = "DNS points to prohibited IP"
+  finalHeaders?: Record<string, string>;
 }> {
   const doFetch = opts?.fetchImpl ?? fetch;
   const redirectChain: string[] = [];
   let currentUrl = `https://${hostname}/`;
+  const pickHeaders = (h: { get: (k: string) => string | null }): Record<string, string> => {
+    const keys = ["server", "cf-ray", "cf-cache-status", "content-type", "x-powered-by", "x-lovable-host", "location"];
+    const out: Record<string, string> = {};
+    for (const k of keys) {
+      const v = h.get(k);
+      if (v) out[k] = v;
+    }
+    return out;
+  };
   try {
     for (let hop = 0; hop < 5; hop++) {
       const controller = new AbortController();
@@ -132,32 +142,30 @@ export async function probeHttps(
       clearTimeout(t);
       redirectChain.push(`${res.status} ${currentUrl}`);
 
-      // Follow 3xx redirects manually so we can validate the final Host header.
       if (res.status >= 300 && res.status < 400) {
         const loc = res.headers.get("location");
-        if (!loc) return { ok: false, status: res.status, servedByApp: false, redirectChain };
+        if (!loc) return { ok: false, status: res.status, servedByApp: false, redirectChain, finalHeaders: pickHeaders(res.headers) };
         currentUrl = new URL(loc, currentUrl).toString();
         continue;
       }
 
       let body = "";
       try { body = (await res.text()).slice(0, 16000); } catch { /* ignore */ }
+      const finalHeaders = pickHeaders(res.headers);
 
-      // Cloudflare Error 1000 = proxied A record points at another Cloudflare
-      // IP (Lovable's edge is also on Cloudflare). Fix: grey-cloud the record.
       if (/error\s*1000/i.test(body) || /DNS points to prohibited IP/i.test(body)) {
         return {
           ok: false, status: res.status, servedByApp: false,
-          cloudflareError: 1000, finalUrl: currentUrl, redirectChain,
+          cloudflareError: 1000, finalUrl: currentUrl, redirectChain, finalHeaders,
         };
       }
 
       if (res.status >= 400) {
-        return { ok: false, status: res.status, servedByApp: false, finalUrl: currentUrl, redirectChain };
+        return { ok: false, status: res.status, servedByApp: false, finalUrl: currentUrl, redirectChain, finalHeaders };
       }
 
       const servedByApp = /EasyStore|id="root"|data-lovable/i.test(body);
-      return { ok: servedByApp, status: res.status, servedByApp, finalUrl: currentUrl, redirectChain };
+      return { ok: servedByApp, status: res.status, servedByApp, finalUrl: currentUrl, redirectChain, finalHeaders };
     }
     return { ok: false, error: "Too many redirects", redirectChain };
   } catch (e) {
@@ -283,6 +291,7 @@ export const verifyWildcardConnected = createServerFn({ method: "POST" })
     let finalUrl: string | undefined;
     let redirectChain: string[] | undefined;
     let cloudflareError: number | undefined;
+    let finalHeaders: Record<string, string> | undefined;
     let hint: string | null = null;
     if (dnsOk) {
       const probe = await probeHttps(testHost);
@@ -292,13 +301,19 @@ export const verifyWildcardConnected = createServerFn({ method: "POST" })
       finalUrl = probe.finalUrl;
       redirectChain = probe.redirectChain;
       cloudflareError = probe.cloudflareError;
+      finalHeaders = probe.finalHeaders;
       if (!probe.ok) hint = buildProbeHint(probe);
     } else if (addrs.length === 0) {
       hint = "DNS এখনো propagate হয়নি — ২৪–৪৮ ঘণ্টা পর্যন্ত সময় নিতে পারে।";
     } else {
       hint = `DNS ${addrs.join(", ")}-এ point করছে, ${LOVABLE_IP} নয়। Cloudflare-এ A record ঠিক করুন।`;
     }
-    return { dnsOk, httpsOk, testHost, addrs, httpStatus, servedByApp, finalUrl, redirectChain, cloudflareError, hint };
+    // Missing-wildcard = DNS OK + HTTP 4xx from Lovable edge (no CF1000). Signals
+    // that Lovable hasn't attached the wildcard to this project.
+    const missingWildcard =
+      dnsOk && !httpsOk && cloudflareError !== 1000 &&
+      typeof httpStatus === "number" && httpStatus >= 400 && httpStatus < 500;
+    return { dnsOk, httpsOk, testHost, addrs, httpStatus, servedByApp, finalUrl, redirectChain, cloudflareError, finalHeaders, missingWildcard, hint };
   });
 
 /** Pure hint builder — exported for unit tests. */
