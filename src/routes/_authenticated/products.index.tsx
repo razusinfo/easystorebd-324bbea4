@@ -144,6 +144,17 @@ function ProductsPage() {
             className="pl-9"
           />
         </div>
+        <Select value={supplierFilter} onValueChange={(v) => setSupplierFilter(v as string | "all")}>
+          <SelectTrigger className="lg:w-56" data-testid="products-supplier-filter">
+            <SelectValue placeholder="All suppliers" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All suppliers</SelectItem>
+            {(suppliersQ.data ?? []).map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Content */}
