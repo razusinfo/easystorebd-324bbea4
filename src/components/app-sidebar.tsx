@@ -25,8 +25,9 @@ const mainItems = [
   { title: "Products", url: "/products", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
-  { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
 ];
+
+const courierItem = { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" };
 
 const resellerItems = [
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
@@ -145,7 +146,10 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+            <SidebarMenu className="gap-1">
+              {mainItems.map(renderItem)}
+              {resellerZone.data && renderItem(courierItem)}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
