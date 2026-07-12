@@ -439,34 +439,46 @@ function PlatformDomainSetupPage() {
                 <ChevronLeft className="h-4 w-4 mr-1" />Back
               </Button>
               {stepIdx === STEPS.length - 1 ? (
-                <Button
-                  size="sm"
-                  disabled={!canGoNext || updMut.isPending}
-                  title={!canGoNext ? blockedMsg : undefined}
-                  onClick={async () => {
-                    if (!canGoNext) {
-                      toast.error(blockedMsg);
-                      return;
-                    }
-                    try {
-                      // Mark every step done + persist final step so a reload
-                      // resumes on the completed screen instead of step 1.
-                      const patch: Record<string, boolean | number> = { current_step: STEPS.length };
-                      for (const s of STEPS) patch[s.key] = true;
-                      await updMut.mutateAsync(patch);
-                      toast.success("Setup complete 🎉");
-                      navigate({ to: "/admin" });
-                    } catch (e) {
-                      toast.error((e as Error).message ?? "Failed to finish setup");
-                    }
-                  }}
-                >
-                  {updMut.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  ) : null}
-                  Finish
-                  <Check className="h-4 w-4 ml-1" />
-                </Button>
+                <div className="flex flex-col items-end gap-1">
+                  <Button
+                    size="sm"
+                    data-testid="finish-setup"
+                    disabled={!allStepsDone || updMut.isPending}
+                    title={finishBlockedMsg ?? undefined}
+                    onClick={async () => {
+                      if (!allStepsDone) {
+                        toast.error(finishBlockedMsg!);
+                        return;
+                      }
+                      try {
+                        // Mark every step done + persist final step so a reload
+                        // resumes on the completed screen instead of step 1.
+                        const patch: Record<string, boolean | number> = { current_step: STEPS.length };
+                        for (const s of STEPS) patch[s.key] = true;
+                        await updMut.mutateAsync(patch);
+                        toast.success("Setup complete 🎉");
+                        navigate({ to: "/admin" });
+                      } catch (e) {
+                        toast.error((e as Error).message ?? "Failed to finish setup");
+                      }
+                    }}
+                  >
+                    {updMut.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : null}
+                    Finish
+                    <Check className="h-4 w-4 ml-1" />
+                  </Button>
+                  {finishBlockedMsg && (
+                    <p
+                      className="text-xs text-amber-700 dark:text-amber-300 text-right max-w-xs"
+                      role="status"
+                      data-testid="finish-blocked-message"
+                    >
+                      {finishBlockedMsg}
+                    </p>
+                  )}
+                </div>
               ) : (
                 <Button
                   size="sm"
