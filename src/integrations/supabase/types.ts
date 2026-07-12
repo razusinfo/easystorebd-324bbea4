@@ -1023,6 +1023,7 @@ export type Database = {
           status: Database["public"]["Enums"]["product_status"]
           stock: number
           store_id: string
+          supplier_id: string | null
           unit_name: string | null
           updated_at: string
           use_default_delivery: boolean
@@ -1060,6 +1061,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
           store_id: string
+          supplier_id?: string | null
           unit_name?: string | null
           updated_at?: string
           use_default_delivery?: boolean
@@ -1097,6 +1099,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["product_status"]
           stock?: number
           store_id?: string
+          supplier_id?: string | null
           unit_name?: string | null
           updated_at?: string
           use_default_delivery?: boolean
@@ -2255,6 +2258,7 @@ export type Database = {
           status: Database["public"]["Enums"]["product_status"]
           stock: number
           store_id: string
+          supplier_id: string | null
           unit_name: string | null
           updated_at: string
           use_default_delivery: boolean
