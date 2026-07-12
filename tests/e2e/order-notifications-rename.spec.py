@@ -32,16 +32,27 @@ async def assert_label(page, tag):
         """() => {
             const links = Array.from(document.querySelectorAll('a[href="/my-notifications"]'));
             const texts = links.map(a => a.textContent.trim());
+            const orderLink = links.find(a => a.textContent.trim().includes('Order Notifications'));
+            const suppliersLink = document.querySelector('a[href="/order-management"]');
+            let orderBelow = null;
+            if (orderLink && suppliersLink) {
+                const pos = suppliersLink.compareDocumentPosition(orderLink);
+                orderBelow = !!(pos & Node.DOCUMENT_POSITION_FOLLOWING);
+            }
             return {
                 hasOrder: texts.some(t => t.includes('Order Notifications')),
                 hasBare: texts.some(t => t === 'Notifications'),
-                count: links.length,
+                orderBelow,
+                hasSuppliers: !!suppliersLink,
             };
         }"""
     )
     assert result["hasOrder"], f"[{tag}] expected 'Order Notifications' link: {result}"
     assert not result["hasBare"], f"[{tag}] bare 'Notifications' label still present: {result}"
+    if result["hasSuppliers"]:
+        assert result["orderBelow"], f"[{tag}] 'Order Notifications' must render below 'Order For Suppliers': {result}"
     await page.screenshot(path=str(SHOTS / f"{tag}.png"))
+
 
 
 async def main():
