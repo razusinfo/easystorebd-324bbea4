@@ -207,6 +207,7 @@ export function AppSidebar() {
                 {renderItem({ title: "Sync Status", url: "/admin-reseller-sync-status", icon: RefreshCcw, badge: "NEW" })}
                 {renderItem({ title: "Order Routing", url: "/admin-order-routing", icon: Repeat2, badge: "NEW" })}
                 {renderItem({ title: "Platform Domain Setup", url: "/admin-platform-domain-setup", icon: Globe, badge: "NEW" })}
+                {renderItem({ title: "Website Requests", url: "/admin-website-requests", icon: Globe, badge: "NEW" })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
