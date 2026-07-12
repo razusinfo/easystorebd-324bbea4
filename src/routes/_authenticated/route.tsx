@@ -65,6 +65,7 @@ function AuthenticatedLayout() {
         <KeyboardShortcuts />
       </div>
       <SupportChatWidget />
+    </SidebarProvider>
   );
 }
 
