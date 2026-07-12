@@ -56,6 +56,7 @@ jobs:
             python tests/e2e/reseller-zone-sidebar.spec.py
             python tests/e2e/courier-partner-settings.spec.py
             python tests/e2e/order-for-suppliers-rename.spec.py
+            python tests/e2e/reseller-requests-above-orders.spec.py
           else
             echo "::warning::Skipping redirect specs (E2E_APP_URL not set)"
           fi
