@@ -425,18 +425,19 @@ export type ProductsQueryParams = {
   status?: ProductStatus | "all";
   sku?: string;
   categoryId?: string | "all";
+  supplierId?: string | "all";
 };
 
 // Safe column projection for owner list pages — excludes buying_price and
 // reseller_price (revoked at the DB layer). The edit form uses useMyProducts,
 // which goes through the owner-scoped RPC and still returns those fields.
 const OWNER_LIST_COLUMNS =
-  "id, store_id, name, price, regular_price, stock, status, image_url, gallery_urls, category_id, brand, condition, weight_kg, length_cm, width_cm, height_cm, sku, unit_name, product_serial, warranty, initial_sold_count, use_default_delivery, video_url, default_delivery_charge, specific_delivery_charges, short_description, description, is_out_of_stock, add_to_reseller, is_resellable, source_reseller_product_id, created_at, updated_at";
+  "id, store_id, name, price, regular_price, stock, status, image_url, gallery_urls, category_id, brand, condition, weight_kg, length_cm, width_cm, height_cm, sku, unit_name, product_serial, warranty, initial_sold_count, use_default_delivery, video_url, default_delivery_charge, specific_delivery_charges, short_description, description, is_out_of_stock, add_to_reseller, is_resellable, source_reseller_product_id, supplier_id, created_at, updated_at";
 
 export function useMyProductsPaged(params: ProductsQueryParams) {
-  const { storeId, page, perPage, search, status, sku, categoryId } = params;
+  const { storeId, page, perPage, search, status, sku, categoryId, supplierId } = params;
   return useQuery({
-    queryKey: ["products", "by-store", storeId, "paged", { page, perPage, search: search ?? "", status: status ?? "all", sku: sku ?? "", categoryId: categoryId ?? "all" }],
+    queryKey: ["products", "by-store", storeId, "paged", { page, perPage, search: search ?? "", status: status ?? "all", sku: sku ?? "", categoryId: categoryId ?? "all", supplierId: supplierId ?? "all" }],
     enabled: !!storeId,
     queryFn: async (): Promise<{ rows: ProductRow[]; total: number }> => {
       const from = (page - 1) * perPage;
@@ -454,12 +455,43 @@ export function useMyProductsPaged(params: ProductsQueryParams) {
       if (skuQ) q = q.ilike("sku", `%${skuQ}%`);
       if (status && status !== "all") q = q.eq("status", status);
       if (categoryId && categoryId !== "all") q = q.eq("category_id", categoryId);
+      if (supplierId && supplierId !== "all") q = q.eq("supplier_id", supplierId);
 
       const { data, error, count } = await q.range(from, to);
       if (error) throw error;
       return { rows: (data ?? []) as ProductRow[], total: count ?? 0 };
     },
     placeholderData: (prev) => prev,
+  });
+}
+
+/**
+ * Returns the distinct supplier ids present in the store's products, plus a
+ * display name for each (from profiles.name). Used to render a supplier
+ * filter dropdown alongside category/status.
+ */
+export function useMyProductSuppliers(storeId: string | undefined) {
+  return useQuery({
+    queryKey: ["products", "suppliers-in-store", storeId],
+    enabled: !!storeId,
+    queryFn: async (): Promise<Array<{ id: string; name: string }>> => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("supplier_id")
+        .eq("store_id", storeId!)
+        .not("supplier_id", "is", null);
+      if (error) throw error;
+      const ids = Array.from(new Set((data ?? []).map((r: any) => r.supplier_id as string)));
+      if (ids.length === 0) return [];
+      const { data: profs } = await supabase.from("profiles").select("id, name").in("id", ids);
+      const nameMap = new Map<string, string>();
+      for (const p of (profs ?? []) as Array<{ id: string; name: string | null }>) {
+        nameMap.set(p.id, p.name ?? "Unknown");
+      }
+      return ids
+        .map((id) => ({ id, name: nameMap.get(id) ?? "Unknown supplier" }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
   });
 }
 

@@ -2136,6 +2136,18 @@ export type Database = {
             }
             Returns: undefined
           }
+      admin_check_product_supplier_integrity: {
+        Args: never
+        Returns: {
+          actual_supplier_id: string
+          expected_supplier_id: string
+          issue: string
+          product_id: string
+          product_name: string
+          source_reseller_product_id: string
+          store_id: string
+        }[]
+      }
       admin_list_audit_logs: {
         Args: { _limit?: number }
         Returns: {

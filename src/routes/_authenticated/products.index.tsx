@@ -8,9 +8,10 @@ import { useCategories } from "@/lib/categories-data";
 
 import {
   useMyStore, useMyProductsPaged, useMyProductsStats, useDeleteProduct,
-  useUpdateProductStatus, useProductAuditLogs,
+  useUpdateProductStatus, useProductAuditLogs, useMyProductSuppliers,
   type ProductRow, type ProductStatus,
 } from "@/lib/eazystore-data";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,9 +49,11 @@ function ProductsPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [categoryFilter, setCategoryFilter] = useState<string | "all">("all");
+  const [supplierFilter, setSupplierFilter] = useState<string | "all">("all");
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
   const [statusTarget, setStatusTarget] = useState<ProductRow | null>(null);
   const categoriesQ = useCategories(store?.id);
+  const suppliersQ = useMyProductSuppliers(store?.id);
 
   // Debounce search + sku to avoid spamming API
   useEffect(() => {
@@ -63,7 +66,7 @@ function ProductsPage() {
   }, [skuFilter]);
 
   // Reset to page 1 whenever filters change
-  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, categoryFilter, perPage]);
+  useEffect(() => { setPage(1); }, [debouncedSearch, debouncedSku, statusFilter, categoryFilter, supplierFilter, perPage]);
 
   const productsQ = useMyProductsPaged({
     storeId: store?.id,
@@ -73,6 +76,7 @@ function ProductsPage() {
     sku: debouncedSku,
     status: statusFilter,
     categoryId: categoryFilter,
+    supplierId: supplierFilter,
   });
   const statsQ = useMyProductsStats(store?.id);
 
@@ -97,7 +101,7 @@ function ProductsPage() {
     }
   }
 
-  const hasFilters = !!debouncedSearch || !!debouncedSku || statusFilter !== "all" || categoryFilter !== "all";
+  const hasFilters = !!debouncedSearch || !!debouncedSku || statusFilter !== "all" || categoryFilter !== "all" || supplierFilter !== "all";
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
@@ -140,6 +144,17 @@ function ProductsPage() {
             className="pl-9"
           />
         </div>
+        <Select value={supplierFilter} onValueChange={(v) => setSupplierFilter(v as string | "all")}>
+          <SelectTrigger className="lg:w-56" data-testid="products-supplier-filter">
+            <SelectValue placeholder="All suppliers" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All suppliers</SelectItem>
+            {(suppliersQ.data ?? []).map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Content */}

@@ -64,6 +64,7 @@ import { Route as AuthenticatedAdminResellerSyncLogsRouteImport } from './routes
 import { Route as AuthenticatedAdminResellerOrdersRouteImport } from './routes/_authenticated/admin-reseller-orders'
 import { Route as AuthenticatedAdminResellerAdoptersRouteImport } from './routes/_authenticated/admin-reseller-adopters'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin-requests'
+import { Route as AuthenticatedAdminProductSupplierIntegrityRouteImport } from './routes/_authenticated/admin-product-supplier-integrity'
 import { Route as AuthenticatedAdminPlatformDomainSetupRouteImport } from './routes/_authenticated/admin-platform-domain-setup'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin-payouts'
 import { Route as AuthenticatedAdminOrderRoutingRouteImport } from './routes/_authenticated/admin-order-routing'
@@ -391,6 +392,12 @@ const AuthenticatedAdminRequestsRoute =
     path: '/admin-requests',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminProductSupplierIntegrityRoute =
+  AuthenticatedAdminProductSupplierIntegrityRouteImport.update({
+    id: '/admin-product-supplier-integrity',
+    path: '/admin-product-supplier-integrity',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPlatformDomainSetupRoute =
   AuthenticatedAdminPlatformDomainSetupRouteImport.update({
     id: '/admin-platform-domain-setup',
@@ -595,6 +602,7 @@ export interface FileRoutesByFullPath {
   '/admin-order-routing': typeof AuthenticatedAdminOrderRoutingRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
+  '/admin-product-supplier-integrity': typeof AuthenticatedAdminProductSupplierIntegrityRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -683,6 +691,7 @@ export interface FileRoutesByTo {
   '/admin-order-routing': typeof AuthenticatedAdminOrderRoutingRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
+  '/admin-product-supplier-integrity': typeof AuthenticatedAdminProductSupplierIntegrityRoute
   '/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -773,6 +782,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-order-routing': typeof AuthenticatedAdminOrderRoutingRoute
   '/_authenticated/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin-platform-domain-setup': typeof AuthenticatedAdminPlatformDomainSetupRoute
+  '/_authenticated/admin-product-supplier-integrity': typeof AuthenticatedAdminProductSupplierIntegrityRoute
   '/_authenticated/admin-requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin-reseller-adopters': typeof AuthenticatedAdminResellerAdoptersRoute
   '/_authenticated/admin-reseller-orders': typeof AuthenticatedAdminResellerOrdersRoute
@@ -864,6 +874,7 @@ export interface FileRouteTypes {
     | '/admin-order-routing'
     | '/admin-payouts'
     | '/admin-platform-domain-setup'
+    | '/admin-product-supplier-integrity'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -952,6 +963,7 @@ export interface FileRouteTypes {
     | '/admin-order-routing'
     | '/admin-payouts'
     | '/admin-platform-domain-setup'
+    | '/admin-product-supplier-integrity'
     | '/admin-requests'
     | '/admin-reseller-adopters'
     | '/admin-reseller-orders'
@@ -1041,6 +1053,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-order-routing'
     | '/_authenticated/admin-payouts'
     | '/_authenticated/admin-platform-domain-setup'
+    | '/_authenticated/admin-product-supplier-integrity'
     | '/_authenticated/admin-requests'
     | '/_authenticated/admin-reseller-adopters'
     | '/_authenticated/admin-reseller-orders'
@@ -1529,6 +1542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-product-supplier-integrity': {
+      id: '/_authenticated/admin-product-supplier-integrity'
+      path: '/admin-product-supplier-integrity'
+      fullPath: '/admin-product-supplier-integrity'
+      preLoaderRoute: typeof AuthenticatedAdminProductSupplierIntegrityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin-platform-domain-setup': {
       id: '/_authenticated/admin-platform-domain-setup'
       path: '/admin-platform-domain-setup'
@@ -1770,6 +1790,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminOrderRoutingRoute: typeof AuthenticatedAdminOrderRoutingRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminPlatformDomainSetupRoute: typeof AuthenticatedAdminPlatformDomainSetupRoute
+  AuthenticatedAdminProductSupplierIntegrityRoute: typeof AuthenticatedAdminProductSupplierIntegrityRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminResellerAdoptersRoute: typeof AuthenticatedAdminResellerAdoptersRoute
   AuthenticatedAdminResellerOrdersRoute: typeof AuthenticatedAdminResellerOrdersRoute
@@ -1821,6 +1842,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
   AuthenticatedAdminPlatformDomainSetupRoute:
     AuthenticatedAdminPlatformDomainSetupRoute,
+  AuthenticatedAdminProductSupplierIntegrityRoute:
+    AuthenticatedAdminProductSupplierIntegrityRoute,
   AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
   AuthenticatedAdminResellerAdoptersRoute:
     AuthenticatedAdminResellerAdoptersRoute,

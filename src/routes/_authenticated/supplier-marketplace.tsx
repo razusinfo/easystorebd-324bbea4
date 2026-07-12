@@ -45,7 +45,8 @@ type Row = {
   gallery_urls: string[] | null;
 };
 
-type OriginalMeta = { id: string; sku: string | null; product_serial: string | null; brand: string | null };
+type OriginalMeta = { id: string; sku: string | null; product_serial: string | null; brand: string | null; supplier_id: string | null };
+type SupplierOption = { id: string; name: string };
 
 function fmt(n: number | null | undefined) {
   if (n == null) return "—";
@@ -85,7 +86,7 @@ function SupplierMarketplacePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id,sku,product_serial,brand")
+        .select("id,sku,product_serial,brand,supplier_id")
         .in("id", originalIds);
       if (error) throw error;
       const map = new Map<string, OriginalMeta>();
@@ -93,6 +94,41 @@ function SupplierMarketplacePage() {
       return map;
     },
   });
+
+  // Resolve supplier display names from profiles for every supplier_id seen.
+  const supplierIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const meta of originalsQuery.data?.values() ?? []) {
+      if (meta.supplier_id) s.add(meta.supplier_id);
+    }
+    return Array.from(s);
+  }, [originalsQuery.data]);
+  const suppliersProfilesQuery = useQuery({
+    queryKey: ["supplier-marketplace", "supplier-profiles", supplierIds.slice(0).sort().join(",")],
+    enabled: supplierIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id,name,store").in("id", supplierIds);
+      if (error) throw error;
+      const map = new Map<string, string>();
+      for (const p of (data ?? []) as Array<{ id: string; name: string | null; store: string | null }>) {
+        map.set(p.id, p.store || p.name || "Supplier");
+      }
+      return map;
+    },
+  });
+
+  // Helper: resolve display supplier for a given row via supplier_id
+  // (preferred, joined through products.supplier_id) with a fallback to the
+  // legacy `source` string when the row has no linked original product.
+  const supplierIdOf = (r: Row): string | null => {
+    if (!r.original_product_id) return null;
+    return originalsQuery.data?.get(r.original_product_id)?.supplier_id ?? null;
+  };
+  const supplierNameOf = (r: Row): string => {
+    const id = supplierIdOf(r);
+    if (id) return suppliersProfilesQuery.data?.get(id) ?? "Supplier";
+    return normalizeSupplier(r.source);
+  };
 
   // What the reseller already has in their store — keyed by source_reseller_product_id.
   const addedQuery = useQuery({
@@ -113,17 +149,30 @@ function SupplierMarketplacePage() {
     },
   });
 
-  const suppliers = useMemo(() => {
-    const s = new Set<string>();
-    for (const r of productsQuery.data ?? []) s.add(normalizeSupplier(r.source));
-    // Always put the primary supplier first.
-    const list = Array.from(s).sort((a, b) => {
-      if (a === PRIMARY_SUPPLIER) return -1;
-      if (b === PRIMARY_SUPPLIER) return 1;
-      return a.localeCompare(b);
+  // Supplier options keyed by supplier_id (from products.supplier_id via the
+  // originals join). Rows without a linked original fall back to their
+  // legacy `source` string keyed by "src:<name>" so they remain filterable.
+  const suppliers = useMemo<SupplierOption[]>(() => {
+    const byId = new Map<string, SupplierOption>();
+    for (const r of productsQuery.data ?? []) {
+      const id = supplierIdOf(r);
+      if (id) {
+        if (!byId.has(id)) {
+          byId.set(id, { id, name: suppliersProfilesQuery.data?.get(id) ?? "Supplier" });
+        }
+      } else {
+        const name = normalizeSupplier(r.source);
+        const key = `src:${name}`;
+        if (!byId.has(key)) byId.set(key, { id: key, name });
+      }
+    }
+    return Array.from(byId.values()).sort((a, b) => {
+      if (a.name === PRIMARY_SUPPLIER) return -1;
+      if (b.name === PRIMARY_SUPPLIER) return 1;
+      return a.name.localeCompare(b.name);
     });
-    return list;
-  }, [productsQuery.data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productsQuery.data, originalsQuery.data, suppliersProfilesQuery.data]);
 
   const categories = useMemo(() => {
     const s = new Set<string>();
@@ -137,14 +186,18 @@ function SupplierMarketplacePage() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (productsQuery.data ?? []).filter((r) => {
-      if (supplier !== ALL && normalizeSupplier(r.source) !== supplier) return false;
+      if (supplier !== ALL) {
+        const id = supplierIdOf(r);
+        const key = id ?? `src:${normalizeSupplier(r.source)}`;
+        if (key !== supplier) return false;
+      }
       if (category !== ALL && (r.category ?? "").trim() !== category) return false;
       if (term) {
         const orig = r.original_product_id ? originalsQuery.data?.get(r.original_product_id) : null;
         const hay = [
           r.name,
           r.category ?? "",
-          normalizeSupplier(r.source),
+          supplierNameOf(r),
           orig?.sku ?? "",
           orig?.product_serial ?? "",
           orig?.brand ?? "",
@@ -155,7 +208,8 @@ function SupplierMarketplacePage() {
       }
       return true;
     });
-  }, [productsQuery.data, originalsQuery.data, search, supplier, category]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productsQuery.data, originalsQuery.data, suppliersProfilesQuery.data, search, supplier, category]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -232,7 +286,7 @@ function SupplierMarketplacePage() {
             <SelectContent>
               <SelectItem value={ALL}>All suppliers</SelectItem>
               {suppliers.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -270,7 +324,7 @@ function SupplierMarketplacePage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {pageRows.map((r) => {
-            const supplierName = normalizeSupplier(r.source);
+            const supplierName = supplierNameOf(r);
             const orig = r.original_product_id ? originalsQuery.data?.get(r.original_product_id) : null;
             const added = addedQuery.data?.get(r.id) ?? null;
             const image = r.image_url ?? r.image ?? null;
