@@ -29,6 +29,9 @@ const mainItems = [
 const courierItem = { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" };
 
 const resellerItems = [
+  { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
+  { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
+  { title: "Order For Suppliers", url: "/order-management", icon: Receipt, badge: "NEW" },
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
 ];
 
@@ -49,9 +52,6 @@ const growthItems = [
   { title: "Promo Codes", url: "/promo-codes", icon: Tag },
   { title: "SMS Settings", url: "/sms-settings", icon: Settings },
   { title: "Domain Settings", url: "/domain-settings", icon: Globe, badge: "NEW" },
-  { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
-  { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
-  { title: "Order For Suppliers", url: "/order-management", icon: Receipt, badge: "NEW" },
 ];
 
 export function AppSidebar() {
