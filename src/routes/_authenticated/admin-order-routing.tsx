@@ -221,7 +221,9 @@ function AdminOrderRoutingPage() {
     const toTs = fTo ? new Date(fTo).getTime() + 86400000 : null; // inclusive end-of-day
     const group = REASON_FILTER_GROUPS.find((g) => g.value === fReason) ?? REASON_FILTER_GROUPS[0];
     return rows.filter((a) => {
+      if (fFailedOnly && a.success) return false;
       if (!group.match(a.reason)) return false;
+
       if (fSupplier !== "all" && a.supplier_user_id !== fSupplier) return false;
       if (fCategory !== "all") {
         // Try both product's category (via metadata) and audit's product_id lookup via categoryLookup unavailable client-side without join.
