@@ -36,8 +36,9 @@ const resellerItems = [
 ];
 
 const notificationItems = [
-  { title: "Notifications", url: "/my-notifications", icon: Bell },
+  { title: "Order Notifications", url: "/my-notifications", icon: Bell },
 ];
+
 
 
 
