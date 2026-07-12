@@ -49,6 +49,7 @@ const growthItems = [
   { title: "Promo Codes", url: "/promo-codes", icon: Tag },
   { title: "SMS Settings", url: "/sms-settings", icon: Settings },
   { title: "Domain Settings", url: "/domain-settings", icon: Globe, badge: "NEW" },
+  { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
   { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
   { title: "Order For Suppliers", url: "/order-management", icon: Receipt, badge: "NEW" },
 ];
