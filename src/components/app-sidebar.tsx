@@ -24,16 +24,20 @@ const mainItems = [
   { title: "Products", url: "/products", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
+];
+
+const resellerItems = [
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
-  
   { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
-  
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
-  
   { title: "Courier", url: "/courier", icon: Truck, badge: "NEW" },
   { title: "Courier Settings", url: "/courier-settings", icon: Settings },
+];
+
+const notificationItems = [
   { title: "Notifications", url: "/my-notifications", icon: Bell },
 ];
+
 
 
 const growthItems = [
