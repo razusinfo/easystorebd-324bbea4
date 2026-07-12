@@ -32,26 +32,35 @@ async def assert_label(page, tag):
         """() => {
             const links = Array.from(document.querySelectorAll('a[href="/my-notifications"]'));
             const texts = links.map(a => a.textContent.trim());
-            const orderLink = links.find(a => a.textContent.trim().includes('Order Notifications'));
+            const orderLinks = links.filter(a => a.textContent.trim().includes('Order Notifications'));
             const suppliersLink = document.querySelector('a[href="/order-management"]');
-            let orderBelow = null;
-            if (orderLink && suppliersLink) {
-                const pos = suppliersLink.compareDocumentPosition(orderLink);
+            const zone = document.querySelector('[data-testid="reseller-zone-group"]');
+            let orderBelow = null, insideZone = null;
+            if (orderLinks[0] && suppliersLink) {
+                const pos = suppliersLink.compareDocumentPosition(orderLinks[0]);
                 orderBelow = !!(pos & Node.DOCUMENT_POSITION_FOLLOWING);
             }
+            if (orderLinks[0] && zone) insideZone = zone.contains(orderLinks[0]);
             return {
                 hasOrder: texts.some(t => t.includes('Order Notifications')),
                 hasBare: texts.some(t => t === 'Notifications'),
+                orderCount: orderLinks.length,
                 orderBelow,
+                insideZone,
                 hasSuppliers: !!suppliersLink,
+                hasZone: !!zone,
             };
         }"""
     )
     assert result["hasOrder"], f"[{tag}] expected 'Order Notifications' link: {result}"
     assert not result["hasBare"], f"[{tag}] bare 'Notifications' label still present: {result}"
+    assert result["orderCount"] == 1, f"[{tag}] expected exactly one 'Order Notifications' item: {result}"
     if result["hasSuppliers"]:
         assert result["orderBelow"], f"[{tag}] 'Order Notifications' must render below 'Order For Suppliers': {result}"
+    if result["hasZone"]:
+        assert result["insideZone"], f"[{tag}] 'Order Notifications' must be inside the Reselling or Supplier zone group: {result}"
     await page.screenshot(path=str(SHOTS / f"{tag}.png"))
+
 
 
 
