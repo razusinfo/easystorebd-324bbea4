@@ -360,7 +360,7 @@ export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradien
   { id: "megamart", name: "MegaMart Bazaar", tagline: "Dense marketplace — red + lime section bars, 3-banner hero, featured brands strip, suggested/trending/on-sale rows", gradient: "from-rose-600 to-amber-400", accent: "#e11d48", category: "General", premium: true },
   { id: "trendmart", name: "TrendMart Slider", tagline: "Marketplace with horizontally-sliding rows — Newly Added, Trendy Styles, and more, plus dense multi-section grids", gradient: "from-fuchsia-600 to-cyan-400", accent: "#9333ea", category: "General", premium: true },
   { id: "shopii", name: "Shopii Marketplace", tagline: "Orange marketplace — top nav categories, dual promo hero, category tiles, flash deals, brand strip, daily discover grid", gradient: "from-orange-500 to-red-500", accent: "#f97316", category: "General", premium: true },
-  { id: "quickmart", name: "QuickMart Slider", tagline: "Teal marketplace with sliding Categories and sliding Top Products rows, dense multi-section grids, and promo banners", gradient: "from-teal-500 to-emerald-400", accent: "#0d9488", category: "General", premium: true },
+  
 
   { id: "minimal", name: "Minimal Mono", tagline: "Clean, editorial, type-led", gradient: "from-slate-900 to-slate-600", accent: "#0F172A", category: "Editorial" },
   { id: "boutique", name: "Boutique Blush", tagline: "Soft pastels for fashion", gradient: "from-pink-400 to-rose-500", accent: "#EC4899", category: "Fashion" },
