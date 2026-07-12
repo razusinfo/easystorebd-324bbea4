@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsSuperAdmin } from "@/lib/eazystore-data";
+import { useIsResellerOrSupplier } from "@/lib/use-reseller-role";
 import { useQuery } from "@tanstack/react-query";
 import eazystoreLogo from "@/assets/eazystore-logo.png.asset.json";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
