@@ -93,6 +93,7 @@ import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$product
 import { Route as ApiPublicSplashLogoSplatRouteImport } from './routes/api/public/splash-logo.$'
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
+import { Route as ApiPublicOgLogoSlugRouteImport } from './routes/api/public/og-logo.$slug'
 import { Route as ApiPublicHooksResyncMarketplaceStockRouteImport } from './routes/api/public/hooks/resync-marketplace-stock'
 import { Route as ApiPublicHooksResellerOrderNotifyRouteImport } from './routes/api/public/hooks/reseller-order-notify'
 import { Route as ApiPublicHooksOrderCourierStatusRouteImport } from './routes/api/public/hooks/order-courier-status'
@@ -553,6 +554,11 @@ const ApiPublicOrdersPlaceRoute = ApiPublicOrdersPlaceRouteImport.update({
   path: '/api/public/orders/place',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOgLogoSlugRoute = ApiPublicOgLogoSlugRouteImport.update({
+  id: '/api/public/og-logo/$slug',
+  path: '/api/public/og-logo/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksResyncMarketplaceStockRoute =
   ApiPublicHooksResyncMarketplaceStockRouteImport.update({
     id: '/api/public/hooks/resync-marketplace-stock',
@@ -676,6 +682,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
+  '/api/public/og-logo/$slug': typeof ApiPublicOgLogoSlugRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/api/public/splash-logo/$': typeof ApiPublicSplashLogoSplatRoute
@@ -765,6 +772,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
+  '/api/public/og-logo/$slug': typeof ApiPublicOgLogoSlugRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/api/public/splash-logo/$': typeof ApiPublicSplashLogoSplatRoute
@@ -858,6 +866,7 @@ export interface FileRoutesById {
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
+  '/api/public/og-logo/$slug': typeof ApiPublicOgLogoSlugRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
   '/api/public/splash-logo/$': typeof ApiPublicSplashLogoSplatRoute
@@ -951,6 +960,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
+    | '/api/public/og-logo/$slug'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
     | '/api/public/splash-logo/$'
@@ -1040,6 +1050,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
+    | '/api/public/og-logo/$slug'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
     | '/api/public/splash-logo/$'
@@ -1132,6 +1143,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
+    | '/api/public/og-logo/$slug'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
     | '/api/public/splash-logo/$'
@@ -1163,6 +1175,7 @@ export interface RootRouteChildren {
   ApiPublicHooksOrderCourierStatusRoute: typeof ApiPublicHooksOrderCourierStatusRoute
   ApiPublicHooksResellerOrderNotifyRoute: typeof ApiPublicHooksResellerOrderNotifyRoute
   ApiPublicHooksResyncMarketplaceStockRoute: typeof ApiPublicHooksResyncMarketplaceStockRoute
+  ApiPublicOgLogoSlugRoute: typeof ApiPublicOgLogoSlugRoute
   ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
   ApiPublicSplashLogoSplatRoute: typeof ApiPublicSplashLogoSplatRoute
@@ -1758,6 +1771,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOrdersPlaceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/og-logo/$slug': {
+      id: '/api/public/og-logo/$slug'
+      path: '/api/public/og-logo/$slug'
+      fullPath: '/api/public/og-logo/$slug'
+      preLoaderRoute: typeof ApiPublicOgLogoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/resync-marketplace-stock': {
       id: '/api/public/hooks/resync-marketplace-stock'
       path: '/api/public/hooks/resync-marketplace-stock'
@@ -2001,6 +2021,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksResellerOrderNotifyRoute,
   ApiPublicHooksResyncMarketplaceStockRoute:
     ApiPublicHooksResyncMarketplaceStockRoute,
+  ApiPublicOgLogoSlugRoute: ApiPublicOgLogoSlugRoute,
   ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
   ApiPublicResellerProductsUser_idRoute: ApiPublicResellerProductsUser_idRoute,
   ApiPublicSplashLogoSplatRoute: ApiPublicSplashLogoSplatRoute,
