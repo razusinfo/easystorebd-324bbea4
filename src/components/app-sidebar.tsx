@@ -32,6 +32,7 @@ const resellerItems = [
   { title: "Reseller Products", url: "/reseller-products", icon: Repeat2, badge: "NEW" },
   { title: "Reseller Requests", url: "/reseller-requests", icon: Send, badge: "NEW" },
   { title: "Order For Suppliers", url: "/order-management", icon: Receipt, badge: "NEW" },
+  { title: "Order Notifications", url: "/my-notifications", icon: Bell },
   { title: "Wallet", url: "/wallet", icon: Wallet, badge: "NEW" },
 ];
 
@@ -165,20 +166,26 @@ export function AppSidebar() {
           <SidebarGroup data-testid="reseller-zone-group" className="mt-1">
             {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
             <SidebarGroupContent>
-              <SidebarMenu className="gap-1">{resellerItems.map(renderItem)}</SidebarMenu>
+              <SidebarMenu className="gap-1">
+                {resellerItems
+                  .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
+                  .map(renderItem)}
+              </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
 
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {notificationItems
-                .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
-                .map(renderItem)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {!resellerZone.data && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {notificationItems
+                  .map((it) => it.url === "/my-notifications" ? { ...it, badge: unreadCount } : it)
+                  .map(renderItem)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
 
 
