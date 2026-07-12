@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/order-management")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
-      { title: "Order Management — EasyStore" },
+      { title: "Order For Suppliers — EasyStore" },
       { name: "description", content: "Role-scoped order management dashboard." },
     ],
   }),
@@ -293,7 +293,7 @@ function OrderManagementPage() {
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ShoppingBag className="h-6 w-6" /> Order Management
+            <ShoppingBag className="h-6 w-6" /> Order For Suppliers
           </h1>
           <p className="text-sm text-muted-foreground">
             {role === "super_admin"

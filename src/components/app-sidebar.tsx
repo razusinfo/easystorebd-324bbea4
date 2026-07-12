@@ -21,7 +21,7 @@ import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Orders", url: "/orders", icon: ShoppingBag },
-  { title: "Order Management", url: "/order-management", icon: Receipt, badge: "NEW" },
+  { title: "Order For Suppliers", url: "/order-management", icon: Receipt, badge: "NEW" },
   { title: "Products", url: "/products", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderTree },
   { title: "Customers", url: "/customers", icon: Users },
