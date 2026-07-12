@@ -280,31 +280,57 @@ export const verifyWildcardConnected = createServerFn({ method: "POST" })
     let httpsOk = false;
     let httpStatus: number | undefined;
     let servedByApp: boolean | undefined;
+    let finalUrl: string | undefined;
+    let redirectChain: string[] | undefined;
+    let cloudflareError: number | undefined;
     let hint: string | null = null;
     if (dnsOk) {
       const probe = await probeHttps(testHost);
       httpsOk = probe.ok;
       httpStatus = probe.status;
       servedByApp = probe.servedByApp;
-      if (!probe.ok) {
-        if (probe.status === 403 || probe.status === 404) {
-          hint =
-            "DNS ঠিক আছে কিন্তু Lovable hosting এই subdomain accept করছে না " +
-            `(HTTP ${probe.status})। Cloudflare wildcard একা যথেষ্ট নয় — Lovable side-এ wildcard ` +
-            "enable করতে হবে: Project Settings → Domains → Connect domain দিয়ে `easystorebd.com` " +
-            "attach করুন (Advanced → “Domain uses Cloudflare or a similar proxy” টিক দিয়ে), " +
-            "অথবা Enterprise plan-এ Lovable support-কে `*.easystorebd.com` wildcard enable করতে বলুন। " +
-            "যতক্ষণ এটা না হয়, ইউজারের `<slug>.easystorebd.com` কাজ করবে না।";
-        } else if (probe.status && probe.status >= 500) {
-          hint = `Lovable hosting ${probe.status} response দিচ্ছে — কিছুক্ষণ পর আবার চেষ্টা করুন।`;
-        } else if (!probe.status) {
-          hint = probe.error ?? "HTTPS response পাওয়া যায়নি।";
-        }
-      }
+      finalUrl = probe.finalUrl;
+      redirectChain = probe.redirectChain;
+      cloudflareError = probe.cloudflareError;
+      if (!probe.ok) hint = buildProbeHint(probe);
     } else if (addrs.length === 0) {
       hint = "DNS এখনো propagate হয়নি — ২৪–৪৮ ঘণ্টা পর্যন্ত সময় নিতে পারে।";
     } else {
       hint = `DNS ${addrs.join(", ")}-এ point করছে, ${LOVABLE_IP} নয়। Cloudflare-এ A record ঠিক করুন।`;
     }
-    return { dnsOk, httpsOk, testHost, addrs, httpStatus, servedByApp, hint };
+    return { dnsOk, httpsOk, testHost, addrs, httpStatus, servedByApp, finalUrl, redirectChain, cloudflareError, hint };
   });
+
+/** Pure hint builder — exported for unit tests. */
+export function buildProbeHint(probe: {
+  ok: boolean;
+  status?: number;
+  cloudflareError?: number;
+  error?: string;
+}): string | null {
+  if (probe.ok) return null;
+  if (probe.cloudflareError === 1000) {
+    return (
+      "Cloudflare Error 1000: DNS points to prohibited IP। আপনার wildcard A record " +
+      "(`*` → 185.158.133.1) Cloudflare-এ 🟠 Proxied অবস্থায় আছে, কিন্তু Lovable-এর edge নিজেই " +
+      "Cloudflare-এ চলে — এতে proxy loop হচ্ছে। ঠিক করার উপায়: Cloudflare → DNS → Records-এ " +
+      "`*` A record খুঁজে **Proxy status: DNS only (☁️ grey cloud)** করুন। `@` ও `www` record " +
+      "Proxied রাখতে পারেন। ৫–১০ মিনিট পর আবার Verify করুন।"
+    );
+  }
+  if (probe.status === 403 || probe.status === 404) {
+    return (
+      `DNS ঠিক আছে কিন্তু Lovable hosting এই subdomain accept করছে না (HTTP ${probe.status})। ` +
+      "Cloudflare wildcard একা যথেষ্ট নয় — Lovable side-এ wildcard enable করতে হবে: " +
+      "Project Settings → Domains → Connect domain দিয়ে `easystorebd.com` attach করুন " +
+      "(Advanced → “Domain uses Cloudflare or a similar proxy” টিক দিয়ে), অথবা Enterprise " +
+      "plan-এ Lovable support-কে `*.easystorebd.com` wildcard enable করতে বলুন।"
+    );
+  }
+  if (probe.status && probe.status >= 500) {
+    return `Lovable hosting ${probe.status} response দিচ্ছে — কিছুক্ষণ পর আবার চেষ্টা করুন।`;
+  }
+  if (!probe.status) return probe.error ?? "HTTPS response পাওয়া যায়নি।";
+  return null;
+}
+
