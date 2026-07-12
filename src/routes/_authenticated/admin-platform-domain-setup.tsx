@@ -408,6 +408,18 @@ function PlatformDomainSetupPage() {
                     <span className="text-green-700 dark:text-green-400">✅ Wildcard live — auto re-check বন্ধ</span>
                   )}
                 </div>
+                <div className="rounded-md border border-blue-300/60 bg-blue-50 dark:bg-blue-950/30 p-3 text-xs space-y-1" data-testid="pre-check-checklist">
+                  <p className="font-medium">✅ Verify করার আগে Cloudflare-এ চেক করুন</p>
+                  <ul className="list-disc pl-5 space-y-0.5">
+                    <li><code>A  *  → 185.158.133.1</code> — Proxy: <b>DNS only (☁️ grey cloud)</b></li>
+                    <li><code>A  @  → 185.158.133.1</code> — Proxy: 🟠 Proxied</li>
+                    <li><code>A  www → 185.158.133.1</code> — Proxy: 🟠 Proxied</li>
+                    <li>SSL/TLS mode: <b>Full</b> (Flexible নয়)</li>
+                    <li>Lovable → Domains → <code>easystorebd.com</code> attached + Cloudflare-proxy টিক</li>
+                  </ul>
+                  <p className="text-muted-foreground pt-1">যেকোনো একটি ভুল থাকলে verify Error 1000 বা HTTP 403 দেবে।</p>
+                </div>
+
                 <div aria-live="polite" aria-atomic="true">
                   {verifyMut.data && (
                     <div className="rounded-md border bg-muted/40 p-3 text-xs space-y-1" data-testid="verify-result">
@@ -432,9 +444,73 @@ function PlatformDomainSetupPage() {
                           <ul className="pl-4 mt-1">{verifyMut.data.redirectChain.map((h, i) => <li key={i}><code>{h}</code></li>)}</ul>
                         </details>
                       )}
+                      {verifyMut.data.finalHeaders && Object.keys(verifyMut.data.finalHeaders).length > 0 && (
+                        <details className="text-muted-foreground" data-testid="response-headers">
+                          <summary className="cursor-pointer">Response headers ({Object.keys(verifyMut.data.finalHeaders).length})</summary>
+                          <ul className="pl-4 mt-1 font-mono">
+                            {Object.entries(verifyMut.data.finalHeaders).map(([k, v]) => (
+                              <li key={k}><b>{k}:</b> {v}</li>
+                            ))}
+                          </ul>
+                          <p className="pt-1 text-[10px]">
+                            <code>server: cloudflare</code> + কোনো <code>x-lovable-*</code> না থাকলে request Lovable edge পর্যন্ত পৌঁছায়নি — Cloudflare edge-এই আটকেছে।
+                          </p>
+                        </details>
+                      )}
                       {verifyMut.data.hint && (
                         <div className="mt-2 rounded border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2 text-amber-900 dark:text-amber-200" data-testid="verify-hint">
                           {verifyMut.data.hint}
+                        </div>
+                      )}
+
+                      {verifyMut.data.httpStatus === 403 && (
+                        <div className="mt-2 rounded border border-red-300/60 bg-red-50 dark:bg-red-950/30 p-3 space-y-1 text-red-900 dark:text-red-200" data-testid="troubleshoot-403">
+                          <p className="font-semibold">🚫 HTTP 403 — Lovable edge এই Host block করছে</p>
+                          <p>এর মানে DNS পৌঁছাচ্ছে ঠিকই, কিন্তু Lovable-এর edge Host header চেনে না। ঠিক করার ধাপ:</p>
+                          <ol className="list-decimal pl-5 space-y-0.5">
+                            <li>Lovable dashboard → এই project → <b>Settings ⚙️</b>।</li>
+                            <li>বাম মেনুতে <b>Project</b> section → <b>Domains</b>।</li>
+                            <li><b>Connect Domain</b> → hostname: <code>easystorebd.com</code> (wildcard <b>*</b> বাদ)।</li>
+                            <li><b>Advanced</b> expand → ✅ <b>“Domain uses Cloudflare or a similar proxy”</b>।</li>
+                            <li><b>Continue</b> → status <b>Verifying → Setting up → Active</b>।</li>
+                            <li>একই ধাপ <code>www.easystorebd.com</code>-এর জন্য।</li>
+                            <li>৫–১০ মিনিট পর নিচের <b>Verify wildcard</b> আবার চাপুন।</li>
+                          </ol>
+                        </div>
+                      )}
+
+                      {verifyMut.data.missingWildcard && (
+                        <div className="mt-2 rounded border border-purple-300/60 bg-purple-50 dark:bg-purple-950/30 p-3 space-y-2 text-purple-900 dark:text-purple-200" data-testid="enterprise-request">
+                          <p className="font-semibold">📨 Wildcard support enable করতে Lovable-এ অনুরোধ পাঠান</p>
+                          <p className="text-xs">Root + www attach করার পরও random subdomain 4xx দিলে — Enterprise plan-এ Lovable support ম্যানুয়ালি <code>*.easystorebd.com</code> attach করবে। নিচের বার্তাটি copy করে support-এ পাঠান:</p>
+                          {(() => {
+                            const msg = `Hi Lovable support,
+
+Please enable wildcard *.easystorebd.com on my project.
+
+Project ID: 8415c091-a856-405d-8288-89ca4d1fcfe2
+Root domain (already attached with Cloudflare proxy): easystorebd.com
+Requested wildcard: *.easystorebd.com
+
+Diagnostic (from Platform Domain Setup wizard):
+- Test host: ${verifyMut.data.testHost}
+- DNS A -> ${verifyMut.data.addrs.join(", ") || "(none)"} (expected 185.158.133.1)
+- HTTPS status: ${verifyMut.data.httpStatus ?? "n/a"}
+- Final URL: ${verifyMut.data.finalUrl ?? "n/a"}
+- Server header: ${verifyMut.data.finalHeaders?.server ?? "n/a"}
+- cf-ray: ${verifyMut.data.finalHeaders?.["cf-ray"] ?? "n/a"}
+
+Use case: multi-tenant reseller stores at <slug>.easystorebd.com.
+Thanks!`;
+                            return (
+                              <>
+                                <pre className="rounded bg-background/60 border p-2 text-[11px] whitespace-pre-wrap font-mono" data-testid="enterprise-request-body">{msg}</pre>
+                                <Button size="sm" variant="outline" onClick={() => copyText(msg)}>
+                                  <Copy className="h-3.5 w-3.5 mr-1" /> Copy support request
+                                </Button>
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
