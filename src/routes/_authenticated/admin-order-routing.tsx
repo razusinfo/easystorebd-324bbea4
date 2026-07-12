@@ -470,13 +470,15 @@ function AdminOrderRoutingPage() {
               <TableHead>Reason</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Product</TableHead>
-              <TableHead>Order / Item</TableHead>
+              <TableHead>Source order / item</TableHead>
+              <TableHead>Destination</TableHead>
               <TableHead>Success</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAudit.length ? filteredAudit.map((a) => {
+
               const meta = (a.metadata ?? {}) as any;
               const isError = !a.success;
               const canRetry = !!a.source_order_item_id;
