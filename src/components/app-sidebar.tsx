@@ -150,12 +150,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
-          <SidebarGroupContent>
-            <SidebarMenu>{resellerItems.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {resellerZone.data && (
+          <SidebarGroup data-testid="reseller-zone-group" className="mt-1">
+            {!collapsed && <SidebarGroupLabel>Reselling or Supplier zone</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">{resellerItems.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
 
         <SidebarGroup>
           <SidebarGroupContent>
