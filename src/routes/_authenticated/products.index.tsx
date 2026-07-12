@@ -49,9 +49,11 @@ function ProductsPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
   const [categoryFilter, setCategoryFilter] = useState<string | "all">("all");
+  const [supplierFilter, setSupplierFilter] = useState<string | "all">("all");
   const [deleting, setDeleting] = useState<ProductRow | null>(null);
   const [statusTarget, setStatusTarget] = useState<ProductRow | null>(null);
   const categoriesQ = useCategories(store?.id);
+  const suppliersQ = useMyProductSuppliers(store?.id);
 
   // Debounce search + sku to avoid spamming API
   useEffect(() => {
