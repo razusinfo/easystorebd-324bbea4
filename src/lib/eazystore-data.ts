@@ -358,7 +358,7 @@ export const TEMPLATES: { id: TemplateId; name: string; tagline: string; gradien
   { id: "flipmart", name: "Flipmart Bazaar", tagline: "Marketplace megastore — blue + yellow, category rail, hero banner, and multi-section product grids", gradient: "from-blue-600 to-yellow-400", accent: "#2563eb", category: "General", premium: true },
   { id: "freshmart", name: "Freshmart Organic", tagline: "Grocery & organic foods — green + yellow, circular category tiles, hot deals countdown, kitchen essentials banner", gradient: "from-green-700 to-yellow-400", accent: "#166534", category: "Grocery", premium: true },
   { id: "megamart", name: "MegaMart Bazaar", tagline: "Dense marketplace — red + lime section bars, 3-banner hero, featured brands strip, suggested/trending/on-sale rows", gradient: "from-rose-600 to-amber-400", accent: "#e11d48", category: "General", premium: true },
-  { id: "trendmart", name: "TrendMart Slider", tagline: "Marketplace with horizontally-sliding rows — Newly Added, Trendy Styles, and more, plus dense multi-section grids", gradient: "from-fuchsia-600 to-cyan-400", accent: "#9333ea", category: "General", premium: true },
+  
   
   
 
