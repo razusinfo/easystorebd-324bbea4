@@ -44,11 +44,38 @@ export const listPublicStores = createServerFn({ method: "GET" }).handler(
       .not("slug", "is", null)
       .order("name", { ascending: true })
       .limit(200);
-    return {
-      stores: (data ?? []).filter(
-        (s): s is { id: string; slug: string; name: string; logo_url: string | null; tagline: string | null } =>
-          typeof s.slug === "string" && s.slug.length > 0,
+    const rows = (data ?? []).filter(
+      (s): s is { id: string; slug: string; name: string; logo_url: string | null; tagline: string | null } =>
+        typeof s.slug === "string" && s.slug.length > 0,
+    );
+
+    // Sign logo paths (stores.logo_url is a storage object path in the private "store-logos" bucket).
+    const paths = Array.from(
+      new Set(
+        rows
+          .map((r) => r.logo_url)
+          .filter((p): p is string => typeof p === "string" && p.length > 0 && !/^https?:\/\//i.test(p)),
       ),
+    );
+    const signedMap = new Map<string, string>();
+    if (paths.length > 0) {
+      const { data: signed } = await sb.storage
+        .from("store-logos")
+        .createSignedUrls(paths, 60 * 60 * 24 * 7);
+      for (const item of signed ?? []) {
+        if (item?.path && item.signedUrl) signedMap.set(item.path, item.signedUrl);
+      }
+    }
+
+    return {
+      stores: rows.map((r) => ({
+        ...r,
+        logo_url: r.logo_url
+          ? /^https?:\/\//i.test(r.logo_url)
+            ? r.logo_url
+            : signedMap.get(r.logo_url) ?? null
+          : null,
+      })),
     };
   },
 );
