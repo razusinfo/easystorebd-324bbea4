@@ -311,3 +311,57 @@
   text-shadow: 0 1px 0 color-mix(in oklab, var(--primary) 15%, transparent);
 }
 
+/* ---------- Global responsive polish (desktop + mobile browsers + Capacitor app) ---------- */
+
+/* Prevent accidental horizontal scroll of the whole page on small screens */
+html, body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Respect iOS/Android safe areas so notch / gesture bar don't clip content */
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Any long-form image, video, or embed should scale down inside its parent */
+img, video, canvas, svg, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Wrap unbreakable strings (long URLs, tokens shown in the domain wizard, etc.) */
+code, pre, kbd, samp {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+/* Any raw <table> becomes horizontally scrollable on narrow screens without
+   requiring every author to remember the wrapper div. */
+@media (max-width: 767px) {
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Touch targets: minimum 40px hit area on coarse pointers (phones + tablets) */
+@media (pointer: coarse) {
+  button, [role="button"], a.btn, a[role="link"] {
+    min-height: 40px;
+  }
+}
+
+/* Radix Dialog / Sheet content on very small phones: fit viewport with margin */
+@media (max-width: 480px) {
+  [role="dialog"] {
+    max-width: calc(100vw - 1rem);
+  }
+}
+
