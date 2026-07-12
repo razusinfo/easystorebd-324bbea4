@@ -4,11 +4,12 @@ import {
   Package, ShoppingBag, Users, Globe, FolderTree, Megaphone,
   Store as StoreIcon, LayoutTemplate, Tag, BarChart3, FileBarChart,
   Truck, Gem, ReceiptText, LifeBuoy, Zap, Copy, ExternalLink,
-  Home, Loader2,
+  Home, Loader2, Pencil, Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyStore, useMyProducts, buildStorefrontUrl } from "@/lib/eazystore-data";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
+import { WebsiteNameDialog } from "@/components/website-name-dialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — EasyStore" }] }),
@@ -27,6 +28,7 @@ function Dashboard() {
   const myStore = useMyStore();
   const products = useMyProducts(myStore.data?.id);
   const [name, setName] = useState<string>("");
+  const [siteDialogOpen, setSiteDialogOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -105,7 +107,9 @@ function Dashboard() {
             </h1>
             <div className="mt-2 inline-flex items-center gap-1.5 text-sm">
               <span className={`inline-block h-2 w-2 rounded-full ${isLive ? "bg-emerald-500" : "bg-amber-500"}`} />
-              <span className="truncate text-foreground/80">{store.name} · {isLive ? "Live" : "Draft"}</span>
+              <span className="truncate text-foreground/80">
+                {store.name} · {isLive ? "Live" : (store.slug ? "Inactive" : "Not Created")}
+              </span>
             </div>
           </div>
           <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-black text-white shadow-lg ring-4 ring-white/60">
@@ -131,14 +135,21 @@ function Dashboard() {
           </button>
         </div>
 
-        {/* Visit & Manage tabs */}
+        {/* Create / Change website + Visit */}
         <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setSiteDialogOpen(true)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+          >
+            {isLive ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+            {isLive ? "Change Website Name" : "Create your Website"}
+          </button>
           {storeUrl ? (
             <a
               href={storeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+              className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/80 px-4 py-2.5 text-sm font-bold text-primary shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
             >
               <ExternalLink className="h-4 w-4" />
               Visit
@@ -146,20 +157,20 @@ function Dashboard() {
           ) : (
             <Link
               to="/manage-shop"
-              className="inline-flex items-center justify-center gap-1.5 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+              className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/80 px-4 py-2.5 text-sm font-bold text-primary shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
             >
-              <ExternalLink className="h-4 w-4" />
-              Publish
+              <StoreIcon className="h-4 w-4" />
+              Manage
             </Link>
           )}
-          <Link
-            to="/manage-shop"
-            className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/80 px-4 py-2.5 text-sm font-bold text-primary shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <StoreIcon className="h-4 w-4" />
-            Manage
-          </Link>
         </div>
+
+        <WebsiteNameDialog
+          open={siteDialogOpen}
+          onOpenChange={setSiteDialogOpen}
+          store={store}
+          mode={isLive ? "change" : "create"}
+        />
       </section>
 
 
