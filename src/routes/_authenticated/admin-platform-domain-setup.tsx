@@ -281,18 +281,26 @@ function PlatformDomainSetupPage() {
                       <tr><th className="p-2 text-left">Type</th><th className="p-2 text-left">Name</th><th className="p-2 text-left">Content</th><th className="p-2 text-left">Proxy</th></tr>
                     </thead>
                     <tbody>
-                      {[["A", "@", "185.158.133.1"], ["A", "www", "185.158.133.1"], ["A", "*", "185.158.133.1"]].map(([t, n, v]) => (
+                      {[
+                        ["A", "@", "185.158.133.1", "🟠 Proxied"],
+                        ["A", "www", "185.158.133.1", "🟠 Proxied"],
+                        ["A", "*", "185.158.133.1", "☁️ DNS only"],
+                      ].map(([t, n, v, p]) => (
                         <tr key={n} className="border-t">
                           <td className="p-2">{t}</td>
                           <td className="p-2"><code>{n}</code></td>
                           <td className="p-2 flex items-center gap-1"><code>{v}</code><Button variant="ghost" size="sm" onClick={() => copyText(v)}><Copy className="h-3 w-3" /></Button></td>
-                          <td className="p-2">🟠 Proxied</td>
+                          <td className="p-2">{p}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <p className="text-muted-foreground">The <code>*</code> record enables all subdomains like <code>&lt;slug&gt;.easystorebd.com</code>.</p>
+                <p className="text-muted-foreground">
+                  <b>গুরুত্বপূর্ণ:</b> <code>*</code> record অবশ্যই <b>DNS only (☁️ grey cloud)</b> রাখতে হবে —
+                  Proxied করলে <b>Cloudflare Error 1000 “DNS points to prohibited IP”</b> দেখাবে,
+                  কারণ Lovable-এর edge নিজেই Cloudflare-এ চলে (proxy loop)।
+                </p>
               </div>
             )}
             {stepIdx === 3 && (
@@ -317,6 +325,22 @@ function PlatformDomainSetupPage() {
                 </div>
 
                 <HostnameSanitizerInput />
+
+                <div className="rounded-md border border-primary/40 bg-primary/5 p-3 space-y-2" data-testid="wildcard-checklist">
+                  <p className="font-medium">📋 Lovable Connect Domain — click-by-click checklist</p>
+                  <ol className="list-decimal pl-5 space-y-1 text-xs">
+                    <li>Lovable dashboard খুলুন → বর্তমান project select করুন।</li>
+                    <li>উপরের ডানপাশে <b>Settings</b> (⚙️) → বাম মেনু থেকে <b>Project</b> section → <b>Domains</b>।</li>
+                    <li><b>Connect Domain</b> বাটনে ক্লিক করুন।</li>
+                    <li>Hostname ঘরে <code>easystorebd.com</code> লিখুন (<b>*</b> বাদ — উপরের helper দিয়ে কপি করুন)।</li>
+                    <li><b>Advanced</b> section expand করুন → ✅ <b>“Domain uses Cloudflare or a similar proxy”</b> checkbox টিক দিন।</li>
+                    <li><b>Continue</b> চাপুন → status <b>Verifying → Setting up → Active</b> হবে।</li>
+                    <li>একই ধাপ repeat করুন <code>www.easystorebd.com</code>-এর জন্য।</li>
+                    <li>Cloudflare-এ ফিরে গিয়ে DNS → Records-এ <code>*</code> A record-এর <b>Proxy status: DNS only</b> (☁️ grey cloud) নিশ্চিত করুন।</li>
+                    <li>এই পেজে ফিরে <b>Verify wildcard</b> চাপুন — সবুজ ✅ পেলে Finish করুন।</li>
+                  </ol>
+                </div>
+
 
 
 
@@ -396,6 +420,18 @@ function PlatformDomainSetupPage() {
                             ? `❌ HTTP ${verifyMut.data.httpStatus} — Lovable app response দিচ্ছে না`
                             : "⏳ এখনো response দিচ্ছে না"}
                       </div>
+                      {verifyMut.data.cloudflareError === 1000 && (
+                        <div className="text-destructive font-medium">⚠️ Cloudflare Error 1000 detected (DNS points to prohibited IP)</div>
+                      )}
+                      {verifyMut.data.finalUrl && verifyMut.data.finalUrl !== `https://${verifyMut.data.testHost}/` && (
+                        <div className="text-muted-foreground">Final URL: <code>{verifyMut.data.finalUrl}</code></div>
+                      )}
+                      {verifyMut.data.redirectChain && verifyMut.data.redirectChain.length > 1 && (
+                        <details className="text-muted-foreground">
+                          <summary className="cursor-pointer">Redirect chain ({verifyMut.data.redirectChain.length} hop)</summary>
+                          <ul className="pl-4 mt-1">{verifyMut.data.redirectChain.map((h, i) => <li key={i}><code>{h}</code></li>)}</ul>
+                        </details>
+                      )}
                       {verifyMut.data.hint && (
                         <div className="mt-2 rounded border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 p-2 text-amber-900 dark:text-amber-200" data-testid="verify-hint">
                           {verifyMut.data.hint}
