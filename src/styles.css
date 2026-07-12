@@ -383,10 +383,51 @@ pre {
   }
 }
 
-/* Radix Dialog / Sheet content on very small phones: fit viewport with margin */
-@media (max-width: 480px) {
+/* Radix Dialog / Sheet content on very small phones: fit viewport with margin,
+   allow internal scroll for tall forms (Add Product, Order details, etc.). */
+@media (max-width: 640px) {
   [role="dialog"] {
     max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Radix Select / Dropdown / Popover / Combobox content: never wider than the
+     viewport, so long option labels don't get clipped or push off-screen. */
+  [data-radix-popper-content-wrapper] > * {
+    max-width: calc(100vw - 1rem) !important;
+    max-height: min(60dvh, 420px);
+    overflow-y: auto;
+  }
+  /* Sticky "form actions" bar — any element with data-sticky-actions gets
+     pinned to the bottom on mobile so Save/Submit is always reachable. */
+  [data-sticky-actions] {
+    position: sticky;
+    bottom: env(safe-area-inset-bottom);
+    z-index: 5;
+    background: var(--background);
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    margin-top: 0.5rem;
+  }
+  /* Filter/toolbar rows: stack vertically on tiny screens so controls don't
+     overflow horizontally. Opt-in via data-filter-row. */
+  [data-filter-row] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  [data-filter-row] > * {
+    width: 100%;
+  }
+}
+
+/* Any grid-heavy card list on mobile should fall back to a single column
+   when children would otherwise get squeezed below usable width. */
+@media (max-width: 480px) {
+  [data-mobile-single] {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -396,5 +437,6 @@ pre {
   outline-offset: 2px;
   border-radius: 6px;
 }
+
 
 
