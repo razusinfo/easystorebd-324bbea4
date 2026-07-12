@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/public_html/
+    - export DEPLOYPATH=/home/easystore/public_html/
     - /bin/cp -R * $DEPLOYPATH
