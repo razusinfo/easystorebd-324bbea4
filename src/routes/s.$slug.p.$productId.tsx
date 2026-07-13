@@ -13,14 +13,16 @@ import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { descriptionToHtml } from "@/lib/description-html";
 import { supabase } from "@/integrations/supabase/client";
+import { loadStoreHeadInfo, storefrontFaviconLinks, storefrontSectionMeta } from "@/lib/storefront-head";
 
 export const Route = createFileRoute("/s/$slug/p/$productId")({
-  head: ({ params }) => ({
+  loader: async ({ params }) => loadStoreHeadInfo(params.slug),
+  head: ({ params, loaderData }) => ({
     meta: [
-      { title: `Product — ${params.slug}` },
-      { name: "description", content: `View product details on ${params.slug}.` },
+      ...storefrontSectionMeta({ slug: params.slug, storeName: loaderData?.storeName ?? null, section: "Product" }),
       { property: "og:type", content: "product" },
     ],
+    links: storefrontFaviconLinks(params.slug),
   }),
   component: PublicProductDetailPage,
 });
