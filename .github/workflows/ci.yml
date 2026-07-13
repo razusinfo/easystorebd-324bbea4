@@ -27,6 +27,9 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Check Node/npm versions
+        run: node -v && npm -v
+
       - name: Cache node_modules
         uses: actions/cache@v4
         with:
@@ -35,10 +38,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
-      - name: Install dependencies (npm)
+      - name: Validate node_modules is writable
+        run: mkdir -p node_modules && test -w node_modules
+
+      - name: Install dependencies (npm ci)
         run: |
-          mkdir -p node_modules
-          npm install --no-audit --no-fund --legacy-peer-deps --prefix .
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund --legacy-peer-deps
+          else
+            npm install --no-audit --no-fund --legacy-peer-deps
+          fi
 
       - name: Lint
         run: bun run lint
