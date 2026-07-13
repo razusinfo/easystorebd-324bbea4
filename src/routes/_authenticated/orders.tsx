@@ -696,70 +696,80 @@ function OrdersTable({
             className={`p-4 transition-colors ${isTapped ? "bg-primary/5" : ""}`}
             onClick={() => setTappedId((cur) => (cur === o.id ? null : o.id))}
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              {/* LEFT: customer name + phone + call/whatsapp */}
+              <div className={`min-w-0 flex-1 rounded-md px-2 py-1 -mx-2 transition-colors ${isTapped ? "bg-primary/10 ring-1 ring-primary/30" : ""}`}>
+                <p className="truncate font-semibold">{o.customer_name}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-foreground/60">
+                  <span>{prettyBDPhone(o.customer_phone)}</span>
+                  <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
+                </div>
+                <p className="mt-2 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
+              </div>
+
+              {/* RIGHT: order info + date */}
+              <div className="flex flex-col items-end gap-1 text-right">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold">#{shortHash(o.id)}</span>
                   <span className="rounded-full border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-600">
                     Online
                   </span>
                 </div>
-                <p className="mt-1 font-mono text-xs text-foreground/50">{o.order_number}</p>
-                <div className={`mt-1 rounded-md px-2 py-1 -mx-2 transition-colors ${isTapped ? "bg-primary/10 ring-1 ring-primary/30" : ""}`}>
-                  <p className="truncate font-semibold">{o.customer_name}</p>
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-foreground/60">
-                    <span>{prettyBDPhone(o.customer_phone)}</span>
-                    <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
-                  </div>
-                </div>
-                <p className="mt-1 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <Select
-                    value={o.status}
-                    onValueChange={async (v) => {
-                      try {
-                        await updStatus.mutateAsync({ id: o.id, status: v as OrderStatus });
-                        toast.success(`Order status → ${v}`);
-                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-[130px]" aria-label="Order status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ORDER_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={o.payment_status}
-                    onValueChange={async (v) => {
-                      try {
-                        await updPayment.mutateAsync({ id: o.id, payment_status: v as PaymentStatus });
-                        toast.success(`Payment → ${v}`);
-                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-[110px]" aria-label="Payment status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAYMENT_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <p className="font-mono text-xs text-foreground/50">{o.order_number}</p>
+                <p className="text-[11px] text-foreground/60">
+                  {new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}
+                  {" · "}
+                  {new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </p>
+                <div className="mt-1 flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onView(o)}><Eye className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(o)}><Pencil className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => onDelete(o)}
+                    className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <Button variant="ghost" size="icon" onClick={() => onView(o)}><Eye className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onEdit(o)}><Pencil className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" onClick={() => onDelete(o)}
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+            </div>
+
+            {/* Status controls below, full width */}
+            <div className="mt-3 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+              <Select
+                value={o.status}
+                onValueChange={async (v) => {
+                  try {
+                    await updStatus.mutateAsync({ id: o.id, status: v as OrderStatus });
+                    toast.success(`Order status → ${v}`);
+                  } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                }}
+              >
+                <SelectTrigger className="h-8 w-[130px]" aria-label="Order status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORDER_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={o.payment_status}
+                onValueChange={async (v) => {
+                  try {
+                    await updPayment.mutateAsync({ id: o.id, payment_status: v as PaymentStatus });
+                    toast.success(`Payment → ${v}`);
+                  } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                }}
+              >
+                <SelectTrigger className="h-8 w-[110px]" aria-label="Payment status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </li>
           );
