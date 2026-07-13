@@ -1,30 +1,19 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { STOREFRONT_APEX_DOMAINS, getStorefrontSlugFromHost } from "@/lib/storefront-host";
-import { supabase } from "@/integrations/supabase/client";
+import { loadStoreHeadInfo, storefrontFaviconLinks, storefrontSectionMeta } from "@/lib/storefront-head";
 
 export const Route = createFileRoute("/s/$slug")({
-  loader: async ({ params }) => {
-    const { data } = await supabase
-      .from("stores")
-      .select("name, tagline")
-      .eq("slug", params.slug)
-      .eq("published", true)
-      .maybeSingle();
-    return { storeName: data?.name ?? null, tagline: data?.tagline ?? null };
-  },
+  loader: async ({ params }) => loadStoreHeadInfo(params.slug),
   head: ({ params, loaderData }) => {
-    const name = loaderData?.storeName ?? params.slug;
-    const desc = (loaderData?.tagline && loaderData.tagline.trim()) || `Shop online at ${name}.`;
+    const name = loaderData?.storeName ?? null;
+    const desc = (loaderData?.tagline && loaderData.tagline.trim()) || undefined;
     return {
       meta: [
-        { title: name },
-        { name: "description", content: desc },
-        { property: "og:title", content: name },
-        { property: "og:description", content: desc },
+        ...storefrontSectionMeta({ slug: params.slug, storeName: name, description: desc }),
         { property: "og:type", content: "website" },
-        { property: "og:site_name", content: name },
       ],
+      links: storefrontFaviconLinks(params.slug),
     };
   },
   component: SlugLayout,
