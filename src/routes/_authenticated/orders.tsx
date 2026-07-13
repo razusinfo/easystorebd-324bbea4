@@ -1331,3 +1331,68 @@ export function OrderAuditHistory({ orderId }: { orderId: string }) {
     </ul>
   );
 }
+
+// ---------- Status timeline ----------
+
+type TimelineStep = { key: string; label: string; matches: string[] };
+const TIMELINE_STEPS: TimelineStep[] = [
+  { key: "placed", label: "Placed", matches: ["pending"] },
+  { key: "confirmed", label: "Confirmed", matches: ["confirmed"] },
+  { key: "packed", label: "Packed", matches: ["packed", "processing"] },
+  { key: "shipped", label: "Shipped", matches: ["shipped", "out_for_delivery"] },
+  { key: "delivered", label: "Delivered", matches: ["delivered", "completed"] },
+];
+
+function StatusTimeline({ order, audit }: { order: OrderRow; audit: OrderAuditRow[] }) {
+  const cancelled = order.status === "cancelled";
+  // Map earliest timestamp for each step from audit (status field)
+  const stamps = new Map<string, string>();
+  stamps.set("placed", order.created_at);
+  for (const a of audit) {
+    if (a.field !== "status") continue;
+    const step = TIMELINE_STEPS.find((s) => s.matches.includes(a.to_value));
+    if (step && !stamps.has(step.key)) stamps.set(step.key, a.created_at);
+  }
+  const currentStep = TIMELINE_STEPS.find((s) => s.matches.includes(order.status));
+  const currentIdx = currentStep ? TIMELINE_STEPS.indexOf(currentStep) : 0;
+
+  if (cancelled) {
+    const cancelStamp = audit.find((a) => a.field === "status" && a.to_value === "cancelled")?.created_at;
+    return (
+      <div className="flex items-center gap-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <XCircle className="h-4 w-4" />
+        <span className="font-semibold">Cancelled</span>
+        {cancelStamp && <span className="text-xs opacity-70">{new Date(cancelStamp).toLocaleString()}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <ol className="flex flex-wrap gap-y-3">
+      {TIMELINE_STEPS.map((s, i) => {
+        const done = i <= currentIdx;
+        const ts = stamps.get(s.key);
+        return (
+          <li key={s.key} className="flex min-w-0 flex-1 items-start gap-2">
+            <div className="flex flex-col items-center">
+              <div
+                className={`grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ${
+                  done ? "bg-emerald-500 text-white" : "bg-muted text-foreground/40"
+                }`}
+              >
+                {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+              </div>
+              {i < TIMELINE_STEPS.length - 1 && (
+                <div className={`mt-0.5 h-6 w-px ${i < currentIdx ? "bg-emerald-500" : "bg-border"}`} />
+              )}
+            </div>
+            <div className="min-w-0 pb-2">
+              <p className={`text-xs font-semibold ${done ? "text-foreground" : "text-foreground/50"}`}>{s.label}</p>
+              {ts && <p className="text-[10px] text-foreground/50">{new Date(ts).toLocaleString()}</p>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
