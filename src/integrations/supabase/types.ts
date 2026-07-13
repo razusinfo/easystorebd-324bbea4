@@ -542,6 +542,54 @@ export type Database = {
           },
         ]
       }
+      order_status_audit: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          field: string
+          from_value: string | null
+          id: string
+          order_id: string
+          store_id: string
+          to_value: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          field: string
+          from_value?: string | null
+          id?: string
+          order_id: string
+          store_id: string
+          to_value: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          field?: string
+          from_value?: string | null
+          id?: string
+          order_id?: string
+          store_id?: string
+          to_value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_audit_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_status_audit_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "v_reseller_storefront_orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
+      }
       order_tracking_events: {
         Row: {
           courier_provider: string | null
