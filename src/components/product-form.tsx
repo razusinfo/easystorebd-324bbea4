@@ -325,6 +325,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           isSuperAdmin && form.addToReseller && form.resellerPrice !== ""
             ? Number(form.resellerPrice)
             : null,
+        sourceProductUrl: isSuperAdmin ? (form.sourceProductUrl.trim() || null) : undefined,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
