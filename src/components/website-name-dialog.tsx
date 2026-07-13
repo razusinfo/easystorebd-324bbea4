@@ -111,12 +111,14 @@ export function WebsiteNameDialog({
     try {
       if (mode === "create") {
         const row = await publish.mutateAsync({ id: store.id, name: store.name, desiredSlug: cleaned });
-        await notifyAdmin("created", row, row.slug ?? cleaned);
-        toast.success("Your website is live!");
+        const n = await notifyAdmin("created", row, row.slug ?? cleaned);
+        if (n.ok) toast.success("Your website is live!");
+        else toast.warning("Site published, but admin was not notified. Please contact support.", { description: n.error });
       } else {
         const row = await change.mutateAsync({ id: store.id, slug: cleaned });
-        await notifyAdmin("changed", row, row.slug ?? cleaned);
-        toast.success("Website name updated.");
+        const n = await notifyAdmin("changed", row, row.slug ?? cleaned);
+        if (n.ok) toast.success("Website name updated.");
+        else toast.warning("Name updated, but admin was not notified. Please contact support.", { description: n.error });
       }
       onOpenChange(false);
     } catch (err: any) {
