@@ -102,6 +102,7 @@ function ContactIcons({
       </button>
       <a
         href={`tel:${pretty}`}
+        onClick={() => bumpActivity(orderId, "call")}
         className={`${btn} bg-sky-50 text-sky-600 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-400`}
         aria-label="Call"
         title={`Call ${pretty} — opens dialer`}
@@ -112,6 +113,7 @@ function ContactIcons({
         <>
           <a
             href={`https://wa.me/${wa}`}
+            onClick={() => bumpActivity(orderId, "wa")}
             target="_blank"
             rel="noreferrer noopener"
             className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
@@ -122,6 +124,7 @@ function ContactIcons({
           </a>
           <a
             href={`https://wa.me/${wa}?text=${greeting}`}
+            onClick={() => bumpActivity(orderId, "wa_msg")}
             target="_blank"
             rel="noreferrer noopener"
             className={`${btn} bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300`}
