@@ -2536,6 +2536,10 @@ export type Database = {
           total_consumed: number
         }[]
       }
+      record_reseller_site_event: {
+        Args: { _kind: string; _slug: string; _store_id: string }
+        Returns: string
+      }
       retry_forward_order_item: { Args: { _item_id: string }; Returns: Json }
       verify_order_schema: {
         Args: never
