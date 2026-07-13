@@ -219,6 +219,8 @@ function OrdersPage() {
 
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabKey>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [viewing, setViewing] = useState<OrderRow | null>(null);
   const [editing, setEditing] = useState<OrderRow | null>(null);
   const [creating, setCreating] = useState(false);
@@ -231,8 +233,13 @@ function OrdersPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const fromTs = dateFrom ? new Date(dateFrom + "T00:00:00").getTime() : null;
+    const toTs = dateTo ? new Date(dateTo + "T23:59:59").getTime() : null;
     return orders.filter((o) => {
       if (!matchTab(o, tab)) return false;
+      const ts = new Date(o.created_at).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
       if (!q) return true;
       return (
         o.order_number.toLowerCase().includes(q) ||
@@ -240,7 +247,7 @@ function OrdersPage() {
         o.customer_phone.toLowerCase().includes(q)
       );
     });
-  }, [orders, search, tab]);
+  }, [orders, search, tab, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
     const confirmed = orders.filter((o) => o.status === "confirmed" || o.status === "delivered");
