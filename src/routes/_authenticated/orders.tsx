@@ -443,6 +443,7 @@ function OrdersPage() {
       {/* View */}
       <OrderDetailsDialog
         order={viewing}
+        storeName={storeName}
         onClose={() => setViewing(null)}
         onEdit={(o) => { setViewing(null); setEditing(o); }}
       />
