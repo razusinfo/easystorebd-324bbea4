@@ -70,6 +70,7 @@ import { Route as AuthenticatedAdminPlatformDomainSetupRouteImport } from './rou
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin-payouts'
 import { Route as AuthenticatedAdminOrderRoutingRouteImport } from './routes/_authenticated/admin-order-routing'
 import { Route as AuthenticatedAdminOrderAccessIntegrityRouteImport } from './routes/_authenticated/admin-order-access-integrity'
+import { Route as AuthenticatedAdminOauthTroubleshootRouteImport } from './routes/_authenticated/admin-oauth-troubleshoot'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin-notifications'
 import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin-financial'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -431,6 +432,12 @@ const AuthenticatedAdminOrderAccessIntegrityRoute =
     path: '/admin-order-access-integrity',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminOauthTroubleshootRoute =
+  AuthenticatedAdminOauthTroubleshootRouteImport.update({
+    id: '/admin-oauth-troubleshoot',
+    path: '/admin-oauth-troubleshoot',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminNotificationsRoute =
   AuthenticatedAdminNotificationsRouteImport.update({
     id: '/admin-notifications',
@@ -619,6 +626,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin-oauth-troubleshoot': typeof AuthenticatedAdminOauthTroubleshootRoute
   '/admin-order-access-integrity': typeof AuthenticatedAdminOrderAccessIntegrityRoute
   '/admin-order-routing': typeof AuthenticatedAdminOrderRoutingRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
@@ -711,6 +719,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin-oauth-troubleshoot': typeof AuthenticatedAdminOauthTroubleshootRoute
   '/admin-order-access-integrity': typeof AuthenticatedAdminOrderAccessIntegrityRoute
   '/admin-order-routing': typeof AuthenticatedAdminOrderRoutingRoute
   '/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
@@ -805,6 +814,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/admin-financial': typeof AuthenticatedAdminFinancialRoute
   '/_authenticated/admin-notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/_authenticated/admin-oauth-troubleshoot': typeof AuthenticatedAdminOauthTroubleshootRoute
   '/_authenticated/admin-order-access-integrity': typeof AuthenticatedAdminOrderAccessIntegrityRoute
   '/_authenticated/admin-order-routing': typeof AuthenticatedAdminOrderRoutingRoute
   '/_authenticated/admin-payouts': typeof AuthenticatedAdminPayoutsRoute
@@ -900,6 +910,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-financial'
     | '/admin-notifications'
+    | '/admin-oauth-troubleshoot'
     | '/admin-order-access-integrity'
     | '/admin-order-routing'
     | '/admin-payouts'
@@ -992,6 +1003,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin-financial'
     | '/admin-notifications'
+    | '/admin-oauth-troubleshoot'
     | '/admin-order-access-integrity'
     | '/admin-order-routing'
     | '/admin-payouts'
@@ -1085,6 +1097,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admin-financial'
     | '/_authenticated/admin-notifications'
+    | '/_authenticated/admin-oauth-troubleshoot'
     | '/_authenticated/admin-order-access-integrity'
     | '/_authenticated/admin-order-routing'
     | '/_authenticated/admin-payouts'
@@ -1623,6 +1636,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrderAccessIntegrityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-oauth-troubleshoot': {
+      id: '/_authenticated/admin-oauth-troubleshoot'
+      path: '/admin-oauth-troubleshoot'
+      fullPath: '/admin-oauth-troubleshoot'
+      preLoaderRoute: typeof AuthenticatedAdminOauthTroubleshootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin-notifications': {
       id: '/_authenticated/admin-notifications'
       path: '/admin-notifications'
@@ -1847,6 +1867,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAdminFinancialRoute: typeof AuthenticatedAdminFinancialRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
+  AuthenticatedAdminOauthTroubleshootRoute: typeof AuthenticatedAdminOauthTroubleshootRoute
   AuthenticatedAdminOrderAccessIntegrityRoute: typeof AuthenticatedAdminOrderAccessIntegrityRoute
   AuthenticatedAdminOrderRoutingRoute: typeof AuthenticatedAdminOrderRoutingRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
@@ -1900,6 +1921,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAdminFinancialRoute: AuthenticatedAdminFinancialRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
+  AuthenticatedAdminOauthTroubleshootRoute:
+    AuthenticatedAdminOauthTroubleshootRoute,
   AuthenticatedAdminOrderAccessIntegrityRoute:
     AuthenticatedAdminOrderAccessIntegrityRoute,
   AuthenticatedAdminOrderRoutingRoute: AuthenticatedAdminOrderRoutingRoute,

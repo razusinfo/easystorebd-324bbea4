@@ -298,6 +298,45 @@ export type Database = {
         }
         Relationships: []
       }
+      oauth_error_logs: {
+        Row: {
+          created_at: string
+          host: string | null
+          id: string
+          message: string | null
+          path: string | null
+          provider: string
+          redirect_uri: string | null
+          status_hint: string | null
+          tenant_slug: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          host?: string | null
+          id?: string
+          message?: string | null
+          path?: string | null
+          provider?: string
+          redirect_uri?: string | null
+          status_hint?: string | null
+          tenant_slug?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          host?: string | null
+          id?: string
+          message?: string | null
+          path?: string | null
+          provider?: string
+          redirect_uri?: string | null
+          status_hint?: string | null
+          tenant_slug?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       order_access_audit: {
         Row: {
           action: string
