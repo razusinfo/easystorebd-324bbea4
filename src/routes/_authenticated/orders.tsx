@@ -365,6 +365,7 @@ function OrdersPage() {
           <OrdersTable
             rows={filtered}
             storeId={store.id}
+            storeName={storeName}
             selected={selected}
             setSelected={setSelected}
             onView={setViewing}
