@@ -586,8 +586,8 @@ function OrdersTable({
                       <div className="min-w-0">
                         <div className="truncate font-medium">{o.customer_name}</div>
                         <div className="flex items-center gap-1.5 text-xs text-foreground/60">
-                          <span className="truncate">{o.customer_phone}</span>
-                          <ContactIcons phone={o.customer_phone} size="xs" />
+                          <span className="truncate">{prettyBDPhone(o.customer_phone)}</span>
+                          <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
                         </div>
                       </div>
                     </div>
