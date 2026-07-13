@@ -4,7 +4,7 @@ import {
   Loader2, Plus, Search, ShoppingCart, Trash2, Eye, Pencil, X, Check,
   Package, AlertTriangle, RefreshCw, Phone, MapPin,
   Calendar, Tag, Users, Download, Filter, ArrowUpDown, Columns3,
-  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle, Send, XCircle,
+  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle, Send, XCircle, ArrowLeft,
 } from "lucide-react";
 
 function waNumber(phone: string) {
