@@ -494,9 +494,9 @@ function shortHash(id: string): string {
 }
 
 function OrdersTable({
-  rows, storeId, selected, setSelected, onView, onEdit, onDelete,
+  rows, storeId, storeName, selected, setSelected, onView, onEdit, onDelete,
 }: {
-  rows: OrderRow[]; storeId: string;
+  rows: OrderRow[]; storeId: string; storeName: string | null;
   selected: Set<string>;
   setSelected: (s: Set<string>) => void;
   onView: (o: OrderRow) => void;
@@ -505,6 +505,7 @@ function OrdersTable({
 }) {
   const updStatus = useUpdateOrderStatus(storeId);
   const updPayment = useUpdatePaymentStatus(storeId);
+  const [tappedId, setTappedId] = useState<string | null>(null);
   const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
 
   function toggleAll(v: boolean) {
