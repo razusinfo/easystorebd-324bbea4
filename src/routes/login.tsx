@@ -366,7 +366,7 @@ function LoginPage() {
               </div>
 
               {error && (
-                <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
+                <div className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700"><p>{error}</p>{oauthRecovery && (<a href={oauthRecovery} className="mt-1 inline-block underline">Continue on main site →</a>)}</div>
               )}
               {info && (
                 <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
@@ -437,7 +437,7 @@ function LoginPage() {
               )}
 
               {error && (
-                <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{error}</p>
+                <div className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700"><p>{error}</p>{oauthRecovery && (<a href={oauthRecovery} className="mt-1 inline-block underline">Continue on main site →</a>)}</div>
               )}
               {info && (
                 <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">{info}</p>
