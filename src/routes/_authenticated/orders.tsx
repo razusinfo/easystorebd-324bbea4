@@ -592,7 +592,44 @@ function OrdersTable({
                 <p className="mt-1 truncate font-semibold">{o.customer_name}</p>
                 <p className="text-xs text-foreground/60">{o.customer_phone}</p>
                 <p className="mt-1 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
-                <div className="mt-2 flex gap-2"><StatusPill status={o.status} /><PaymentPill status={o.payment_status} /></div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Select
+                    value={o.status}
+                    onValueChange={async (v) => {
+                      try {
+                        await updStatus.mutateAsync({ id: o.id, status: v as OrderStatus });
+                        toast.success(`Order status → ${v}`);
+                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-[130px]" aria-label="Order status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORDER_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={o.payment_status}
+                    onValueChange={async (v) => {
+                      try {
+                        await updPayment.mutateAsync({ id: o.id, payment_status: v as PaymentStatus });
+                        toast.success(`Payment → ${v}`);
+                      } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-[110px]" aria-label="Payment status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="flex flex-col gap-1">
                 <Button variant="ghost" size="icon" onClick={() => onView(o)}><Eye className="h-4 w-4" /></Button>
