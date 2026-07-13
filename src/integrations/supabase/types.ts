@@ -1144,6 +1144,7 @@ export type Database = {
           reseller_price: number | null
           short_description: string | null
           sku: string | null
+          source_product_url: string | null
           source_reseller_product_id: string | null
           specific_delivery_charges: Json
           status: Database["public"]["Enums"]["product_status"]
@@ -1182,6 +1183,7 @@ export type Database = {
           reseller_price?: number | null
           short_description?: string | null
           sku?: string | null
+          source_product_url?: string | null
           source_reseller_product_id?: string | null
           specific_delivery_charges?: Json
           status?: Database["public"]["Enums"]["product_status"]
@@ -1220,6 +1222,7 @@ export type Database = {
           reseller_price?: number | null
           short_description?: string | null
           sku?: string | null
+          source_product_url?: string | null
           source_reseller_product_id?: string | null
           specific_delivery_charges?: Json
           status?: Database["public"]["Enums"]["product_status"]
@@ -2454,6 +2457,7 @@ export type Database = {
           reseller_price: number | null
           short_description: string | null
           sku: string | null
+          source_product_url: string | null
           source_reseller_product_id: string | null
           specific_delivery_charges: Json
           status: Database["public"]["Enums"]["product_status"]
