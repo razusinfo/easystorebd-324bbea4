@@ -254,7 +254,7 @@ function AuthPage() {
     }
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
       setInfo("Password reset link sent. Check your email.");
