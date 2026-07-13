@@ -1,16 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePublicStoreBySlug, productGridClass } from "@/lib/eazystore-data";
 import { StorefrontPage } from "@/components/storefront/storefront-page";
+import { loadStoreHeadInfo, storefrontFaviconLinks, storefrontSectionMeta } from "@/lib/storefront-head";
 
 
 export const Route = createFileRoute("/s/$slug/products")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Products — ${params.slug}` },
-      { name: "description", content: `Browse all products at ${params.slug}.` },
-      { property: "og:title", content: `Products — ${params.slug}` },
-      { property: "og:description", content: `All products from ${params.slug}.` },
-    ],
+  loader: async ({ params }) => loadStoreHeadInfo(params.slug),
+  head: ({ params, loaderData }) => ({
+    meta: storefrontSectionMeta({ slug: params.slug, storeName: loaderData?.storeName ?? null, section: "Products" }),
+    links: storefrontFaviconLinks(params.slug),
   }),
   component: ProductsPage,
 });
