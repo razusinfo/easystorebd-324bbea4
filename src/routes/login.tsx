@@ -20,14 +20,11 @@ const phoneSchema = z
   .trim()
   .regex(/^\+?[0-9\s-]{8,20}$/, "Enter a valid phone number in international format (e.g. +8801XXXXXXXXX)")
   .transform((v) => {
-    const digits = v.replace(/[\s-]/g, "");
-    return digits.startsWith("+") ? digits : `+${digits.replace(/^0+/, "")}`;
-  })
-  .transform((v) => {
-    const digits = v.replace(/\D/g, "");
+    const cleaned = v.replace(/[\s-]/g, "");
+    const digits = cleaned.replace(/\D/g, "");
     if (digits.startsWith("880")) return `+${digits}`;
     if (digits.startsWith("01")) return `+880${digits.slice(1)}`;
-    return v;
+    return cleaned.startsWith("+") ? cleaned : `+${digits.replace(/^0+/, "")}`;
   });
 const otpSchema = z.string().trim().regex(/^[0-9]{6}$/, "Enter the 6-digit code we sent");
 
