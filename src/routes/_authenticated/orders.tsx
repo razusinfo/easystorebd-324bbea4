@@ -218,10 +218,25 @@ function OrdersPage() {
   const ordersQ = useOrders(store?.id);
   const productsQ = useMyProducts(store?.id);
 
-  const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<TabKey>("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const readFilters = () => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = sessionStorage.getItem("orders:filters");
+      return raw ? (JSON.parse(raw) as { search?: string; tab?: TabKey; dateFrom?: string; dateTo?: string }) : null;
+    } catch { return null; }
+  };
+  const savedFilters = readFilters();
+  const [search, setSearch] = useState(savedFilters?.search ?? "");
+  const [tab, setTab] = useState<TabKey>(savedFilters?.tab ?? "all");
+  const [dateFrom, setDateFrom] = useState(savedFilters?.dateFrom ?? "");
+  const [dateTo, setDateTo] = useState(savedFilters?.dateTo ?? "");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      sessionStorage.setItem("orders:filters", JSON.stringify({ search, tab, dateFrom, dateTo }));
+    } catch {}
+  }, [search, tab, dateFrom, dateTo]);
   const [viewing, setViewing] = useState<OrderRow | null>(null);
   const [editing, setEditing] = useState<OrderRow | null>(null);
   const [creating, setCreating] = useState(false);
