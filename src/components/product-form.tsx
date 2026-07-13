@@ -898,6 +898,23 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 </Field>
               )}
             </div>
+
+            {isSuperAdmin && (
+              <div className="mt-4 space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                <Field label="Supplier/Dropshipper Product Link">
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    placeholder="Paste the original product URL here"
+                    value={form.sourceProductUrl}
+                    onChange={(e) => set("sourceProductUrl", e.target.value)}
+                  />
+                </Field>
+                <p className="text-xs text-muted-foreground">
+                  Super admin only — this link is stored for internal reference.
+                </p>
+              </div>
+            )}
           </Section>
 
 
