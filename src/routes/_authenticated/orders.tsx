@@ -766,7 +766,7 @@ function OrdersTable({
                 <p className="truncate font-semibold">{o.customer_name}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-foreground/60">
                   <span>{prettyBDPhone(o.customer_phone)}</span>
-                  <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
+                  <ContactIcons phone={o.customer_phone} orderId={o.id} customerName={o.customer_name} storeName={storeName} size="xs" />
                 </div>
                 <p className="mt-2 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
               </div>
