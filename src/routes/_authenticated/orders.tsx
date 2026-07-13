@@ -285,13 +285,22 @@ function OrdersPage() {
   return (
     <main className="mx-auto max-w-7xl space-y-5 p-4 sm:p-6">
       {/* Header */}
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h1 className="font-display text-2xl font-black sm:text-3xl">Orders</h1>
-          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-primary">
-            {stats.count}
-          </span>
-        </div>
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.history.back()}
+          className="mb-2 -ml-2 h-8 gap-1 px-2 text-foreground/70 hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back
+        </Button>
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-2xl font-black sm:text-3xl">Orders</h1>
+            <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-primary">
+              {stats.count}
+            </span>
+          </div>
         <Button onClick={() => setCreating(true)} disabled={!store}>
           <Plus className="mr-1 h-4 w-4" /> Create Order
         </Button>
