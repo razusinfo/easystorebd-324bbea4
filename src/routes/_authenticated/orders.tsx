@@ -518,7 +518,43 @@ function OrdersTable({
                     </div>
                   </td>
                   <td className="px-3 py-3">
-                    <div className="inline-flex items-center gap-0.5">
+                    <div className="inline-flex items-center gap-1">
+                      <Select
+                        value={o.status}
+                        onValueChange={async (v) => {
+                          try {
+                            await updStatus.mutateAsync({ id: o.id, status: v as OrderStatus });
+                            toast.success(`Order status → ${v}`);
+                          } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-[120px]" aria-label="Order status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ORDER_STATUSES.map((s) => (
+                            <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={o.payment_status}
+                        onValueChange={async (v) => {
+                          try {
+                            await updPayment.mutateAsync({ id: o.id, payment_status: v as PaymentStatus });
+                            toast.success(`Payment → ${v}`);
+                          } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-[110px]" aria-label="Payment status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_STATUSES.map((s) => (
+                            <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Button
                         variant="ghost" size="icon" className="h-8 w-8"
                         onClick={() => onEdit(o)} aria-label="Edit"
@@ -526,46 +562,11 @@ function OrdersTable({
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <Button
-                        variant="ghost" size="icon" className="h-8 w-8"
-                        onClick={() => {
-                          navigator.clipboard?.writeText(o.order_number).catch(() => {});
-                          toast.success("Order number copied");
-                        }}
-                        aria-label="Copy order number"
+                        variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => onDelete(o)} aria-label="Delete"
                       >
-                        <Copy className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
-                      <Button
-                        variant="ghost" size="icon" className="h-8 w-8"
-                        onClick={() => window.open(`/orders/${o.id}`, "_blank", "noopener,noreferrer")}
-                        aria-label="Open in new tab"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Button>
-                      <Select
-                        onValueChange={(v) => {
-                          if (v === "view") {
-                            window.open(`/orders/${o.id}`, "_blank", "noopener,noreferrer");
-                          }
-                          else if (v === "payment") {
-                            const next: PaymentStatus = o.payment_status === "paid" ? "unpaid" : "paid";
-                            updPayment.mutate({ id: o.id, payment_status: next });
-                          }
-                          else if (v === "delete") onDelete(o);
-                        }}
-                      >
-                        <SelectTrigger className="h-8 w-8 border-0 bg-transparent p-0 focus:ring-0 [&>svg]:hidden">
-                          <MoreHorizontal className="h-4 w-4 text-foreground/60" />
-                        </SelectTrigger>
-                        <SelectContent align="end">
-                          <SelectItem value="view">View details</SelectItem>
-                          <SelectItem value="payment">
-                            Mark {o.payment_status === "paid" ? "unpaid" : "paid"}
-                          </SelectItem>
-                          <SelectItem value="delete">Delete order</SelectItem>
-                        </SelectContent>
-                      </Select>
-
                     </div>
                   </td>
                 </tr>
