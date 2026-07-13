@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Loader2, Plus, Search, ShoppingCart, Trash2, Eye, Pencil, X, Check,
   Package, AlertTriangle, RefreshCw, Phone, MapPin,
   Calendar, Tag, Users, Download, Filter, ArrowUpDown, Columns3,
-  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle, Send, XCircle,
+  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle, Send, XCircle, ArrowLeft,
 } from "lucide-react";
 
 function waNumber(phone: string) {
@@ -212,6 +212,7 @@ function matchTab(o: OrderRow, tab: TabKey): boolean {
 }
 
 function OrdersPage() {
+  const router = useRouter();
   const storeQ = useMyStore();
   const store = storeQ.data;
   const ordersQ = useOrders(store?.id);
@@ -284,17 +285,27 @@ function OrdersPage() {
   return (
     <main className="mx-auto max-w-7xl space-y-5 p-4 sm:p-6">
       {/* Header */}
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h1 className="font-display text-2xl font-black sm:text-3xl">Orders</h1>
-          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-primary">
-            {stats.count}
-          </span>
-        </div>
-        <Button onClick={() => setCreating(true)} disabled={!store}>
-          <Plus className="mr-1 h-4 w-4" /> Create Order
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.history.back()}
+          className="mb-2 -ml-2 h-8 gap-1 px-2 text-foreground/70 hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back
         </Button>
-      </header>
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-2xl font-black sm:text-3xl">Orders</h1>
+            <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-primary">
+              {stats.count}
+            </span>
+          </div>
+          <Button onClick={() => setCreating(true)} disabled={!store}>
+            <Plus className="mr-1 h-4 w-4" /> Create Order
+          </Button>
+        </header>
+      </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
