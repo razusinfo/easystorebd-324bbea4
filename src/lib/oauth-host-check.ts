@@ -22,6 +22,17 @@ export type OAuthHostCheck =
 
 export function checkOAuthHost(hostname: string, href: string): OAuthHostCheck {
   const h = hostname.toLowerCase();
+  // Reseller subdomains are storefront hosts, not guaranteed OAuth broker hosts.
+  // Start OAuth from the canonical app origin to avoid /~oauth 404s.
+  if (getStorefrontSlugFromHost(h)) {
+    const original = new URL(href);
+    const target = new URL(original.pathname === "/login" ? "/login" : "/auth", CANONICAL_AUTH_ORIGIN);
+    const existingRedirect = original.searchParams.get("redirect");
+    if (existingRedirect?.startsWith("/") && !existingRedirect.startsWith("//")) target.searchParams.set("redirect", existingRedirect);
+    const mode = original.searchParams.get("mode");
+    if (target.pathname === "/auth" && (mode === "signin" || mode === "signup")) target.searchParams.set("mode", mode);
+    return { ok: false, reason: "reseller-subdomain", redirectTo: target.toString() };
+  }
   // Any *.lovable.app preview/published URL is fine — Lovable proxy owns it.
   if (h.endsWith(".lovable.app") || h === "lovable.app") return { ok: true, origin: `https://${h}` };
   // Localhost dev — always fine.
@@ -32,22 +43,18 @@ export function checkOAuthHost(hostname: string, href: string): OAuthHostCheck {
   if (apexHit) {
     const target = new URL(new URL(href).pathname || "/auth", CANONICAL_AUTH_ORIGIN);
     const original = new URL(href);
-    original.searchParams.forEach((value, key) => target.searchParams.set(key, value));
+    original.searchParams.forEach((value, key) => {
+      if (key === "redirect" && (!value.startsWith("/") || value.startsWith("//"))) return;
+      if (key === "mode" && value !== "signin" && value !== "signup") return;
+      target.searchParams.set(key, value);
+    });
     return { ok: false, reason: "unknown-host", redirectTo: target.toString() };
-  }
-  // Reseller subdomain of a known apex — push OAuth to the published app origin.
-  if (getStorefrontSlugFromHost(h)) {
-    const original = new URL(href);
-    const target = new URL(original.pathname === "/login" ? "/login" : "/auth", CANONICAL_AUTH_ORIGIN);
-    const existingRedirect = original.searchParams.get("redirect");
-    if (existingRedirect?.startsWith("/")) target.searchParams.set("redirect", existingRedirect);
-    return { ok: false, reason: "reseller-subdomain", redirectTo: target.toString() };
   }
   // Unknown custom domain — fall back to Lovable-hosted origin.
   const target = new URL("/auth", LOVABLE_AUTH_ORIGIN);
   const original = new URL(href);
   const existingRedirect = original.searchParams.get("redirect");
-  if (existingRedirect?.startsWith("/")) target.searchParams.set("redirect", existingRedirect);
+  if (existingRedirect?.startsWith("/") && !existingRedirect.startsWith("//")) target.searchParams.set("redirect", existingRedirect);
   return { ok: false, reason: "unknown-host", redirectTo: target.toString() };
 }
 

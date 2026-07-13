@@ -13,6 +13,7 @@ import { Route as StoresRouteImport } from './routes/stores'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OfflineRouteImport } from './routes/offline'
+import { Route as OauthCallbackRouteImport } from './routes/oauth-callback'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InstallRouteImport } from './routes/install'
@@ -121,6 +122,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const OfflineRoute = OfflineRouteImport.update({
   id: '/offline',
   path: '/offline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth-callback',
+  path: '/oauth-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -617,6 +623,7 @@ export interface FileRoutesByFullPath {
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -710,6 +717,7 @@ export interface FileRoutesByTo {
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -805,6 +813,7 @@ export interface FileRoutesById {
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -901,6 +910,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/login'
     | '/mcp'
+    | '/oauth-callback'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
@@ -994,6 +1004,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/login'
     | '/mcp'
+    | '/oauth-callback'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
@@ -1088,6 +1099,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/login'
     | '/mcp'
+    | '/oauth-callback'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
@@ -1184,6 +1196,7 @@ export interface RootRouteChildren {
   InstallRoute: typeof InstallRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
+  OauthCallbackRoute: typeof OauthCallbackRoute
   OfflineRoute: typeof OfflineRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1235,6 +1248,13 @@ declare module '@tanstack/react-router' {
       path: '/offline'
       fullPath: '/offline'
       preLoaderRoute: typeof OfflineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth-callback': {
+      id: '/oauth-callback'
+      path: '/oauth-callback'
+      fullPath: '/oauth-callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -2047,6 +2067,7 @@ const rootRouteChildren: RootRouteChildren = {
   InstallRoute: InstallRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
+  OauthCallbackRoute: OauthCallbackRoute,
   OfflineRoute: OfflineRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

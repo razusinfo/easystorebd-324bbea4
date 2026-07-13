@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createHash, randomBytes, randomInt, timingSafeEqual } from "crypto";
+import {
+  constantTimeEqualHash,
+  createOtpCode,
+  createTemporaryPassword,
+  findUserByPhone,
+  hashPhoneOtpCode,
+  sendBulkSmsBd,
+} from "@/lib/phone-otp.server";
 
 const phoneRegex = /^\+[1-9][0-9]{6,18}$/;
 
@@ -16,48 +23,6 @@ const verifyInput = z.object({
   fullName: z.string().trim().max(120).optional(),
   isSignup: z.boolean(),
 });
-
-function hashCode(phone: string, code: string): string {
-  return createHash("sha256").update(`${phone}:${code}`).digest("hex");
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
-}
-
-async function sendBulkSmsBd(phone: string, message: string): Promise<void> {
-  const apiKey = process.env.BULKSMSBD_API_KEY;
-  const senderId = process.env.BULKSMSBD_SENDER_ID;
-  if (!apiKey || !senderId) {
-    throw new Error("SMS provider is not configured. Please contact support.");
-  }
-  // BulkSMSBD expects local format without the leading +
-  const number = phone.replace(/^\+/, "");
-  const url = new URL("https://bulksmsbd.net/api/smsapi");
-  url.searchParams.set("api_key", apiKey);
-  url.searchParams.set("type", "text");
-  url.searchParams.set("number", number);
-  url.searchParams.set("senderid", senderId);
-  url.searchParams.set("message", message);
-
-  const res = await fetch(url.toString(), { method: "GET" });
-  const text = await res.text();
-  let json: { response_code?: number; success_message?: string; error_message?: string } | null = null;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    /* non-JSON response */
-  }
-  // BulkSMSBD success code is 202
-  if (!res.ok || (json && json.response_code !== undefined && json.response_code !== 202)) {
-    const msg = json?.error_message || text || `BulkSMSBD HTTP ${res.status}`;
-    console.error("BulkSMSBD send failed:", msg);
-    throw new Error(`Failed to send SMS: ${msg}`);
-  }
-}
 
 export const sendPhoneOtp = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => sendInput.parse(data))
@@ -77,14 +42,13 @@ export const sendPhoneOtp = createServerFn({ method: "POST" })
 
     // If signup, refuse if a confirmed user already exists with this phone
     if (data.isSignup) {
-      const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
-      const existing = list?.users?.find((u) => u.phone === data.phone.replace(/^\+/, "") || u.phone === data.phone);
+      const existing = await findUserByPhone(supabaseAdmin, data.phone);
       if (existing) {
         throw new Error("This phone number is already registered. Please sign in instead.");
       }
     }
 
-    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+    const code = createOtpCode();
     const expires_at = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
     // Invalidate any previous unused codes for this phone
@@ -96,7 +60,7 @@ export const sendPhoneOtp = createServerFn({ method: "POST" })
 
     const { error: insertErr } = await supabaseAdmin.from("phone_otps").insert({
       phone: data.phone,
-      code_hash: hashCode(data.phone, code),
+      code_hash: hashPhoneOtpCode(data.phone, code),
       expires_at,
     });
     if (insertErr) throw new Error(insertErr.message);
@@ -149,8 +113,8 @@ export const verifyPhoneOtp = createServerFn({ method: "POST" })
       throw new Error("Too many wrong attempts. Please request a new code.");
     }
 
-    const expected = hashCode(data.phone, data.code);
-    if (!constantTimeEqual(otp.code_hash, expected)) {
+    const expected = hashPhoneOtpCode(data.phone, data.code);
+    if (!constantTimeEqualHash(otp.code_hash, expected)) {
       await supabaseAdmin
         .from("phone_otps")
         .update({ attempts: otp.attempts + 1 })
@@ -161,10 +125,7 @@ export const verifyPhoneOtp = createServerFn({ method: "POST" })
     // Mark consumed
     await supabaseAdmin.from("phone_otps").update({ consumed: true }).eq("id", otp.id);
 
-    // Find or create the user by phone (Supabase stores phone without leading +)
-    const phoneNoPlus = data.phone.replace(/^\+/, "");
-    const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
-    let user = list?.users?.find((u) => u.phone === phoneNoPlus);
+    let user = await findUserByPhone(supabaseAdmin, data.phone);
 
     if (!user) {
       if (!data.isSignup) {
@@ -182,7 +143,7 @@ export const verifyPhoneOtp = createServerFn({ method: "POST" })
     // Mint a one-time strong password and return it to the client, which immediately
     // signs in with phone + password. This is the standard pattern for custom SMS OTP
     // providers when Supabase's built-in OTP cannot be used.
-    const oneTimePassword = `${randomBytes(24).toString("base64url")}!Aa9`;
+    const oneTimePassword = createTemporaryPassword();
     const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
       password: oneTimePassword,
     });
