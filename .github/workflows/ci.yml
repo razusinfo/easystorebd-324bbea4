@@ -18,12 +18,16 @@ jobs:
           python3 -c "import yaml,sys; d=yaml.safe_load(open('.cpanel.yml')); assert 'deployment' in d and 'tasks' in d['deployment'], 'invalid .cpanel.yml structure'; print('.cpanel.yml OK')"
 
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Install dependencies (npm)
+        run: npm install --no-audit --no-fund --legacy-peer-deps
 
       - name: Lint
         run: bun run lint
