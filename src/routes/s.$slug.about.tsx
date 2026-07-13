@@ -2,15 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePublicStoreBySlug } from "@/lib/eazystore-data";
 import { StorefrontPage } from "@/components/storefront/storefront-page";
 import { MapPin, Phone, Mail, Globe, Facebook, Instagram, MessageCircle } from "lucide-react";
+import { loadStoreHeadInfo, storefrontFaviconLinks, storefrontSectionMeta } from "@/lib/storefront-head";
 
 export const Route = createFileRoute("/s/$slug/about")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `About — ${params.slug}` },
-      { name: "description", content: `About ${params.slug} on EasyStore.` },
-      { property: "og:title", content: `About — ${params.slug}` },
-      { property: "og:description", content: `About ${params.slug}.` },
-    ],
+  loader: async ({ params }) => loadStoreHeadInfo(params.slug),
+  head: ({ params, loaderData }) => ({
+    meta: storefrontSectionMeta({ slug: params.slug, storeName: loaderData?.storeName ?? null, section: "About" }),
+    links: storefrontFaviconLinks(params.slug),
   }),
   component: AboutPage,
 });
