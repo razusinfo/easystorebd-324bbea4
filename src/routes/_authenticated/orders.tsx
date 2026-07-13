@@ -188,7 +188,6 @@ function OrdersPage() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<OrderRow | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [tappedId, setTappedId] = useState<string | null>(null);
   const storeName = store?.name ?? null;
 
   const del = useDeleteOrder(store?.id);
