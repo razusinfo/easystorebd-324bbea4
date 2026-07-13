@@ -4,43 +4,100 @@ import {
   Loader2, Plus, Search, ShoppingCart, Trash2, Eye, Pencil, X, Check,
   Package, AlertTriangle, RefreshCw, Phone, MapPin,
   Calendar, Tag, Users, Download, Filter, ArrowUpDown, Columns3,
-  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle,
+  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle, Send,
 } from "lucide-react";
 
 function waNumber(phone: string) {
-  const digits = (phone || "").replace(/\D/g, "");
+  let digits = (phone || "").replace(/\D/g, "");
   if (!digits) return "";
+  // strip leading zeros for pure-local numbers like "01712..." → "1712..."
   if (digits.startsWith("880")) return digits;
-  if (digits.startsWith("0")) return "88" + digits;
+  if (digits.startsWith("00880")) return digits.slice(2);
+  if (digits.startsWith("0")) return "880" + digits.replace(/^0+/, "");
+  if (digits.length === 10 && digits.startsWith("1")) return "880" + digits;
   return digits;
 }
 
-function ContactIcons({ phone, size = "sm" }: { phone: string; size?: "sm" | "xs" }) {
+function prettyBDPhone(phone: string) {
   const wa = waNumber(phone);
+  if (wa.startsWith("880")) return "+" + wa;
+  return phone;
+}
+
+function ContactIcons({
+  phone,
+  customerName,
+  storeName,
+  size = "sm",
+}: {
+  phone: string;
+  customerName?: string | null;
+  storeName?: string | null;
+  size?: "sm" | "xs";
+}) {
+  const wa = waNumber(phone);
+  const pretty = prettyBDPhone(phone);
   const cls = size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5";
   const btn = "grid place-items-center rounded-full p-1 transition-colors";
   if (!phone) return null;
+
+  const greeting = encodeURIComponent(
+    `Assalamu Alaikum${customerName ? " " + customerName : ""}, ${storeName ? storeName + " " : ""}থেকে আপনার অর্ডার সম্পর্কে যোগাযোগ করছি।`
+  );
+
+  const copy = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(pretty);
+      toast.success("Number copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
   return (
     <span className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={copy}
+        className={`${btn} bg-muted text-foreground/70 hover:bg-muted/70`}
+        aria-label="Copy number"
+        title={`Copy ${pretty}`}
+      >
+        <Copy className={cls} />
+      </button>
       <a
-        href={`tel:${phone}`}
+        href={`tel:${pretty}`}
         className={`${btn} bg-sky-50 text-sky-600 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-400`}
         aria-label="Call"
-        title={`Call ${phone}`}
+        title={`Call ${pretty} — opens dialer`}
       >
         <Phone className={cls} />
       </a>
       {wa && (
-        <a
-          href={`https://wa.me/${wa}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
-          aria-label="WhatsApp"
-          title={`WhatsApp ${phone}`}
-        >
-          <MessageCircle className={cls} />
-        </a>
+        <>
+          <a
+            href={`https://wa.me/${wa}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
+            aria-label="WhatsApp chat"
+            title={`WhatsApp ${pretty} — open chat`}
+          >
+            <MessageCircle className={cls} />
+          </a>
+          <a
+            href={`https://wa.me/${wa}?text=${greeting}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={`${btn} bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300`}
+            aria-label="WhatsApp with prefilled message"
+            title={`WhatsApp ${pretty} — send prefilled greeting`}
+          >
+            <Send className={cls} />
+          </a>
+        </>
       )}
     </span>
   );
@@ -131,6 +188,7 @@ function OrdersPage() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<OrderRow | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const storeName = store?.name ?? null;
 
   const del = useDeleteOrder(store?.id);
   const orders = ordersQ.data ?? [];
@@ -307,6 +365,7 @@ function OrdersPage() {
           <OrdersTable
             rows={filtered}
             storeId={store.id}
+            storeName={storeName}
             selected={selected}
             setSelected={setSelected}
             onView={setViewing}
@@ -435,9 +494,9 @@ function shortHash(id: string): string {
 }
 
 function OrdersTable({
-  rows, storeId, selected, setSelected, onView, onEdit, onDelete,
+  rows, storeId, storeName, selected, setSelected, onView, onEdit, onDelete,
 }: {
-  rows: OrderRow[]; storeId: string;
+  rows: OrderRow[]; storeId: string; storeName: string | null;
   selected: Set<string>;
   setSelected: (s: Set<string>) => void;
   onView: (o: OrderRow) => void;
@@ -446,6 +505,7 @@ function OrdersTable({
 }) {
   const updStatus = useUpdateOrderStatus(storeId);
   const updPayment = useUpdatePaymentStatus(storeId);
+  const [tappedId, setTappedId] = useState<string | null>(null);
   const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
 
   function toggleAll(v: boolean) {
@@ -526,8 +586,8 @@ function OrdersTable({
                       <div className="min-w-0">
                         <div className="truncate font-medium">{o.customer_name}</div>
                         <div className="flex items-center gap-1.5 text-xs text-foreground/60">
-                          <span className="truncate">{o.customer_phone}</span>
-                          <ContactIcons phone={o.customer_phone} size="xs" />
+                          <span className="truncate">{prettyBDPhone(o.customer_phone)}</span>
+                          <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
                         </div>
                       </div>
                     </div>
@@ -628,8 +688,14 @@ function OrdersTable({
 
       {/* Mobile */}
       <ul className="divide-y divide-border md:hidden">
-        {rows.map((o) => (
-          <li key={o.id} className="p-4">
+        {rows.map((o) => {
+          const isTapped = tappedId === o.id;
+          return (
+          <li
+            key={o.id}
+            className={`p-4 transition-colors ${isTapped ? "bg-primary/5" : ""}`}
+            onClick={() => setTappedId((cur) => (cur === o.id ? null : o.id))}
+          >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -639,10 +705,12 @@ function OrdersTable({
                   </span>
                 </div>
                 <p className="mt-1 font-mono text-xs text-foreground/50">{o.order_number}</p>
-                <p className="mt-1 truncate font-semibold">{o.customer_name}</p>
-                <div className="flex items-center gap-1.5 text-xs text-foreground/60">
-                  <span>{o.customer_phone}</span>
-                  <ContactIcons phone={o.customer_phone} size="xs" />
+                <div className={`mt-1 rounded-md px-2 py-1 -mx-2 transition-colors ${isTapped ? "bg-primary/10 ring-1 ring-primary/30" : ""}`}>
+                  <p className="truncate font-semibold">{o.customer_name}</p>
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-foreground/60">
+                    <span>{prettyBDPhone(o.customer_phone)}</span>
+                    <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
+                  </div>
                 </div>
                 <p className="mt-1 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -694,7 +762,8 @@ function OrdersTable({
               </div>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </div>
   );
