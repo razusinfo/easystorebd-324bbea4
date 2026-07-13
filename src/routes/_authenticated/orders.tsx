@@ -275,6 +275,8 @@ function OrdersPage() {
             onDelete={setDeleting}
           />
         </>
+      )}
+
 
       {/* View */}
       <OrderDetailsDialog
