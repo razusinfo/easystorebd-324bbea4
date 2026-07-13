@@ -212,6 +212,7 @@ function matchTab(o: OrderRow, tab: TabKey): boolean {
 }
 
 function OrdersPage() {
+  const router = useRouter();
   const storeQ = useMyStore();
   const store = storeQ.data;
   const ordersQ = useOrders(store?.id);
