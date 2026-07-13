@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useMyStore, useMyProducts, type ProductRow } from "@/lib/eazystore-data";
 import {
   useOrders, useOrderItems, useUpsertOrder, useUpdateOrderStatus,
-  useUpdatePaymentStatus, useDeleteOrder,
+  useUpdatePaymentStatus, useDeleteOrder, useBulkUpdateOrders, useOrderAudit,
   ORDER_STATUSES, PAYMENT_STATUSES,
   statusBadgeClass, paymentBadgeClass,
   type OrderRow, type OrderStatus, type PaymentStatus, type OrderInput, type OrderItemInput,
