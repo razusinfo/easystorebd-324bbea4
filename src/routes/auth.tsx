@@ -69,6 +69,7 @@ function AuthPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [oauthBusy, setOauthBusy] = useState(false);
+  const [oauthRecovery, setOauthRecovery] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
