@@ -4,8 +4,47 @@ import {
   Loader2, Plus, Search, ShoppingCart, Trash2, Eye, Pencil, X, Check,
   Package, AlertTriangle, RefreshCw, Phone, MapPin,
   Calendar, Tag, Users, Download, Filter, ArrowUpDown, Columns3,
-  Copy, ExternalLink, MoreHorizontal, Box,
+  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle,
 } from "lucide-react";
+
+function waNumber(phone: string) {
+  const digits = (phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("880")) return digits;
+  if (digits.startsWith("0")) return "88" + digits;
+  return digits;
+}
+
+function ContactIcons({ phone, size = "sm" }: { phone: string; size?: "sm" | "xs" }) {
+  const wa = waNumber(phone);
+  const cls = size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5";
+  const btn = "grid place-items-center rounded-full p-1 transition-colors";
+  if (!phone) return null;
+  return (
+    <span className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      <a
+        href={`tel:${phone}`}
+        className={`${btn} bg-sky-50 text-sky-600 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-400`}
+        aria-label="Call"
+        title={`Call ${phone}`}
+      >
+        <Phone className={cls} />
+      </a>
+      {wa && (
+        <a
+          href={`https://wa.me/${wa}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
+          aria-label="WhatsApp"
+          title={`WhatsApp ${phone}`}
+        >
+          <MessageCircle className={cls} />
+        </a>
+      )}
+    </span>
+  );
+}
 import { toast } from "sonner";
 
 import { useMyStore, useMyProducts, type ProductRow } from "@/lib/eazystore-data";
@@ -486,7 +525,10 @@ function OrdersTable({
                       </div>
                       <div className="min-w-0">
                         <div className="truncate font-medium">{o.customer_name}</div>
-                        <div className="text-xs text-foreground/60">{o.customer_phone}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-foreground/60">
+                          <span className="truncate">{o.customer_phone}</span>
+                          <ContactIcons phone={o.customer_phone} size="xs" />
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -598,7 +640,10 @@ function OrdersTable({
                 </div>
                 <p className="mt-1 font-mono text-xs text-foreground/50">{o.order_number}</p>
                 <p className="mt-1 truncate font-semibold">{o.customer_name}</p>
-                <p className="text-xs text-foreground/60">{o.customer_phone}</p>
+                <div className="flex items-center gap-1.5 text-xs text-foreground/60">
+                  <span>{o.customer_phone}</span>
+                  <ContactIcons phone={o.customer_phone} size="xs" />
+                </div>
                 <p className="mt-1 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <Select
@@ -682,7 +727,7 @@ function OrderDetailsDialog({
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Customer</p>
             <p className="mt-1 font-semibold">{order.customer_name}</p>
-            <p className="mt-1 flex items-center gap-1 text-sm"><Phone className="h-3.5 w-3.5" /> {order.customer_phone}</p>
+            <p className="mt-1 flex items-center gap-2 text-sm"><Phone className="h-3.5 w-3.5" /> {order.customer_phone} <ContactIcons phone={order.customer_phone} /></p>
             {order.customer_address && (
               <p className="mt-1 flex items-start gap-1 text-sm text-foreground/70"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {order.customer_address}</p>
             )}
