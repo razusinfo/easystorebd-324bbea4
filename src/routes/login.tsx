@@ -6,6 +6,7 @@ import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/phone-otp.functions";
+import { buildOAuthRecoveryUrl, rememberOAuthReturn } from "@/lib/oauth-flow";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
@@ -142,6 +143,8 @@ function LoginPage() {
       const { logOAuthError } = await import("@/lib/oauth-error-log.functions");
       const { getStorefrontSlugFromHost } = await import("@/lib/storefront-host");
       const hostname = window.location.hostname;
+      const recoveryUrl = buildOAuthRecoveryUrl("/login", safeRedirect, "signin");
+      rememberOAuthReturn(safeRedirect, "signin");
       const check = checkOAuthHost(hostname, window.location.href);
       if (!check.ok) {
         void logOAuthError({ data: {
@@ -150,12 +153,12 @@ function LoginPage() {
           status_hint: "pre-flight", user_agent: navigator.userAgent, path: window.location.pathname,
         } }).catch(() => {});
         setError("This subdomain can't complete Google sign-in yet. Continuing on the main site…");
-        setOauthRecovery(check.redirectTo);
-        window.location.assign(check.redirectTo);
+        setOauthRecovery(recoveryUrl);
+        window.location.assign(recoveryUrl);
         return;
       }
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/auth/callback`,
       });
       if (result.error) {
         const msg = result.error.message ?? "Google sign-in failed";
@@ -166,10 +169,8 @@ function LoginPage() {
           status_hint: is404 ? "404" : "error", user_agent: navigator.userAgent, path: window.location.pathname,
         } }).catch(() => {});
         if (is404) {
-          const fallback = new URL("/login", "https://easystorebd.lovable.app");
-          if (safeRedirect) fallback.searchParams.set("redirect", safeRedirect);
           setError("Google sign-in returned 404 on this domain. Try the main site to continue.");
-          setOauthRecovery(fallback.toString());
+          setOauthRecovery(recoveryUrl);
         } else {
           setError(friendlyError(msg));
         }
@@ -309,7 +310,7 @@ function LoginPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.04l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
               </svg>
             )}
-            Continue with Google
+            {oauthBusy ? "Connecting to Google…" : "Continue with Google"}
           </button>
 
           <div className="my-5 flex items-center gap-3">
