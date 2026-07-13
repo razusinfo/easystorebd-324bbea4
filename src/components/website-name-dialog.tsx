@@ -12,22 +12,52 @@ import {
 } from "@/lib/eazystore-data";
 import { toast } from "sonner";
 
-async function notifyAdmin(kind: "created" | "changed", store: StoreRow, slug: string) {
-  try {
-    const title = kind === "created"
-      ? "New reseller website published"
-      : "Reseller changed website name";
-    const body = `${store.name} → ${slug}.easystorebd.com`;
-    await supabase.from("admin_notifications").insert({
-      type: kind === "created" ? "reseller_site_created" : "reseller_site_changed",
-      title,
-      body,
-      link: buildStorefrontUrl(slug),
-      related_id: store.id,
-    });
-  } catch (e) {
-    console.warn("[website-name-dialog] admin notify failed", e);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function tryDirectInsert(kind: "created" | "changed", store: StoreRow, slug: string) {
+  const title = kind === "created"
+    ? "New reseller website published"
+    : "Reseller changed website name";
+  const body = `${store.name} → ${slug}.easystorebd.com`;
+  return supabase.from("admin_notifications").insert({
+    type: kind === "created" ? "reseller_site_created" : "reseller_site_changed",
+    title,
+    body,
+    link: buildStorefrontUrl(slug),
+    related_id: store.id,
+  });
+}
+
+/**
+ * Best-effort admin notification with:
+ *  1. Direct insert (RLS-guarded policy for reseller_site_* types)
+ *  2. Exponential-backoff retry on network/5xx failures
+ *  3. SECURITY DEFINER RPC fallback so the event is never lost
+ * Returns { ok, via } for the caller to reflect in UI.
+ */
+export async function notifyAdmin(
+  kind: "created" | "changed",
+  store: StoreRow,
+  slug: string,
+): Promise<{ ok: boolean; via: "insert" | "rpc" | "none"; error?: string }> {
+  let lastErr: any = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error } = await tryDirectInsert(kind, store, slug);
+    if (!error) return { ok: true, via: "insert" };
+    lastErr = error;
+    // Do not retry on hard auth/RLS errors — jump to RPC fallback.
+    const code = (error as any)?.code ?? "";
+    if (code === "42501" || code === "PGRST301") break;
+    await sleep(300 * Math.pow(2, attempt));
   }
+  const { error: rpcErr } = await supabase.rpc("record_reseller_site_event", {
+    _kind: kind,
+    _store_id: store.id,
+    _slug: slug,
+  });
+  if (!rpcErr) return { ok: true, via: "rpc" };
+  console.warn("[website-name-dialog] admin notify failed", { lastErr, rpcErr });
+  return { ok: false, via: "none", error: rpcErr.message ?? lastErr?.message ?? "unknown" };
 }
 
 export function WebsiteNameDialog({
