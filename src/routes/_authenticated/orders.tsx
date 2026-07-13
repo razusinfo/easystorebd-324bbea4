@@ -24,13 +24,45 @@ function prettyBDPhone(phone: string) {
   return phone;
 }
 
+// ---- Local activity log for call / WhatsApp / copy per order ----
+type ActivityKind = "call" | "wa" | "wa_msg" | "copy";
+type ActivityEntry = { kind: ActivityKind; at: number };
+const ACTIVITY_KEY = "order_activity_v1";
+function readAllActivity(): Record<string, ActivityEntry[]> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(window.localStorage.getItem(ACTIVITY_KEY) || "{}"); } catch { return {}; }
+}
+function bumpActivity(orderId: string | undefined, kind: ActivityKind) {
+  if (!orderId || typeof window === "undefined") return;
+  const all = readAllActivity();
+  const list = all[orderId] ?? [];
+  list.push({ kind, at: Date.now() });
+  all[orderId] = list.slice(-50);
+  window.localStorage.setItem(ACTIVITY_KEY, JSON.stringify(all));
+  window.dispatchEvent(new CustomEvent("order-activity", { detail: { orderId } }));
+}
+function useOrderActivity(orderId: string | undefined) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const h = (e: Event) => {
+      const id = (e as CustomEvent).detail?.orderId;
+      if (!orderId || id === orderId) setTick((t) => t + 1);
+    };
+    window.addEventListener("order-activity", h);
+    return () => window.removeEventListener("order-activity", h);
+  }, [orderId]);
+  return useMemo(() => (orderId ? (readAllActivity()[orderId] ?? []) : []), [orderId, tick]);
+}
+
 function ContactIcons({
   phone,
+  orderId,
   customerName,
   storeName,
   size = "sm",
 }: {
   phone: string;
+  orderId?: string;
   customerName?: string | null;
   storeName?: string | null;
   size?: "sm" | "xs";
@@ -50,6 +82,7 @@ function ContactIcons({
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(pretty);
+      bumpActivity(orderId, "copy");
       toast.success("Number copied");
     } catch {
       toast.error("Copy failed");
