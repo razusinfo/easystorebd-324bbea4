@@ -158,7 +158,7 @@ function LoginPage() {
         return;
       }
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth/callback`,
+        redirect_uri: `${window.location.origin}/oauth-callback`,
       });
       if (result.error) {
         const msg = result.error.message ?? "Google sign-in failed";
