@@ -301,14 +301,28 @@ function OrdersPage() {
     <main className="mx-auto max-w-7xl space-y-5 p-4 sm:p-6">
       {/* Header */}
       <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.history.back()}
-          className="mb-2 -ml-2 h-8 gap-1 px-2 text-foreground/70 hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="Go back to previous page"
+              onClick={() => {
+                const canGoBack =
+                  typeof window !== "undefined" &&
+                  window.history.length > 1 &&
+                  document.referrer &&
+                  new URL(document.referrer).origin === window.location.origin;
+                if (canGoBack) router.history.back();
+                else router.navigate({ to: "/" });
+              }}
+              className="mb-2 -ml-2 h-8 gap-1 px-2 text-foreground/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Go back (or return home)</TooltipContent>
+        </Tooltip>
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <h1 className="font-display text-2xl font-black sm:text-3xl">Orders</h1>
