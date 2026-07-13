@@ -740,6 +740,15 @@ function OrderDetailsDialog({
           </div>
         )}
 
+        <div className="rounded-lg border border-border">
+          <p className="border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">
+            Status History
+          </p>
+          <div className="max-h-48 overflow-y-auto">
+            <OrderAuditHistory orderId={order.id} />
+          </div>
+        </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Close</Button>
           <Button onClick={() => onEdit(order)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
