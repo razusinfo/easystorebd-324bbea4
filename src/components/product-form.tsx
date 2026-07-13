@@ -88,6 +88,7 @@ type FormState = {
   videoUrl: string;
   addToReseller: boolean;
   resellerPrice: string;
+  sourceProductUrl: string;
 };
 
 
@@ -123,6 +124,7 @@ const initialState: FormState = {
   videoUrl: "",
   addToReseller: false,
   resellerPrice: "",
+  sourceProductUrl: "",
 };
 
 
@@ -214,6 +216,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       resellerPrice: (src as { reseller_price?: number | null }).reseller_price != null
         ? String((src as { reseller_price?: number | null }).reseller_price)
         : "",
+      sourceProductUrl: (src as { source_product_url?: string | null }).source_product_url ?? "",
     }));
 
     if (mode === "new" && sourceForDuplicate) {
@@ -322,6 +325,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
           isSuperAdmin && form.addToReseller && form.resellerPrice !== ""
             ? Number(form.resellerPrice)
             : null,
+        sourceProductUrl: isSuperAdmin ? (form.sourceProductUrl.trim() || null) : undefined,
         variants: form.variants.map((v) => ({ name: v.name, value: v.value })),
         details: form.details.map((d) => ({ key: d.key, value: d.value })),
       });
@@ -894,6 +898,23 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                 </Field>
               )}
             </div>
+
+            {isSuperAdmin && (
+              <div className="mt-4 space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                <Field label="Supplier/Dropshipper Product Link">
+                  <Input
+                    type="url"
+                    inputMode="url"
+                    placeholder="Paste the original product URL here"
+                    value={form.sourceProductUrl}
+                    onChange={(e) => set("sourceProductUrl", e.target.value)}
+                  />
+                </Field>
+                <p className="text-xs text-muted-foreground">
+                  Super admin only — this link is stored for internal reference.
+                </p>
+              </div>
+            )}
           </Section>
 
 
