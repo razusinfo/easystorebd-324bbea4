@@ -2,6 +2,9 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/easystore/public_html/
-    - /bin/bash -lc 'command -v npm && npm install --no-audit --no-fund --legacy-peer-deps'
-    - /bin/bash -lc 'command -v npm && npm run build'
+    - /bin/bash -lc 'node -v && npm -v'
+    - /bin/bash -lc 'rm -rf dist node_modules'
+    - /bin/bash -lc 'mkdir -p node_modules && test -w node_modules || { echo "node_modules not writable"; exit 1; }'
+    - /bin/bash -lc 'if [ -f package-lock.json ]; then npm ci --no-audit --no-fund --legacy-peer-deps; else npm install --no-audit --no-fund --legacy-peer-deps; fi'
+    - /bin/bash -lc 'npm run build'
     - /bin/cp -R dist/. $DEPLOYPATH
