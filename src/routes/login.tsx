@@ -58,6 +58,7 @@ function LoginPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [oauthBusy, setOauthBusy] = useState(false);
+  const [oauthRecovery, setOauthRecovery] = useState<string | null>(null);
 
   const safeRedirect = redirect && redirect.startsWith("/") ? redirect : null;
 
