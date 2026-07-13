@@ -259,16 +259,22 @@ function OrdersPage() {
             : undefined}
         />
       ) : (
-        <OrdersTable
-          rows={filtered}
-          storeId={store.id}
-          selected={selected}
-          setSelected={setSelected}
-          onView={setViewing}
-          onEdit={setEditing}
-          onDelete={setDeleting}
-        />
-      )}
+        <>
+          <BulkActionsBar
+            storeId={store.id}
+            selected={selected}
+            clear={() => setSelected(new Set())}
+          />
+          <OrdersTable
+            rows={filtered}
+            storeId={store.id}
+            selected={selected}
+            setSelected={setSelected}
+            onView={setViewing}
+            onEdit={setEditing}
+            onDelete={setDeleting}
+          />
+        </>
 
       {/* View */}
       <OrderDetailsDialog
