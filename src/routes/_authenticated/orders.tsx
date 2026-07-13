@@ -4,8 +4,47 @@ import {
   Loader2, Plus, Search, ShoppingCart, Trash2, Eye, Pencil, X, Check,
   Package, AlertTriangle, RefreshCw, Phone, MapPin,
   Calendar, Tag, Users, Download, Filter, ArrowUpDown, Columns3,
-  Copy, ExternalLink, MoreHorizontal, Box,
+  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle,
 } from "lucide-react";
+
+function waNumber(phone: string) {
+  const digits = (phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("880")) return digits;
+  if (digits.startsWith("0")) return "88" + digits;
+  return digits;
+}
+
+function ContactIcons({ phone, size = "sm" }: { phone: string; size?: "sm" | "xs" }) {
+  const wa = waNumber(phone);
+  const cls = size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5";
+  const btn = "grid place-items-center rounded-full p-1 transition-colors";
+  if (!phone) return null;
+  return (
+    <span className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      <a
+        href={`tel:${phone}`}
+        className={`${btn} bg-sky-50 text-sky-600 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-400`}
+        aria-label="Call"
+        title={`Call ${phone}`}
+      >
+        <Phone className={cls} />
+      </a>
+      {wa && (
+        <a
+          href={`https://wa.me/${wa}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
+          aria-label="WhatsApp"
+          title={`WhatsApp ${phone}`}
+        >
+          <MessageCircle className={cls} />
+        </a>
+      )}
+    </span>
+  );
+}
 import { toast } from "sonner";
 
 import { useMyStore, useMyProducts, type ProductRow } from "@/lib/eazystore-data";
