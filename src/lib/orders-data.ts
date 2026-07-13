@@ -183,14 +183,52 @@ export function useUpsertOrder(storeId: string | undefined) {
   });
 }
 
+// -------- Allowed transitions --------
+export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending:    ["confirmed", "cancelled"],
+  confirmed:  ["processing", "cancelled"],
+  processing: ["shipped", "cancelled"],
+  shipped:    ["delivered", "cancelled"],
+  delivered:  [],
+  cancelled:  [],
+};
+export const PAYMENT_TRANSITIONS: Record<PaymentStatus, PaymentStatus[]> = {
+  unpaid:   ["paid"],
+  paid:     ["refunded"],
+  refunded: [],
+};
+export function canTransitionOrder(from: OrderStatus, to: OrderStatus): boolean {
+  return from === to || ORDER_TRANSITIONS[from]?.includes(to);
+}
+export function canTransitionPayment(from: PaymentStatus, to: PaymentStatus): boolean {
+  return from === to || PAYMENT_TRANSITIONS[from]?.includes(to);
+}
+function assertOrderTransition(from: OrderStatus, to: OrderStatus) {
+  if (!canTransitionOrder(from, to)) {
+    throw new Error(`Cannot change order status from "${from}" to "${to}"`);
+  }
+}
+function assertPaymentTransition(from: PaymentStatus, to: PaymentStatus) {
+  if (!canTransitionPayment(from, to)) {
+    throw new Error(`Cannot change payment status from "${from}" to "${to}"`);
+  }
+}
+
 export function useUpdateOrderStatus(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: OrderStatus }) => {
+      const { data: cur, error: e1 } = await supabase
+        .from("orders").select("status").eq("id", id).single();
+      if (e1) throw e1;
+      assertOrderTransition(cur!.status as OrderStatus, status);
       const { error } = await supabase.from("orders").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["orders", "by-store", storeId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orders", "by-store", storeId] });
+      qc.invalidateQueries({ queryKey: ["order-audit"] });
+    },
   });
 }
 
@@ -198,10 +236,91 @@ export function useUpdatePaymentStatus(storeId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, payment_status }: { id: string; payment_status: PaymentStatus }) => {
+      const { data: cur, error: e1 } = await supabase
+        .from("orders").select("payment_status").eq("id", id).single();
+      if (e1) throw e1;
+      assertPaymentTransition(cur!.payment_status as PaymentStatus, payment_status);
       const { error } = await supabase.from("orders").update({ payment_status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["orders", "by-store", storeId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orders", "by-store", storeId] });
+      qc.invalidateQueries({ queryKey: ["order-audit"] });
+    },
+  });
+}
+
+// -------- Bulk update --------
+export type BulkUpdateInput = {
+  ids: string[];
+  status?: OrderStatus;
+  payment_status?: PaymentStatus;
+};
+export type BulkUpdateResult = {
+  updated: number;
+  skipped: { id: string; reason: string }[];
+};
+
+export function useBulkUpdateOrders(storeId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation<BulkUpdateResult, Error, BulkUpdateInput>({
+    mutationFn: async ({ ids, status, payment_status }) => {
+      if (!ids.length) return { updated: 0, skipped: [] };
+      if (!status && !payment_status) throw new Error("Nothing to update");
+      const { data: rows, error } = await supabase
+        .from("orders").select("id, status, payment_status").in("id", ids);
+      if (error) throw error;
+      const skipped: { id: string; reason: string }[] = [];
+      let updated = 0;
+      for (const r of rows ?? []) {
+        const patch: Record<string, string> = {};
+        if (status) {
+          if (canTransitionOrder(r.status as OrderStatus, status)) patch.status = status;
+          else { skipped.push({ id: r.id, reason: `status ${r.status}→${status} not allowed` }); continue; }
+        }
+        if (payment_status) {
+          if (canTransitionPayment(r.payment_status as PaymentStatus, payment_status)) patch.payment_status = payment_status;
+          else { skipped.push({ id: r.id, reason: `payment ${r.payment_status}→${payment_status} not allowed` }); continue; }
+        }
+        if (Object.keys(patch).length === 0) continue;
+        const { error: uerr } = await supabase.from("orders").update(patch).eq("id", r.id);
+        if (uerr) { skipped.push({ id: r.id, reason: uerr.message }); continue; }
+        updated++;
+      }
+      return { updated, skipped };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orders", "by-store", storeId] });
+      qc.invalidateQueries({ queryKey: ["order-audit"] });
+    },
+  });
+}
+
+// -------- Audit log --------
+export type OrderAuditRow = {
+  id: string;
+  order_id: string;
+  store_id: string;
+  field: "status" | "payment_status";
+  from_value: string | null;
+  to_value: string;
+  changed_by: string | null;
+  created_at: string;
+};
+
+export function useOrderAudit(orderId: string | undefined) {
+  return useQuery({
+    queryKey: ["order-audit", orderId],
+    enabled: !!orderId,
+    queryFn: async (): Promise<OrderAuditRow[]> => {
+      const { data, error } = await supabase
+        .from("order_status_audit")
+        .select("*")
+        .eq("order_id", orderId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as OrderAuditRow[];
+    },
   });
 }
 
