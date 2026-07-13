@@ -25,6 +25,7 @@ import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as RIdRouteImport } from './routes/r.$id'
 import { Route as DemoPrestigeRouteImport } from './routes/demo.prestige'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as AccountReviewsRouteImport } from './routes/account.reviews'
 import { Route as AccountReturnsRouteImport } from './routes/account.returns'
@@ -181,6 +182,11 @@ const DemoBdloveRoute = DemoBdloveRouteImport.update({
   id: '/demo/bdlove',
   path: '/demo/bdlove',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AccountWishlistRoute = AccountWishlistRouteImport.update({
   id: '/wishlist',
@@ -613,7 +619,7 @@ const AuthenticatedCategoriesIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -672,6 +678,7 @@ export interface FileRoutesByFullPath {
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
   '/r/$id': typeof RIdRoute
@@ -706,7 +713,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -765,6 +772,7 @@ export interface FileRoutesByTo {
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
   '/r/$id': typeof RIdRoute
@@ -801,7 +809,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/account': typeof AccountRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
@@ -860,6 +868,7 @@ export interface FileRoutesById {
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
   '/r/$id': typeof RIdRoute
@@ -956,6 +965,7 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
+    | '/auth/callback'
     | '/demo/bdlove'
     | '/demo/prestige'
     | '/r/$id'
@@ -1049,6 +1059,7 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
+    | '/auth/callback'
     | '/demo/bdlove'
     | '/demo/prestige'
     | '/r/$id'
@@ -1143,6 +1154,7 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
+    | '/auth/callback'
     | '/demo/bdlove'
     | '/demo/prestige'
     | '/r/$id'
@@ -1180,7 +1192,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AccountRoute: typeof AccountRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   InstallRoute: typeof InstallRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
@@ -1320,6 +1332,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/bdlove'
       preLoaderRoute: typeof DemoBdloveRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/account/wishlist': {
       id: '/account/wishlist'
@@ -2015,6 +2034,16 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 interface SSlugRouteChildren {
   SSlugAboutRoute: typeof SSlugAboutRoute
   SSlugBlogsRoute: typeof SSlugBlogsRoute
@@ -2043,7 +2072,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AccountRoute: AccountRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   InstallRoute: InstallRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
