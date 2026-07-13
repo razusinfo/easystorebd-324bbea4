@@ -13,6 +13,7 @@ import { Route as StoresRouteImport } from './routes/stores'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OfflineRouteImport } from './routes/offline'
+import { Route as OauthCallbackRouteImport } from './routes/oauth-callback'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InstallRouteImport } from './routes/install'
@@ -25,7 +26,6 @@ import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as RIdRouteImport } from './routes/r.$id'
 import { Route as DemoPrestigeRouteImport } from './routes/demo.prestige'
 import { Route as DemoBdloveRouteImport } from './routes/demo.bdlove'
-import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AccountWishlistRouteImport } from './routes/account.wishlist'
 import { Route as AccountReviewsRouteImport } from './routes/account.reviews'
 import { Route as AccountReturnsRouteImport } from './routes/account.returns'
@@ -124,6 +124,11 @@ const OfflineRoute = OfflineRouteImport.update({
   path: '/offline',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth-callback',
+  path: '/oauth-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
@@ -182,11 +187,6 @@ const DemoBdloveRoute = DemoBdloveRouteImport.update({
   id: '/demo/bdlove',
   path: '/demo/bdlove',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/callback',
-  path: '/callback',
-  getParentRoute: () => AuthRoute,
 } as any)
 const AccountWishlistRoute = AccountWishlistRouteImport.update({
   id: '/wishlist',
@@ -619,10 +619,11 @@ const AuthenticatedCategoriesIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteWithChildren
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -678,7 +679,6 @@ export interface FileRoutesByFullPath {
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
-  '/auth/callback': typeof AuthCallbackRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
   '/r/$id': typeof RIdRoute
@@ -713,10 +713,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -772,7 +773,6 @@ export interface FileRoutesByTo {
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
-  '/auth/callback': typeof AuthCallbackRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
   '/r/$id': typeof RIdRoute
@@ -809,10 +809,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/account': typeof AccountRouteWithChildren
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/install': typeof InstallRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/offline': typeof OfflineRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -868,7 +869,6 @@ export interface FileRoutesById {
   '/account/returns': typeof AccountReturnsRoute
   '/account/reviews': typeof AccountReviewsRoute
   '/account/wishlist': typeof AccountWishlistRoute
-  '/auth/callback': typeof AuthCallbackRoute
   '/demo/bdlove': typeof DemoBdloveRoute
   '/demo/prestige': typeof DemoPrestigeRoute
   '/r/$id': typeof RIdRoute
@@ -910,6 +910,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/login'
     | '/mcp'
+    | '/oauth-callback'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
@@ -965,7 +966,6 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
-    | '/auth/callback'
     | '/demo/bdlove'
     | '/demo/prestige'
     | '/r/$id'
@@ -1004,6 +1004,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/login'
     | '/mcp'
+    | '/oauth-callback'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
@@ -1059,7 +1060,6 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
-    | '/auth/callback'
     | '/demo/bdlove'
     | '/demo/prestige'
     | '/r/$id'
@@ -1099,6 +1099,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/login'
     | '/mcp'
+    | '/oauth-callback'
     | '/offline'
     | '/reset-password'
     | '/sitemap.xml'
@@ -1154,7 +1155,6 @@ export interface FileRouteTypes {
     | '/account/returns'
     | '/account/reviews'
     | '/account/wishlist'
-    | '/auth/callback'
     | '/demo/bdlove'
     | '/demo/prestige'
     | '/r/$id'
@@ -1192,10 +1192,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AccountRoute: typeof AccountRouteWithChildren
-  AuthRoute: typeof AuthRouteWithChildren
+  AuthRoute: typeof AuthRoute
   InstallRoute: typeof InstallRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
+  OauthCallbackRoute: typeof OauthCallbackRoute
   OfflineRoute: typeof OfflineRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -1247,6 +1248,13 @@ declare module '@tanstack/react-router' {
       path: '/offline'
       fullPath: '/offline'
       preLoaderRoute: typeof OfflineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth-callback': {
+      id: '/oauth-callback'
+      path: '/oauth-callback'
+      fullPath: '/oauth-callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -1332,13 +1340,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/bdlove'
       preLoaderRoute: typeof DemoBdloveRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof AuthRoute
     }
     '/account/wishlist': {
       id: '/account/wishlist'
@@ -2034,16 +2035,6 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
-interface AuthRouteChildren {
-  AuthCallbackRoute: typeof AuthCallbackRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthCallbackRoute: AuthCallbackRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 interface SSlugRouteChildren {
   SSlugAboutRoute: typeof SSlugAboutRoute
   SSlugBlogsRoute: typeof SSlugBlogsRoute
@@ -2072,10 +2063,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AccountRoute: AccountRouteWithChildren,
-  AuthRoute: AuthRouteWithChildren,
+  AuthRoute: AuthRoute,
   InstallRoute: InstallRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
+  OauthCallbackRoute: OauthCallbackRoute,
   OfflineRoute: OfflineRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

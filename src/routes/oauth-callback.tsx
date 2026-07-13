@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EasyStoreWordmark } from "@/components/eazystore-wordmark";
 import { buildOAuthRecoveryUrl, consumeOAuthReturn, sanitizeAuthRedirect } from "@/lib/oauth-flow";
 
-export const Route = createFileRoute("/auth/callback")({
+export const Route = createFileRoute("/oauth-callback")({
   head: () => ({
     meta: [
       { title: "Signing in — EasyStore" },
