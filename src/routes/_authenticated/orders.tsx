@@ -870,7 +870,7 @@ function OrderDetailsDialog({
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Customer</p>
             <p className="mt-1 font-semibold">{order.customer_name}</p>
-            <p className="mt-1 flex items-center gap-2 text-sm"><Phone className="h-3.5 w-3.5" /> {order.customer_phone} <ContactIcons phone={order.customer_phone} /></p>
+            <p className="mt-1 flex items-center gap-2 text-sm"><Phone className="h-3.5 w-3.5" /> {order.customer_phone} <ContactIcons phone={order.customer_phone} orderId={order.id} customerName={order.customer_name} storeName={storeName ?? undefined} /></p>
             {order.customer_address && (
               <p className="mt-1 flex items-start gap-1 text-sm text-foreground/70"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {order.customer_address}</p>
             )}
