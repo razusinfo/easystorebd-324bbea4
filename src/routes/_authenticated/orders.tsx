@@ -640,7 +640,10 @@ function OrdersTable({
                 </div>
                 <p className="mt-1 font-mono text-xs text-foreground/50">{o.order_number}</p>
                 <p className="mt-1 truncate font-semibold">{o.customer_name}</p>
-                <p className="text-xs text-foreground/60">{o.customer_phone}</p>
+                <div className="flex items-center gap-1.5 text-xs text-foreground/60">
+                  <span>{o.customer_phone}</span>
+                  <ContactIcons phone={o.customer_phone} size="xs" />
+                </div>
                 <p className="mt-1 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <Select
