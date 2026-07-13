@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Loader2, Plus, Search, ShoppingCart, Trash2, Eye, Pencil, X, Check,
   Package, AlertTriangle, RefreshCw, Phone, MapPin,
   Calendar, Tag, Users, Download, Filter, ArrowUpDown, Columns3,
-  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle, Send,
+  Copy, ExternalLink, MoreHorizontal, Box, MessageCircle, Send, XCircle,
 } from "lucide-react";
 
 function waNumber(phone: string) {
@@ -24,13 +24,45 @@ function prettyBDPhone(phone: string) {
   return phone;
 }
 
+// ---- Local activity log for call / WhatsApp / copy per order ----
+type ActivityKind = "call" | "wa" | "wa_msg" | "copy";
+type ActivityEntry = { kind: ActivityKind; at: number };
+const ACTIVITY_KEY = "order_activity_v1";
+function readAllActivity(): Record<string, ActivityEntry[]> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(window.localStorage.getItem(ACTIVITY_KEY) || "{}"); } catch { return {}; }
+}
+function bumpActivity(orderId: string | undefined, kind: ActivityKind) {
+  if (!orderId || typeof window === "undefined") return;
+  const all = readAllActivity();
+  const list = all[orderId] ?? [];
+  list.push({ kind, at: Date.now() });
+  all[orderId] = list.slice(-50);
+  window.localStorage.setItem(ACTIVITY_KEY, JSON.stringify(all));
+  window.dispatchEvent(new CustomEvent("order-activity", { detail: { orderId } }));
+}
+function useOrderActivity(orderId: string | undefined) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const h = (e: Event) => {
+      const id = (e as CustomEvent).detail?.orderId;
+      if (!orderId || id === orderId) setTick((t) => t + 1);
+    };
+    window.addEventListener("order-activity", h);
+    return () => window.removeEventListener("order-activity", h);
+  }, [orderId]);
+  return useMemo(() => (orderId ? (readAllActivity()[orderId] ?? []) : []), [orderId, tick]);
+}
+
 function ContactIcons({
   phone,
+  orderId,
   customerName,
   storeName,
   size = "sm",
 }: {
   phone: string;
+  orderId?: string;
   customerName?: string | null;
   storeName?: string | null;
   size?: "sm" | "xs";
@@ -50,6 +82,7 @@ function ContactIcons({
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(pretty);
+      bumpActivity(orderId, "copy");
       toast.success("Number copied");
     } catch {
       toast.error("Copy failed");
@@ -69,6 +102,7 @@ function ContactIcons({
       </button>
       <a
         href={`tel:${pretty}`}
+        onClick={() => bumpActivity(orderId, "call")}
         className={`${btn} bg-sky-50 text-sky-600 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-400`}
         aria-label="Call"
         title={`Call ${pretty} — opens dialer`}
@@ -79,6 +113,7 @@ function ContactIcons({
         <>
           <a
             href={`https://wa.me/${wa}`}
+            onClick={() => bumpActivity(orderId, "wa")}
             target="_blank"
             rel="noreferrer noopener"
             className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
@@ -89,6 +124,7 @@ function ContactIcons({
           </a>
           <a
             href={`https://wa.me/${wa}?text=${greeting}`}
+            onClick={() => bumpActivity(orderId, "wa_msg")}
             target="_blank"
             rel="noreferrer noopener"
             className={`${btn} bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300`}
@@ -110,7 +146,7 @@ import {
   useUpdatePaymentStatus, useDeleteOrder, useBulkUpdateOrders, useOrderAudit,
   ORDER_STATUSES, PAYMENT_STATUSES,
   statusBadgeClass, paymentBadgeClass,
-  type OrderRow, type OrderStatus, type PaymentStatus, type OrderInput, type OrderItemInput,
+  type OrderRow, type OrderStatus, type PaymentStatus, type OrderInput, type OrderItemInput, type OrderAuditRow,
 } from "@/lib/orders-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,6 +219,8 @@ function OrdersPage() {
 
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabKey>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [viewing, setViewing] = useState<OrderRow | null>(null);
   const [editing, setEditing] = useState<OrderRow | null>(null);
   const [creating, setCreating] = useState(false);
@@ -195,8 +233,13 @@ function OrdersPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const fromTs = dateFrom ? new Date(dateFrom + "T00:00:00").getTime() : null;
+    const toTs = dateTo ? new Date(dateTo + "T23:59:59").getTime() : null;
     return orders.filter((o) => {
       if (!matchTab(o, tab)) return false;
+      const ts = new Date(o.created_at).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
       if (!q) return true;
       return (
         o.order_number.toLowerCase().includes(q) ||
@@ -204,7 +247,7 @@ function OrdersPage() {
         o.customer_phone.toLowerCase().includes(q)
       );
     });
-  }, [orders, search, tab]);
+  }, [orders, search, tab, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
     const confirmed = orders.filter((o) => o.status === "confirmed" || o.status === "delivered");
@@ -285,6 +328,27 @@ function OrdersPage() {
             />
           </div>
         </div>
+        <Input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)}
+          className="h-10 w-[150px]"
+          aria-label="From date"
+          title="From date"
+        />
+        <Input
+          type="date"
+          value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)}
+          className="h-10 w-[150px]"
+          aria-label="To date"
+          title="To date"
+        />
+        {(dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" className="h-10" onClick={() => { setDateFrom(""); setDateTo(""); }}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
         <Button variant="outline" size="sm" className="h-10">
           <Download className="mr-1 h-4 w-4" /> Export
         </Button>
@@ -379,6 +443,7 @@ function OrdersPage() {
       {/* View */}
       <OrderDetailsDialog
         order={viewing}
+        storeName={storeName}
         onClose={() => setViewing(null)}
         onEdit={(o) => { setViewing(null); setEditing(o); }}
       />
@@ -587,7 +652,7 @@ function OrdersTable({
                         <div className="truncate font-medium">{o.customer_name}</div>
                         <div className="flex items-center gap-1.5 text-xs text-foreground/60">
                           <span className="truncate">{prettyBDPhone(o.customer_phone)}</span>
-                          <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
+                         <ContactIcons phone={o.customer_phone} orderId={o.id} customerName={o.customer_name} storeName={storeName} size="xs" />
                         </div>
                       </div>
                     </div>
@@ -702,7 +767,7 @@ function OrdersTable({
                 <p className="truncate font-semibold">{o.customer_name}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-foreground/60">
                   <span>{prettyBDPhone(o.customer_phone)}</span>
-                  <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
+                  <ContactIcons phone={o.customer_phone} orderId={o.id} customerName={o.customer_name} storeName={storeName} size="xs" />
                 </div>
                 <p className="mt-2 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
               </div>
@@ -782,11 +847,22 @@ function OrdersTable({
 // ---------- Details dialog ----------
 
 function OrderDetailsDialog({
-  order, onClose, onEdit,
-}: { order: OrderRow | null; onClose: () => void; onEdit: (o: OrderRow) => void }) {
+  order, storeName, onClose, onEdit,
+}: { order: OrderRow | null; storeName: string | null; onClose: () => void; onEdit: (o: OrderRow) => void }) {
   const itemsQ = useOrderItems(order?.id);
+  const auditQ = useOrderAudit(order?.id);
+  const activity = useOrderActivity(order?.id);
   const open = !!order;
   if (!order) return null;
+
+  const wa = waNumber(order.customer_phone);
+  const statusLabel = order.status === "pending" ? "Placed" : order.status;
+  const shareText = encodeURIComponent(
+    `${storeName ? storeName + "\n" : ""}Order: ${order.order_number}\nCustomer: ${order.customer_name}\nStatus: ${statusLabel}\nPayment: ${order.payment_status}\nTotal: ৳ ${Number(order.total).toLocaleString()}`
+  );
+  const callCount = activity.filter((a) => a.kind === "call").length;
+  const waCount = activity.filter((a) => a.kind === "wa" || a.kind === "wa_msg").length;
+  const lastActivity = activity[activity.length - 1];
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -802,11 +878,17 @@ function OrderDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Timeline */}
+        <div className="rounded-lg border border-border p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">Order Timeline</p>
+          <StatusTimeline order={order} audit={auditQ.data ?? []} />
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Customer</p>
             <p className="mt-1 font-semibold">{order.customer_name}</p>
-            <p className="mt-1 flex items-center gap-2 text-sm"><Phone className="h-3.5 w-3.5" /> {order.customer_phone} <ContactIcons phone={order.customer_phone} /></p>
+            <p className="mt-1 flex items-center gap-2 text-sm"><Phone className="h-3.5 w-3.5" /> {order.customer_phone} <ContactIcons phone={order.customer_phone} orderId={order.id} customerName={order.customer_name} storeName={storeName ?? undefined} /></p>
             {order.customer_address && (
               <p className="mt-1 flex items-start gap-1 text-sm text-foreground/70"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {order.customer_address}</p>
             )}
@@ -864,6 +946,23 @@ function OrderDetailsDialog({
           </div>
         )}
 
+        {/* Activity log */}
+        <div className="rounded-lg border border-border p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Follow-up Activity</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-0.5 font-semibold text-sky-600 dark:text-sky-400">
+              <Phone className="h-3 w-3" /> {callCount} call{callCount === 1 ? "" : "s"}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
+              <MessageCircle className="h-3 w-3" /> {waCount} WhatsApp
+            </span>
+            {lastActivity && (
+              <span className="text-foreground/50">Last: {new Date(lastActivity.at).toLocaleString()}</span>
+            )}
+            {activity.length === 0 && <span className="text-foreground/50">No interactions yet.</span>}
+          </div>
+        </div>
+
         <div className="rounded-lg border border-border">
           <p className="border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">
             Status History
@@ -873,8 +972,24 @@ function OrderDetailsDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
           <Button variant="outline" onClick={onClose}>Close</Button>
+          {wa && (
+            <Button
+              variant="outline"
+              className="bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400"
+              asChild
+            >
+              <a
+                href={`https://wa.me/${wa}?text=${shareText}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={() => bumpActivity(order.id, "wa_msg")}
+              >
+                <MessageCircle className="mr-1 h-4 w-4" /> Share via WhatsApp
+              </a>
+            </Button>
+          )}
           <Button onClick={() => onEdit(order)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
         </DialogFooter>
       </DialogContent>
@@ -1214,5 +1329,70 @@ export function OrderAuditHistory({ orderId }: { orderId: string }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+// ---------- Status timeline ----------
+
+type TimelineStep = { key: string; label: string; matches: string[] };
+const TIMELINE_STEPS: TimelineStep[] = [
+  { key: "placed", label: "Placed", matches: ["pending"] },
+  { key: "confirmed", label: "Confirmed", matches: ["confirmed"] },
+  { key: "packed", label: "Packed", matches: ["packed", "processing"] },
+  { key: "shipped", label: "Shipped", matches: ["shipped", "out_for_delivery"] },
+  { key: "delivered", label: "Delivered", matches: ["delivered", "completed"] },
+];
+
+function StatusTimeline({ order, audit }: { order: OrderRow; audit: OrderAuditRow[] }) {
+  const cancelled = order.status === "cancelled";
+  // Map earliest timestamp for each step from audit (status field)
+  const stamps = new Map<string, string>();
+  stamps.set("placed", order.created_at);
+  for (const a of audit) {
+    if (a.field !== "status") continue;
+    const step = TIMELINE_STEPS.find((s) => s.matches.includes(a.to_value));
+    if (step && !stamps.has(step.key)) stamps.set(step.key, a.created_at);
+  }
+  const currentStep = TIMELINE_STEPS.find((s) => s.matches.includes(order.status));
+  const currentIdx = currentStep ? TIMELINE_STEPS.indexOf(currentStep) : 0;
+
+  if (cancelled) {
+    const cancelStamp = audit.find((a) => a.field === "status" && a.to_value === "cancelled")?.created_at;
+    return (
+      <div className="flex items-center gap-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <XCircle className="h-4 w-4" />
+        <span className="font-semibold">Cancelled</span>
+        {cancelStamp && <span className="text-xs opacity-70">{new Date(cancelStamp).toLocaleString()}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <ol className="flex flex-wrap gap-y-3">
+      {TIMELINE_STEPS.map((s, i) => {
+        const done = i <= currentIdx;
+        const ts = stamps.get(s.key);
+        return (
+          <li key={s.key} className="flex min-w-0 flex-1 items-start gap-2">
+            <div className="flex flex-col items-center">
+              <div
+                className={`grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ${
+                  done ? "bg-emerald-500 text-white" : "bg-muted text-foreground/40"
+                }`}
+              >
+                {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+              </div>
+              {i < TIMELINE_STEPS.length - 1 && (
+                <div className={`mt-0.5 h-6 w-px ${i < currentIdx ? "bg-emerald-500" : "bg-border"}`} />
+              )}
+            </div>
+            <div className="min-w-0 pb-2">
+              <p className={`text-xs font-semibold ${done ? "text-foreground" : "text-foreground/50"}`}>{s.label}</p>
+              {ts && <p className="text-[10px] text-foreground/50">{new Date(ts).toLocaleString()}</p>}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
