@@ -328,6 +328,27 @@ function OrdersPage() {
             />
           </div>
         </div>
+        <Input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)}
+          className="h-10 w-[150px]"
+          aria-label="From date"
+          title="From date"
+        />
+        <Input
+          type="date"
+          value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)}
+          className="h-10 w-[150px]"
+          aria-label="To date"
+          title="To date"
+        />
+        {(dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" className="h-10" onClick={() => { setDateFrom(""); setDateTo(""); }}>
+            <X className="h-4 w-4" />
+          </Button>
+        )}
         <Button variant="outline" size="sm" className="h-10">
           <Download className="mr-1 h-4 w-4" /> Export
         </Button>
