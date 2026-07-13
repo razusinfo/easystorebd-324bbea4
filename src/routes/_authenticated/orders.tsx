@@ -761,7 +761,8 @@ function OrdersTable({
               </div>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </div>
   );
