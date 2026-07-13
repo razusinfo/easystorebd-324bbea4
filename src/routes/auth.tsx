@@ -38,6 +38,12 @@ const phoneSchema = z
   .transform((v) => {
     const digits = v.replace(/[\s-]/g, "");
     return digits.startsWith("+") ? digits : `+${digits.replace(/^0+/, "")}`;
+  })
+  .transform((v) => {
+    const digits = v.replace(/\D/g, "");
+    if (digits.startsWith("880")) return `+${digits}`;
+    if (digits.startsWith("01")) return `+880${digits.slice(1)}`;
+    return v;
   });
 const otpSchema = z.string().trim().regex(/^[0-9]{6}$/, "Enter the 6-digit code we sent");
 
@@ -308,6 +314,14 @@ function AuthPage() {
 
   const isSignup = mode === "signup";
 
+  function chooseMethod(next: "email" | "phone") {
+    setMethod(next);
+    setError(null);
+    setInfo(null);
+    setOtpSent(false);
+    setOtp("");
+  }
+
 
 
 
@@ -501,7 +515,22 @@ function AuthPage() {
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          {/* Phone signup temporarily unavailable — Email + Google only */}
+          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => chooseMethod("email")}
+              className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${method === "email" ? "bg-white text-purple-700 shadow-sm" : "text-slate-600"}`}
+            >
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => chooseMethod("phone")}
+              className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${method === "phone" ? "bg-white text-purple-700 shadow-sm" : "text-slate-600"}`}
+            >
+              Mobile Number
+            </button>
+          </div>
 
 
           {method === "email" ? (
