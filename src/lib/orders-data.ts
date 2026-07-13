@@ -273,7 +273,7 @@ export function useBulkUpdateOrders(storeId: string | undefined) {
       const skipped: { id: string; reason: string }[] = [];
       let updated = 0;
       for (const r of rows ?? []) {
-        const patch: Record<string, string> = {};
+        const patch: { status?: OrderStatus; payment_status?: PaymentStatus } = {};
         if (status) {
           if (canTransitionOrder(r.status as OrderStatus, status)) patch.status = status;
           else { skipped.push({ id: r.id, reason: `status ${r.status}→${status} not allowed` }); continue; }
