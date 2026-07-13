@@ -847,11 +847,22 @@ function OrdersTable({
 // ---------- Details dialog ----------
 
 function OrderDetailsDialog({
-  order, onClose, onEdit,
-}: { order: OrderRow | null; onClose: () => void; onEdit: (o: OrderRow) => void }) {
+  order, storeName, onClose, onEdit,
+}: { order: OrderRow | null; storeName: string | null; onClose: () => void; onEdit: (o: OrderRow) => void }) {
   const itemsQ = useOrderItems(order?.id);
+  const auditQ = useOrderAudit(order?.id);
+  const activity = useOrderActivity(order?.id);
   const open = !!order;
   if (!order) return null;
+
+  const wa = waNumber(order.customer_phone);
+  const statusLabel = order.status === "pending" ? "Placed" : order.status;
+  const shareText = encodeURIComponent(
+    `${storeName ? storeName + "\n" : ""}Order: ${order.order_number}\nCustomer: ${order.customer_name}\nStatus: ${statusLabel}\nPayment: ${order.payment_status}\nTotal: ৳ ${Number(order.total).toLocaleString()}`
+  );
+  const callCount = activity.filter((a) => a.kind === "call").length;
+  const waCount = activity.filter((a) => a.kind === "wa" || a.kind === "wa_msg").length;
+  const lastActivity = activity[activity.length - 1];
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -866,6 +877,12 @@ function OrderDetailsDialog({
             Placed {new Date(order.created_at).toLocaleString()}
           </DialogDescription>
         </DialogHeader>
+
+        {/* Timeline */}
+        <div className="rounded-lg border border-border p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">Order Timeline</p>
+          <StatusTimeline order={order} audit={auditQ.data ?? []} />
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-border p-3">
@@ -929,6 +946,23 @@ function OrderDetailsDialog({
           </div>
         )}
 
+        {/* Activity log */}
+        <div className="rounded-lg border border-border p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground/50">Follow-up Activity</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-0.5 font-semibold text-sky-600 dark:text-sky-400">
+              <Phone className="h-3 w-3" /> {callCount} call{callCount === 1 ? "" : "s"}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
+              <MessageCircle className="h-3 w-3" /> {waCount} WhatsApp
+            </span>
+            {lastActivity && (
+              <span className="text-foreground/50">Last: {new Date(lastActivity.at).toLocaleString()}</span>
+            )}
+            {activity.length === 0 && <span className="text-foreground/50">No interactions yet.</span>}
+          </div>
+        </div>
+
         <div className="rounded-lg border border-border">
           <p className="border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">
             Status History
@@ -938,8 +972,24 @@ function OrderDetailsDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
           <Button variant="outline" onClick={onClose}>Close</Button>
+          {wa && (
+            <Button
+              variant="outline"
+              className="bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400"
+              asChild
+            >
+              <a
+                href={`https://wa.me/${wa}?text=${shareText}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={() => bumpActivity(order.id, "wa_msg")}
+              >
+                <MessageCircle className="mr-1 h-4 w-4" /> Share via WhatsApp
+              </a>
+            </Button>
+          )}
           <Button onClick={() => onEdit(order)}><Pencil className="mr-1 h-4 w-4" /> Edit</Button>
         </DialogFooter>
       </DialogContent>
