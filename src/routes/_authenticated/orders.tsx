@@ -8,39 +8,96 @@ import {
 } from "lucide-react";
 
 function waNumber(phone: string) {
-  const digits = (phone || "").replace(/\D/g, "");
+  let digits = (phone || "").replace(/\D/g, "");
   if (!digits) return "";
+  // strip leading zeros for pure-local numbers like "01712..." → "1712..."
   if (digits.startsWith("880")) return digits;
-  if (digits.startsWith("0")) return "88" + digits;
+  if (digits.startsWith("00880")) return digits.slice(2);
+  if (digits.startsWith("0")) return "880" + digits.replace(/^0+/, "");
+  if (digits.length === 10 && digits.startsWith("1")) return "880" + digits;
   return digits;
 }
 
-function ContactIcons({ phone, size = "sm" }: { phone: string; size?: "sm" | "xs" }) {
+function prettyBDPhone(phone: string) {
   const wa = waNumber(phone);
+  if (wa.startsWith("880")) return "+" + wa;
+  return phone;
+}
+
+function ContactIcons({
+  phone,
+  customerName,
+  storeName,
+  size = "sm",
+}: {
+  phone: string;
+  customerName?: string | null;
+  storeName?: string | null;
+  size?: "sm" | "xs";
+}) {
+  const wa = waNumber(phone);
+  const pretty = prettyBDPhone(phone);
   const cls = size === "xs" ? "h-3 w-3" : "h-3.5 w-3.5";
   const btn = "grid place-items-center rounded-full p-1 transition-colors";
   if (!phone) return null;
+
+  const greeting = encodeURIComponent(
+    `Assalamu Alaikum${customerName ? " " + customerName : ""}, ${storeName ? storeName + " " : ""}থেকে আপনার অর্ডার সম্পর্কে যোগাযোগ করছি।`
+  );
+
+  const copy = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(pretty);
+      toast.success("Number copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
   return (
     <span className="inline-flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={copy}
+        className={`${btn} bg-muted text-foreground/70 hover:bg-muted/70`}
+        aria-label="Copy number"
+        title={`Copy ${pretty}`}
+      >
+        <Copy className={cls} />
+      </button>
       <a
-        href={`tel:${phone}`}
+        href={`tel:${pretty}`}
         className={`${btn} bg-sky-50 text-sky-600 hover:bg-sky-100 dark:bg-sky-500/10 dark:text-sky-400`}
         aria-label="Call"
-        title={`Call ${phone}`}
+        title={`Call ${pretty} — opens dialer`}
       >
         <Phone className={cls} />
       </a>
       {wa && (
-        <a
-          href={`https://wa.me/${wa}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
-          aria-label="WhatsApp"
-          title={`WhatsApp ${phone}`}
-        >
-          <MessageCircle className={cls} />
-        </a>
+        <>
+          <a
+            href={`https://wa.me/${wa}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={`${btn} bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400`}
+            aria-label="WhatsApp chat"
+            title={`WhatsApp ${pretty} — open chat`}
+          >
+            <MessageCircle className={cls} />
+          </a>
+          <a
+            href={`https://wa.me/${wa}?text=${greeting}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={`${btn} bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300`}
+            aria-label="WhatsApp with prefilled message"
+            title={`WhatsApp ${pretty} — send prefilled greeting`}
+          >
+            <Send className={cls} />
+          </a>
+        </>
       )}
     </span>
   );
