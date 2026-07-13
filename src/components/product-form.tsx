@@ -124,6 +124,7 @@ const initialState: FormState = {
   videoUrl: "",
   addToReseller: false,
   resellerPrice: "",
+  sourceProductUrl: "",
 };
 
 
