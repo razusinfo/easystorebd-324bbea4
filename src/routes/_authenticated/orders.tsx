@@ -998,3 +998,88 @@ function OrderFormDialog({
     </Dialog>
   );
 }
+
+// ---------- Bulk actions bar ----------
+
+function BulkActionsBar({
+  storeId, selected, clear,
+}: { storeId: string; selected: Set<string>; clear: () => void }) {
+  const bulk = useBulkUpdateOrders(storeId);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus | "">("");
+  const [payStatus, setPayStatus] = useState<PaymentStatus | "">("");
+  if (selected.size === 0) return null;
+
+  async function apply() {
+    if (!orderStatus && !payStatus) {
+      toast.error("Pick a status to apply");
+      return;
+    }
+    try {
+      const res = await bulk.mutateAsync({
+        ids: Array.from(selected),
+        status: orderStatus || undefined,
+        payment_status: payStatus || undefined,
+      });
+      if (res.updated) toast.success(`Updated ${res.updated} order(s)`);
+      if (res.skipped.length) toast.warning(`${res.skipped.length} skipped (invalid transition)`);
+      setOrderStatus(""); setPayStatus(""); clear();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Bulk update failed");
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+      <span className="text-sm font-semibold">{selected.size} selected</span>
+      <Select value={orderStatus} onValueChange={(v) => setOrderStatus(v as OrderStatus)}>
+        <SelectTrigger className="h-9 w-[160px]"><SelectValue placeholder="Order status" /></SelectTrigger>
+        <SelectContent>
+          {ORDER_STATUSES.map((s) => (
+            <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={payStatus} onValueChange={(v) => setPayStatus(v as PaymentStatus)}>
+        <SelectTrigger className="h-9 w-[160px]"><SelectValue placeholder="Payment status" /></SelectTrigger>
+        <SelectContent>
+          {PAYMENT_STATUSES.map((s) => (
+            <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button size="sm" onClick={apply} disabled={bulk.isPending}>
+        {bulk.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+        Apply
+      </Button>
+      <Button size="sm" variant="ghost" onClick={clear}>Clear</Button>
+    </div>
+  );
+}
+
+// ---------- Audit history ----------
+
+export function OrderAuditHistory({ orderId }: { orderId: string }) {
+  const q = useOrderAudit(orderId);
+  if (q.isLoading) return <p className="p-3 text-sm text-foreground/50"><Loader2 className="inline h-4 w-4 animate-spin" /></p>;
+  const rows = q.data ?? [];
+  if (!rows.length) return <p className="p-3 text-sm text-foreground/50">No status changes yet.</p>;
+  return (
+    <ul className="divide-y divide-border">
+      {rows.map((r) => (
+        <li key={r.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+          <div>
+            <span className="font-semibold capitalize">{r.field.replace("_", " ")}</span>
+            {": "}
+            <span className="text-foreground/60">{r.from_value ?? "—"}</span>
+            {" → "}
+            <span className="font-semibold">{r.to_value}</span>
+          </div>
+          <div className="text-xs text-foreground/50">
+            {new Date(r.created_at).toLocaleString()}
+            {r.changed_by ? ` · by ${r.changed_by.slice(0, 8)}` : ""}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
