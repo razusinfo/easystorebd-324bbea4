@@ -88,6 +88,7 @@ type FormState = {
   videoUrl: string;
   addToReseller: boolean;
   resellerPrice: string;
+  sourceProductUrl: string;
 };
 
 
