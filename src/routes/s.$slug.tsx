@@ -1,17 +1,32 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { STOREFRONT_APEX_DOMAINS, getStorefrontSlugFromHost } from "@/lib/storefront-host";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/s/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `${params.slug} — EasyStore` },
-      { name: "description", content: `Shop online at ${params.slug} on EasyStore.` },
-      { property: "og:title", content: `${params.slug} — EasyStore` },
-      { property: "og:description", content: `Shop online at ${params.slug} on EasyStore.` },
-      { property: "og:type", content: "website" },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("stores")
+      .select("name, tagline")
+      .eq("slug", params.slug)
+      .eq("published", true)
+      .maybeSingle();
+    return { storeName: data?.name ?? null, tagline: data?.tagline ?? null };
+  },
+  head: ({ params, loaderData }) => {
+    const name = loaderData?.storeName ?? params.slug;
+    const desc = (loaderData?.tagline && loaderData.tagline.trim()) || `Shop online at ${name}.`;
+    return {
+      meta: [
+        { title: name },
+        { name: "description", content: desc },
+        { property: "og:title", content: name },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: name },
+      ],
+    };
+  },
   component: SlugLayout,
 });
 
