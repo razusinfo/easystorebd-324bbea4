@@ -20,8 +20,11 @@ const phoneSchema = z
   .trim()
   .regex(/^\+?[0-9\s-]{8,20}$/, "Enter a valid phone number in international format (e.g. +8801XXXXXXXXX)")
   .transform((v) => {
-    const digits = v.replace(/[\s-]/g, "");
-    return digits.startsWith("+") ? digits : `+${digits.replace(/^0+/, "")}`;
+    const cleaned = v.replace(/[\s-]/g, "");
+    const digits = cleaned.replace(/\D/g, "");
+    if (digits.startsWith("880")) return `+${digits}`;
+    if (digits.startsWith("01")) return `+880${digits.slice(1)}`;
+    return cleaned.startsWith("+") ? cleaned : `+${digits.replace(/^0+/, "")}`;
   });
 const otpSchema = z.string().trim().regex(/^[0-9]{6}$/, "Enter the 6-digit code we sent");
 
@@ -163,8 +166,8 @@ function LoginPage() {
           status_hint: is404 ? "404" : "error", user_agent: navigator.userAgent, path: window.location.pathname,
         } }).catch(() => {});
         if (is404) {
-          const fallback = new URL("/auth", "https://easystorebd.com");
-          fallback.searchParams.set("redirect", window.location.href);
+          const fallback = new URL("/login", "https://easystorebd.lovable.app");
+          if (safeRedirect) fallback.searchParams.set("redirect", safeRedirect);
           setError("Google sign-in returned 404 on this domain. Try the main site to continue.");
           setOauthRecovery(fallback.toString());
         } else {
@@ -263,6 +266,14 @@ function LoginPage() {
     }
   }
 
+  function chooseMethod(next: "email" | "phone") {
+    setMethod(next);
+    setError(null);
+    setInfo(null);
+    setOtpSent(false);
+    setOtp("");
+  }
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f5eefe_0%,#e4d6fb_55%,#f1e8fe_100%)] px-4 py-8 text-slate-900">
       <div className="mx-auto max-w-md">
@@ -307,7 +318,22 @@ function LoginPage() {
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          {/* Phone login temporarily unavailable — Email + Google only */}
+          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => chooseMethod("email")}
+              className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${method === "email" ? "bg-white text-purple-700 shadow-sm" : "text-slate-600"}`}
+            >
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => chooseMethod("phone")}
+              className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${method === "phone" ? "bg-white text-purple-700 shadow-sm" : "text-slate-600"}`}
+            >
+              Mobile Number
+            </button>
+          </div>
 
 
           {method === "email" ? (
