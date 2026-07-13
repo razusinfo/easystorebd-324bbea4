@@ -687,8 +687,14 @@ function OrdersTable({
 
       {/* Mobile */}
       <ul className="divide-y divide-border md:hidden">
-        {rows.map((o) => (
-          <li key={o.id} className="p-4">
+        {rows.map((o) => {
+          const isTapped = tappedId === o.id;
+          return (
+          <li
+            key={o.id}
+            className={`p-4 transition-colors ${isTapped ? "bg-primary/5" : ""}`}
+            onClick={() => setTappedId((cur) => (cur === o.id ? null : o.id))}
+          >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -698,10 +704,12 @@ function OrdersTable({
                   </span>
                 </div>
                 <p className="mt-1 font-mono text-xs text-foreground/50">{o.order_number}</p>
-                <p className="mt-1 truncate font-semibold">{o.customer_name}</p>
-                <div className="flex items-center gap-1.5 text-xs text-foreground/60">
-                  <span>{o.customer_phone}</span>
-                  <ContactIcons phone={o.customer_phone} size="xs" />
+                <div className={`mt-1 rounded-md px-2 py-1 -mx-2 transition-colors ${isTapped ? "bg-primary/10 ring-1 ring-primary/30" : ""}`}>
+                  <p className="truncate font-semibold">{o.customer_name}</p>
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs text-foreground/60">
+                    <span>{prettyBDPhone(o.customer_phone)}</span>
+                    <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
+                  </div>
                 </div>
                 <p className="mt-1 font-bold text-primary">৳ {Number(o.total).toLocaleString()}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
