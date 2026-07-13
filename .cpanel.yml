@@ -2,4 +2,6 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/easystore/public_html/
+    - /bin/bash -lc 'command -v npm && npm install --no-audit --no-fund --legacy-peer-deps'
+    - /bin/bash -lc 'command -v npm && npm run build'
     - /bin/cp -R dist/. $DEPLOYPATH
