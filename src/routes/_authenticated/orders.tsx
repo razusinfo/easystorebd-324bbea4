@@ -651,7 +651,7 @@ function OrdersTable({
                         <div className="truncate font-medium">{o.customer_name}</div>
                         <div className="flex items-center gap-1.5 text-xs text-foreground/60">
                           <span className="truncate">{prettyBDPhone(o.customer_phone)}</span>
-                          <ContactIcons phone={o.customer_phone} customerName={o.customer_name} storeName={storeName} size="xs" />
+                         <ContactIcons phone={o.customer_phone} orderId={o.id} customerName={o.customer_name} storeName={storeName} size="xs" />
                         </div>
                       </div>
                     </div>
