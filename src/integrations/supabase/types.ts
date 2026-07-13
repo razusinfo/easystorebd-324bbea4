@@ -432,13 +432,6 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "storefront_products"
-            referencedColumns: ["id"]
-          },
         ]
       }
       order_requests: {
@@ -902,13 +895,6 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "product_audit_logs_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "storefront_products"
-            referencedColumns: ["id"]
-          },
         ]
       }
       product_categories: {
@@ -999,13 +985,6 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "product_category_assignments_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "storefront_products"
-            referencedColumns: ["id"]
-          },
         ]
       }
       product_details: {
@@ -1039,13 +1018,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_details_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "storefront_products"
             referencedColumns: ["id"]
           },
         ]
@@ -1143,13 +1115,6 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_variants_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "storefront_products"
             referencedColumns: ["id"]
           },
         ]
@@ -1706,13 +1671,6 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "reseller_products_original_product_id_fkey"
-            columns: ["original_product_id"]
-            isOneToOne: false
-            referencedRelation: "storefront_products"
-            referencedColumns: ["id"]
-          },
         ]
       }
       reseller_sites: {
@@ -2218,39 +2176,6 @@ export type Database = {
       }
     }
     Views: {
-      storefront_products: {
-        Row: {
-          category_id: string | null
-          created_at: string | null
-          description: string | null
-          gallery_urls: string[] | null
-          id: string | null
-          image_url: string | null
-          is_out_of_stock: boolean | null
-          name: string | null
-          price: number | null
-          status: Database["public"]["Enums"]["product_status"] | null
-          stock: number | null
-          store_id: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "product_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       v_reseller_storefront_orders: {
         Row: {
           created_at: string | null
