@@ -855,6 +855,7 @@ export type UpsertProductInput = {
 
   addToReseller?: boolean;
   resellerPrice?: number | null;
+  sourceProductUrl?: string | null;
 
   status?: ProductStatus;
   variants?: { name: string; value: string }[];
