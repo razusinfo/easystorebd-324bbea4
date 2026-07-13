@@ -132,17 +132,47 @@ function LoginPage() {
   async function handleGoogle() {
     setError(null);
     setInfo(null);
+    setOauthRecovery(null);
     setOauthBusy(true);
     try {
+      const { checkOAuthHost, isOAuth404 } = await import("@/lib/oauth-host-check");
+      const { logOAuthError } = await import("@/lib/oauth-error-log.functions");
+      const { getStorefrontSlugFromHost } = await import("@/lib/storefront-host");
+      const hostname = window.location.hostname;
+      const check = checkOAuthHost(hostname, window.location.href);
+      if (!check.ok) {
+        void logOAuthError({ data: {
+          provider: "google", host: hostname, tenant_slug: getStorefrontSlugFromHost(hostname),
+          redirect_uri: window.location.origin, message: `pre-flight blocked: ${check.reason}`,
+          status_hint: "pre-flight", user_agent: navigator.userAgent, path: window.location.pathname,
+        } }).catch(() => {});
+        setError("This subdomain can't complete Google sign-in yet. Continuing on the main site…");
+        setOauthRecovery(check.redirectTo);
+        window.location.assign(check.redirectTo);
+        return;
+      }
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        setError(friendlyError(result.error.message ?? "Google sign-in failed"));
+        const msg = result.error.message ?? "Google sign-in failed";
+        const is404 = isOAuth404(msg);
+        void logOAuthError({ data: {
+          provider: "google", host: hostname, tenant_slug: getStorefrontSlugFromHost(hostname),
+          redirect_uri: window.location.origin, message: msg,
+          status_hint: is404 ? "404" : "error", user_agent: navigator.userAgent, path: window.location.pathname,
+        } }).catch(() => {});
+        if (is404) {
+          const fallback = new URL("/auth", "https://easystorebd.com");
+          fallback.searchParams.set("redirect", window.location.href);
+          setError("Google sign-in returned 404 on this domain. Try the main site to continue.");
+          setOauthRecovery(fallback.toString());
+        } else {
+          setError(friendlyError(msg));
+        }
         return;
       }
       if (result.redirected) return;
-      // Resolve destination then hard-redirect so the new session is picked up everywhere.
       const { data: userData } = await supabase.auth.getUser();
       let dest = safeRedirect ?? "/";
       if (!safeRedirect && userData.user) {
