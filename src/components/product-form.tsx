@@ -216,6 +216,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
       resellerPrice: (src as { reseller_price?: number | null }).reseller_price != null
         ? String((src as { reseller_price?: number | null }).reseller_price)
         : "",
+      sourceProductUrl: (src as { source_product_url?: string | null }).source_product_url ?? "",
     }));
 
     if (mode === "new" && sourceForDuplicate) {
