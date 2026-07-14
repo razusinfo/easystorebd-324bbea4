@@ -38,7 +38,8 @@ type Row = {
 function BulkImportPage() {
   const navigate = useNavigate();
   const isSuperAdmin = useIsSuperAdmin();
-  const upsert = useUpsertProduct();
+  const { data: store } = useMyStore();
+  const upsert = useUpsertProduct(store?.id);
   const [blob, setBlob] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [invalid, setInvalid] = useState<string[]>([]);
