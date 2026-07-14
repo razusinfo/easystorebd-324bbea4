@@ -1084,6 +1084,65 @@ export type Database = {
           },
         ]
       }
+      product_stock_sync_logs: {
+        Row: {
+          attempts: number
+          availability: string | null
+          changed: boolean
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          http_status: number | null
+          id: string
+          new_status: string | null
+          previous_status: string | null
+          product_id: string | null
+          source_url: string
+          store_id: string | null
+          triggered_by: string
+        }
+        Insert: {
+          attempts?: number
+          availability?: string | null
+          changed?: boolean
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          new_status?: string | null
+          previous_status?: string | null
+          product_id?: string | null
+          source_url: string
+          store_id?: string | null
+          triggered_by?: string
+        }
+        Update: {
+          attempts?: number
+          availability?: string | null
+          changed?: boolean
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          new_status?: string | null
+          previous_status?: string | null
+          product_id?: string | null
+          source_url?: string
+          store_id?: string | null
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_stock_sync_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variants: {
         Row: {
           created_at: string
