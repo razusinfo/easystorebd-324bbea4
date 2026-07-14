@@ -184,24 +184,28 @@ export function useUpsertOrder(storeId: string | undefined) {
 }
 
 // -------- Allowed transitions --------
+// Merchants need flexibility to correct mistakes (undo "paid", cancel a
+// delivered order that was returned, skip stages for walk-in sales, etc.).
+// We keep the maps for reference/UI hints but treat every change as allowed;
+// the audit log records who changed what and when.
 export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  pending:    ["confirmed", "cancelled"],
-  confirmed:  ["processing", "cancelled"],
-  processing: ["shipped", "cancelled"],
-  shipped:    ["delivered", "cancelled"],
-  delivered:  [],
-  cancelled:  [],
+  pending:    ["confirmed", "processing", "shipped", "delivered", "cancelled"],
+  confirmed:  ["pending", "processing", "shipped", "delivered", "cancelled"],
+  processing: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+  shipped:    ["pending", "confirmed", "processing", "delivered", "cancelled"],
+  delivered:  ["pending", "confirmed", "processing", "shipped", "cancelled"],
+  cancelled:  ["pending", "confirmed", "processing", "shipped", "delivered"],
 };
 export const PAYMENT_TRANSITIONS: Record<PaymentStatus, PaymentStatus[]> = {
-  unpaid:   ["paid"],
-  paid:     ["refunded"],
-  refunded: [],
+  unpaid:   ["paid", "refunded"],
+  paid:     ["unpaid", "refunded"],
+  refunded: ["unpaid", "paid"],
 };
-export function canTransitionOrder(from: OrderStatus, to: OrderStatus): boolean {
-  return from === to || ORDER_TRANSITIONS[from]?.includes(to);
+export function canTransitionOrder(_from: OrderStatus, _to: OrderStatus): boolean {
+  return true;
 }
-export function canTransitionPayment(from: PaymentStatus, to: PaymentStatus): boolean {
-  return from === to || PAYMENT_TRANSITIONS[from]?.includes(to);
+export function canTransitionPayment(_from: PaymentStatus, _to: PaymentStatus): boolean {
+  return true;
 }
 function assertOrderTransition(from: OrderStatus, to: OrderStatus) {
   if (!canTransitionOrder(from, to)) {
