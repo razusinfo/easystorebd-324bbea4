@@ -184,10 +184,10 @@ function AdminStockSyncLogsPage() {
                     <TableCell>
                       {r.changed ? (
                         <Badge className="bg-amber-500">
-                          {r.previous_status.replace("_", " ")} → {r.new_status.replace("_", " ")}
+                          {(r.previous_status ?? "").replace("_", " ")} → {(r.new_status ?? "").replace("_", " ")}
                         </Badge>
                       ) : r.availability === "unknown" || r.error_message ? (
-                        <Badge variant="destructive" className="gap-1">
+                        <Badge variant="destructive" className="gap-1" title={r.error_message ?? undefined}>
                           <AlertTriangle className="h-3 w-3" />
                           {r.availability ?? "error"}
                         </Badge>
@@ -233,13 +233,6 @@ function AdminStockSyncLogsPage() {
           </Button>
         </div>
       </div>
-
-      {r.error_message_hint()}
     </div>
   );
 }
-
-// Keeps the JSX simple; renders nothing but pushes TS to not complain if unused
-function _noop() { return null; }
-// The template above references r.error_message_hint(); replace with a real element
-// (kept for future error tooltip rows if needed).
