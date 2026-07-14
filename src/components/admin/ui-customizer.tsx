@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  useSiteSettings, useUpdateSiteSettings, useSignedSiteAsset,
+  useSiteSettingsAdmin, useUpdateSiteSettings, useSignedSiteAsset,
   uploadSiteAsset, deleteSiteAsset,
   SIDEBAR_ICONS, HEX_COLOR_RE, isValidUrl,
   type SiteSettings, type SidebarCategory, type SidebarIcon,
