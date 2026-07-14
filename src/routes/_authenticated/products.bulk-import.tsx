@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { scrapeProductUrl, type ScrapedProduct } from "@/lib/product-scrape.functions";
 import { parseBulkUrls } from "@/lib/product-url";
-import { useIsSuperAdmin, useUpsertProduct } from "@/lib/eazystore-data";
+import { useIsSuperAdmin, useMyStore, useUpsertProduct } from "@/lib/eazystore-data";
 
 export const Route = createFileRoute("/_authenticated/products/bulk-import")({
   head: () => ({
