@@ -8,7 +8,7 @@ export NPM_CONFIG_FUND=false
 export NPM_CONFIG_PROGRESS=false
 export NPM_CONFIG_UPDATE_NOTIFIER=false
 
-CACHE_DIR=".cpanel-cache"
+CACHE_DIR="node_modules/.cpanel-cache"
 INSTALL_HASH_FILE="$CACHE_DIR/install.hash"
 BUILD_HASH_FILE="$CACHE_DIR/build.hash"
 DEPLOYPATH="${DEPLOYPATH:-$HOME/public_html}"
@@ -70,9 +70,5 @@ else
   rm -rf "$DEPLOYPATH"/*
   cp -R dist/. "$DEPLOYPATH"/
 fi
-
-# Passenger/cPanel restart marker; ignored by Git via .gitignore.
-mkdir -p tmp
-touch tmp/restart.txt
 
 echo "✔ cPanel deploy finished: $(date)"
