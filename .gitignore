@@ -10,7 +10,9 @@ lerna-debug.log*
 !node_modules/
 node_modules/*
 !node_modules/.gitkeep
-dist
+!dist/
+dist/*
+!dist/.gitkeep
 dist-ssr
 .output
 .vinxi
