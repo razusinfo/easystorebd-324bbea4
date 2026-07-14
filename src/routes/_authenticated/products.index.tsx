@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy, FolderTree, Layers } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Search, Package, AlertTriangle, RefreshCw, PackageX, History, ChevronRight, ChevronLeft, ShoppingCart, ChevronDown, ImageIcon, MoreVertical, Eye, Copy, FolderTree, Layers, Upload } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
@@ -111,9 +111,13 @@ function ProductsPage() {
           <h1 className="font-display text-2xl font-black sm:text-3xl">Products</h1>
           <p className="text-sm text-foreground/60">Manage your store inventory.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate({ to: "/products/bulk-import" })}>
-            Bulk Import
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate({ to: "/products/bulk-import" })}
+            className="border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Upload className="mr-1 h-4 w-4" /> Bulk Import
           </Button>
           <Button onClick={openNew} disabled={!store}>
             <Plus className="mr-1 h-4 w-4" /> Add Product
