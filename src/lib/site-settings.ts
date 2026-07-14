@@ -29,6 +29,8 @@ const SETTINGS_ID = "global";
 const QK = ["site-settings"] as const;
 
 const SELECT_COLS =
+  "id,logo_url,logo_url_dark,favicon_url,primary_color,sidebar_categories,whatsapp_url,facebook_url,instagram_url,asset_version,updated_at";
+const ADMIN_SELECT_COLS =
   "id,logo_url,logo_url_dark,favicon_url,primary_color,sidebar_categories,whatsapp_url,contact_email,contact_phone,facebook_url,instagram_url,asset_version,updated_at";
 
 function normalize(row: any): SiteSettings {
