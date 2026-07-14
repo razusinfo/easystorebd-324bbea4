@@ -88,6 +88,7 @@ import { Route as SSlugAboutRouteImport } from './routes/s.$slug.about'
 import { Route as ApiPublicResellerSyncRouteImport } from './routes/api/public/reseller-sync'
 import { Route as AccountOrdersIdRouteImport } from './routes/account.orders.$id'
 import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenticated/products.new'
+import { Route as AuthenticatedProductsBulkImportRouteImport } from './routes/_authenticated/products.bulk-import'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
 import { Route as AuthenticatedCategoriesNewRouteImport } from './routes/_authenticated/categories_.new'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -530,6 +531,12 @@ const AuthenticatedProductsNewRoute =
     path: '/products/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProductsBulkImportRoute =
+  AuthenticatedProductsBulkImportRouteImport.update({
+    id: '/products/bulk-import',
+    path: '/products/bulk-import',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
   id: '/orders_/$id',
   path: '/orders/$id',
@@ -688,6 +695,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/products/bulk-import': typeof AuthenticatedProductsBulkImportRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
   '/api/public/reseller-sync': typeof ApiPublicResellerSyncRoute
@@ -781,6 +789,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/products/bulk-import': typeof AuthenticatedProductsBulkImportRoute
   '/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
   '/api/public/reseller-sync': typeof ApiPublicResellerSyncRoute
@@ -878,6 +887,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/categories_/new': typeof AuthenticatedCategoriesNewRoute
   '/_authenticated/orders_/$id': typeof AuthenticatedOrdersIdRoute
+  '/_authenticated/products/bulk-import': typeof AuthenticatedProductsBulkImportRoute
   '/_authenticated/products/new': typeof AuthenticatedProductsNewRoute
   '/account/orders/$id': typeof AccountOrdersIdRoute
   '/api/public/reseller-sync': typeof ApiPublicResellerSyncRoute
@@ -975,6 +985,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/categories/new'
     | '/orders/$id'
+    | '/products/bulk-import'
     | '/products/new'
     | '/account/orders/$id'
     | '/api/public/reseller-sync'
@@ -1068,6 +1079,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/categories/new'
     | '/orders/$id'
+    | '/products/bulk-import'
     | '/products/new'
     | '/account/orders/$id'
     | '/api/public/reseller-sync'
@@ -1164,6 +1176,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/categories_/new'
     | '/_authenticated/orders_/$id'
+    | '/_authenticated/products/bulk-import'
     | '/_authenticated/products/new'
     | '/account/orders/$id'
     | '/api/public/reseller-sync'
@@ -1775,6 +1788,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/products/bulk-import': {
+      id: '/_authenticated/products/bulk-import'
+      path: '/products/bulk-import'
+      fullPath: '/products/bulk-import'
+      preLoaderRoute: typeof AuthenticatedProductsBulkImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/orders_/$id': {
       id: '/_authenticated/orders_/$id'
       path: '/orders/$id'
@@ -1931,6 +1951,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedCategoriesNewRoute: typeof AuthenticatedCategoriesNewRoute
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
+  AuthenticatedProductsBulkImportRoute: typeof AuthenticatedProductsBulkImportRoute
   AuthenticatedProductsNewRoute: typeof AuthenticatedProductsNewRoute
   AuthenticatedProductsIndexRoute: typeof AuthenticatedProductsIndexRoute
   AuthenticatedCategoriesIdEditRoute: typeof AuthenticatedCategoriesIdEditRoute
@@ -1994,6 +2015,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedCategoriesNewRoute: AuthenticatedCategoriesNewRoute,
   AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
+  AuthenticatedProductsBulkImportRoute: AuthenticatedProductsBulkImportRoute,
   AuthenticatedProductsNewRoute: AuthenticatedProductsNewRoute,
   AuthenticatedProductsIndexRoute: AuthenticatedProductsIndexRoute,
   AuthenticatedCategoriesIdEditRoute: AuthenticatedCategoriesIdEditRoute,

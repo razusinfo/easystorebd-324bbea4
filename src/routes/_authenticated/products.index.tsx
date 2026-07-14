@@ -111,9 +111,14 @@ function ProductsPage() {
           <h1 className="font-display text-2xl font-black sm:text-3xl">Products</h1>
           <p className="text-sm text-foreground/60">Manage your store inventory.</p>
         </div>
-        <Button onClick={openNew} disabled={!store}>
-          <Plus className="mr-1 h-4 w-4" /> Add Product
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate({ to: "/products/bulk-import" })}>
+            Bulk Import
+          </Button>
+          <Button onClick={openNew} disabled={!store}>
+            <Plus className="mr-1 h-4 w-4" /> Add Product
+          </Button>
+        </div>
       </header>
 
       {/* Stats */}

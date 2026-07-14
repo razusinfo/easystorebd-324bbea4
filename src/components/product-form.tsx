@@ -27,6 +27,8 @@ import { syncResellerProduct } from "@/lib/reseller-sync.functions";
 import { upsertLocalResellerProduct } from "@/lib/reseller-local.functions";
 import { submitProductRequest } from "@/lib/product-requests.functions";
 import { scrapeProductUrl } from "@/lib/product-scrape.functions";
+import { findDuplicateProducts, type DuplicateMatch } from "@/lib/product-duplicate.functions";
+import { normalizeProductUrl } from "@/lib/product-url";
 import { DescriptionPreview } from "@/components/description-preview";
 import { RichTextEditor } from "@/components/rich-text-editor";
 
@@ -142,6 +144,8 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
   const [form, setForm] = useState<FormState>(initialState);
   const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([]);
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
@@ -910,41 +914,89 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                       inputMode="url"
                       placeholder="Paste the original product URL here"
                       value={form.sourceProductUrl}
-                      onChange={(e) => set("sourceProductUrl", e.target.value)}
+                      onChange={(e) => {
+                        set("sourceProductUrl", e.target.value);
+                        if (fetchError) setFetchError(null);
+                      }}
                     />
                     <Button
                       type="button"
                       variant="secondary"
                       disabled={fetching || !form.sourceProductUrl.trim()}
                       onClick={async () => {
-                        const url = form.sourceProductUrl.trim();
-                        if (!url) return;
+                        const norm = normalizeProductUrl(form.sourceProductUrl);
+                        if (!norm.ok) {
+                          setFetchError(norm.error);
+                          toast.error(norm.error);
+                          return;
+                        }
+                        // Persist the cleaned URL back into the field
+                        if (norm.url !== form.sourceProductUrl) {
+                          set("sourceProductUrl", norm.url);
+                        }
                         setFetching(true);
+                        setFetchError(null);
+                        setDuplicates([]);
                         try {
-                          const r = await scrapeProductUrl({ data: { url } });
-                          setForm((prev) => ({
-                            ...prev,
-                            name: prev.name || r.name || prev.name,
-                            description: prev.description || r.description || prev.description,
-                            sellPrice: prev.sellPrice || (r.price != null ? String(r.price) : prev.sellPrice),
-                            regularPrice:
-                              prev.regularPrice ||
-                              (r.regularPrice != null ? String(r.regularPrice) : prev.regularPrice),
-                            brand: prev.brand || r.brand || prev.brand,
-                            imageUrl: prev.imageUrl || r.images[0] || prev.imageUrl,
-                            galleryUrls:
-                              prev.galleryUrls.length > 0
-                                ? prev.galleryUrls
-                                : r.images.slice(1),
-                            stock:
-                              prev.stock ||
-                              (r.inStock === true ? "10" : r.inStock === false ? "0" : prev.stock),
-                          }));
+                          const r = await scrapeProductUrl({ data: { url: norm.url } });
+                          setForm((prev) => {
+                            // Merge scraped images into the existing gallery so the
+                            // Super Admin can reorder / remove / replace them using
+                            // the existing image gallery UI below.
+                            const existing = new Set(
+                              [prev.imageUrl, ...prev.galleryUrls].filter(Boolean),
+                            );
+                            const fresh = r.images.filter((u) => !existing.has(u));
+                            const nextPrimary = prev.imageUrl || fresh[0] || "";
+                            const rest = prev.imageUrl
+                              ? fresh
+                              : fresh.slice(1);
+                            return {
+                              ...prev,
+                              name: prev.name || r.name || prev.name,
+                              description: prev.description || r.description || prev.description,
+                              sellPrice:
+                                prev.sellPrice ||
+                                (r.price != null ? String(r.price) : prev.sellPrice),
+                              regularPrice:
+                                prev.regularPrice ||
+                                (r.regularPrice != null ? String(r.regularPrice) : prev.regularPrice),
+                              brand: prev.brand || r.brand || prev.brand,
+                              imageUrl: nextPrimary,
+                              galleryUrls: [...prev.galleryUrls, ...rest],
+                              stock:
+                                prev.stock ||
+                                (r.inStock === true ? "10" : r.inStock === false ? "0" : prev.stock),
+                            };
+                          });
                           toast.success(
-                            `Fetched: ${r.name || "product"}${r.images.length ? ` (${r.images.length} images)` : ""}`,
+                            `Fetched: ${r.name || "product"}${
+                              r.images.length ? ` (${r.images.length} images)` : ""
+                            }`,
                           );
+                          // Duplicate detection (non-blocking)
+                          try {
+                            const dupes = await findDuplicateProducts({
+                              data: {
+                                sourceUrl: norm.url,
+                                name: r.name || null,
+                                brand: r.brand || null,
+                                sku: null,
+                              },
+                            });
+                            if (dupes.length > 0) {
+                              setDuplicates(dupes);
+                              toast.warning(
+                                `${dupes.length} possible duplicate${dupes.length > 1 ? "s" : ""} found`,
+                              );
+                            }
+                          } catch {
+                            // duplicate lookup failure is non-fatal
+                          }
                         } catch (e) {
-                          toast.error((e as Error)?.message ?? "Failed to fetch product");
+                          const msg = (e as Error)?.message ?? "Failed to fetch product";
+                          setFetchError(msg);
+                          toast.error(msg);
                         } finally {
                           setFetching(false);
                         }
@@ -952,15 +1004,72 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
                     >
                       {fetching ? (
                         <><Loader2 className="mr-1 h-4 w-4 animate-spin" />Fetching…</>
+                      ) : fetchError ? (
+                        "Retry"
                       ) : (
                         "Fetch Product"
                       )}
                     </Button>
                   </div>
                 </Field>
+                {fetchError && (
+                  <div
+                    role="alert"
+                    className="flex items-start justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+                  >
+                    <span>
+                      <span className="font-semibold">Fetch failed:</span> {fetchError}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setFetchError(null)}
+                      className="opacity-70 hover:opacity-100"
+                      aria-label="Dismiss error"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+                {duplicates.length > 0 && (
+                  <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="font-semibold text-amber-700 dark:text-amber-300">
+                        Possible duplicate{duplicates.length > 1 ? "s" : ""} — update existing instead?
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setDuplicates([])}
+                        className="opacity-70 hover:opacity-100"
+                        aria-label="Dismiss duplicates"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <ul className="space-y-1.5">
+                      {duplicates.map((d) => (
+                        <li key={d.id} className="flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1 truncate">
+                            <span className="font-medium">{d.name}</span>
+                            {d.brand ? <span className="text-muted-foreground"> · {d.brand}</span> : null}
+                            <span className="ml-1 rounded bg-background/60 px-1 py-0.5 text-[10px] uppercase text-muted-foreground">
+                              {d.match_reason.replace("_", " ")}
+                            </span>
+                          </div>
+                          <Link
+                            to="/products/$productId/edit"
+                            params={{ productId: d.id }}
+                            className="shrink-0 rounded border border-border bg-background px-2 py-1 text-[11px] font-medium hover:bg-muted"
+                          >
+                            Edit existing
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground">
-                  Super admin only — auto-fills empty fields from the URL. You can edit, add, or
-                  remove anything before saving.
+                  Super admin only — auto-fills empty fields and appends scraped images to the
+                  gallery above so you can reorder, remove, or replace before saving.
                 </p>
               </div>
             )}
