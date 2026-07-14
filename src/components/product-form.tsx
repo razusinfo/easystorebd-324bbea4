@@ -141,6 +141,7 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
 
 
   const [form, setForm] = useState<FormState>(initialState);
+  const [fetching, setFetching] = useState(false);
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
