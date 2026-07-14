@@ -60,6 +60,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminWebsiteRequestsRouteImport } from './routes/_authenticated/admin-website-requests'
 import { Route as AuthenticatedAdminTenantDebugRouteImport } from './routes/_authenticated/admin-tenant-debug'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin-support'
+import { Route as AuthenticatedAdminStockSyncLogsRouteImport } from './routes/_authenticated/admin-stock-sync-logs'
 import { Route as AuthenticatedAdminResellerVisibilityRouteImport } from './routes/_authenticated/admin-reseller-visibility'
 import { Route as AuthenticatedAdminResellerSyncStatusRouteImport } from './routes/_authenticated/admin-reseller-sync-status'
 import { Route as AuthenticatedAdminResellerSyncLogsRouteImport } from './routes/_authenticated/admin-reseller-sync-logs'
@@ -374,6 +375,12 @@ const AuthenticatedAdminSupportRoute =
     path: '/admin-support',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminStockSyncLogsRoute =
+  AuthenticatedAdminStockSyncLogsRouteImport.update({
+    id: '/admin-stock-sync-logs',
+    path: '/admin-stock-sync-logs',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminResellerVisibilityRoute =
   AuthenticatedAdminResellerVisibilityRouteImport.update({
     id: '/admin-reseller-visibility',
@@ -659,6 +666,7 @@ export interface FileRoutesByFullPath {
   '/admin-reseller-sync-logs': typeof AuthenticatedAdminResellerSyncLogsRoute
   '/admin-reseller-sync-status': typeof AuthenticatedAdminResellerSyncStatusRoute
   '/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
+  '/admin-stock-sync-logs': typeof AuthenticatedAdminStockSyncLogsRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/admin-tenant-debug': typeof AuthenticatedAdminTenantDebugRoute
   '/admin-website-requests': typeof AuthenticatedAdminWebsiteRequestsRoute
@@ -755,6 +763,7 @@ export interface FileRoutesByTo {
   '/admin-reseller-sync-logs': typeof AuthenticatedAdminResellerSyncLogsRoute
   '/admin-reseller-sync-status': typeof AuthenticatedAdminResellerSyncStatusRoute
   '/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
+  '/admin-stock-sync-logs': typeof AuthenticatedAdminStockSyncLogsRoute
   '/admin-support': typeof AuthenticatedAdminSupportRoute
   '/admin-tenant-debug': typeof AuthenticatedAdminTenantDebugRoute
   '/admin-website-requests': typeof AuthenticatedAdminWebsiteRequestsRoute
@@ -853,6 +862,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-reseller-sync-logs': typeof AuthenticatedAdminResellerSyncLogsRoute
   '/_authenticated/admin-reseller-sync-status': typeof AuthenticatedAdminResellerSyncStatusRoute
   '/_authenticated/admin-reseller-visibility': typeof AuthenticatedAdminResellerVisibilityRoute
+  '/_authenticated/admin-stock-sync-logs': typeof AuthenticatedAdminStockSyncLogsRoute
   '/_authenticated/admin-support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin-tenant-debug': typeof AuthenticatedAdminTenantDebugRoute
   '/_authenticated/admin-website-requests': typeof AuthenticatedAdminWebsiteRequestsRoute
@@ -952,6 +962,7 @@ export interface FileRouteTypes {
     | '/admin-reseller-sync-logs'
     | '/admin-reseller-sync-status'
     | '/admin-reseller-visibility'
+    | '/admin-stock-sync-logs'
     | '/admin-support'
     | '/admin-tenant-debug'
     | '/admin-website-requests'
@@ -1048,6 +1059,7 @@ export interface FileRouteTypes {
     | '/admin-reseller-sync-logs'
     | '/admin-reseller-sync-status'
     | '/admin-reseller-visibility'
+    | '/admin-stock-sync-logs'
     | '/admin-support'
     | '/admin-tenant-debug'
     | '/admin-website-requests'
@@ -1145,6 +1157,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-reseller-sync-logs'
     | '/_authenticated/admin-reseller-sync-status'
     | '/_authenticated/admin-reseller-visibility'
+    | '/_authenticated/admin-stock-sync-logs'
     | '/_authenticated/admin-support'
     | '/_authenticated/admin-tenant-debug'
     | '/_authenticated/admin-website-requests'
@@ -1606,6 +1619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-stock-sync-logs': {
+      id: '/_authenticated/admin-stock-sync-logs'
+      path: '/admin-stock-sync-logs'
+      fullPath: '/admin-stock-sync-logs'
+      preLoaderRoute: typeof AuthenticatedAdminStockSyncLogsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin-reseller-visibility': {
       id: '/_authenticated/admin-reseller-visibility'
       path: '/admin-reseller-visibility'
@@ -1940,6 +1960,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminResellerSyncLogsRoute: typeof AuthenticatedAdminResellerSyncLogsRoute
   AuthenticatedAdminResellerSyncStatusRoute: typeof AuthenticatedAdminResellerSyncStatusRoute
   AuthenticatedAdminResellerVisibilityRoute: typeof AuthenticatedAdminResellerVisibilityRoute
+  AuthenticatedAdminStockSyncLogsRoute: typeof AuthenticatedAdminStockSyncLogsRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAdminTenantDebugRoute: typeof AuthenticatedAdminTenantDebugRoute
   AuthenticatedAdminWebsiteRequestsRoute: typeof AuthenticatedAdminWebsiteRequestsRoute
@@ -2003,6 +2024,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAdminResellerSyncStatusRoute,
   AuthenticatedAdminResellerVisibilityRoute:
     AuthenticatedAdminResellerVisibilityRoute,
+  AuthenticatedAdminStockSyncLogsRoute: AuthenticatedAdminStockSyncLogsRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedAdminTenantDebugRoute: AuthenticatedAdminTenantDebugRoute,
   AuthenticatedAdminWebsiteRequestsRoute:
