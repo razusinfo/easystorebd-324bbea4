@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Truck,
   Store, BarChart3, Palette, Wand2, LayoutTemplate, Smartphone,
   Megaphone, Tag, Settings, LogOut, ShieldCheck, Repeat2, Receipt, Bell, MessageCircle,
-  Send, Wallet, RefreshCcw, Globe,
+  Send, Wallet, RefreshCcw, Globe, Upload,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -196,6 +196,7 @@ export function AppSidebar() {
             {!collapsed && <SidebarGroupLabel>Admin</SidebarGroupLabel>}
             <SidebarGroupContent>
               <SidebarMenu>
+                {renderItem({ title: "Bulk Import", url: "/products/bulk-import", icon: Upload, badge: "URL" })}
                 {renderItem({ title: "Moderation", url: "/admin", icon: ShieldCheck })}
                 {renderItem({ title: "Request Review", url: "/admin-requests", icon: Send, badge: "NEW" })}
                 {renderItem({ title: "Orders to Fulfill", url: "/admin-reseller-orders", icon: Truck, badge: "NEW" })}
