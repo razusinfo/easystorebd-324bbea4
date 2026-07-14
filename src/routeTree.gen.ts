@@ -92,6 +92,10 @@ import { Route as AuthenticatedProductsNewRouteImport } from './routes/_authenti
 import { Route as AuthenticatedProductsBulkImportRouteImport } from './routes/_authenticated/products.bulk-import'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders_.$id'
 import { Route as AuthenticatedCategoriesNewRouteImport } from './routes/_authenticated/categories_.new'
+import { Route as AuthenticatedAdminMarketplaceOrdersRouteImport } from './routes/_authenticated/admin-marketplace/orders'
+import { Route as AuthenticatedAdminMarketplaceFlashSalesRouteImport } from './routes/_authenticated/admin-marketplace/flash-sales'
+import { Route as AuthenticatedAdminMarketplaceCategoriesRouteImport } from './routes/_authenticated/admin-marketplace/categories'
+import { Route as AuthenticatedAdminMarketplaceCampaignsRouteImport } from './routes/_authenticated/admin-marketplace/campaigns'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as SSlugPProductIdRouteImport } from './routes/s.$slug.p.$productId'
@@ -556,6 +560,30 @@ const AuthenticatedCategoriesNewRoute =
     path: '/categories/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminMarketplaceOrdersRoute =
+  AuthenticatedAdminMarketplaceOrdersRouteImport.update({
+    id: '/admin-marketplace/orders',
+    path: '/admin-marketplace/orders',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminMarketplaceFlashSalesRoute =
+  AuthenticatedAdminMarketplaceFlashSalesRouteImport.update({
+    id: '/admin-marketplace/flash-sales',
+    path: '/admin-marketplace/flash-sales',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminMarketplaceCategoriesRoute =
+  AuthenticatedAdminMarketplaceCategoriesRouteImport.update({
+    id: '/admin-marketplace/categories',
+    path: '/admin-marketplace/categories',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminMarketplaceCampaignsRoute =
+  AuthenticatedAdminMarketplaceCampaignsRouteImport.update({
+    id: '/admin-marketplace/campaigns',
+    path: '/admin-marketplace/campaigns',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -708,6 +736,10 @@ export interface FileRoutesByFullPath {
   '/account/': typeof AccountIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin-marketplace/campaigns': typeof AuthenticatedAdminMarketplaceCampaignsRoute
+  '/admin-marketplace/categories': typeof AuthenticatedAdminMarketplaceCategoriesRoute
+  '/admin-marketplace/flash-sales': typeof AuthenticatedAdminMarketplaceFlashSalesRoute
+  '/admin-marketplace/orders': typeof AuthenticatedAdminMarketplaceOrdersRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/bulk-import': typeof AuthenticatedProductsBulkImportRoute
@@ -804,6 +836,10 @@ export interface FileRoutesByTo {
   '/account': typeof AccountIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/admin-marketplace/campaigns': typeof AuthenticatedAdminMarketplaceCampaignsRoute
+  '/admin-marketplace/categories': typeof AuthenticatedAdminMarketplaceCategoriesRoute
+  '/admin-marketplace/flash-sales': typeof AuthenticatedAdminMarketplaceFlashSalesRoute
+  '/admin-marketplace/orders': typeof AuthenticatedAdminMarketplaceOrdersRoute
   '/categories/new': typeof AuthenticatedCategoriesNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/products/bulk-import': typeof AuthenticatedProductsBulkImportRoute
@@ -904,6 +940,10 @@ export interface FileRoutesById {
   '/account/': typeof AccountIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/admin-marketplace/campaigns': typeof AuthenticatedAdminMarketplaceCampaignsRoute
+  '/_authenticated/admin-marketplace/categories': typeof AuthenticatedAdminMarketplaceCategoriesRoute
+  '/_authenticated/admin-marketplace/flash-sales': typeof AuthenticatedAdminMarketplaceFlashSalesRoute
+  '/_authenticated/admin-marketplace/orders': typeof AuthenticatedAdminMarketplaceOrdersRoute
   '/_authenticated/categories_/new': typeof AuthenticatedCategoriesNewRoute
   '/_authenticated/orders_/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/products/bulk-import': typeof AuthenticatedProductsBulkImportRoute
@@ -1004,6 +1044,10 @@ export interface FileRouteTypes {
     | '/account/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin-marketplace/campaigns'
+    | '/admin-marketplace/categories'
+    | '/admin-marketplace/flash-sales'
+    | '/admin-marketplace/orders'
     | '/categories/new'
     | '/orders/$id'
     | '/products/bulk-import'
@@ -1100,6 +1144,10 @@ export interface FileRouteTypes {
     | '/account'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/admin-marketplace/campaigns'
+    | '/admin-marketplace/categories'
+    | '/admin-marketplace/flash-sales'
+    | '/admin-marketplace/orders'
     | '/categories/new'
     | '/orders/$id'
     | '/products/bulk-import'
@@ -1199,6 +1247,10 @@ export interface FileRouteTypes {
     | '/account/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/admin-marketplace/campaigns'
+    | '/_authenticated/admin-marketplace/categories'
+    | '/_authenticated/admin-marketplace/flash-sales'
+    | '/_authenticated/admin-marketplace/orders'
     | '/_authenticated/categories_/new'
     | '/_authenticated/orders_/$id'
     | '/_authenticated/products/bulk-import'
@@ -1843,6 +1895,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCategoriesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-marketplace/orders': {
+      id: '/_authenticated/admin-marketplace/orders'
+      path: '/admin-marketplace/orders'
+      fullPath: '/admin-marketplace/orders'
+      preLoaderRoute: typeof AuthenticatedAdminMarketplaceOrdersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin-marketplace/flash-sales': {
+      id: '/_authenticated/admin-marketplace/flash-sales'
+      path: '/admin-marketplace/flash-sales'
+      fullPath: '/admin-marketplace/flash-sales'
+      preLoaderRoute: typeof AuthenticatedAdminMarketplaceFlashSalesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin-marketplace/categories': {
+      id: '/_authenticated/admin-marketplace/categories'
+      path: '/admin-marketplace/categories'
+      fullPath: '/admin-marketplace/categories'
+      preLoaderRoute: typeof AuthenticatedAdminMarketplaceCategoriesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin-marketplace/campaigns': {
+      id: '/_authenticated/admin-marketplace/campaigns'
+      path: '/admin-marketplace/campaigns'
+      fullPath: '/admin-marketplace/campaigns'
+      preLoaderRoute: typeof AuthenticatedAdminMarketplaceCampaignsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
       path: '/.mcp/invoke-tool/$tool'
@@ -1991,6 +2071,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedThemesRoute: typeof AuthenticatedThemesRoute
   AuthenticatedUpgradeRoute: typeof AuthenticatedUpgradeRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
+  AuthenticatedAdminMarketplaceCampaignsRoute: typeof AuthenticatedAdminMarketplaceCampaignsRoute
+  AuthenticatedAdminMarketplaceCategoriesRoute: typeof AuthenticatedAdminMarketplaceCategoriesRoute
+  AuthenticatedAdminMarketplaceFlashSalesRoute: typeof AuthenticatedAdminMarketplaceFlashSalesRoute
+  AuthenticatedAdminMarketplaceOrdersRoute: typeof AuthenticatedAdminMarketplaceOrdersRoute
   AuthenticatedCategoriesNewRoute: typeof AuthenticatedCategoriesNewRoute
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
   AuthenticatedProductsBulkImportRoute: typeof AuthenticatedProductsBulkImportRoute
@@ -2056,6 +2140,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedThemesRoute: AuthenticatedThemesRoute,
   AuthenticatedUpgradeRoute: AuthenticatedUpgradeRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
+  AuthenticatedAdminMarketplaceCampaignsRoute:
+    AuthenticatedAdminMarketplaceCampaignsRoute,
+  AuthenticatedAdminMarketplaceCategoriesRoute:
+    AuthenticatedAdminMarketplaceCategoriesRoute,
+  AuthenticatedAdminMarketplaceFlashSalesRoute:
+    AuthenticatedAdminMarketplaceFlashSalesRoute,
+  AuthenticatedAdminMarketplaceOrdersRoute:
+    AuthenticatedAdminMarketplaceOrdersRoute,
   AuthenticatedCategoriesNewRoute: AuthenticatedCategoriesNewRoute,
   AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
   AuthenticatedProductsBulkImportRoute: AuthenticatedProductsBulkImportRoute,
