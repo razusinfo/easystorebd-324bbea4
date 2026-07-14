@@ -214,6 +214,20 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {isAdmin.data && (
+          <SidebarGroup>
+            {!collapsed && <SidebarGroupLabel>EasyStore365.com Control</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {renderItem({ title: "Marketplace Orders", url: "/admin-marketplace/orders", icon: ShoppingBag, badge: "NEW" })}
+                {renderItem({ title: "Campaigns & Banners", url: "/admin-marketplace/campaigns", icon: Megaphone, badge: "NEW" })}
+                {renderItem({ title: "Flash Sales", url: "/admin-marketplace/flash-sales", icon: Zap, badge: "NEW" })}
+                {renderItem({ title: "Categories & Menu", url: "/admin-marketplace/categories", icon: Sparkles, badge: "NEW" })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
