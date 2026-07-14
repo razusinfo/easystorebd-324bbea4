@@ -1,6 +1,4 @@
 deployment:
   tasks:
     - export PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH
-    - /bin/bash -lc "npm install --no-audit --no-fund --legacy-peer-deps"
-    - /bin/bash -lc "NITRO_PRESET=node-server npm run build"
-    - /bin/bash -lc "mkdir -p tmp && touch tmp/restart.txt"
+    - /bin/bash scripts/cpanel-deploy.sh
