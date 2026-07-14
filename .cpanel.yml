@@ -3,6 +3,7 @@ deployment:
     - export DEPLOYPATH=/home/easystore/public_html
     - export PATH=/opt/alt/alt-nodejs22/root/usr/bin:/opt/alt/alt-nodejs20/root/usr/bin:$PATH
     - /bin/bash -lc "node -v && npm -v"
+    - /bin/bash -lc "mkdir -p node_modules && test -w node_modules"
     - /bin/bash -lc "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund --legacy-peer-deps; else npm install --no-audit --no-fund --legacy-peer-deps; fi"
     - /bin/bash -lc "npm run build"
     - /bin/bash -lc "test -d dist || { echo 'Build failed: dist folder was not created'; exit 1; }"

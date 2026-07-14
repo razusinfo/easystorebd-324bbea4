@@ -19,6 +19,7 @@ jobs:
 
       - name: npm install
         run: |
+          mkdir -p node_modules
           if [ -f package-lock.json ]; then
             npm ci --no-audit --no-fund --legacy-peer-deps
           else
