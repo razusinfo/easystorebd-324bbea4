@@ -111,9 +111,13 @@ function ProductsPage() {
           <h1 className="font-display text-2xl font-black sm:text-3xl">Products</h1>
           <p className="text-sm text-foreground/60">Manage your store inventory.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate({ to: "/products/bulk-import" })}>
-            Bulk Import
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate({ to: "/products/bulk-import" })}
+            className="border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Upload className="mr-1 h-4 w-4" /> Bulk Import
           </Button>
           <Button onClick={openNew} disabled={!store}>
             <Plus className="mr-1 h-4 w-4" /> Add Product
