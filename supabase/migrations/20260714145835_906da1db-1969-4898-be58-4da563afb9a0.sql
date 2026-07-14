@@ -1,0 +1,2 @@
+REVOKE SELECT ON public.site_settings FROM anon;
+GRANT SELECT (id, logo_url, logo_url_dark, favicon_url, primary_color, sidebar_categories, whatsapp_url, facebook_url, instagram_url, asset_version, updated_at) ON public.site_settings TO anon;
