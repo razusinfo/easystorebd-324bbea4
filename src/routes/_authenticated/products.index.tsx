@@ -125,6 +125,23 @@ function ProductsPage() {
         </div>
       </header>
 
+      <section className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-primary">URL দিয়ে Product Import</p>
+            <p className="text-xs text-foreground/70">
+              Dropshipping product URL একসাথে paste করে Fetch, Review/Edit, তারপর Save করুন।
+            </p>
+          </div>
+          <Button
+            onClick={() => navigate({ to: "/products/bulk-import" })}
+            className="w-full sm:w-auto"
+          >
+            <Upload className="mr-1 h-4 w-4" /> Bulk Import খুলুন
+          </Button>
+        </div>
+      </section>
+
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Products" value={stats.count.toString()} />
