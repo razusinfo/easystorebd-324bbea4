@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, FolderTree, Users, Truck,
   Store, BarChart3, Palette, Wand2, LayoutTemplate, Smartphone,
   Megaphone, Tag, Settings, LogOut, ShieldCheck, Repeat2, Receipt, Bell, MessageCircle,
-  Send, Wallet, RefreshCcw, Globe, Upload,
+  Send, Wallet, RefreshCcw, Globe, Upload, Sparkles, Zap,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -210,6 +210,20 @@ export function AppSidebar() {
                 {renderItem({ title: "Order Routing", url: "/admin-order-routing", icon: Repeat2, badge: "NEW" })}
                 {renderItem({ title: "Platform Domain Setup", url: "/admin-platform-domain-setup", icon: Globe, badge: "NEW" })}
                 {renderItem({ title: "Website Requests", url: "/admin-website-requests", icon: Globe, badge: "NEW" })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isAdmin.data && (
+          <SidebarGroup>
+            {!collapsed && <SidebarGroupLabel>EasyStore365.com Control</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {renderItem({ title: "Marketplace Orders", url: "/admin-marketplace/orders", icon: ShoppingBag, badge: "NEW" })}
+                {renderItem({ title: "Campaigns & Banners", url: "/admin-marketplace/campaigns", icon: Megaphone, badge: "NEW" })}
+                {renderItem({ title: "Flash Sales", url: "/admin-marketplace/flash-sales", icon: Zap, badge: "NEW" })}
+                {renderItem({ title: "Categories & Menu", url: "/admin-marketplace/categories", icon: Sparkles, badge: "NEW" })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
