@@ -69,6 +69,27 @@ export function useSiteSettings() {
   });
 }
 
+/**
+ * Admin variant — includes sensitive contact fields (contact_email, contact_phone).
+ * Only authenticated (super admin) callers should use this; anonymous visitors
+ * are blocked at the column-privilege level from selecting the contact fields.
+ */
+export function useSiteSettingsAdmin() {
+  return useQuery({
+    queryKey: [...QK, "admin"] as const,
+    staleTime: 1000 * 60 * 5,
+    queryFn: async (): Promise<SiteSettings> => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select(ADMIN_SELECT_COLS)
+        .eq("id", SETTINGS_ID)
+        .maybeSingle();
+      if (error) throw error;
+      return normalize(data ?? { id: SETTINGS_ID });
+    },
+  });
+}
+
 export function useUpdateSiteSettings() {
   const qc = useQueryClient();
   return useMutation({
