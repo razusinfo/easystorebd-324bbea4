@@ -3,8 +3,9 @@ deployment:
     - export DEPLOYPATH=/home/easystore/public_html
     - export PATH=/opt/alt/alt-nodejs22/root/usr/bin:/opt/alt/alt-nodejs20/root/usr/bin:$PATH
     - /bin/bash -lc "node -v && npm -v"
-    - /bin/bash -lc "mkdir -p node_modules && test -w node_modules"
-    - /bin/bash -lc "if [ -f package-lock.json ]; then npm ci --no-audit --no-fund --legacy-peer-deps; else npm install --no-audit --no-fund --legacy-peer-deps; fi"
+    - /bin/bash -lc "mkdir -p node_modules"
+    # Skip install if lockfile unchanged since last install (huge speedup)
+    - /bin/bash -lc "if [ -f package-lock.json ] && [ -f node_modules/.install-lock ] && cmp -s package-lock.json node_modules/.install-lock; then echo '✔ deps unchanged — skipping install'; else echo '↻ installing deps...'; if [ -f package-lock.json ]; then npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps; else npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps; fi && cp package-lock.json node_modules/.install-lock 2>/dev/null || true; fi"
     - /bin/bash -lc "npm run build"
     - /bin/bash -lc "test -d dist || { echo 'Build failed: dist folder was not created'; exit 1; }"
     - /bin/bash -lc "mkdir -p $DEPLOYPATH"
