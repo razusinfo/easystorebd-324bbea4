@@ -6,6 +6,10 @@ deployment:
     - export NPM_CONFIG_AUDIT=false
     - export NPM_CONFIG_PROGRESS=false
     - export NPM_CONFIG_LOGLEVEL=error
+    # Restore any tracked placeholder files that a previous build wiped (e.g. dist/.gitkeep)
+    # so cPanel doesn't see "uncommitted changes" and block the next deploy.
+    - /bin/bash -lc "git checkout -- . 2>/dev/null || true"
+    - /bin/bash -lc "mkdir -p dist node_modules && touch dist/.gitkeep node_modules/.gitkeep"
     - /bin/bash -lc "node -v && npm -v"
     - /bin/bash -lc "mkdir -p node_modules"
     # STEP 1: Skip npm install entirely if lockfile unchanged (huge speedup: 3–10min → 2sec)
