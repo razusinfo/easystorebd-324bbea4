@@ -55,7 +55,7 @@ function Section({ title, description, children }: { title: string; description?
 }
 
 export function UICustomizer() {
-  const settingsQ = useSiteSettings();
+  const settingsQ = useSiteSettingsAdmin();
   const update = useUpdateSiteSettings();
 
   if (settingsQ.isLoading) {
