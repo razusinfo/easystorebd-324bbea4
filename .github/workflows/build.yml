@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  install-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: npm install
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund --legacy-peer-deps
+          else
+            npm install --no-audit --no-fund --legacy-peer-deps
+          fi
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify dist/ exists
+        run: test -d dist && echo "Build artifacts present"
