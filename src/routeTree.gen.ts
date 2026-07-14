@@ -98,6 +98,7 @@ import { Route as ApiPublicSplashLogoSplatRouteImport } from './routes/api/publi
 import { Route as ApiPublicResellerProductsUser_idRouteImport } from './routes/api/public/reseller-products.$user_id'
 import { Route as ApiPublicOrdersPlaceRouteImport } from './routes/api/public/orders.place'
 import { Route as ApiPublicOgLogoSlugRouteImport } from './routes/api/public/og-logo.$slug'
+import { Route as ApiPublicHooksResyncSourceStockRouteImport } from './routes/api/public/hooks/resync-source-stock'
 import { Route as ApiPublicHooksResyncMarketplaceStockRouteImport } from './routes/api/public/hooks/resync-marketplace-stock'
 import { Route as ApiPublicHooksResellerOrderNotifyRouteImport } from './routes/api/public/hooks/reseller-order-notify'
 import { Route as ApiPublicHooksOrderCourierStatusRouteImport } from './routes/api/public/hooks/order-courier-status'
@@ -586,6 +587,12 @@ const ApiPublicOgLogoSlugRoute = ApiPublicOgLogoSlugRouteImport.update({
   path: '/api/public/og-logo/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksResyncSourceStockRoute =
+  ApiPublicHooksResyncSourceStockRouteImport.update({
+    id: '/api/public/hooks/resync-source-stock',
+    path: '/api/public/hooks/resync-source-stock',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksResyncMarketplaceStockRoute =
   ApiPublicHooksResyncMarketplaceStockRouteImport.update({
     id: '/api/public/hooks/resync-marketplace-stock',
@@ -713,6 +720,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
+  '/api/public/hooks/resync-source-stock': typeof ApiPublicHooksResyncSourceStockRoute
   '/api/public/og-logo/$slug': typeof ApiPublicOgLogoSlugRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -807,6 +815,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
+  '/api/public/hooks/resync-source-stock': typeof ApiPublicHooksResyncSourceStockRoute
   '/api/public/og-logo/$slug': typeof ApiPublicOgLogoSlugRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -905,6 +914,7 @@ export interface FileRoutesById {
   '/api/public/hooks/order-courier-status': typeof ApiPublicHooksOrderCourierStatusRoute
   '/api/public/hooks/reseller-order-notify': typeof ApiPublicHooksResellerOrderNotifyRoute
   '/api/public/hooks/resync-marketplace-stock': typeof ApiPublicHooksResyncMarketplaceStockRoute
+  '/api/public/hooks/resync-source-stock': typeof ApiPublicHooksResyncSourceStockRoute
   '/api/public/og-logo/$slug': typeof ApiPublicOgLogoSlugRoute
   '/api/public/orders/place': typeof ApiPublicOrdersPlaceRoute
   '/api/public/reseller-products/$user_id': typeof ApiPublicResellerProductsUser_idRoute
@@ -1003,6 +1013,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
+    | '/api/public/hooks/resync-source-stock'
     | '/api/public/og-logo/$slug'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -1097,6 +1108,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
+    | '/api/public/hooks/resync-source-stock'
     | '/api/public/og-logo/$slug'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -1194,6 +1206,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/order-courier-status'
     | '/api/public/hooks/reseller-order-notify'
     | '/api/public/hooks/resync-marketplace-stock'
+    | '/api/public/hooks/resync-source-stock'
     | '/api/public/og-logo/$slug'
     | '/api/public/orders/place'
     | '/api/public/reseller-products/$user_id'
@@ -1227,6 +1240,7 @@ export interface RootRouteChildren {
   ApiPublicHooksOrderCourierStatusRoute: typeof ApiPublicHooksOrderCourierStatusRoute
   ApiPublicHooksResellerOrderNotifyRoute: typeof ApiPublicHooksResellerOrderNotifyRoute
   ApiPublicHooksResyncMarketplaceStockRoute: typeof ApiPublicHooksResyncMarketplaceStockRoute
+  ApiPublicHooksResyncSourceStockRoute: typeof ApiPublicHooksResyncSourceStockRoute
   ApiPublicOgLogoSlugRoute: typeof ApiPublicOgLogoSlugRoute
   ApiPublicOrdersPlaceRoute: typeof ApiPublicOrdersPlaceRoute
   ApiPublicResellerProductsUser_idRoute: typeof ApiPublicResellerProductsUser_idRoute
@@ -1858,6 +1872,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicOgLogoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/resync-source-stock': {
+      id: '/api/public/hooks/resync-source-stock'
+      path: '/api/public/hooks/resync-source-stock'
+      fullPath: '/api/public/hooks/resync-source-stock'
+      preLoaderRoute: typeof ApiPublicHooksResyncSourceStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/resync-marketplace-stock': {
       id: '/api/public/hooks/resync-marketplace-stock'
       path: '/api/public/hooks/resync-marketplace-stock'
@@ -2110,6 +2131,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksResellerOrderNotifyRoute,
   ApiPublicHooksResyncMarketplaceStockRoute:
     ApiPublicHooksResyncMarketplaceStockRoute,
+  ApiPublicHooksResyncSourceStockRoute: ApiPublicHooksResyncSourceStockRoute,
   ApiPublicOgLogoSlugRoute: ApiPublicOgLogoSlugRoute,
   ApiPublicOrdersPlaceRoute: ApiPublicOrdersPlaceRoute,
   ApiPublicResellerProductsUser_idRoute: ApiPublicResellerProductsUser_idRoute,
