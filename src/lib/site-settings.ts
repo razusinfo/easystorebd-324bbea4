@@ -98,7 +98,7 @@ export function useUpdateSiteSettings() {
       const { data, error } = await supabase
         .from("site_settings")
         .upsert(payload, { onConflict: "id" })
-        .select(SELECT_COLS)
+        .select(ADMIN_SELECT_COLS)
         .maybeSingle();
       if (error) throw error;
       return normalize(data);
