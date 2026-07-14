@@ -1,72 +1,50 @@
-# Splash Logo — Tests, Cache Headers, Audit, Preview
 
-## 1. Automated cache-invalidation tests
+## Scope
 
-New file `src/lib/splash-cache.ts` extracting the `primeSplashCache` helper (currently inline in `manage-shop.tsx`) so it can be unit-tested in isolation.
+New Super Admin-only sidebar group "EasyStore365.com Control" containing 4 management modules for the marketplace project, backed by new Supabase tables with realtime.
 
-New file `src/lib/splash-cache.test.ts` (Vitest, jsdom) covering:
-- Writes cache entry under `storefront_logo_cache:<slug>` immediately.
-- Writes additional entries for subdomain host (`slug.easystorebd.com`) and custom domain host when those toggles are enabled.
-- Skips subdomain / custom-domain entries when their toggle is off.
-- Overwrites previously cached URL for the same key (invalidation).
-- Removes entries when logo path is cleared (`null`).
-- No-op when `localStorage` is unavailable (SSR guard).
+## Sidebar changes (`src/components/app-sidebar.tsx`)
 
-Refactor `manage-shop.tsx` save flow to call the shared helper.
+Add a new admin-gated group below existing Admin group:
+- Marketplace Orders → `/admin-marketplace/orders`
+- Campaign & Banner Manager → `/admin-marketplace/campaigns`
+- Flash Sale Controller → `/admin-marketplace/flash-sales`
+- Category & Menu Settings → `/admin-marketplace/categories`
 
-## 2. Cache-control + invalidation headers
+Group only renders when `useIsSuperAdmin().data === true`.
 
-New public server route `src/routes/api/public/splash-logo.$.ts` that streams a signed storage object for splash logos with:
-- `Cache-Control: public, max-age=60, s-maxage=300, stale-while-revalidate=86400` — short browser TTL, longer edge TTL, SWR for instant next-load feel while still allowing quick invalidation.
-- Strong `ETag` derived from the storage object's `updated_at` + path; returns `304` on `If-None-Match` match.
-- `Vary: Accept-Encoding`.
-- Query param `?v=<updated_at_ms>` supported for hard cache-bust after save.
+## Database (single migration)
 
-Reseller code (`storefront-view.tsx`, `manage-shop.tsx` prime) switches to referencing this proxy URL (`/api/public/splash-logo/<store_id>?v=<ts>`) instead of raw signed URLs when caching, so a save automatically busts the cache via the new `?v=` param while CDN still serves cached bytes for other visitors.
+New tables in `public` schema, RLS super-admin only via `has_role(auth.uid(),'admin')`, plus GRANTs and `updated_at` triggers, added to `supabase_realtime` publication:
 
-## 3. Audit log entries
+1. `marketplace_orders` — id, order_code, customer_name, customer_phone, reseller_store_name, reseller_store_id (nullable fk), total_amount numeric, status enum(`pending|shipped|delivered|cancelled`), notes, timestamps.
+2. `marketplace_campaigns` — id, name, slug, description, banner_url, starts_at, ends_at, is_active bool default false, sort_order, timestamps.
+3. `marketplace_flash_sales` — id, product_id uuid fk products, discount_percent int check 1–95, ends_at timestamptz, is_active bool, timestamps; unique(product_id) while active.
+4. `marketplace_categories` — id, name, slug, parent_id self-fk, image_url, sort_order, is_hidden bool default false, timestamps.
 
-Migration adds a lightweight `public.splash_logo_audit_logs` table:
+Public read policies (`TO anon` SELECT) with `is_active = true` / `is_hidden = false` filters so EasyStore365.com frontend can consume; admins have full CRUD.
 
-```text
-id, store_id, actor_id, action ('upload'|'change'|'remove'),
-old_path, new_path, affected_scopes text[]   -- e.g. ['subdomain','custom_domain']
-host_snapshot text, created_at
-```
+Storage: new bucket `marketplace-banners` (public read) for banner images via `supabase--storage_create_bucket`.
 
-RLS: super_admin sees all; store owner sees own rows. GRANTs per project rules.
+## Routes (all under `_authenticated/`, super-admin gated in loader/component)
 
-`manage-shop.tsx` save flow inserts an audit row (via a small `createServerFn`) whenever `splash.logo_path`, `on_subdomain`, or `on_custom_domain` changes, computing:
-- `action` = upload/change/remove from old vs new path.
-- `affected_scopes` from the toggled-on flags.
-- `host_snapshot` from `window.location.host`.
+- `src/routes/_authenticated/admin-marketplace/orders.tsx` — table with inline editable status `<Select>`, search, pagination, realtime subscription.
+- `src/routes/_authenticated/admin-marketplace/campaigns.tsx` — grid of campaign cards with Active/Inactive `<Switch>`, banner upload (existing storage helper pattern), date range pickers, add/edit dialog.
+- `src/routes/_authenticated/admin-marketplace/flash-sales.tsx` — product search combobox (queries `products`), assign discount% + end datetime, list with Remove button, countdown display.
+- `src/routes/_authenticated/admin-marketplace/categories.tsx` — CRUD tree (reuse patterns from existing `category-editor.tsx`), Hide toggle, Delete confirm.
 
-## 4. Splash preview page
+## Data layer
 
-New route `src/routes/_authenticated/splash-preview.tsx`:
-- Loads current store's `shop_settings.splash` and store slug + custom domain.
-- Renders side-by-side device frames (mobile + desktop) for each enabled scope:
-  - Slug preview: `slug.easystorebd.com`
-  - Custom-domain preview (if set + enabled)
-  - Fallback shop-logo preview when splash disabled/missing
-- Each frame reuses the same splash markup/CSS as `__root.tsx` (extracted into `src/components/splash-frame.tsx`) so preview is pixel-accurate.
-- Toggle buttons to simulate dark background, slow-3G (delays image load), and "cold cache" (bypass localStorage).
-- Deep-link button "Open live storefront" per scope.
+- `src/lib/marketplace-admin.ts` — React Query hooks (`useMarketplaceOrders`, `useUpdateOrderStatus`, `useCampaigns`, `useToggleCampaign`, `useFlashSales`, `useMarketplaceCategories`, etc.) using browser supabase client (RLS enforces admin).
+- Each list hook attaches a `postgres_changes` realtime channel in a `useEffect` and invalidates the query on change.
 
-Manage-shop adds a "Preview splash" link to the new page next to the splash section.
+## UI
 
-## Technical details
+Match existing dashboard styling (semantic tokens, shadcn `Card`, `Table`, `Badge`, `Switch`, `Select`, `Dialog`). Add a subtle "Marketplace Management" header banner on each page to keep it visually distinct.
 
-- Files added:
-  - `src/lib/splash-cache.ts`, `src/lib/splash-cache.test.ts`
-  - `src/routes/api/public/splash-logo.$.ts`
-  - `src/lib/splash-audit.functions.ts` (server fn wrapping insert)
-  - `src/components/splash-frame.tsx`
-  - `src/routes/_authenticated/splash-preview.tsx`
-  - Supabase migration for `splash_logo_audit_logs` (+ GRANTs, RLS, index on `store_id, created_at desc`).
-- Files edited:
-  - `src/routes/_authenticated/manage-shop.tsx` — use shared cache helper, call audit fn, add preview link.
-  - `src/components/storefront-view.tsx` — cache proxy URL instead of raw signed URL.
-  - `src/routes/__root.tsx` — extract splash markup into `SplashFrame` (kept as inline `<script>` for FOUC-free boot; component version used only by preview page).
-- No schema change to `stores.shop_settings` (already has `splash` sub-object).
-- Vitest already configured (see `client-bundle-guard.test.ts`); new test uses `@testing-library/jsdom` style `localStorage` mock — no new deps expected.
+## Out of scope
+
+- The public EasyStore365.com frontend consumption (this project only exposes admin CRUD + public-read policies).
+- Auto-deactivating flash sales past `ends_at` (frontend filters on `ends_at > now()`; a scheduled job can be added later).
+
+Approve to proceed — I'll ship the migration first (needs your approval), then the routes/sidebar/hooks in follow-up edits.
