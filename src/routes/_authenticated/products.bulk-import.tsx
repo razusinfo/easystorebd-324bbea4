@@ -151,9 +151,7 @@ function BulkImportPage() {
       await upsert.mutateAsync({
         name: row.name.trim(),
         description: row.description ?? "",
-        sellPrice: Number(row.sellPrice),
-        regularPrice: null,
-        buyingPrice: null,
+        price: Number(row.sellPrice),
         stock: row.stock ? Number(row.stock) : 0,
         imageUrl: images[0] ?? null,
         galleryUrls: images.slice(1),
