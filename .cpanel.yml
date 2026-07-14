@@ -16,6 +16,8 @@ deployment:
     - /bin/bash -lc "if [ -f package-lock.json ] && [ -f node_modules/.install-lock ] && cmp -s package-lock.json node_modules/.install-lock; then echo '✔ deps unchanged — skipping install'; else echo '↻ installing deps...'; if [ -f package-lock.json ]; then npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps --ignore-scripts --omit=optional; else npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps --ignore-scripts --omit=optional; fi && cp package-lock.json node_modules/.install-lock 2>/dev/null || true; fi"
     # STEP 2: Skip vite build if source hash unchanged since last successful build
     - /bin/bash -lc "SRC_HASH=$(find src public index.html vite.config.ts package-lock.json -type f 2>/dev/null | sort | xargs sha1sum 2>/dev/null | sha1sum | awk '{print $1}'); if [ -d dist ] && [ -f dist/.build-hash ] && [ \"$(cat dist/.build-hash)\" = \"$SRC_HASH\" ]; then echo '✔ source unchanged — skipping build'; else echo '↻ building...'; npm run build && echo \"$SRC_HASH\" > dist/.build-hash; fi"
+    # Recreate tracked placeholder that vite build removes when it clears dist/
+    - /bin/bash -lc "touch dist/.gitkeep"
     - /bin/bash -lc "test -d dist || { echo 'Build failed: dist folder was not created'; exit 1; }"
     - /bin/bash -lc "mkdir -p $DEPLOYPATH"
     - /bin/bash -lc "rsync -a --delete --exclude='.htaccess' --exclude='.build-hash' dist/ $DEPLOYPATH/"
