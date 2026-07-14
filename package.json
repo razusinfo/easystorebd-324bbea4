@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "echo \"Skipping lint\" && exit 0",
     "test": "echo \"Skipping tests\" && exit 0",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "verify": "bash scripts/verify-and-push.sh"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.0",
