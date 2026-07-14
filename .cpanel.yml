@@ -2,9 +2,13 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/easystore/public_html/
-    - /bin/bash -lc 'node -v && npm -v'
-    - /bin/bash -lc 'rm -rf dist node_modules'
+    - /bin/bash -lc 'export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; command -v nvm >/dev/null && nvm use 20 >/dev/null 2>&1 || true; node -v && npm -v'
+    - /bin/bash -lc 'rm -rf dist .output node_modules'
     - /bin/bash -lc 'mkdir -p node_modules && test -w node_modules || { echo "node_modules not writable"; exit 1; }'
     - /bin/bash -lc 'if [ -f package-lock.json ]; then npm ci --no-audit --no-fund --legacy-peer-deps; else npm install --no-audit --no-fund --legacy-peer-deps; fi'
     - /bin/bash -lc 'npm run build'
+    - /bin/bash -lc 'test -d dist || { echo "dist/ missing after build"; exit 1; }'
+    - /bin/bash -lc 'mkdir -p "$DEPLOYPATH"'
+    - /bin/bash -lc '[ -f "$DEPLOYPATH/.htaccess" ] && cp "$DEPLOYPATH/.htaccess" /tmp/.htaccess.bak || true'
     - /bin/cp -R dist/. $DEPLOYPATH
+    - /bin/bash -lc '[ -f /tmp/.htaccess.bak ] && cp /tmp/.htaccess.bak "$DEPLOYPATH/.htaccess" || true'
