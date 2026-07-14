@@ -903,16 +903,63 @@ export function ProductForm({ mode, productId, duplicateFromId, onDone, onCancel
             {isSuperAdmin && (
               <div className="mt-4 space-y-2 rounded-lg border border-border bg-muted/30 p-3">
                 <Field label="Supplier/Dropshipper Product Link">
-                  <Input
-                    type="url"
-                    inputMode="url"
-                    placeholder="Paste the original product URL here"
-                    value={form.sourceProductUrl}
-                    onChange={(e) => set("sourceProductUrl", e.target.value)}
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="url"
+                      inputMode="url"
+                      placeholder="Paste the original product URL here"
+                      value={form.sourceProductUrl}
+                      onChange={(e) => set("sourceProductUrl", e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={fetching || !form.sourceProductUrl.trim()}
+                      onClick={async () => {
+                        const url = form.sourceProductUrl.trim();
+                        if (!url) return;
+                        setFetching(true);
+                        try {
+                          const r = await scrapeProductUrl({ data: { url } });
+                          setForm((prev) => ({
+                            ...prev,
+                            name: prev.name || r.name || prev.name,
+                            description: prev.description || r.description || prev.description,
+                            sellPrice: prev.sellPrice || (r.price != null ? String(r.price) : prev.sellPrice),
+                            regularPrice:
+                              prev.regularPrice ||
+                              (r.regularPrice != null ? String(r.regularPrice) : prev.regularPrice),
+                            brand: prev.brand || r.brand || prev.brand,
+                            imageUrl: prev.imageUrl || r.images[0] || prev.imageUrl,
+                            galleryUrls:
+                              prev.galleryUrls.length > 0
+                                ? prev.galleryUrls
+                                : r.images.slice(1),
+                            stock:
+                              prev.stock ||
+                              (r.inStock === true ? "10" : r.inStock === false ? "0" : prev.stock),
+                          }));
+                          toast.success(
+                            `Fetched: ${r.name || "product"}${r.images.length ? ` (${r.images.length} images)` : ""}`,
+                          );
+                        } catch (e) {
+                          toast.error((e as Error)?.message ?? "Failed to fetch product");
+                        } finally {
+                          setFetching(false);
+                        }
+                      }}
+                    >
+                      {fetching ? (
+                        <><Loader2 className="mr-1 h-4 w-4 animate-spin" />Fetching…</>
+                      ) : (
+                        "Fetch Product"
+                      )}
+                    </Button>
+                  </div>
                 </Field>
                 <p className="text-xs text-muted-foreground">
-                  Super admin only — this link is stored for internal reference.
+                  Super admin only — auto-fills empty fields from the URL. You can edit, add, or
+                  remove anything before saving.
                 </p>
               </div>
             )}
