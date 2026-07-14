@@ -60,7 +60,7 @@ export function useSiteSettings() {
     queryFn: async (): Promise<SiteSettings> => {
       const { data, error } = await supabase
         .from("site_settings")
-        .select(SELECT_COLS)
+        .select(ADMIN_SELECT_COLS)
         .eq("id", SETTINGS_ID)
         .maybeSingle();
       if (error) throw error;
