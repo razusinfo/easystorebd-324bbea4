@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  useSiteSettings, useUpdateSiteSettings, useSignedSiteAsset,
+  useSiteSettingsAdmin, useUpdateSiteSettings, useSignedSiteAsset,
   uploadSiteAsset, deleteSiteAsset,
   SIDEBAR_ICONS, HEX_COLOR_RE, isValidUrl,
   type SiteSettings, type SidebarCategory, type SidebarIcon,
@@ -55,7 +55,7 @@ function Section({ title, description, children }: { title: string; description?
 }
 
 export function UICustomizer() {
-  const settingsQ = useSiteSettings();
+  const settingsQ = useSiteSettingsAdmin();
   const update = useUpdateSiteSettings();
 
   if (settingsQ.isLoading) {

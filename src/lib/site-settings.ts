@@ -29,6 +29,8 @@ const SETTINGS_ID = "global";
 const QK = ["site-settings"] as const;
 
 const SELECT_COLS =
+  "id,logo_url,logo_url_dark,favicon_url,primary_color,sidebar_categories,whatsapp_url,facebook_url,instagram_url,asset_version,updated_at";
+const ADMIN_SELECT_COLS =
   "id,logo_url,logo_url_dark,favicon_url,primary_color,sidebar_categories,whatsapp_url,contact_email,contact_phone,facebook_url,instagram_url,asset_version,updated_at";
 
 function normalize(row: any): SiteSettings {
@@ -67,6 +69,27 @@ export function useSiteSettings() {
   });
 }
 
+/**
+ * Admin variant — includes sensitive contact fields (contact_email, contact_phone).
+ * Only authenticated (super admin) callers should use this; anonymous visitors
+ * are blocked at the column-privilege level from selecting the contact fields.
+ */
+export function useSiteSettingsAdmin() {
+  return useQuery({
+    queryKey: [...QK, "admin"] as const,
+    staleTime: 1000 * 60 * 5,
+    queryFn: async (): Promise<SiteSettings> => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select(ADMIN_SELECT_COLS)
+        .eq("id", SETTINGS_ID)
+        .maybeSingle();
+      if (error) throw error;
+      return normalize(data ?? { id: SETTINGS_ID });
+    },
+  });
+}
+
 export function useUpdateSiteSettings() {
   const qc = useQueryClient();
   return useMutation({
@@ -75,7 +98,7 @@ export function useUpdateSiteSettings() {
       const { data, error } = await supabase
         .from("site_settings")
         .upsert(payload, { onConflict: "id" })
-        .select(SELECT_COLS)
+        .select(ADMIN_SELECT_COLS)
         .maybeSingle();
       if (error) throw error;
       return normalize(data);
